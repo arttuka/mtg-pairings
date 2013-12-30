@@ -1,0 +1,12 @@
+.classpath
+.lein-repl-history
+pom.xml
+*jar
+/lib/
+/classes/
+/target/
+/targets/
+.lein-deps-sum
+.project
+/bin
+*~
