@@ -4,13 +4,15 @@
             [compojure.core :as c]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [ring.util.response :refer [response]]
+            [mtg-pairings-backend.tournament-api :as tournament-api]
             
-            [mtg-pairings-backend.in-memory-db :refer [create-db]]
-            [mtg-pairings-backend.db :as db]))
+            [mtg-pairings-backend.in-memory-db :refer [create-db]]))
 
 (defn routes [db]
-  (c/routes
-    (c/GET "/" [] "Hello World")))
+  (let [tournament-routes (tournament-api/routes db)]
+    (c/routes
+      (c/GET "/" [] "Hello World")
+      (c/context "/tournament" [] tournament-routes))))
 
 (defn run! []
   (let [db (create-db)
