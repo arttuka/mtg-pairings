@@ -44,5 +44,6 @@
         teams-results (map-values calculate-points-pgw grouped-matches)
         results (calculate-omw-ogw teams-results)
         lst (for [[team result] results]
-              (assoc result :team team))]
-    (reverse (sort-by (juxt :points :omw :pgw :ogw) lst))))
+              (assoc result :team team))
+        sorted (reverse (sort-by (juxt :points :omw :pgw :ogw) lst))]
+    (map (fn [idx res] (assoc res :rank idx)) (iterate inc 1) sorted)))
