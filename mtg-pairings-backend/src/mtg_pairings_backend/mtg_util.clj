@@ -33,13 +33,12 @@
 
 (defn calculate-standings [rounds]
   (let [matches (apply concat (vals rounds))
-        all-matches (apply concat (for [match matches]
-                                    [match
-                                     {:team-1 (:team-2 match)
-                                      :team-2 (:team-1 match)
-                                      :wins (:losses match)
-                                      :losses (:wins match)
-                                      :draws (:draws match)}]))
+        all-matches (concat matches (for [match matches]
+                                      {:team-1 (:team-2 match)
+                                       :team-2 (:team-1 match)
+                                       :wins (:losses match)
+                                       :losses (:wins match)
+                                       :draws (:draws match)}))
         grouped-matches (group-by :team-1 all-matches)
         teams-results (map-values calculate-points-pgw grouped-matches)
         results (calculate-omw-ogw teams-results)
