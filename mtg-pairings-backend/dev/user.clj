@@ -9,7 +9,7 @@
   (reset! server ((ns-resolve 'mtg-pairings-backend.server 'run!))))
 
 (defn ^:private stop! []
-  (@server)
+  ((:stop-fn @server))
   (reset! server nil))
 
 (defn ^:private restart! []
