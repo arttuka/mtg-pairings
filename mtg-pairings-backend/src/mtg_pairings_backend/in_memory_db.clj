@@ -1,6 +1,8 @@
 (ns mtg-pairings-backend.in-memory-db
   (:require [mtg-pairings-backend.mtg-util :refer [calculate-standings]]
-            [mtg-pairings-backend.db]))
+            [mtg-pairings-backend.db]
+            [clojure.java.io :only [output-stream]]
+            [clojure.tools.reader.edn :as edn]))
 
 (def ^:private default-tournament
   {:rounds {}
@@ -55,7 +57,7 @@
 (defn ^:private mem-add-results [db tournament-id round results]
   (swap! db update-in [:tournaments tournament-id] update-results-and-calculate-standings round results))
 
-(deftype ^:private InMemoryDB [db tournament-id-seq]
+(defrecord ^:private InMemoryDB [db tournament-id-seq]
   mtg-pairings-backend.db/DB
   (tournament [this id]
     (mem-tournament db id))
@@ -69,6 +71,18 @@
     (mem-add-pairings db tournament-id round-num pairings))
   (add-results [this tournament-id round-num results]
     (mem-add-results db tournament-id round-num results)))
+
+(defn write-to-file [db filename]
+  (spit filename (pr-str @(:db db)))
+  db)
+
+(defn load-from-file [db filename]
+  (let [data-str (slurp filename)
+        data (edn/read-string data-str)
+        max-id (apply max (keys (:tournaments data)))]
+    (reset! (:tournament-id-seq db) max-id)
+    (reset! (:db db) data)
+    db))
 
 (defn create-db []
   (->InMemoryDB 

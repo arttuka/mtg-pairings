@@ -4,9 +4,24 @@
             [compojure.core :as c]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [ring.util.response :refer [response]]
-            [mtg-pairings-backend.tournament-api :as tournament-api]
+            [clojure.java.io :as io]
             
-            [mtg-pairings-backend.in-memory-db :refer [create-db]]))
+            [mtg-pairings-backend.tournament-api :as tournament-api]
+            [mtg-pairings-backend.in-memory-db :refer [create-db load-from-file]]))
+
+(def default-properties
+  {:db-filename "mtg-pairings.db"})
+
+(defn ^:private create-and-load-db
+  [filename]
+  (let [db (create-db)
+        file (io/file filename)]
+    (if (.exists file)
+      (try
+        (load-from-file db filename)
+        (catch clojure.lang.ExceptionInfo e
+          db))
+      db)))
 
 (defn routes [db]
   (let [tournament-routes (tournament-api/routes db)]
@@ -15,7 +30,8 @@
       (c/context "/tournament" [] tournament-routes))))
 
 (defn run! []
-  (let [db (create-db)
+  (let [properties default-properties
+        db (create-and-load-db (:db-filename properties))
         stop-fn (hs/run-server 
                   (-> (routes db)
                     wrap-json-response

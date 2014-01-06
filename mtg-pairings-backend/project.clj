@@ -7,6 +7,7 @@
                  [ring/ring-core "1.2.1"]
                  [ring/ring-json "0.2.0"]
                  [http-kit "2.1.16"]
-                 [compojure "1.1.6"]]
+                 [compojure "1.1.6"]
+                 [org.clojure/tools.reader "0.8.3"]]
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]]}})
