@@ -1,67 +1,68 @@
-## WER pairings backend API ##
+# WER pairings backend API #
 
-### Add tournament ###
+## Add tournament ##
 
-#### URL ####
+### URL ###
 /tournament
-#### Method ####
+### Method ###
 `POST`
-#### Request params ####
+### Request params ###
 `application/json`
 ``` json
 {"name": "Testing tournament"
  "date": "2014-01-01"
  "num_rounds": 5}
-#### Success response ####
+```
+### Success response ###
 ``` json
 {"id": 1}
 ```
 
-### Get tournament by id ###
+## Get tournament by id ##
 
-#### URL ####
+### URL ###
 /tournament/:id
-#### Method ####
+### Method ###
 `GET`
-#### URL Params ####
+### URL Params ###
 `id: integer` (Tournament id)
-#### Success response ####
+### Success response ###
 ``` json
 {"id": 1,
  "teams": [{"name": "Smith, John", "players": [{"name": "Smith, John", "dci": 12345678}]}],
  "rounds": { "1": ... }
  "standings": [ ... ]}
- ```
+```
 
-### Add teams to tournament ###
+## Add teams to tournament ##
 
-#### URL ####
+### URL ###
 /tournament/:id/teams
-#### Method ####
+### Method ###
 `PUT`
-#### URL Params ####
+### URL Params ###
 `id: integer` (Tournament id)
-#### Request params ####
+### Request params ###
 `application/json`
 ``` json
 [{"name": "Smith, John",
   "players": [{"name": "Smith, John", "dci": 12345678}]},
   ...]
 ```
-#### Success response ####
+### Success response ###
 HTTP 200
 
 
-### Get pairings ###
+## Get pairings ##
 
-#### URL ####
+### URL ###
 /tournament/:id/round-:round/pairings
-#### Method ####
+### Method ###
 `GET`
-#### URL Params ####
+### URL Params ###
 `id: integer` (Tournament id)
 `round: integer` (Round number)
-#### Success response ####
+### Success response ###
 ``` json
 [{"team1": "John Smith",
   "team2": "Jane Smith",
@@ -70,16 +71,16 @@ HTTP 200
   "table": 1}]
 ```
 
-### Get results ###
+## Get results ##
 
-#### URL ####
+### URL ###
 /tournament/:id/round-:round/results
-#### Method ####
+### Method ###
 `GET`
-#### URL Params ####
+### URL Params ###
 `id: integer` (Tournament id)
 `round: integer` (Round number)
-#### Success response ####
+### Success response ###
 ``` json
 [{"team1": "Smith, John",
   "team2": "Smith, Jane",
@@ -92,16 +93,16 @@ HTTP 200
   ...]
 ```
 
-### Add pairings ###
+## Add pairings ##
 
-#### URL ####
+### URL ###
 /tournament/:id/round-:round/pairings
-#### Method ####
+### Method ###
 `PUT`
-#### URL Params ####
+### URL Params ###
 `id: integer` (Tournament id)
 `round: integer` (Round number)
-#### Request params ####
+### Request params ###
 `application/json`
 ``` json
 [{"team1": "Smith, John",
@@ -109,19 +110,19 @@ HTTP 200
   "table": 1},
   ...]
 ```
-#### Success response ####
+### Success response ###
 HTTP 200
 
-### Add results ###
+## Add results ##
 
-#### URL ####
+### URL ###
 /tournament/:id/round-:round/results
-#### Method ####
+### Method ###
 `PUT`
-#### URL Params ####
+### URL Params ###
 `id: integer` (Tournament id)
 `round: integer` (Round number)
-#### Request params ####
+### Request params ###
 `application/json`
 ``` json
 [{"team1": "Smith, John",
@@ -132,18 +133,18 @@ HTTP 200
   "draws": 0},
   ...]
 ```
-#### Success response ####
+### Success response ###
 HTTP 200
 
-### Get standings ###
+## Get standings ##
 
-#### URL ####
+### URL ###
 /tournament/:id/standings
-#### Method ####
+### Method ###
 `GET`
-#### URL Params ####
+### URL Params ###
 `id: integer` (Tournament id)
-#### Success response ####
+### Success response ###
 ``` json
 [{"rank": 1,
   "team": "Smith, John",
