@@ -9,5 +9,6 @@
                  [http-kit "2.1.16"]
                  [compojure "1.1.6"]
                  [org.clojure/tools.reader "0.8.3"]]
+  :main mtg-pairings-backend.server
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]]}})

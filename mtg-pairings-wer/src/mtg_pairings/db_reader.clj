@@ -15,34 +15,38 @@
    :name "***BYE***"
    :dci-numbers []})
 
+(defn dcinumbers-for-players
+  [db players]
+  (let [person-table (db/table db "Person")] 
+    (for [player players
+          :let [person (db/row person-table (:PersonId player))]]
+      (:PrimaryDciNumber person))))
+
 (defn teams
   [db tournament-id]
-  (let [person-table (db/table db "Person")
-        team-table (db/table db "Team")
+  (let [team-table (db/table db "Team")
         teamplayer-table (db/table db "TeamPlayers")]
     (into {} (for [team (db/rows team-table {:TournamentId tournament-id})
                    :let [teamplayers (db/rows teamplayer-table {:TeamId (:TeamId team)})]]
-               [(:TeamId team) {:id (:TeamId team)
+               {(:TeamId team) {:id (:TeamId team)
                                 :name (:Name team)
-                                :dci-numbers (for [teamplayer teamplayers
-                                                   :let [person (db/row person-table (:PersonId teamplayer))]]
-                                               (:PrimaryDciNumber person))}]))))
+                                :dci-numbers (dcinumbers-for-players db teamplayers)}}))))
 
-(defn teams-from-results
-  [results teams]
-  (if (= 2 (count results))
-    (let [pair (for [result results]
-                 (teams (:TeamId result)))]
+(defn teams-from-ids
+  [team-ids all-teams]
+  (if (= 2 (count team-ids))
+    (let [pair (map all-teams team-ids)]
       [pair (reverse pair)])
-    [(teams (:TeamId (first results))) bye]))
+    [(all-teams (:TeamId (first team-ids))) bye]))
 
 (defn pairings-for-round
-  [db round-id teams]
+  [db round-id all-teams]
   (let [match-table (db/table db "Match")
-        result-table (db/table db "TeamMatchResult")]
-    (apply concat (for [match (db/rows match-table {:RoundId round-id})
-                        :let [results (db/rows result-table {:MatchId (:MatchId match)})]]
-                    (teams-from-results results teams)))))
+        result-table (db/table db "TeamMatchResult")
+        matches (db/rows match-table {:RoundId round-id})
+        results (for [match matches]
+                  (map :TeamId (db/rows result-table {:MatchId (:MatchId match)})))]
+    (mapcat #(teams-from-ids % all-teams) results)))
 
 (defn pairings
   [db tournament-id]

@@ -23,7 +23,7 @@
       (add-pairings db (Integer/parseInt id) (Integer/parseInt round) (:body request))
       {:status 200})
     (c/PUT "/:id/round-:round/results" [id round :as request]
-      (add-results db (Integer/parseInt id) (Integer/parseInt round (:body request)))
+      (add-results db (Integer/parseInt id) (Integer/parseInt round) (:body request))
       {:status 200})
     (c/PUT "/:id/teams" [id :as request]
       (add-teams db (Integer/parseInt id) (:body request)))
