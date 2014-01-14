@@ -33,25 +33,31 @@
     (swap! db update-in [:players] merge players-map)
     (swap! db update-in [:tournaments tournament-id] assoc :teams teams)))
 
+(defn ^:private add-points-to-pairings [round standings pairings]
+  (let [points-of-team (if (= 1 round)
+                         (constantly 0)
+                         (into {} (for [team standings]
+                                    {(:team team) (:points team)})))]
+    (for [pairing pairings]
+      {:team-1 (:team1 pairing)
+       :team-2 (:team2 pairing)
+       :team-1-points (points-of-team (:team1 pairing))
+       :team-2-points (points-of-team (:team2 pairing))
+       :wins (:team1_wins pairing)
+       :losses (:team2_wins pairing)
+       :draws (:draws pairing)})))
+
 (defn ^:private mem-add-pairings [db tournament-id round pairings]
-  (let [pairings (for [pairing pairings]
-                   {:team-1 (:team1 pairing)
-                    :team-2 (:team2 pairing)
-                    :wins nil
-                    :losses nil
-                    :draws nil})]
-    (swap! db update-in [:tournaments :rounds] assoc round pairings)))
+  (let [standings (get-in @db [:tournaments tournament-id :standings])
+        pairings (add-points-to-pairings round standings pairings)] 
+    (swap! db update-in [:tournaments tournament-id :rounds] assoc round pairings)))
 
 (defn ^:private update-results-and-calculate-standings
   [tournament round results]
-  (let [results (for [result results]
-                  {:team-1 (:team1 result)
-                   :team-2 (:team2 result)
-                   :wins (:wins result)
-                   :losses (:losses result)
-                   :draws (:draws result)})
+  (let [old-standings (:standings tournament) 
+        results (add-points-to-pairings round old-standings results)
         tournament (assoc-in tournament [:rounds round] results)
-        standings (calculate-standings (:rounds tournament))]
+        standings (calculate-standings (:rounds tournament) round)]
     (assoc tournament :standings standings)))
 
 (defn ^:private mem-add-results [db tournament-id round results]

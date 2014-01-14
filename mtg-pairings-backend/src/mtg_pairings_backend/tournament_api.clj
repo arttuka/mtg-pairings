@@ -6,7 +6,7 @@
 (defn ^:private get-round [db id round]
   (let [tournament (tournament db (Integer/parseInt id))
         round-num (Integer/parseInt round)]
-    (-> tournament :rounds round-num)))
+    (get-in tournament [:rounds round-num])))
 
 (defn routes [db]
   (c/routes

@@ -38,8 +38,10 @@
    :losses (:wins match)
    :draws (:draws match)})
 
-(defn calculate-standings [rounds]
-  (let [matches (apply concat (vals rounds))
+(defn calculate-standings [rounds up-to-round-num]
+  (let [matches (apply concat (for [[round-num matches] rounds
+                                    :when (<= round-num up-to-round-num)]
+                                matches))
         all-matches (concat matches (map reverse-match matches))
         grouped-matches (group-by :team-1 all-matches)
         teams-results (map-values calculate-points-pgw grouped-matches)
