@@ -5,6 +5,7 @@
   (db/open-db filename))
 
 (defn tournaments
+  "Returns a list of tournaments in the database"
   [db]
   (->> (db/table db "Tournament")
     db/rows
@@ -16,6 +17,7 @@
    :dci-numbers []})
 
 (defn dcinumbers-for-players
+  "Returns a list of DCI numbers for a list of players"
   [db players]
   (let [person-table (db/table db "Person")] 
     (for [player players
@@ -23,6 +25,7 @@
       (:PrimaryDciNumber person))))
 
 (defn teams
+  "Returns a list of teams in the tournament with the given id number."
   [db tournament-id]
   (let [team-table (db/table db "Team")
         teamplayer-table (db/table db "TeamPlayers")]
@@ -37,7 +40,7 @@
   (if (= 2 (count team-ids))
     (let [pair (map all-teams team-ids)]
       [pair (reverse pair)])
-    [(all-teams (:TeamId (first team-ids))) bye]))
+    [[(all-teams (first team-ids)) bye]]))
 
 (defn pairings-for-round
   [db round-id all-teams]
