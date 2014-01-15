@@ -3,6 +3,7 @@
   (:require [org.httpkit.server :as hs]
             [compojure.core :as c]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
+            [ring.middleware.session :refer [wrap-session]]
             [ring.util.response :refer [response]]
             [clojure.java.io :as io]
             
@@ -34,6 +35,7 @@
         db (create-and-load-db (:db-filename properties))
         stop-fn (hs/run-server 
                   (-> (routes db)
+                    wrap-session
                     wrap-json-response
                     (wrap-json-body {:keywords? true})) 
                   {:port 8080})]
