@@ -1,4 +1,4 @@
-(ns mtg-pairings-backend.util)
+(ns mtg-pairings-server.util)
 
 (defn map-values
   "Returns a map consisting of the keys of m mapped to 

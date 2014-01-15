@@ -5,8 +5,8 @@
 (defonce ^:private server (atom nil))
 
 (defn ^:private start! []
-  (require 'mtg-pairings-backend.server)
-  (reset! server ((ns-resolve 'mtg-pairings-backend.server 'run!))))
+  (require 'mtg-pairings-server.server)
+  (reset! server ((ns-resolve 'mtg-pairings-server.server 'run!))))
 
 (defn ^:private stop! []
   ((:stop-fn @server))

@@ -1,4 +1,4 @@
-(defproject mtg-pairings-backend "0.1.0-SNAPSHOT"
+(defproject mtg-pairings-server "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "MIT License"
@@ -12,6 +12,6 @@
                  [clj-time "0.6.0"]
                  [korma "0.3.0-RC6"]
                  [org.postgresql/postgresql "9.2-1002-jdbc4"]]
-  :main mtg-pairings-backend.server
+  :main mtg-pairings-server.server
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]]}})

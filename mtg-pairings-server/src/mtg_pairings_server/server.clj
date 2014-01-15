@@ -1,4 +1,4 @@
-(ns mtg-pairings-backend.server
+(ns mtg-pairings-server.server
   (:gen-class)
   (:require [org.httpkit.server :as hs]
             [compojure.core :as c]
@@ -9,8 +9,8 @@
             [clojure.java.io :as io]
             [clojure.tools.reader.edn :as edn]
             
-            [mtg-pairings-backend.tournament-api :as tournament-api]
-            [mtg-pairings-backend.sql-db :refer [create-db]]))
+            [mtg-pairings-server.tournament-api :as tournament-api]
+            [mtg-pairings-server.sql-db :refer [create-db]]))
 
 (def default-properties
   {:db-filename "mtg-pairings.db"})

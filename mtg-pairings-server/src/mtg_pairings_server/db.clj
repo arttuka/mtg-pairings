@@ -1,4 +1,4 @@
-(ns mtg-pairings-backend.db)
+(ns mtg-pairings-server.db)
 
 (defprotocol DB
   (tournament [this id]

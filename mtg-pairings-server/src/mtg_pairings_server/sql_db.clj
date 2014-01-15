@@ -1,4 +1,4 @@
-(ns mtg-pairings-backend.sql-db
+(ns mtg-pairings-server.sql-db
   (:require [korma.core :as sql]
             korma.db
             [clojure.walk :refer [postwalk]]
@@ -94,7 +94,7 @@
     {:fk :tournament}))
 
 (defrecord ^:private SqlDb []
-  mtg-pairings-backend.db/DB
+  mtg-pairings-server.db/DB
   (tournament [this id]
     nil)
   (player [this dci]

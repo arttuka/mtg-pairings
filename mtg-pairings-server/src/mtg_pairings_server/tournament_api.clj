@@ -1,7 +1,7 @@
-(ns mtg-pairings-backend.tournament-api
+(ns mtg-pairings-server.tournament-api
   (:require [ring.util.response :refer [response]]
             [compojure.core :as c]
-            [mtg-pairings-backend.db :refer :all]))
+            [mtg-pairings-server.db :refer :all]))
 
 (defn ^:private get-round [db id round]
   (let [tournament (tournament db (Integer/parseInt id))

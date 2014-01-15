@@ -1,6 +1,6 @@
-(ns mtg-pairings-backend.in-memory-db
-  (:require [mtg-pairings-backend.mtg-util :refer [calculate-standings]]
-            [mtg-pairings-backend.db]
+(ns mtg-pairings-server.in-memory-db
+  (:require [mtg-pairings-server.mtg-util :refer [calculate-standings]]
+            [mtg-pairings-server.db]
             [clojure.java.io :only [output-stream]]
             [clojure.tools.reader.edn :as edn]))
 
@@ -64,7 +64,7 @@
   (swap! db update-in [:tournaments tournament-id] update-results-and-calculate-standings round results))
 
 (defrecord ^:private InMemoryDB [db tournament-id-seq]
-  mtg-pairings-backend.db/DB
+  mtg-pairings-server.db/DB
   (tournament [this id]
     (mem-tournament db id))
   (player [this dci]

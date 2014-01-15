@@ -1,5 +1,5 @@
-(ns mtg-pairings-backend.mtg-util
-  (:require [mtg-pairings-backend.util :refer [map-values]]))
+(ns mtg-pairings-server.mtg-util
+  (:require [mtg-pairings-server.util :refer [map-values]]))
 
 (defn ^:private add-result [acc res]
   (let [result {:match-points (cond
