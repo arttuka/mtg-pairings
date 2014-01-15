@@ -2,6 +2,7 @@
   (:gen-class)
   (:require [org.httpkit.server :as hs]
             [compojure.core :as c]
+            [compojure.route :as r]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [ring.middleware.session :refer [wrap-session]]
             [ring.util.response :refer [response]]
@@ -27,6 +28,7 @@
 (defn routes [db]
   (let [tournament-routes (tournament-api/routes db)]
     (c/routes
+      (r/resources "/")
       (c/GET "/" [] "Hello World")
       (c/context "/tournament" [] tournament-routes))))
 
