@@ -7,23 +7,24 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.util.response :refer [response]]
             [clojure.java.io :as io]
+            [clojure.tools.reader.edn :as edn]
             
             [mtg-pairings-backend.tournament-api :as tournament-api]
-            [mtg-pairings-backend.in-memory-db :refer [create-db load-from-file]]))
+            [mtg-pairings-backend.sql-db :refer [create-db]]))
 
 (def default-properties
   {:db-filename "mtg-pairings.db"})
 
-(defn ^:private create-and-load-db
-  [filename]
-  (let [db (create-db)
-        file (io/file filename)]
-    (if (.exists file)
-      (try
-        (load-from-file db filename)
-        (catch clojure.lang.ExceptionInfo e
-          db))
-      db)))
+#_(defn ^:private create-and-load-db
+   [filename]
+   (let [db (create-db)
+         file (io/file filename)]
+     (if (.exists file)
+       (try
+         (load-from-file db filename)
+         (catch clojure.lang.ExceptionInfo e
+           db))
+       db)))
 
 (defn routes [db]
   (let [tournament-routes (tournament-api/routes db)]
@@ -33,8 +34,8 @@
       (c/context "/tournament" [] tournament-routes))))
 
 (defn run! []
-  (let [properties default-properties
-        db (create-and-load-db (:db-filename properties))
+  (let [db-properties (edn/read-string (slurp "db.properties"))
+        db (create-db db-properties)
         stop-fn (hs/run-server 
                   (-> (routes db)
                     wrap-session

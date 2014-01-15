@@ -8,7 +8,10 @@
                  [ring/ring-json "0.2.0"]
                  [http-kit "2.1.16"]
                  [compojure "1.1.6"]
-                 [org.clojure/tools.reader "0.8.3"]]
+                 [org.clojure/tools.reader "0.8.3"]
+                 [clj-time "0.6.0"]
+                 [korma "0.3.0-RC6"]
+                 [org.postgresql/postgresql "9.2-1002-jdbc4"]]
   :main mtg-pairings-backend.server
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]]}})
