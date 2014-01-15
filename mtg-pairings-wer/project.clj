@@ -4,4 +4,5 @@
   :license {:name "MIT License"
             :url "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [clojess "0.2"]])
+                 [clojess "0.3"]])
+
