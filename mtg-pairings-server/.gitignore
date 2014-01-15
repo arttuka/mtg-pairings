@@ -1,4 +1,5 @@
 mtg-pairings.db
+db.properties
 /target
 /classes
 /checkouts
