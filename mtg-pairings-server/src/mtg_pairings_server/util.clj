@@ -8,3 +8,6 @@ Function f should accept one argument."
   (into {}
     (for [[k v] m]
       [k (f v)])))
+
+(defn some-value [pred coll]
+  (first (filter pred coll)))

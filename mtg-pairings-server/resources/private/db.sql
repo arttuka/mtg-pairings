@@ -14,7 +14,8 @@ create table tournament(
 create table team(
   id serial primary key,
   name varchar(200) not null,
-  tournament int not null references tournament(id)
+  tournament int not null references tournament(id),
+  unique (tournament, name)
 );
 
 create table team_players(
@@ -26,7 +27,8 @@ create table team_players(
 create table round(
   id serial primary key,
   num int not null,
-  tournament int not null references tournament(id)
+  tournament int not null references tournament(id),
+  unique (tournament, num)
 );
 
 create table pairing(
@@ -46,7 +48,9 @@ create table result(
 );
 
 create table standings(
-  tournament int primary key references tournament(id),
-  standings text not null
+  tournament int references tournament(id),
+  round int not null,
+  standings text not null,
+  primary key (tournament, round)
 );
 commit;

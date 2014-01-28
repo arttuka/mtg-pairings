@@ -34,6 +34,8 @@
 (defn ^:private reverse-match [match]
   {:team-1 (:team-2 match)
    :team-2 (:team-1 match)
+   :team-1-name (:team-2-name match)
+   :team-2-name (:team-1-name match)
    :wins (:losses match)
    :losses (:wins match)
    :draws (:draws match)})
