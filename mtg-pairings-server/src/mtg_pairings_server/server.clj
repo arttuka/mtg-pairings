@@ -26,11 +26,27 @@
            db))
        db)))
 
+(defn login [req]
+  (if-let [dci (get-in req [:body :dci])]
+    (do 
+      (println "dci:" dci)
+      {:status 200
+       :session (assoc (:session req {}) :dci dci)})
+    {:status 400}))
+
+(defn logout []
+  {:status 200
+   :session nil})
+
 (defn routes [db]
   (let [tournament-routes (tournament-api/routes db)]
     (c/routes
       (r/resources "/")
       (c/GET "/" [] "Hello World")
+      (c/POST "/login" [:as req]
+        (login req))
+      (c/POST "/logout" []
+        (logout))
       (c/context "/tournament" [] tournament-routes))))
 
 (defn run! []
