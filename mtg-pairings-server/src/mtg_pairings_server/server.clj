@@ -43,7 +43,7 @@
   (let [tournament-routes (tournament-api/routes db)]
     (c/routes
       (r/resources "/")
-      (c/GET "/" [] "Hello World")
+      (c/GET "/" [] (response (slurp "resources/public/index.html")))
       (c/POST "/login" [:as req]
         (login req))
       (c/POST "/logout" []
