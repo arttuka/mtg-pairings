@@ -5,6 +5,7 @@
             [compojure.route :as r]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [ring.middleware.session :refer [wrap-session]]
+            [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer [response]]
             [clojure.java.io :as io]
             [clojure.tools.reader.edn :as edn]
@@ -54,6 +55,7 @@
         db (create-db db-properties)
         stop-fn (hs/run-server 
                   (-> (routes db)
+                    (wrap-resource "public")
                     wrap-session
                     wrap-json-response
                     (wrap-json-body {:keywords? true})) 
