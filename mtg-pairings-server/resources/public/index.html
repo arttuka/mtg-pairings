@@ -2,12 +2,31 @@
 <head>
   <script src="js/lib/jquery-2.0.3.js"></script>
   <script src="js/lib/angular.js"></script>
+  <script src="js/lib/angular-route.js"></script>
+  <script src="js/lib/angular-resource.js"></script>
   <script src="js/lib/angular-touch.js"></script>
+  <script src="js/lib/angular-local-storage.js"></script>
+  <script src="js/services.js"></script>
   <script src="js/controllers.js"></script>
+  <script src="js/resources.js"></script>
   <script src="js/app.js"></script>
+  <link rel="stylesheet" type="text/css" href="css/main.css" /> 
 </head>
-<body id="body" ng-controller="Testi">
-  {{number}}
-  <button ng-click="open()">Open</button>
+<body>
+  <div id="header" ng-controller="MenuController">
+    <div ng-hide="loggedIn">
+      <input type="text" ng-model="dci"></input>
+      <button ng-click="login()">Kirjaudu</button>
+    </div>
+    <div ng-hide="!loggedIn">
+      {{dci}}
+      <button ng-click="logout()">Kirjaudu ulos</button>
+    </div>
+  </div>
+  <div id="content" ng-controller="TournamentController">
+    <div ng-repeat="tournament in tournaments">
+      {{tournament.name}} {{tournament.day | date:'dd.MM.yyyy'}}
+    </div>
+  </div>
 </body>
 </html>
