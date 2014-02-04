@@ -3,6 +3,8 @@
 (defprotocol DB
   (tournament [this id]
     "Returns the tournament with given id")
+  (tournaments [this]
+    "Returns all tournaments")
   (player [this dci]
     "Returns the tournament with given DCI number")
   (add-tournament [this tournament]

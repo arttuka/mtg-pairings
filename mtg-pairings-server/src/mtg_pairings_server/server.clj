@@ -7,6 +7,7 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.util.response :refer [response]]
+            [cheshire.generate :as json-gen]
             [clojure.java.io :as io]
             [clojure.tools.reader.edn :as edn]
             
@@ -45,6 +46,9 @@
                     wrap-json-response
                     (wrap-json-body {:keywords? true})) 
                   {:port 8080})]
+    (json-gen/add-encoder org.joda.time.LocalDate
+      (fn [c generator]
+        (.writeString generator (str c))))
     {:db db
      :stop-fn stop-fn}))
 

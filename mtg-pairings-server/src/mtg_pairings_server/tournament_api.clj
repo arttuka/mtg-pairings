@@ -13,6 +13,8 @@
     (c/POST "/" [:as request]
       (let [id (add-tournament db (:body request))]
         (response {:id id})))
+    (c/GET "/" []
+      (response (tournaments db)))
     (c/GET "/:id" [id]
       (response (tournament db (Integer/parseInt id))))
     (c/GET "/:id/round-:round/pairings" [id round]

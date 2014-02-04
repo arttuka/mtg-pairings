@@ -104,6 +104,11 @@
     (sql/select tournament
      (sql/where {:id id}))))
 
+(defn ^:private sql-tournaments []
+  (sql/select tournament
+    (sql/order :day :DESC)
+    (sql/order :name :ASC)))
+
 (defn ^:private sql-player [dci]
   (first
     (sql/select player
@@ -230,6 +235,8 @@
   mtg-pairings-server.db/DB
   (tournament [this id]
     (sql-tournament id))
+  (tournaments [this]
+    (sql-tournaments))
   (player [this dci]
     (sql-player dci))
   (add-tournament [this tournament]
