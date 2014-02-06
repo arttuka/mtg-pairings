@@ -12,25 +12,10 @@
             [clojure.tools.reader.edn :as edn]
             
             [mtg-pairings-server.tournament-api :as tournament-api]
-            [mtg-pairings-server.sql-db :refer [create-db]]))
+            [mtg-pairings-server.sql-db :refer [create-korma-db]]))
 
-(def default-properties
-  {:db-filename "mtg-pairings.db"})
-
-#_(defn ^:private create-and-load-db
-   [filename]
-   (let [db (create-db)
-         file (io/file filename)]
-     (if (.exists file)
-       (try
-         (load-from-file db filename)
-         (catch clojure.lang.ExceptionInfo e
-           db))
-       db)))
-
-
-(defn routes [db]
-  (let [tournament-routes (tournament-api/routes db)]
+(defn routes []
+  (let [tournament-routes (tournament-api/routes)]
     (c/routes
       (r/resources "/")
       (c/GET "/" [] (response (slurp "resources/public/index.html")))
@@ -38,9 +23,9 @@
 
 (defn run! []
   (let [db-properties (edn/read-string (slurp "db.properties"))
-        db (create-db db-properties)
+        db (create-korma-db db-properties)
         stop-fn (hs/run-server 
-                  (-> (routes db)
+                  (-> (routes)
                     (wrap-resource "public")
                     wrap-session
                     wrap-json-response
