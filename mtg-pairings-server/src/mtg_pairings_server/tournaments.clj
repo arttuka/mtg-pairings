@@ -5,7 +5,6 @@
             [mtg-pairings-server.util :as util]
             [clojure.tools.reader.edn :as edn]))
 
-
 (defn tournament [id]
   (first 
     (sql/select db/tournament
@@ -28,11 +27,6 @@
       (-> tournament 
         (update-in [:round] #(map :num %))
         (update-in [:standings] #(map :num %))))))
-
-(defn player [dci]
-  (first
-    (sql/select db/player
-      (sql/where {:dci dci}))))
 
 (defn add-tournament [tourn]
   (let [tourn (sql/insert db/tournament

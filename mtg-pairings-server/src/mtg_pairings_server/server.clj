@@ -12,14 +12,17 @@
             [clojure.tools.reader.edn :as edn]
             
             [mtg-pairings-server.tournament-api :as tournament-api]
+            [mtg-pairings-server.player-api :as player-api]
             [mtg-pairings-server.sql-db :refer [create-korma-db]]))
 
 (defn routes []
-  (let [tournament-routes (tournament-api/routes)]
+  (let [tournament-routes (tournament-api/routes)
+        player-routes (player-api/routes)]
     (c/routes
       (r/resources "/")
       (c/GET "/" [] (response (slurp "resources/public/index.html")))
-      (c/context "/tournament" [] tournament-routes))))
+      (c/context "/tournament" [] tournament-routes)
+      (c/context "/player" [] player-routes))))
 
 (defn run! []
   (let [db-properties (edn/read-string (slurp "db.properties"))
