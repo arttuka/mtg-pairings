@@ -1,5 +1,5 @@
 (ns mtg-pairings-server.tournament-api
-  (:require [ring.util.response :refer [response]]
+  (:require [mtg-pairings-server.util :refer [response]]
             [compojure.core :as c]
             [mtg-pairings-server.tournaments :refer :all]))
 
