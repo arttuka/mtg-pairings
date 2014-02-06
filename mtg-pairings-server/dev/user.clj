@@ -12,7 +12,7 @@
   ((:stop-fn @server))
   (reset! server nil))
 
-(defn ^:private restart! []
+(defn restart! []
   (when @server
     (stop!))
   (nsr/refresh :after 'user/start!))
