@@ -19,13 +19,30 @@
       <button ng-click="login()">Kirjaudu</button>
     </div>
     <div ng-hide="!loggedIn">
-      {{dci}}
+      {{dci}} {{name}}
       <button ng-click="logout()">Kirjaudu ulos</button>
     </div>
   </div>
   <div id="content" ng-controller="TournamentController">
-    <div ng-repeat="tournament in tournaments">
-      {{tournament.name}} {{tournament.day | date:'dd.MM.yyyy'}}
+    <div ng-hide="loggedIn">
+      <div ng-repeat="tournament in tournaments">
+        <h3>{{tournament.name}} {{tournament.day | date:'dd.MM.yyyy'}}</h3>
+        <div ng-repeat="num in tournament.round">
+          <a href="#/tournaments/{{tournament.id}}/pairings-{{num}}">Pairings {{num}}</a>
+        </div>
+        <div ng-repeat="num in tournament.standings">
+          <a href="#/tournaments/{{tournament.id}}/standings-{{num}}">Standings {{num}}</a>
+        </div>
+      </div>
+    </div>
+    <div ng-hide="!loggedIn">
+      <div ng-repeat="tournament in tournaments">
+        <h3>{{tournament.name}} {{tournament.day | date:'dd.MM.yyyy'}}</h3>
+        <div ng-repeat="pairing in tournament.pairings">
+          <h4>Kierros {{pairing.round_number}}</h4>
+          {{pairing.table_number}} {{pairing.team1_name}} {{pairing.team1_points}} - {{pairing.team2_name}} {{pairing.team2_points}}
+        </div>
+      </div>
     </div>
   </div>
 </body>
