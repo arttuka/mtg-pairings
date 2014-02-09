@@ -1,0 +1,23 @@
+<div class="pairing" ng-class="{'pairing-even': even, 'pairing-odd': !even}">
+  <h4>Kierros {{model.round_number}}</h4>
+  <span class="table-number">{{model.table_number}}</span>
+  <span ng-hide="isPairing">{{model.team1_name}}</span>
+  <span ng-hide="!isPairing">
+    <table class="names">
+      <tr>
+        <td>{{model.team1_name}}</td>
+      </tr>
+      <tr>
+        <td class="opponent">{{model.team2_name}}</td>
+      </tr>
+    </table>
+    <table class="points">
+      <tr>
+        <td>{{model.team1_points}}</td>
+      </tr>
+      <tr>
+        <td class="opponent">{{model.team2_points}}</td>
+      </tr>
+    </table>
+  </span>
+</div>

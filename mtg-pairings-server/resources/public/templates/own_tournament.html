@@ -1,0 +1,13 @@
+<div class="own-tournament border-top">
+  <div class="own-tournament-header" ng-click="isCollapsed = !isCollapsed">
+    <h3>
+      <i class="pull-left glyphicon" ng-class="{'glyphicon-chevron-down': !isCollapsed, 'glyphicon-chevron-right': isCollapsed}"></i>
+      {{model.name}} - {{model.day | date:'dd.MM.yyyy'}}
+    </h3>
+  </div>
+  <div class="own-tournament-content" collapse="isCollapsed">
+    <div class="own-tournament-pairing" ng-repeat="pairing in model.pairings">
+      <pairing model="pairing" even="$even">
+    </div>
+  </div>
+</div>
