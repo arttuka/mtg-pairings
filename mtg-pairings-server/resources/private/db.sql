@@ -37,7 +37,8 @@ create table pairing(
   team1 int not null references team(id),
   team2 int references team(id),
   team1_points int not null,
-  team2_points int not null
+  team2_points int not null,
+  table_number int not null
 );
 
 create table result(

@@ -101,12 +101,13 @@
 
 (defn ^:private results-of-round [round-id]
   (sql/select db/pairing
-    (sql/fields [:team1 :team-1] 
-                [:team2 :team-2])
+    (sql/fields [:team1 :team_1] 
+                [:team2 :team_2]
+                :table_number)
     (sql/with db/team1
-      (sql/fields [:name :team-1-name]))
+      (sql/fields [:name :team_1_name]))
     (sql/with db/team2
-      (sql/fields [:name :team-2-name]))
+      (sql/fields [:name :team_2_name]))
     (sql/with db/result
       (sql/fields [:team1_wins :wins] 
                   [:team2_wins :losses]
@@ -145,3 +146,9 @@
                      :team2_wins (:losses res)
                      :draws (:draws res)})))
     (calculate-standings tournament-id)))
+
+(defn get-round [tournament-id round-num]
+  (let [round-id (:id (first (sql/select db/round
+                               (sql/where {:tournament tournament-id
+                                           :num round-num}))))]
+    (results-of-round round-id)))
