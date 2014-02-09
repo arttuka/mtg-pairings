@@ -33,7 +33,9 @@
 (declare tournament player team round pairing result standings team-players)
 
 (sql/defentity team-players
-  (sql/table :team_players))
+  (sql/table :team_players)
+  (sql/belongs-to team
+    {:fk :team}))
 
 (sql/defentity tournament
   (sql/pk :id)

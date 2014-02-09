@@ -43,12 +43,12 @@
       </div>
     </div>
     <div ng-hide="!loggedIn">
-      <div ng-repeat="tournament in tournaments">
-        <h3>{{tournament.name}} {{tournament.day | date:'dd.MM.yyyy'}}</h3>
-        <div ng-repeat="pairing in tournament.pairings">
-          <h4>Kierros {{pairing.round_number}}</h4>
-          {{pairing.table_number}} {{pairing.team1_name}} {{pairing.team1_points}} - {{pairing.team2_name}} {{pairing.team2_points}}
-        </div>
+      <div class="newest-pairing" ngHide="!latestPairing">
+        <h3>Uusin pairing: {{latestPairing.tournament}}</h3>
+        <pairing model="latestPairing" even="true">
+      </div>
+      <div ng-repeat="t in tournaments">
+        <own-tournament model="t">
       </div>
     </div>
   </div>

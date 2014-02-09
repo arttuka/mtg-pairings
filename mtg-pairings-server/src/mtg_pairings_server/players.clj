@@ -47,3 +47,29 @@
                                     (sql/where {:team_players.player dci
                                                 :team.tournament :tournament.id})))))]
     (add-players-data tournament dci)))
+
+(defn latest [dci]
+  (first
+    (sql/select db/pairing
+      (sql/with db/team1
+        (sql/fields [:name :team1_name]))
+      (sql/with db/team2
+        (sql/fields [:name :team2_name]))
+      (sql/with db/round
+        (sql/fields [:num :round_number]))
+      (sql/where (and {:round.tournament [in (sql/subselect db/tournament
+                                               (sql/fields :id)
+                                               (sql/where (sql/sqlfn exists (sql/subselect db/team-players
+                                                                              (sql/with db/team)
+                                                                              (sql/where {:player "18276430"
+                                                                                          :team.tournament :tournament.id})))))]
+                       :round.num (sql/subselect {:table "round", :alias "round2"}
+                                    (sql/aggregate (max :num) :max_num)
+                                    (sql/where {:round2.tournament :round.tournament}))}
+                    
+                      (sql/sqlfn exists (sql/subselect db/team-players
+                                          (sql/with db/team)
+                                          (sql/where (and {:player "18276430"
+                                                           :team.tournament :round.tournament}
+                                                          (or {:team_players.team :pairing.team1}
+                                                              {:team_players.team :pairing.team2}))))))))))

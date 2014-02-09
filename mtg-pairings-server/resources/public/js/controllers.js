@@ -43,7 +43,21 @@ angular.module('controllers', [])
 .controller('TournamentController', function($scope, localStorageService, TournamentResource, PlayerResource) {
   var loadTournaments = function() {
     if($scope.loggedIn) {
-      $scope.tournaments = PlayerResource.tournaments({dci: $scope.dci});
+      PlayerResource.tournaments({dci: $scope.dci}).$promise.then(function(tournaments) {
+        if(tournaments.length > 0) {
+          var latestTournament = tournaments[0];
+          if(latestTournament.pairings.length > 0) {
+            $scope.latestPairing = latestTournament.pairings[0];
+            $scope.latestPairing.tournament = latestTournament.name;
+            $scope.latestPairing.day = latestTournament.day;
+          } else {
+            $scope.latestPairing = latestTournament.seating;
+          }
+        } else {
+          $scope.latestPairing = null;
+        }
+        $scope.tournaments = tournaments
+      });
     } else {
       $scope.tournaments = TournamentResource.query();
     }
@@ -60,6 +74,32 @@ angular.module('controllers', [])
     loadTournaments();
   });
   loadTournaments();
+})
+
+.controller('PairingsController', function($scope, $routeParams, TournamentResource) {
+  $scope.allPairings = TournamentResource.pairings({id: $routeParams.tournament,
+                                                    round: $routeParams.round});
+  $scope.sort = 'table_number';
+  $scope.$watch('sort', sortPairings);
+  $scope.$watchCollection('allPairings', sortPairings);
+
+  function duplicatePairing(p) {
+    return {
+      draws: p.draws,
+      losses: p.wins,
+      wins: p.losses,
+      team_1_name: p.team_2_name,
+      team_2_name: p.team_1_name
+    };
+  }
+
+  function sortPairings() {
+    if($scope.sort == 'team_1_name') {
+      $scope.pairings = $scope.allPairings.concat(_.map($scope.allPairings, duplicatePairing));
+    } else {
+      $scope.pairings = $scope.allPairings;
+    }
+  }
 })
 
 .controller('Testi', function($scope, $window) {

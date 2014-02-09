@@ -2,7 +2,11 @@ angular.module('resources', [])
 
 .factory('TournamentResource', function($resource) {
   return $resource('/tournament/:id', {'id': '@id'}, {
-
+    pairings: {
+      method: 'GET',
+      url: '/tournament/:id/round-:round/pairings',
+      isArray: true
+    }
   });
 })
 

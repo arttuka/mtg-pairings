@@ -2,4 +2,138 @@ html, body {
   margin: 0;
   padding: 0;
   border: 0;
+  background-color: #eeeeee;
+}
+
+* {
+  font-family: Lato, Helvetica, sans-serif;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+#header {
+  background-color: #333333;
+  color: #eeeeee;
+  border-bottom: 1px solid #000000;
+  height:60px;
+  font-size: 20px;
+}
+
+#header span {
+  line-height: 60px;
+  float:left;
+  margin-left: 10px;
+}
+
+#header > div {
+  height:100%;
+  position:relative;
+}
+
+#header button {
+  border:0;
+  background-color: #424242;
+  color: #eeeeee;
+  height:40px;
+  line-height: 40px;
+  text-align: center;
+  padding:0 10px;
+  font-size: 18px;
+  margin-top: 10px;
+  margin-right: 10px;
+  float:right;
+}
+
+#header input {
+  height:40px;
+  padding: 0 8px;
+  background-color: #333333;
+  color: #eeeeee;
+  border: 2px solid #eeeeee;
+  font-size: 18px;
+  line-height: 32px;
+  margin-top: 10px;
+  margin-left: 10px;
+  float:left;
+}
+
+.pairing {
+  height: 80px;
+  clear:left;
+  border-left: 1px solid #eeeeee;
+  margin-left:20px;
+}
+
+.pairing h4 {
+  height: 20px;
+  line-height: 20px;
+  font-size:16px;
+  margin:0;
+}
+
+.pairing.pairing-even {
+  background-color:#eeeeee;
+}
+.pairing.pairing-odd {
+  background-color:#ffffff;
+}
+
+.pairing .table-number {
+  display: inline-block;
+  line-height: 60px;
+  width:60px;
+  text-align:center;
+  font-size: 40px;
+  font-weight: bold;
+  color: #424242;
+  float:left;
+}
+
+.pairing table {
+  display: inline-block;
+  float:left;
+}
+
+.pairing td {
+  height:30px;
+  line-height:30px;
+  font-size:20px;
+  border:0;
+  margin:0;
+  padding:0;
+}
+
+.pairing td.opponent {
+  color:#424242;
+}
+
+.pairing .points {
+  float:right;
+  margin-right:15px;
+}
+
+.border-top {
+  border-top: 1px solid #424242;
+}
+
+i.pull-left {
+  margin-right:15px;
+}
+
+.own-tournament-header {
+  height:50px;
+  line-height:50px;
+}
+
+.own-tournament-header h3 {
+  line-height:50px;
+  margin:0;
+}
+
+.own-tournament-header i {
+  line-height:50px;
 }
