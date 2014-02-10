@@ -42,7 +42,25 @@
       [pair (reverse pair)])
     [[(all-teams (first team-ids)) bye]]))
 
-(defn pairings-for-round
+
+(defn results-for-round
+  [db round-id all-teams]
+  (let [match-table (db/table db "Match")
+        result-table (db/table db "TeamMatchResult")
+        matches (db/rows match-table {:RoundId round-id})]
+   (for [match matches
+     :let [[first-row second-row] (db/rows result-table {:MatchId (:MatchId match)})]]
+        (if (>= (:GameWins first-row) (:GameWins second-row))
+          
+        {:GameWins (:GameWins first-row), :GameLosses (:GameLosses first-row), 
+         :GameDraws (:GameDraws first-row), :WinnerTeamId (:TeamId first-row), 
+         :LoserTeamId (:TeamId second-row)}
+
+        {:GameWins (:GameWins second-row), :GameLosses (:GameLosses second-row), 
+          :GameDraws (:GameDraws second-row), :WinnerTeamId (:TeamId second-row), 
+          :LoserTeamId (:TeamId first-row)}))))
+
+(defn pairings-for-round
   [db round-id all-teams]
   (let [match-table (db/table db "Match")
         result-table (db/table db "TeamMatchResult")
