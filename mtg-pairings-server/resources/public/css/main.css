@@ -34,7 +34,7 @@ input[type=number]::-webkit-outer-spin-button {
   position:relative;
 }
 
-#header button {
+#header button, #header input[type="submit"] {
   border:0;
   background-color: #424242;
   color: #eeeeee;
@@ -48,7 +48,7 @@ input[type=number]::-webkit-outer-spin-button {
   float:right;
 }
 
-#header input {
+#header input[type="text"], #header input[type="number"] {
   height:40px;
   padding: 0 8px;
   background-color: #333333;
@@ -75,10 +75,10 @@ input[type=number]::-webkit-outer-spin-button {
   margin:0;
 }
 
-.pairing.pairing-even {
+.even {
   background-color:#eeeeee;
 }
-.pairing.pairing-odd {
+.odd {
   background-color:#ffffff;
 }
 
@@ -107,8 +107,8 @@ input[type=number]::-webkit-outer-spin-button {
   padding:0;
 }
 
-.pairing td.opponent {
-  color:#424242;
+.opponent {
+  color:#848484;
 }
 
 .pairing .points {
@@ -136,4 +136,47 @@ i.pull-left {
 
 .own-tournament-header i {
   line-height:50px;
+}
+
+.pairings-table, .standings-table {
+  width:100%;
+}
+
+.pairings-table th {
+  position: relative;
+}
+
+.pairings-table th.players {
+  padding-left: 30px;
+}
+
+.pairings-table .left {
+  position:absolute;
+  left:0;
+}
+
+.pairings-table .table {
+  width: 100px;
+  text-align: center;
+}
+
+.pairings-table .players {
+}
+
+.pairings-table .points, .pairings-table .result {
+  width:60px;
+  text-align: center;
+}
+
+.standings-table .pgw, .standings-table .ogw, .standings-table .omw, .standings-table .points, .standings-table .rank {
+  width:50px;
+  text-align: center;
+}
+
+h3 {
+  font-size:20px !important;
+}
+
+.inactive {
+  color: #cccccc;
 }

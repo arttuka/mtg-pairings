@@ -22,35 +22,18 @@
 <body>
   <div id="header" ng-controller="MenuController">
     <div ng-hide="loggedIn">
-      <input size="10" type="number" ng-model="dci" placeholder="DCI-numero">
-      <button ng-click="login()">KIRJAUDU</button>
+      <form ng-submit="login()">
+        <input size="10" type="number" ng-model="dci" placeholder="DCI-numero">
+        <input type="submit" value="KIRJAUDU">
+      </form>
     </div>
     <div ng-hide="!loggedIn">
       <span>{{name}}</span>
       <button ng-click="logout()">KIRJAUDU ULOS</button>
     </div>
   </div>
-  <div id="content" ng-controller="TournamentController">
-    <div ng-hide="loggedIn">
-      <div ng-repeat="tournament in tournaments">
-        <h3>{{tournament.name}} {{tournament.day | date:'dd.MM.yyyy'}}</h3>
-        <div ng-repeat="num in tournament.round">
-          <a href="#/tournaments/{{tournament.id}}/pairings-{{num}}">Pairings {{num}}</a>
-        </div>
-        <div ng-repeat="num in tournament.standings">
-          <a href="#/tournaments/{{tournament.id}}/standings-{{num}}">Standings {{num}}</a>
-        </div>
-      </div>
-    </div>
-    <div ng-hide="!loggedIn">
-      <div class="newest-pairing" ngHide="!latestPairing">
-        <h3>Uusin pairing: {{latestPairing.tournament}}</h3>
-        <pairing model="latestPairing" even="true">
-      </div>
-      <div ng-repeat="t in tournaments">
-        <own-tournament model="t">
-      </div>
-    </div>
+  <div id="content" ng-view>
+    
   </div>
 </body>
 </html>

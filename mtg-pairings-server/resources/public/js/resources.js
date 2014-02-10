@@ -6,6 +6,11 @@ angular.module('resources', [])
       method: 'GET',
       url: '/tournament/:id/round-:round/pairings',
       isArray: true
+    },
+    standings: {
+      method: 'GET',
+      url: '/tournament/:id/round-:round/standings',
+      isArray: true
     }
   });
 })

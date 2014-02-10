@@ -95,14 +95,19 @@
 
 (defn ^:private find-pairing [round-id team1 team2]
   (first (sql/select db/pairing
-           (sql/where {:round round-id
-                       :team1 team1
-                       :team2 team2}))))
+           (sql/where (or {:round round-id
+                           :team1 team1
+                           :team2 team2}
+                          {:round round-id
+                           :team1 team2
+                           :team2 team1})))))
 
 (defn ^:private results-of-round [round-id]
   (sql/select db/pairing
     (sql/fields [:team1 :team_1] 
                 [:team2 :team_2]
+                [:team1_points :team_1_points]
+                [:team2_points :team_2_points]
                 :table_number)
     (sql/with db/team1
       (sql/fields [:name :team_1_name]))
@@ -122,12 +127,11 @@
                                   [(:num r) (results-of-round (:id r))]))
         round-num (:num (first rounds))
         round-id (:id (first rounds))
-        _ (clojure.pprint/pprint rounds-results)
         std (mtg-util/calculate-standings rounds-results round-num)]
     (sql/insert db/standings 
       (sql/values {:standings (pr-str std)
                    :tournament tournament-id
-                   :round round-id}))))
+                   :round round-num}))))
 
 (defn add-results [tournament-id round-num results]
   (let [round-id (:id (first (sql/select db/round

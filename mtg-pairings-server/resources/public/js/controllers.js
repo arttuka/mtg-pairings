@@ -79,6 +79,8 @@ angular.module('controllers', [])
 .controller('PairingsController', function($scope, $routeParams, TournamentResource) {
   $scope.allPairings = TournamentResource.pairings({id: $routeParams.tournament,
                                                     round: $routeParams.round});
+  $scope.tournament = TournamentResource.get({id: $routeParams.tournament});
+  $scope.round = $routeParams.round;
   $scope.sort = 'table_number';
   $scope.$watch('sort', sortPairings);
   $scope.$watchCollection('allPairings', sortPairings);
@@ -89,7 +91,10 @@ angular.module('controllers', [])
       losses: p.wins,
       wins: p.losses,
       team_1_name: p.team_2_name,
-      team_2_name: p.team_1_name
+      team_2_name: p.team_1_name,
+      team_1_points: p.team_2_points,
+      team_2_points: p.team_1_points,
+      table_number: p.table_number
     };
   }
 
@@ -100,6 +105,13 @@ angular.module('controllers', [])
       $scope.pairings = $scope.allPairings;
     }
   }
+})
+
+.controller('StandingsController', function($scope, $routeParams, TournamentResource) {
+  $scope.standings = TournamentResource.standings({id: $routeParams.tournament,
+                                                   round: $routeParams.round});
+  $scope.tournament = TournamentResource.get({id: $routeParams.tournament});
+  $scope.round = $routeParams.round;
 })
 
 .controller('Testi', function($scope, $window) {

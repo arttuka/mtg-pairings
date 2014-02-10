@@ -1,0 +1,38 @@
+<h3><a href="#/tournaments/{{tournament.id}}/">{{tournament.name}}</a> - pairings, kierros {{round}}</h3>
+<table class="pairings-table">
+  <thead>
+    <tr>
+      <th class="table" ng-click="sort = 'table_number'">
+        <i class="left glyphicon glyphicon-chevron-down" ng-class="{'inactive': sort != 'table_number'}"></i>
+        Pöytä
+      </th>
+      <th class="players" ng-click="sort = 'team_1_name'">
+        <i class="left glyphicon glyphicon-chevron-down" ng-class="{'inactive': sort != 'team_1_name'}"></i>
+        Pelaajat
+      </th>
+      <th class="points">
+        Pisteet
+      </th>
+      <th class="result">
+        Tulos
+      <th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-class="{'even': $even, 'odd': $odd}" ng-repeat="p in pairings | orderBy:sort">
+      <td class="table">{{p.table_number}}</td>
+      <td class="players">
+        {{p.team_1_name}}<br>
+        <span ng-class="{'opponent': sort == 'team_1_name'}">{{p.team_2_name}}</span>
+      </td>
+      <td class="points">
+        {{p.team_1_points}}<br>
+        <span ng-class="{'opponent': sort == 'team_1_name'}">{{p.team_2_points}}</span>
+      </td>
+      <td class="result">
+        {{p.wins}}<br>
+        <span ng-class="{'opponent': sort == 'team_1_name'}">{{p.losses}}</span>
+      </td>
+    </tr>
+  </tbody>
+</table>

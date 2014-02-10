@@ -7,4 +7,10 @@ angular.module('services', [])
   };
 
   return sdo;
+})
+
+.filter('round', function() {
+  return function(num, decimals) {
+    return num.toFixed(decimals);
+  };
 });
