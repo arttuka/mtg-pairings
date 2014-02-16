@@ -9,8 +9,8 @@ html, body {
   font-family: Lato, Helvetica, sans-serif;
 }
 
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+#header input[type=number]::-webkit-inner-spin-button,
+#header input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
@@ -27,6 +27,11 @@ input[type=number]::-webkit-outer-spin-button {
   line-height: 60px;
   float:left;
   margin-left: 10px;
+}
+
+#header a {
+  line-height: 60px;
+  margin-right: 10px;
 }
 
 #header > div {
@@ -62,7 +67,6 @@ input[type=number]::-webkit-outer-spin-button {
 }
 
 .pairing {
-  height: 80px;
   clear:left;
   border-left: 1px solid #eeeeee;
   margin-left:20px;
@@ -84,22 +88,15 @@ input[type=number]::-webkit-outer-spin-button {
 
 .pairing .table-number {
   display: inline-block;
-  line-height: 60px;
-  width:60px;
   text-align:center;
-  font-size: 40px;
   font-weight: bold;
   color: #424242;
   float:left;
 }
 
-.pairing table {
+.pairing .names {
   display: inline-block;
   float:left;
-}
-
-.pairing td {
-  height:30px;
   line-height:30px;
   font-size:20px;
   border:0;
@@ -114,6 +111,7 @@ input[type=number]::-webkit-outer-spin-button {
 .pairing .points {
   float:right;
   margin-right:15px;
+  font-size: 20px;
 }
 
 .border-top {
@@ -122,6 +120,10 @@ input[type=number]::-webkit-outer-spin-button {
 
 i.pull-left {
   margin-right:15px;
+}
+
+.own-tournament {
+  clear:left;
 }
 
 .own-tournament-header {
@@ -179,4 +181,86 @@ h3 {
 
 .inactive {
   color: #cccccc;
+}
+
+.organizer-pairings, .organizer-standings {
+  text-align: center;
+}
+
+.organizer-pairings .pairing-column {
+  width:400px;
+  display: inline-block;
+  margin: 0 10px;
+}
+
+.organizer-standings table {
+  width:500px;
+  display: inline-block;
+  margin: 0 20px;
+}
+
+.organizer-pairings .pairing.no-round {
+  height: 20px;
+}
+
+.organizer-pairings .pairing .names, .organizer-pairings .pairing .table-number, .organizer-pairings .pairing .points { 
+  line-height:20px;
+  font-size:14px;
+}
+
+#organizer-menu {
+  padding-left:10px;
+  height:40px;
+  font-size:20px;
+  border-bottom: 1px solid #424242;
+}
+
+#organizer-menu a, #menu a {
+  color: green;
+  text-decoration: none !important;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.organizer-clock {
+  color: green;
+  font-size: 600px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.organizer-clock.timeout {
+  color: red;
+}
+
+@media (max-width: 767px) {
+  .pairing .table-number {
+    line-height: 60px;
+    width:60px;
+    font-size: 40px;
+  }
+
+  .pairing {
+    height: 80px;
+  }
+
+  .pairing.no-round {
+    height: 60px;
+  }
+}
+
+@media (min-width: 768px) {
+  .pairing .table-number {
+    line-height: 30px;
+    width:30px;
+    font-size: 20px;
+  }
+
+  .pairing {
+    height: 50px;
+  }
+
+  .pairing.no-round {
+    height: 30px;
+  }
 }

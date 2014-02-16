@@ -20,14 +20,13 @@ angular.module('directives', [])
     replace: true,
     scope: {
       model: '=',
-      even: '=?'
+      even: '=?',
+      displayRound: '=?'
     },
     templateUrl : 'templates/pairing.html',
-    link: function(scope, element, attrs) {
-      scope.isPairing = true;
-    },
     controller: function($scope) {
       $scope.even = $scope.even || false;
+      $scope.isPairing = true;
     }
   };
 });

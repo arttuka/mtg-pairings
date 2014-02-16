@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.util
-  (:require [ring.util.response :as ring]))
+  (:require [ring.util.response :as ring]
+            [clj-time.format :as time]))
 
 (defn map-values
   "Returns a map consisting of the keys of m mapped to 
@@ -33,3 +34,6 @@ Function f should accept one argument."
   (if body
     (ring/response body)
     (ring/not-found body)))
+
+(defn parse-date [date]
+  (time/parse-local-date (time/formatters :year-month-day) date))

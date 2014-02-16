@@ -76,7 +76,7 @@ angular.module('controllers', [])
   loadTournaments();
 })
 
-.controller('PairingsController', function($scope, $routeParams, TournamentResource) {
+.controller('PairingsController', function($scope, $routeParams, TournamentResource, PairingService) {
   $scope.allPairings = TournamentResource.pairings({id: $routeParams.tournament,
                                                     round: $routeParams.round});
   $scope.tournament = TournamentResource.get({id: $routeParams.tournament});
@@ -85,22 +85,11 @@ angular.module('controllers', [])
   $scope.$watch('sort', sortPairings);
   $scope.$watchCollection('allPairings', sortPairings);
 
-  function duplicatePairing(p) {
-    return {
-      draws: p.draws,
-      losses: p.wins,
-      wins: p.losses,
-      team_1_name: p.team_2_name,
-      team_2_name: p.team_1_name,
-      team_1_points: p.team_2_points,
-      team_2_points: p.team_1_points,
-      table_number: p.table_number
-    };
-  }
+
 
   function sortPairings() {
     if($scope.sort == 'team_1_name') {
-      $scope.pairings = $scope.allPairings.concat(_.map($scope.allPairings, duplicatePairing));
+      $scope.pairings = PairingService.duplicatePairings($scope.allPairings);
     } else {
       $scope.pairings = $scope.allPairings;
     }
@@ -114,21 +103,257 @@ angular.module('controllers', [])
   $scope.round = $routeParams.round;
 })
 
-.controller('Testi', function($scope, $window) {
-  $scope.number = 1;
-  $scope.$on('fooEvent', function() {
-    $scope.number = $scope.number + 1;
+.controller('OrganizerController', function($scope, $routeParams, $window, TournamentResource, PairingService) {
+  var tournamentId = $routeParams.tournament;
+  var menuWindow;
+  var menuScope;
+  $scope.displayMenu = true;
+  $scope.newStandings = false;
+  $scope.newPairings = false;
+  $scope.popupMenu = popupMenu;
+  $scope.showPairings = showPairings;
+  $scope.$on('showPairings', function(event, round) {
+    $scope.pairings_round = round;
+    showPairings();
+  });
+  $scope.showStandings = showStandings;
+  $scope.$on('showStandings', function(event, round) {
+    $scope.standings_round = round;
+    showStandings();
+  });
+  $scope.showClock = showClock;
+  $scope.$on('showClock', showClock);
+  $scope.setClock = setClock;
+  $scope.$on('setClock', function(event, minutes) {
+    $scope.minutes = minutes;
+    setClock();
+  });
+  $scope.startClock = startClock;
+  $scope.$on('startClock', startClock);
+  $scope.stopClock = stopClock;
+  $scope.$on('stopClock', stopClock);
+  $scope.clock = {
+    timeout: false,
+    running: false,
+    lastTime: new Date(),
+    seconds: 0,
+    text: "00:00"
+  };
+  $scope.$on('menuClosed', function() {
+    $scope.displayMenu = true;
     $scope.$apply();
   });
-  $scope.open = function() {
-    $scope.number = 2;
-    $scope.win = $window.open('test.html', 'test');
+  $scope.minutes = 50;
+  loadTournament();
+  var interval = setInterval(loadTournament, 5000);
+
+  function arraysIdentical(a, b) {
+    if(a === undefined || b === undefined) return false;
+    var i = a.length;
+    if (i != b.length) return false;
+    while (i--) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  };
+
+  function pad(num) {
+    if(Math.abs(num) >= 10) return "" + num;
+    else if(num < 0) return "-0" + Math.abs(num);
+    else return "0" + num;
+  }
+
+  function loadTournament() {
+    TournamentResource.get({id: tournamentId}).$promise.then(function(t) {
+      $scope.tournament = t;
+      if(!arraysIdentical($scope.pairing_rounds, t.round)) {
+        $scope.newPairings = true;
+        $scope.pairings_round = t.round[t.round.length - 1];
+      }
+      $scope.pairing_rounds = t.round;
+      if(!arraysIdentical($scope.standings_rounds, t.standings)) {
+        $scope.newStandings = true;
+        $scope.standings_round = t.standings[t.standings.length - 1];
+      }
+      $scope.standings_rounds = t.standings;
+      if(menuScope) {
+        menuScope.$emit('tournament', {
+          newPairings: $scope.newPairings,
+          newStandings: $scope.newStandings,
+          pairing_rounds: $scope.pairing_rounds,
+          standings_rounds: $scope.standings_rounds
+        });
+      }
+    });
+  }
+
+  function updateClock() {
+    if($scope.clock.running) {
+      var now = new Date();
+      var diff = (now.getTime() - $scope.clock.lastTime.getTime()) / 1000;
+      $scope.clock.lastTime = now;
+      $scope.clock.seconds -= diff;
+      setTimeout(updateClock, 200);
+    }
+    $scope.clock.timeout = ($scope.clock.seconds < 0);
+    var minutes;
+    if($scope.clock.timeout) minutes = Math.ceil($scope.clock.seconds / 60);
+    else minutes = Math.floor($scope.clock.seconds / 60);
+    var seconds = Math.floor($scope.clock.seconds % 60);
+    var sign = "";
+    if($scope.clock.timeout) sign = "-";
+    $scope.clock.text = sign + pad(Math.abs(minutes)) + ":" + pad(Math.abs(seconds));
+    $scope.$apply();
+  }
+
+  function showPairings() {
+    var round = $scope.pairings_round;
+    TournamentResource.pairings({id: tournamentId, round: round}).$promise.then(function(pairings) {
+      var duplicated = _.sortBy(PairingService.duplicatePairings(pairings), "team_1_name");
+      var pairings = [];
+      var perColumn = Math.ceil(duplicated.length / Math.ceil(duplicated.length / 45));
+      while(!_.isEmpty(duplicated)) {
+        pairings.push(_.take(duplicated, perColumn));
+        duplicated = _.drop(duplicated, perColumn);
+      }
+      $scope.pairings = pairings;
+      $scope.displayStandings = false;
+      $scope.displayClock = false;
+      $scope.displayPairings = true;
+      $scope.newPairings = false;
+      $scope.$apply();
+    });
+  }
+
+  function showStandings() {
+    var round = $scope.standings_round;
+    TournamentResource.standings({id: tournamentId, round: round}).$promise.then(function(data) {
+      var standings = [];
+      var perColumn = Math.ceil(data.length / Math.ceil(data.length / 45));
+      while(!_.isEmpty(data)) {
+        standings.push(_.take(data, perColumn));
+        data = _.drop(data, perColumn);
+      }
+      $scope.standings = standings;
+      $scope.displayClock = false;
+      $scope.displayPairings = false;
+      $scope.displayStandings = true;
+      $scope.newStandings = false;
+      $scope.$apply();
+    });
+  }
+
+  function stopClock() {
+    $scope.clock.running = false;
+  }
+
+  function startClock() {
+    $scope.clock.running = true;
+    $scope.clock.lastTime = new Date();
+    setTimeout(updateClock, 100);
+  }
+
+  function setClock() {
+    $scope.clock.seconds = $scope.minutes * 60;
+    updateClock();
+  }
+
+  function showClock() {
+    $scope.displayPairings = false;
+    $scope.displayStandings = false;
+    $scope.displayClock = true;
+    $scope.$apply();
+  }
+
+  function popupMenu() {
+    menuWindow = $window.open('menu.html', 'menu');
+    setTimeout(function() { menuScope = menuWindow.angular.element('#menu').scope(); }, 1000);
+    $scope.displayMenu = false;
+    $scope.$apply();
   }
 })
 
-.controller('Toinen', function($scope) {
-  $scope.$openerScope = window.opener.angular.element('#body').scope();
-  $scope.send = function() {
-    $scope.$openerScope.$emit('fooEvent');
+.controller('OrganizerMenuController', function($scope, TournamentResource) {
+  var openerScope = window.opener.angular.element('#content').scope();
+  var tournamentId;
+  $scope.$on('tournament', function(event, tournament) {
+    $scope.newPairings = tournament.newPairings;
+    $scope.newStandings = tournament.newStandings;
+    $scope.pairing_rounds = tournament.pairing_rounds;
+    $scope.standings_rounds = tournament.standings_rounds;
+    if(tournament.newPairings) $scope.pairings_round = tournament.pairing_rounds[tournament.pairing_rounds.length - 1];
+    if(tournament.newStandings) $scope.standings_round = tournament.standings_rounds[tournament.standings_rounds.length - 1];
+    $scope.$apply();
+  });
+  $scope.newPairings = false;
+  $scope.newStandings = false;
+  $scope.running = false;
+  $scope.minutes = 50;
+  $scope.showPairings = showPairings;
+  $scope.showStandings = showStandings;
+  $scope.showSeatings = showSeatings;
+  $scope.showClock = showClock;
+  $scope.setClock = setClock;
+  $scope.startClock = startClock;
+  $scope.stopClock = stopClock;
+  $scope.close = close;
+
+
+  function arraysIdentical(a, b) {
+    if(a === undefined || b === undefined) return false;
+    var i = a.length;
+    if (i != b.length) return false;
+    while (i--) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
   };
+
+  function loadTournament() {
+    TournamentResource.get({id: tournamentId}).$promise.then(function(t) {
+      $scope.tournament = t;
+      if(!arraysIdentical($scope.pairing_rounds, t.round)) {
+        $scope.newPairings = true;
+        $scope.pairings_round = t.round[t.round.length - 1];
+      }
+      $scope.pairing_rounds = t.round;
+      if(!arraysIdentical($scope.standings_rounds, t.standings)) {
+        $scope.newStandings = true;
+        $scope.standings_round = t.standings[t.standings.length - 1];
+      }
+      $scope.standings_rounds = t.standings;
+    });
+  }
+
+  function send(event, data) {
+    openerScope.$emit(event, data);
+  }
+  function close() {
+    send('menuClosed');
+    window.close();
+  }
+
+  function showPairings() {
+    send('showPairings', $scope.pairings_round);
+  }
+  function showStandings() {
+    send('showStandings', $scope.standings_round);
+  }
+  function showSeatings() {
+    send('showSeatings');
+  }
+  function showClock() {
+    send('showClock');
+  }
+  function setClock() {
+    send('setClock', $scope.minutes);
+  }
+  function startClock() {
+    $scope.running = true;
+    send('startClock');
+  }
+  function stopClock() {
+    $scope.running = false;
+    send('stopClock');
+  }
 });

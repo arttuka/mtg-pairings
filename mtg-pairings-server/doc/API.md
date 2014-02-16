@@ -10,8 +10,8 @@
 `application/json`
 ``` json
 {"name": "Testing tournament"
- "date": "2014-01-01"
- "num_rounds": 5}
+ "day": "2014-01-01"
+ "rounds": 5}
 ```
 ### Success response ###
 ``` json
@@ -107,7 +107,7 @@ HTTP 200
 ``` json
 [{"team1": "Smith, John",
   "team2": "Smith, Jane",
-  "table": 1},
+  "table_number": 1},
   ...]
 ```
 ### Success response ###
@@ -125,9 +125,7 @@ HTTP 200
 ### Request params ###
 `application/json`
 ``` json
-[{"team1": "Smith, John",
-  "team2": "Smith, Jane",
-  "table": 1,
+[{"table_number": 1,
   "team1_wins": 2,
   "team2_wins": 1,
   "draws": 0},

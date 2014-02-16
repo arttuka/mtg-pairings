@@ -1,0 +1,69 @@
+<style type="text/css">#header { display: none; }</style>
+<div id="organizer-menu" ng-show="displayMenu">
+  <form class="form-inline">
+    <a ng-click="popupMenu()"><i class="glyphicon glyphicon-resize-full"></i>&nbsp;</a>
+    <button ng-click="showPairings()" class="btn" ng-class='{"btn-success": newPairings, "btn-default": !newPairings}'>Pairings</button>
+    <select class="form-control" ng-model="pairings_round" ng-options="round for round in pairing_rounds"></select>
+    <button ng-click="showStandings()" class="btn" ng-class='{"btn-success": newStandings, "btn-default": !newStandings}'>Standings</button>
+    <select class="form-control" ng-model="standings_round" ng-options="round for round in standings_rounds"></select>
+    <button ng-click="showSeatings()" class="btn btn-default">Seatings</button>
+    <button ng-click="showClock()" class="btn btn-default">Kello</button>
+    <input class="form-control" type="number" ng-model="minutes" min="0" max="99">
+    <button ng-click="setClock()" ng-disabled="clock.running" class="btn btn-default">Aseta</button>
+    <button ng-click="startClock()" ng-disabled="clock.running" class="btn btn-success">Käynnistä</button>
+    <button ng-click="stopClock()" ng-disabled="!clock.running" class="btn btn-danger">Pysäytä</button>
+  </form>
+</div>
+<div ng-show="displayPairings" class="organizer-pairings">
+<h2 style="text-align:center; margin-top:0">{{tournament.name}} - kierros 2</h3>
+  <div class="pairing-column" ng-repeat="column in pairings">
+    <pairing ng-repeat="pairing in column" model="pairing" even="$even" display-round="false">
+  </div>
+</div>
+<div ng-show="displayStandings" class="organizer-standings">
+  <table class="standings-table" ng-repeat="column in standings">
+    <thead>
+      <tr>
+        <th class="rank">
+          Sija
+        </th>
+        <th class="players">
+          Pelaaja
+        </th>
+        <th class="points">
+          Pisteet
+        </th>
+        <th class="omw">
+          OMW
+        </th>
+        <th class="pgw">
+          PGW
+        </th>
+        <th class="ogw">
+          OGW
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-class="{'even': $even, 'odd': $odd}" ng-repeat="s in column">
+        <td class="rank">{{s.rank}}</td>
+        <td class="players">
+          {{s.team_name}}
+        </td>
+        <td class="points">
+          {{s.points}}
+        </td>
+        <td class="omw">
+          {{s.omw | round:3}}
+        </td>
+        <td class="pgw">
+          {{s.pgw | round:3}}
+        </td>
+        <td class="ogw">
+          {{s.ogw | round:3}}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div ng-show="displayClock" class="organizer-clock" ng-class="{'timeout': clock.timeout}">{{clock.text}}</div>

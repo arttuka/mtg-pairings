@@ -1,12 +1,13 @@
 (ns mtg-pairings-server.tournament-api
   (:require [mtg-pairings-server.util :refer [response]]
             [compojure.core :as c]
-            [mtg-pairings-server.tournaments :refer :all]))
+            [mtg-pairings-server.tournaments :refer :all]
+            [mtg-pairings-server.util :refer [parse-date]]))
 
 (defn routes []
   (c/routes
     (c/POST "/" [:as request]
-      (let [id (add-tournament (:body request))]
+      (let [id (add-tournament (update-in (:body request) [:day] parse-date))]
         (response {:id id})))
     (c/GET "/" []
       (response (tournaments)))
@@ -25,5 +26,5 @@
       (add-results (Integer/parseInt id) (Integer/parseInt round) (:body request))
       {:status 200})
     (c/PUT "/:id/teams" [id :as request]
-      (add-teams (Integer/parseInt id) (:body request)))
-    ))
+      (add-teams (Integer/parseInt id) (:body request))
+      {:status 200})))
