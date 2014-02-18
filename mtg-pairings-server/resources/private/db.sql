@@ -1,4 +1,5 @@
 begin;
+
 create table player(
   dci varchar(10) primary key,
   name varchar(100) not null
@@ -54,4 +55,12 @@ create table standings(
   standings text not null,
   primary key (tournament, round)
 );
+
+create table seating (
+  id serial primary key,
+  tournament int not null references tournament(id),
+  table_number int not null,
+  team int not null references team(id)
+);
+
 commit;
