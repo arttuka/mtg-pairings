@@ -1,20 +1,9 @@
-<div ng-hide="loggedIn">
-  <div ng-repeat="tournament in tournaments">
-    <h3>{{tournament.name}} {{tournament.day | date:'dd.MM.yyyy'}}</h3>
-    <div ng-repeat="num in tournament.round">
-      <a href="#/tournaments/{{tournament.id}}/pairings-{{num}}">Pairings {{num}}</a>
-    </div>
-    <div ng-repeat="num in tournament.standings">
-      <a href="#/tournaments/{{tournament.id}}/standings-{{num}}">Standings {{num}}</a>
-    </div>
-  </div>
-</div>
-<div ng-hide="!loggedIn">
+<div ng-show="loggedIn">
   <div class="newest-pairing" ngHide="!latestPairing">
     <h3>Uusin pairing: {{latestPairing.tournament}}</h3>
     <pairing model="latestPairing" even="true" display-round="true">
   </div>
-  <div ng-repeat="t in tournaments">
-    <own-tournament model="t">
-  </div>
+  <own-tournament model="t" ng-repeat="t in tournaments">
 </div>
+<tournament ng-show="!loggedIn" model="tournament" ng-repeat="tournament in tournaments">
+  

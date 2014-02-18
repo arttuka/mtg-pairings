@@ -277,6 +277,18 @@ h3 {
   color: red;
 }
 
+.tournament {
+  margin-left: 10px;
+}
+
+.tournament-row {
+  margin-bottom: 10px;
+}
+
+.tournament-row a {
+  margin-right: 10px;
+}
+
 @media (max-width: 767px) {
   .pairing .table-number {
     line-height: 60px;

@@ -14,6 +14,17 @@ angular.module('directives', [])
   };
 })
 
+.directive('tournament', function() {
+  return {
+    restrict: 'E',
+    replace: true,
+    scope: {
+      model: '='
+    },
+    templateUrl: 'templates/tournament.html'
+  };
+})
+
 .directive('pairing', function() {
   return {
     restrict: 'E',

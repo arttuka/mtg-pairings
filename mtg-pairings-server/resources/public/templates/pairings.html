@@ -8,8 +8,11 @@
       </th>
       <th class="players" ng-click="sort = 'team_1_name'">
         <i class="left glyphicon glyphicon-chevron-down" ng-class="{'inactive': sort != 'team_1_name'}"></i>
-        Pelaajat
+        <span class="hidden-xs">Pelaaja 1</span>
+        <span class="hidden-sm hidden-md hidden-lg">Pelaajat</span>
       </th>
+      <th class="players2 hidden-xs">
+        Pelaaja 2
       <th class="points">
         Pisteet
       </th>
@@ -22,16 +25,16 @@
     <tr ng-class="{'even': $even, 'odd': $odd}" ng-repeat="p in pairings | orderBy:sort">
       <td class="table">{{p.table_number}}</td>
       <td class="players">
-        {{p.team_1_name}}<br>
+        {{p.team_1_name}}<br class="hidden-sm hidden-md hidden-lg"><span class="hidden-sm hidden-md hidden-lg" ng-class="{'opponent': sort == 'team_1_name'}">{{p.team_2_name}}</span>
+      </td>
+      <td class="players2 hidden-xs">
         <span ng-class="{'opponent': sort == 'team_1_name'}">{{p.team_2_name}}</span>
       </td>
       <td class="points">
-        {{p.team_1_points}}<br>
-        <span ng-class="{'opponent': sort == 'team_1_name'}">{{p.team_2_points}}</span>
+        {{p.team_1_points}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span ng-class="{'opponent': sort == 'team_1_name'}">{{p.team_2_points}}</span>
       </td>
       <td class="result">
-        {{p.wins}}<br>
-        <span ng-class="{'opponent': sort == 'team_1_name'}">{{p.losses}}</span>
+        {{p.wins}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span ng-class="{'opponent': sort == 'team_1_name'}">{{p.losses}}</span>
       </td>
     </tr>
   </tbody>

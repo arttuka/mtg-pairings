@@ -1,15 +1,13 @@
 <div class="pairing" ng-class="{'even': even, 'odd': !even, 'no-round': !displayRound}">
   <h4 ng-show="displayRound">Kierros {{model.round_number}}</h4>
   <span class="table-number">{{model.table_number}}</span>
-  <span ng-hide="isPairing">{{model.team_1_name}}</span>
+  <span ng-hide="isPairing">{{model.team1_name}}</span>
   <span ng-hide="!isPairing">
     <div class="names">
-      {{model.team_1_name}} <span class="hidden-xs">-</span><br class="hidden-sm hidden-md hidden-lg">
-      <span class="opponent">{{model.team_2_name}}</span>
+      {{model.team1_name}} ({{model.team1_points}})<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span class="opponent">{{model.team2_name}} ({{model.team2_points}})</span>
     </div>
     <div class="points">
-      {{model.team_1_points}} <span class="hidden-xs">-</span><br class="hidden-sm hidden-md hidden-lg">
-      <span class="opponent">{{model.team_2_points}}</span>
+      {{model.team1_wins}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span class="opponent">{{model.team2_wins}}</span>
     </div>
   </span>
 </div>

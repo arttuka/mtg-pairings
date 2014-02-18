@@ -29,19 +29,23 @@ angular.module('controllers', [])
   };
 })
 
-.controller('MainController', function ($scope, localStorageService) {
-  $scope.dci = localStorageService.get('dci');
-  $scope.loggedIn = ($scope.dci !== null);
-  $scope.$on('loggedIn', function(event, dci) {
-    $scope.loggedIn = true;
-    $scope.dci = dci;
-  });
-  $scope.$on('loggedOut', function() {
-    $scope.loggedIn = false;
+.controller('TournamentController', function($scope, $routeParams, TournamentResource) {
+  TournamentResource.get({id: $routeParams.tournament}).$promise.then(function(tournament) {
+    $scope.model = tournament;
+    $scope.model.round_nums = _.union(tournament.round, tournament.standings);
   });
 })
 
-.controller('TournamentController', function($scope, localStorageService, TournamentResource, PlayerResource) {
+.controller('TournamentsController', function($scope, TournamentResource) {
+  TournamentResource.query().$promise.then(function(tournaments) {
+    $scope.tournaments = _.map(tournaments, function(tournament) {
+      tournament.round_nums = _.union(tournament.round, tournament.standings);
+      return tournament;
+    });
+  });
+})
+
+.controller('MainController', function($scope, localStorageService, TournamentResource, PlayerResource) {
   var loadTournaments = function() {
     if($scope.loggedIn) {
       PlayerResource.tournaments({dci: $scope.dci}).$promise.then(function(tournaments) {
@@ -60,7 +64,12 @@ angular.module('controllers', [])
         $scope.tournaments = tournaments
       });
     } else {
-      $scope.tournaments = TournamentResource.query();
+      TournamentResource.query().$promise.then(function(tournaments) {
+        $scope.tournaments = _.map(tournaments, function(tournament) {
+          tournament.round_nums = _.union(tournament.round, tournament.standings);
+          return tournament;
+        });
+      });
     }
   };
   $scope.dci = localStorageService.get('dci') || '';

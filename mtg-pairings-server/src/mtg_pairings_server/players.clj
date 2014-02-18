@@ -14,9 +14,10 @@
 (defn ^:private format-pairing
   [pairing team-id]
   (if (= team-id (:team1 pairing))
-    (select-keys pairing [:round_number :team1_name :team2_name :team1_points :team2_points :table_number])
+    (select-keys pairing [:round_number :team1_name :team2_name :team1_points :team2_points :table_number :team1_wins :team2_wins])
     (select-and-rename-keys pairing [:round_number [:team1_name :team2_name] [:team2_name :team1_name]
-                                     :table_number [:team1_points :team2_points] [:team2_points :team1_points]])))
+                                     :table_number [:team1_points :team2_points] [:team2_points :team1_points]
+                                     [:team1_wins :team2_wins] [:team2_wins :team1_wins]])))
 
 (defn ^:private add-players-data [tournament dci]
   (let [players-team (:id (first (sql/select db/team
@@ -32,6 +33,8 @@
                                    (sql/fields [:name :team2_name]))
                                  (sql/with db/round
                                    (sql/fields [:num :round_number]))
+                                 (sql/with db/result
+                                   (sql/fields :team1_wins :team2_wins))
                                  (sql/where (and {:round.tournament (:id tournament)}
                                                  (or {:team1 players-team}
                                                      {:team2 players-team})))
