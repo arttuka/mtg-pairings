@@ -19,11 +19,16 @@
       (response (get-round (Integer/parseInt id) (Integer/parseInt round))))
     (c/GET "/:id/round-:round/standings" [id round]
       (response (standings (Integer/parseInt id) (Integer/parseInt round))))
+    (c/GET "/:id/seatings" [id]
+      (response (seatings (Integer/parseInt id))))
     (c/PUT "/:id/round-:round/pairings" [id round :as request]
       (add-pairings (Integer/parseInt id) (Integer/parseInt round) (:body request))
       {:status 200})
     (c/PUT "/:id/round-:round/results" [id round :as request]
       (add-results (Integer/parseInt id) (Integer/parseInt round) (:body request))
+      {:status 200})
+    (c/PUT "/:id/seatings" [id :as request]
+      (add-seatings (Integer/parseInt id) (:body request))
       {:status 200})
     (c/PUT "/:id/teams" [id :as request]
       (add-teams (Integer/parseInt id) (:body request))

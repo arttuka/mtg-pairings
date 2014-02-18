@@ -113,6 +113,11 @@ angular.module('controllers', [])
   $scope.round = $routeParams.round;
 })
 
+.controller('SeatingsController', function($scope, $routeParams, TournamentResource) {
+  $scope.seatings = TournamentResource.seatings({id: $routeParams.tournament});
+  $scope.tournament = TournamentResource.get({id: $routeParams.tournament});
+})
+
 .controller('OrganizerController', function($scope, $routeParams, $window, TournamentResource, PairingService) {
   var tournamentId = $routeParams.tournament;
   var menuWindow;

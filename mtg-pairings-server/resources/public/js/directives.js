@@ -32,12 +32,15 @@ angular.module('directives', [])
     scope: {
       model: '=',
       even: '=?',
-      displayRound: '=?'
+      displayRound: '=?',
+      isPairing: '=?'
     },
     templateUrl : 'templates/pairing.html',
     controller: function($scope) {
       $scope.even = $scope.even || false;
-      $scope.isPairing = true;
+      if($scope.isPairing === undefined) {
+        $scope.isPairing = true;
+      }
     }
   };
 });

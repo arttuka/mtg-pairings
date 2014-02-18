@@ -7,6 +7,8 @@ angular.module('pairings', ['ngTouch', 'ngRoute', 'ngResource', 'LocalStorageMod
                            templateUrl: 'templates/tournaments.html'}).
     when('/tournaments/:tournament', {controller: 'TournamentController',
                                       templateUrl: 'templates/tournament.html'}).
+    when('/tournaments/:tournament/seatings', {controller: 'SeatingsController',
+                                               templateUrl: 'templates/seatings.html'}).
     when('/tournaments/:tournament/pairings-:round', {controller: 'PairingsController',
                                                       templateUrl: 'templates/pairings.html'}).
     when('/tournaments/:tournament/standings-:round', {controller: 'StandingsController',

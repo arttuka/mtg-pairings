@@ -1,6 +1,8 @@
 <div class="tournament">
   <h3>{{model.name}} {{model.day | date:'dd.MM.yyyy'}}</h3>
-  <a ng-show="model.seatings" href="#/tournaments/{{model.id}}/seatings">Seatings</a>
+  <div class="tournament-row">
+    <a class="btn btn-default" ng-show="model.seatings" href="#/tournaments/{{model.id}}/seatings">Seatings</a>
+  </div>
   <div class="tournament-row" ng-repeat="num in model.round_nums">
     <a class="btn btn-default" ng-show="model.round.indexOf(num) > -1" href="#/tournaments/{{model.id}}/pairings-{{num}}">Pairings {{num}}</a>
     <a class="btn btn-default" ng-show="model.standings.indexOf(num) > -1" href="#/tournaments/{{model.id}}/standings-{{num}}">Standings {{num}}</a>

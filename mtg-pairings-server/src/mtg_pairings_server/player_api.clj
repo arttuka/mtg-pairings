@@ -10,6 +10,4 @@
     (c/GET "/:dci" [dci]
       (response (player dci)))
     (c/GET "/:dci/tournaments" [dci]
-      (response (tournaments dci)))
-    (c/GET "/:dci/latest" [dci]
-      (response (latest dci)))))
+      (response (tournaments dci)))))

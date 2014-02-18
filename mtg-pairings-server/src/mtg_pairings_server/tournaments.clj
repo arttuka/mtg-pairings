@@ -7,6 +7,8 @@
 
 (def ^:private select-tournaments
   (-> (sql/select* db/tournament)
+    (sql/fields :rounds :day :name :id
+                (sql/raw "exists (select 1 from seating where \"tournament\" = \"tournament\".\"id\") as \"seatings\""))
     (sql/order :day :DESC)
     (sql/order :name :ASC)
     (sql/with db/round
@@ -31,18 +33,7 @@
                          (sql/exec)))))
 
 (defn tournaments []
-  (let [tourns (sql/select db/tournament
-                 (sql/order :day :DESC)
-                 (sql/order :name :ASC)
-                 (sql/with db/round
-                   (sql/fields :num)
-                   (sql/order :num)
-                   (sql/where
-                     (sql/sqlfn exists (sql/subselect db/pairing
-                                         (sql/where {:round :round.id})))))
-                 (sql/with db/standings
-                   (sql/fields [:round :num])
-                   (sql/order :round)))]
+  (let [tourns (sql/exec select-tournaments)]
     (map update-round-data tourns)))
 
 (defn add-tournament [tourn]
@@ -76,6 +67,14 @@
                     {:team team-id
                      :player (:dci player)})))))
 
+(defn seatings [tournament-id]
+  (sql/select db/seating
+    (sql/fields :table_number)
+    (sql/with db/team
+      (sql/fields :name))
+    (sql/where {:tournament tournament-id})
+    (sql/order :team.name :ASC)))
+
 (defn standings [tournament-id round-num]
   (-> (sql/select db/standings
        (sql/where {:tournament tournament-id
@@ -90,11 +89,23 @@
                              :num round-num}))]
     (:id round)))
 
-(defn add-pairings [tournament-id round-num pairings]
+(defn teams-by-name [tournament-id]
   (let [teams (sql/select db/team
-                (sql/where {:tournament tournament-id}))
-        name->id (into {} (for [team teams]
-                            [(:name team) (:id team)]))
+                (sql/where {:tournament tournament-id}))]
+    (into {} (for [team teams]
+               [(:name team) (:id team)]))))
+(defn add-seatings [tournament-id seatings]
+  (sql/delete db/seating
+    (sql/where {:tournament tournament-id}))
+  (let [name->id (teams-by-name tournament-id)] 
+    (sql/insert db/seating
+      (sql/values (for [seating seatings]
+                    {:team (name->id (:team seating))
+                     :table_number (:table_number seating)
+                     :tournament tournament-id})))))
+
+(defn add-pairings [tournament-id round-num pairings]
+  (let [name->id (teams-by-name tournament-id)
         team->points (if-let [standings (standings tournament-id (dec round-num))]
                        (into {} (for [row standings]
                                   [(:team row) (:points row)]))

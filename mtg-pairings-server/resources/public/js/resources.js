@@ -11,6 +11,11 @@ angular.module('resources', [])
       method: 'GET',
       url: '/tournament/:id/round-:round/standings',
       isArray: true
+    },
+    seatings: {
+      method: 'GET',
+      url: '/tournament/:id/seatings',
+      isArray: true
     }
   });
 })

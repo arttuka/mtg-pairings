@@ -287,6 +287,7 @@ h3 {
 
 .tournament-row a {
   margin-right: 10px;
+  width: 100px;
 }
 
 @media (max-width: 767px) {
