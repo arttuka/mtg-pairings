@@ -4,6 +4,7 @@ angular.module('controllers', [])
   $scope.dci = localStorageService.get('dci') || '';
   $scope.name = localStorageService.get('name') || '';
   $scope.loggedIn = ($scope.dci !== '');
+  $scope.menuCollapsed = true;
 
   $scope.login = function() {
     PlayerResource.get({dci: $scope.dci}, function(data) {
@@ -141,7 +142,7 @@ angular.module('controllers', [])
   };
   $scope.$on('menuClosed', function() {
     $scope.displayMenu = true;
-    $scope.$apply();
+    setTimeout(function(){ $scope.$apply(); });
   });
   $scope.minutes = 50;
   loadTournament();
@@ -203,7 +204,7 @@ angular.module('controllers', [])
     var sign = "";
     if($scope.clock.timeout) sign = "-";
     $scope.clock.text = sign + pad(Math.abs(minutes)) + ":" + pad(Math.abs(seconds));
-    $scope.$apply();
+    setTimeout(function(){ $scope.$apply(); });
   }
 
   function showPairings() {
@@ -221,7 +222,6 @@ angular.module('controllers', [])
       $scope.displayClock = false;
       $scope.displayPairings = true;
       $scope.newPairings = false;
-      $scope.$apply();
     });
   }
 
@@ -239,7 +239,6 @@ angular.module('controllers', [])
       $scope.displayPairings = false;
       $scope.displayStandings = true;
       $scope.newStandings = false;
-      $scope.$apply();
     });
   }
 
@@ -262,14 +261,13 @@ angular.module('controllers', [])
     $scope.displayPairings = false;
     $scope.displayStandings = false;
     $scope.displayClock = true;
-    $scope.$apply();
+    setTimeout(function(){ $scope.$apply(); });
   }
 
   function popupMenu() {
     menuWindow = $window.open('menu.html', 'menu');
     setTimeout(function() { menuScope = menuWindow.angular.element('#menu').scope(); }, 1000);
     $scope.displayMenu = false;
-    $scope.$apply();
   }
 })
 
@@ -283,7 +281,7 @@ angular.module('controllers', [])
     $scope.standings_rounds = tournament.standings_rounds;
     if(tournament.newPairings) $scope.pairings_round = tournament.pairing_rounds[tournament.pairing_rounds.length - 1];
     if(tournament.newStandings) $scope.standings_round = tournament.standings_rounds[tournament.standings_rounds.length - 1];
-    $scope.$apply();
+    setTimeout(function(){ $scope.$apply(); });
   });
   $scope.newPairings = false;
   $scope.newStandings = false;

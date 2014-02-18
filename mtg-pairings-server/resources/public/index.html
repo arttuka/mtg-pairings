@@ -19,18 +19,31 @@
   <link rel="stylesheet" type="text/css" href="css/bootstrap.css"> 
   <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.css">
 </head>
-<body>
-  <div id="header" ng-controller="MenuController">
+<body ng-controller="MenuController">
+  <div id="header">
     <div ng-hide="loggedIn">
       <form ng-submit="login()">
-        <input size="10" type="number" ng-model="dci" placeholder="DCI-numero">
-        <input type="submit" value="KIRJAUDU">
+        <input type="number" ng-model="dci" placeholder="DCI-numero">
+        <input type="submit" value="KIRJAUDU" class="pull-left">
+        <a class="hidden-xs" href="#/tournaments">KAIKKI TURNAUKSET</a>
+        <span class="pull-right menu-icon hidden-sm hidden-md hidden-lg" ng-click="menuCollapsed = !menuCollapsed"><i></i></span>
       </form>
     </div>
-    <div ng-hide="!loggedIn">
-      <span>{{name}}</span>
+    <div ng-show="loggedIn" class="hidden-xs logged-menu">
+      <span>{{name}}</span> 
       <button ng-click="logout()">KIRJAUDU ULOS</button>
+      <a href="#/tournaments">KAIKKI TURNAUKSET</a>
+      <a href="#/">ETUSIVU</a>
     </div>
+    <div ng-show="loggedIn" class="hidden-sm hidden-md hidden-lg">
+      <span>{{name}}</span> 
+      <span class="pull-right menu-icon" ng-click="menuCollapsed = !menuCollapsed"><i></i></span>
+    </div>
+  </div>
+  <div id="mobile-menu" class="hidden-sm hidden-md hidden-lg" collapse="menuCollapsed">
+    <a href="#/" ng-click="menuCollapsed = true">ETUSIVU</a>
+    <a href="#/tournaments" ng-click="menuCollapsed = true">KAIKKI TURNAUKSET</a>
+    <a ng-hide="!loggedIn" ng-click="menuCollapsed = true; logout()">KIRJAUDU ULOS</a>
   </div>
   <div id="content" ng-view>
     
