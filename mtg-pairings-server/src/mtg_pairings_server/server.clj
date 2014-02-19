@@ -6,7 +6,8 @@
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.resource :refer [wrap-resource]]
-            [ring.util.response :refer [response]]
+            [ring.middleware.content-type :refer [wrap-content-type]]
+            [ring.util.response :refer [resource-response file-response]]
             [cheshire.generate :as json-gen]
             [clojure.java.io :as io]
             [clojure.tools.reader.edn :as edn]
@@ -20,9 +21,9 @@
   (let [tournament-routes (tournament-api/routes)
         player-routes (player-api/routes)]
     (c/routes
-      (r/resources "/")
-      (c/GET "/lol" [] (throw (Throwable. "lololol")))
-      (c/GET "/" [] (response (slurp "resources/public/index.html")))
+      (c/GET "/" [] (->
+                      (resource-response "public/index.html")
+                      (assoc-in [:headers "content-type"] "text/html")))
       (c/context "/tournament" [] tournament-routes)
       (c/context "/player" [] player-routes))))
 
@@ -38,12 +39,13 @@
          :body (str "500 Internal Server Error\nCause: " t)}))))
 
 (defn run! []
-  (log/info "Starting server...")
   (let [{db-properties :db, server-properties :server} (edn/read-string (slurp "properties.edn"))
+        _ (log/info "Starting server on port" (:port server-properties) "...")
         db (create-korma-db db-properties)
         stop-fn (hs/run-server 
                   (-> (routes)
                     (wrap-resource "public")
+                    wrap-content-type
                     wrap-session
                     wrap-json-response
                     (wrap-json-body {:keywords? true})

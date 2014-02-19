@@ -14,7 +14,7 @@
                  [org.postgresql/postgresql "9.2-1002-jdbc4"]
                  [org.clojure/tools.logging "0.2.6"]
                  [ch.qos.logback/logback-classic "1.1.1"]]
-  :main mtg-pairings-server.server
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]]}
-             :uberjar {:aot [mtg-pairings-server.server]}})
+             :uberjar {:main mtg-pairings-server.server
+                       :aot [mtg-pairings-server.server]}})
