@@ -12,6 +12,7 @@
             [clojure.java.io :as io]
             [clojure.tools.reader.edn :as edn]
             [clojure.tools.logging :as log]
+            [clojure.string :as string]
             
             [mtg-pairings-server.tournament-api :as tournament-api]
             [mtg-pairings-server.player-api :as player-api]
@@ -38,12 +39,21 @@
          :headers {"Content-Type" "text/plain"}
          :body (str "500 Internal Server Error\nCause: " t)}))))
 
+(defn wrap-request-log
+  [handler]
+  (fn [request]
+    (log/info (:remote-addr request)
+              (-> request :request-method name string/upper-case)
+              (:uri request))
+    (handler request)))
+
 (defn run! []
   (let [{db-properties :db, server-properties :server} (edn/read-string (slurp "properties.edn"))
         _ (log/info "Starting server on port" (:port server-properties) "...")
         db (create-korma-db db-properties)
         stop-fn (hs/run-server 
                   (-> (routes)
+                    wrap-request-log
                     (wrap-resource "public")
                     wrap-content-type
                     wrap-session
