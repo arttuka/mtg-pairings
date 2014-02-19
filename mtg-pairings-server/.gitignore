@@ -1,5 +1,5 @@
-mtg-pairings.db
-db.properties
+properties.edn
+/logs
 /target
 /classes
 /checkouts

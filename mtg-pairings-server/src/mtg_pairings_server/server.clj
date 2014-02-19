@@ -10,6 +10,7 @@
             [cheshire.generate :as json-gen]
             [clojure.java.io :as io]
             [clojure.tools.reader.edn :as edn]
+            [clojure.tools.logging :as log]
             
             [mtg-pairings-server.tournament-api :as tournament-api]
             [mtg-pairings-server.player-api :as player-api]
@@ -20,11 +21,24 @@
         player-routes (player-api/routes)]
     (c/routes
       (r/resources "/")
+      (c/GET "/lol" [] (throw (Throwable. "lololol")))
       (c/GET "/" [] (response (slurp "resources/public/index.html")))
       (c/context "/tournament" [] tournament-routes)
       (c/context "/player" [] player-routes))))
 
+(defn wrap-exceptions
+  [handler]
+  (fn [request]
+    (try
+      (handler request)
+      (catch Throwable t
+        (log/error t (.getMessage t))
+        {:status 500
+         :headers {"Content-Type" "text/plain"}
+         :body (str "500 Internal Server Error\nCause: " t)}))))
+
 (defn run! []
+  (log/info "Starting server...")
   (let [{db-properties :db, server-properties :server} (edn/read-string (slurp "properties.edn"))
         db (create-korma-db db-properties)
         stop-fn (hs/run-server 
@@ -32,7 +46,8 @@
                     (wrap-resource "public")
                     wrap-session
                     wrap-json-response
-                    (wrap-json-body {:keywords? true})) 
+                    (wrap-json-body {:keywords? true})
+                    wrap-exceptions) 
                   server-properties)]
     (json-gen/add-encoder org.joda.time.LocalDate
       (fn [c generator]
