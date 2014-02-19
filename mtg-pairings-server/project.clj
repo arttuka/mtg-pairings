@@ -14,4 +14,5 @@
                  [org.postgresql/postgresql "9.2-1002-jdbc4"]]
   :main mtg-pairings-server.server
   :profiles {:dev {:source-paths ["dev"]
-                   :dependencies [[org.clojure/tools.namespace "0.2.4"]]}})
+                   :dependencies [[org.clojure/tools.namespace "0.2.4"]]}
+             :uberjar {:aot [mtg-pairings-server.server]}})
