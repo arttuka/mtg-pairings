@@ -4,6 +4,7 @@
   :license {:name "MIT License"
             :url "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.5.1"]
+                 [ring "1.2.1"]
                  [ring/ring-core "1.2.1"]
                  [ring/ring-json "0.2.0"]
                  [http-kit "2.1.16"]
@@ -11,7 +12,11 @@
                  [org.clojure/tools.reader "0.8.3"]
                  [clj-time "0.6.0"]
                  [korma "0.3.0-RC6"]
-                 [org.postgresql/postgresql "9.2-1002-jdbc4"]]
+                 [org.postgresql/postgresql "9.2-1002-jdbc4"]
+                 [prismatic/schema "0.2.0"]
+                 [metosin/compojure-api "0.6.0"]
+                 [metosin/ring-swagger-ui "2.0.10"]]
+  
   :main mtg-pairings-server.server
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]]}})

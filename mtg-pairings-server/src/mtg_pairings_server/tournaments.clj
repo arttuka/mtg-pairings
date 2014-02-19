@@ -37,9 +37,8 @@
     (map update-round-data tourns)))
 
 (defn add-tournament [tourn]
-  (let [tourn (sql/insert db/tournament
-                (sql/values (select-keys tourn [:name :day :rounds])))]
-    (:id tourn)))
+  (sql/insert db/tournament
+    (sql/values (select-keys tourn [:name :day :rounds]))))
 
 (defn add-players [players]
   (let [old-players (->> (sql/select db/player)
