@@ -8,15 +8,13 @@
                  [ring/ring-core "1.2.1"]
                  [ring/ring-json "0.2.0"]
                  [http-kit "2.1.16"]
-                 [compojure "1.1.6"]
                  [org.clojure/tools.reader "0.8.3"]
                  [clj-time "0.6.0"]
                  [korma "0.3.0-RC6"]
                  [org.postgresql/postgresql "9.2-1002-jdbc4"]
-                 [prismatic/schema "0.2.0"]
                  [metosin/compojure-api "0.6.0"]
                  [metosin/ring-swagger-ui "2.0.10"]]
-  
-  :main mtg-pairings-server.server
   :profiles {:dev {:source-paths ["dev"]
-                   :dependencies [[org.clojure/tools.namespace "0.2.4"]]}})
+                   :dependencies [[org.clojure/tools.namespace "0.2.4"]]}
+             :uberjar {:main mtg-pairings-server.server
+                       :aot [mtg-pairings-server.server]}})
