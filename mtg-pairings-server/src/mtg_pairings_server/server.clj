@@ -25,7 +25,7 @@
       (c/context "/player" [] player-routes))))
 
 (defn run! []
-  (let [db-properties (edn/read-string (slurp "db.properties"))
+  (let [{db-properties :db, server-properties :server} (edn/read-string (slurp "properties.edn"))
         db (create-korma-db db-properties)
         stop-fn (hs/run-server 
                   (-> (routes)
@@ -33,7 +33,7 @@
                     wrap-session
                     wrap-json-response
                     (wrap-json-body {:keywords? true})) 
-                  {:port 8080})]
+                  server-properties)]
     (json-gen/add-encoder org.joda.time.LocalDate
       (fn [c generator]
         (.writeString generator (str c))))
