@@ -1,5 +1,10 @@
 begin;
 
+create table if not exists trader_user (
+  id serial primary key,
+  uuid uuid not null unique
+);
+
 create table player(
   dci varchar(10) primary key,
   name varchar(100) not null
@@ -9,7 +14,8 @@ create table tournament(
   id serial primary key,
   name varchar(100) not null,
   day date not null,
-  rounds int not null
+  rounds int not null,
+  owner id not null references trader_user (id);
 );
 
 create table team(

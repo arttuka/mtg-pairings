@@ -46,7 +46,7 @@
                                     :when (<= round-num up-to-round-num)]
                                 matches))
         all-matches (concat matches (map reverse-match matches))
-        grouped-matches (group-by :team_1 all-matches)
+        grouped-matches (dissoc (group-by :team_1 all-matches) nil)
         teams-results (map-values calculate-points-pgw grouped-matches)
         results (calculate-omw-ogw teams-results)
         lst (for [[team result] results]

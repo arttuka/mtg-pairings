@@ -6,7 +6,9 @@
 /tournament
 ### Method ###
 `POST`
-### Request params ###
+### Query params ###
+`key`: API key of the user
+### Request body ###
 `application/json`
 ``` json
 {"name": "Testing tournament"
@@ -40,9 +42,11 @@
 /tournament/:id/teams
 ### Method ###
 `PUT`
+### Query params ###
+`key`: API key of the user
 ### URL Params ###
 `id: integer` (Tournament id)
-### Request params ###
+### Request body ###
 `application/json`
 ``` json
 [{"name": "Smith, John",
@@ -99,10 +103,12 @@ HTTP 200
 /tournament/:id/round-:round/pairings
 ### Method ###
 `PUT`
+### Query params ###
+`key`: API key of the user
 ### URL Params ###
 `id: integer` (Tournament id)
 `round: integer` (Round number)
-### Request params ###
+### Request body ###
 `application/json`
 ``` json
 [{"team1": "Smith, John",
@@ -119,10 +125,12 @@ HTTP 200
 /tournament/:id/round-:round/results
 ### Method ###
 `PUT`
+### Query params ###
+`key`: API key of the user
 ### URL Params ###
 `id: integer` (Tournament id)
 `round: integer` (Round number)
-### Request params ###
+### Request body ###
 `application/json`
 ``` json
 [{"table_number": 1,

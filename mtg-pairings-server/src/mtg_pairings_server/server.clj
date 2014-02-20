@@ -7,6 +7,7 @@
             [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.content-type :refer [wrap-content-type]]
+            [ring.middleware.params :refer [wrap-params]]
             [ring.util.response :refer [resource-response file-response]]
             [cheshire.generate :as json-gen]
             [clojure.java.io :as io]
@@ -22,6 +23,7 @@
   (let [tournament-routes (tournament-api/routes)
         player-routes (player-api/routes)]
     (c/routes
+      (c/GET "/params" [:as request] {:status 200, :body (:params request)})
       (c/GET "/" [] (->
                       (resource-response "public/index.html")
                       (assoc-in [:headers "content-type"] "text/html")))
@@ -57,6 +59,7 @@
                     (wrap-resource "public")
                     wrap-content-type
                     wrap-session
+                    wrap-params
                     wrap-json-response
                     (wrap-json-body {:keywords? true})
                     wrap-exceptions) 

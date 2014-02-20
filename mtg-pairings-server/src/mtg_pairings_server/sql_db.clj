@@ -30,7 +30,7 @@
 (def joda-date->sql-date
   (partial convert-instances-of org.joda.time.LocalDate time-coerce/to-sql-date))
 
-(declare tournament player team round pairing result standings team-players seating)
+(declare tournament player team round pairing result standings team-players seating user)
 
 (sql/defentity team-players
   (sql/table :team_players)
@@ -47,6 +47,8 @@
     {:fk :tournament})
   (sql/has-many seating
     {:fk :tournament})
+  (sql/belongs-to user
+    {:fk :owner})
   (sql/prepare joda-date->sql-date)
   (sql/transform sql-date->joda-date))
 
@@ -106,3 +108,9 @@
   (sql/pk :tournament)
   (sql/belongs-to tournament
     {:fk :tournament}))
+
+(sql/defentity user
+  (sql/table :trader_user)
+  (sql/pk :id)
+  (sql/has-many tournament
+    {:fk :owner}))

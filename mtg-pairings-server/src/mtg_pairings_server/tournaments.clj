@@ -5,6 +5,24 @@
             [mtg-pairings-server.util :as util]
             [clojure.tools.reader.edn :as edn]))
 
+(defn user-for-request [request]
+  (when-let [uuid (get-in request [:params "key"])]
+    (try
+      (-> (sql/select db/user
+            (sql/fields :id)
+            (sql/where {:uuid (java.util.UUID/fromString uuid)}))
+        first
+        :id)
+      (catch IllegalArgumentException e
+        nil))))
+
+(defn owner-of-tournament [id]
+  (:owner 
+    (first 
+      (sql/select db/tournament
+        (sql/fields :owner)
+        (sql/where {:id id})))))
+
 (def ^:private select-tournaments
   (-> (sql/select* db/tournament)
     (sql/fields :rounds :day :name :id
@@ -38,7 +56,7 @@
 
 (defn add-tournament [tourn]
   (let [tourn (sql/insert db/tournament
-                (sql/values (select-keys tourn [:name :day :rounds])))]
+                (sql/values (select-keys tourn [:name :day :rounds :owner])))]
     (:id tourn)))
 
 (defn add-players [players]
@@ -94,6 +112,7 @@
                 (sql/where {:tournament tournament-id}))]
     (into {} (for [team teams]
                [(:name team) (:id team)]))))
+
 (defn add-seatings [tournament-id seatings]
   (sql/delete db/seating
     (sql/where {:tournament tournament-id}))
@@ -109,7 +128,7 @@
         team->points (if-let [standings (standings tournament-id (dec round-num))]
                        (into {} (for [row standings]
                                   [(:team row) (:points row)]))
-                       (constantly 0))
+                       #(when % 0))
         round-id (add-round tournament-id round-num)]
     (sql/insert db/pairing
       (sql/values (for [pairing pairings
@@ -128,21 +147,25 @@
                        :table_number table_number}))))
 
 (defn ^:private results-of-round [round-id]
-  (sql/select db/pairing
-    (sql/fields [:team1 :team_1] 
-                [:team2 :team_2]
-                [:team1_points :team_1_points]
-                [:team2_points :team_2_points]
-                :table_number)
-    (sql/with db/team1
-      (sql/fields [:name :team_1_name]))
-    (sql/with db/team2
-      (sql/fields [:name :team_2_name]))
-    (sql/with db/result
-      (sql/fields [:team1_wins :wins] 
-                  [:team2_wins :losses]
-                  :draws))
-    (sql/where {:round round-id})))
+  (for [pairing (sql/select db/pairing
+                  (sql/fields [:team1 :team_1] 
+                              [:team2 :team_2]
+                              [:team1_points :team_1_points]
+                              [:team2_points :team_2_points]
+                              :table_number)
+                  (sql/with db/team1
+                    (sql/fields [:name :team_1_name]))
+                  (sql/with db/team2
+                    (sql/fields [:name :team_2_name]))
+                  (sql/with db/result
+                    (sql/fields [:team1_wins :wins] 
+                                [:team2_wins :losses]
+                                :draws))
+                  (sql/where {:round round-id}))]
+    (if-not (:team_2 pairing)
+      (merge pairing {:team_2_name "***BYE***"
+                      :team_2_points 0})
+      pairing)))
 
 (defn ^:private calculate-standings [tournament-id]
   (let [rounds (sql/select db/round
@@ -154,9 +177,9 @@
         round-id (:id (first rounds))
         std (mtg-util/calculate-standings rounds-results round-num)]
     (sql/insert db/standings 
-      (sql/values {:standings (pr-str std)
-                   :tournament tournament-id
-                   :round round-num}))))
+     (sql/values {:standings (pr-str std)
+                  :tournament tournament-id
+                  :round round-num}))))
 
 (defn add-results [tournament-id round-num results]
   (let [round-id (:id (first (sql/select db/round

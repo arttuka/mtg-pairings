@@ -4,11 +4,26 @@
             [mtg-pairings-server.tournaments :refer :all]
             [mtg-pairings-server.util :refer [parse-date]]))
 
+(defmacro validate-request [tournament-id request & body]
+  `(let [user# (user-for-request ~request)
+         owner# (owner-of-tournament (Integer/parseInt ~tournament-id))]
+     (cond
+       (nil? owner#) {:status 404}
+       (nil? user#) {:status 400}
+       (not= owner# user#) {:status 403}
+       :else (do ~@body))))
+
 (defn routes []
   (c/routes
     (c/POST "/" [:as request]
-      (let [id (add-tournament (update-in (:body request) [:day] parse-date))]
-        (response {:id id})))
+      (if-let [user (user-for-request request)]
+        (let [tournament (-> (:body request)
+                           (update-in [:day] parse-date)
+                           (assoc :owner user))
+              _ (println tournament)
+              id (add-tournament tournament)]
+          (response {:id id}))
+        {:status 400}))
     (c/GET "/" []
       (response (tournaments)))
     (c/GET "/:id" [id]
@@ -22,14 +37,18 @@
     (c/GET "/:id/seatings" [id]
       (response (seatings (Integer/parseInt id))))
     (c/PUT "/:id/round-:round/pairings" [id round :as request]
-      (add-pairings (Integer/parseInt id) (Integer/parseInt round) (:body request))
-      {:status 200})
+      (validate-request id request
+        (add-pairings (Integer/parseInt id) (Integer/parseInt round) (:body request))
+        {:status 200}))
     (c/PUT "/:id/round-:round/results" [id round :as request]
-      (add-results (Integer/parseInt id) (Integer/parseInt round) (:body request))
-      {:status 200})
+      (validate-request id request
+        (add-results (Integer/parseInt id) (Integer/parseInt round) (:body request))
+        {:status 200}))
     (c/PUT "/:id/seatings" [id :as request]
-      (add-seatings (Integer/parseInt id) (:body request))
-      {:status 200})
+      (validate-request id request
+        (add-seatings (Integer/parseInt id) (:body request))
+        {:status 200}))
     (c/PUT "/:id/teams" [id :as request]
-      (add-teams (Integer/parseInt id) (:body request))
-      {:status 200})))
+      (validate-request id request
+        (add-teams (Integer/parseInt id) (:body request))
+        {:status 200}))))

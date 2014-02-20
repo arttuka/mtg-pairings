@@ -69,6 +69,12 @@
                   (map :TeamId (db/rows result-table {:MatchId (:MatchId match)})))]
     (mapcat #(teams-from-ids % all-teams) results)))
 
+(defn rounds
+  [db tournament-id]
+  (-> (db/table db "Round")
+    (db/rows {:TournamentId tournament-id})
+    (select-keys [:RoundId :Number])))
+
 (defn pairings
   [db tournament-id]
   (let [round-table (db/table db "Round")
