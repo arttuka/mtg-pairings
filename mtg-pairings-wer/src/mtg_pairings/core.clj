@@ -6,9 +6,9 @@
 (native!)
 
 
-(def database-location (text "Insert database location here."))
+(def database-location (text ""))
 
-(def server-address  (text "Insert server address here."))
+(def server-address  (text ""))
 
 (defn select-file []
   (text! database-location 
