@@ -6,6 +6,7 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [clojess "0.3"]
                  [seesaw "1.4.4"]
-                 [clojure-watch "0.1.9"]
+                 [watchtower "0.1.1"]
+                 [http-kit "2.1.16"]
+                 [org.clojure/tools.reader "0.8.3"]
                  [cheshire "5.3.1"]])
-
