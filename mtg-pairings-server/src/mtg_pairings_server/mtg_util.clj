@@ -17,8 +17,8 @@
     {:points (:match_points reduced)
      :pmw (max 0.33 (/ (:match_points reduced) (* 3 (:matches_played reduced))))
      :pgw (max 0.33 (/ (:game_points reduced) (* 3 (:games_played reduced))))
-     :opponents (keep :team_2 matches)
-     :team_name (:team_1_name (first matches))}))
+     :opponents (keep :team2 matches)
+     :team_name (:team1_name (first matches))}))
 
 (defn ^:private calculate-omw-ogw [teams-results]
   (map-values (fn [results] 
@@ -33,10 +33,10 @@
               teams-results))
 
 (defn ^:private reverse-match [match]
-  {:team_1 (:team_2 match)
-   :team_2 (:team_1 match)
-   :team_1_name (:team_2_name match)
-   :team_2_name (:team_1_name match)
+  {:team1 (:team2 match)
+   :team2 (:team1 match)
+   :team1_name (:team2_name match)
+   :team2_name (:team1_name match)
    :wins (:losses match)
    :losses (:wins match)
    :draws (:draws match)})
@@ -46,7 +46,7 @@
                                     :when (<= round-num up-to-round-num)]
                                 matches))
         all-matches (concat matches (map reverse-match matches))
-        grouped-matches (dissoc (group-by :team_1 all-matches) nil)
+        grouped-matches (dissoc (group-by :team1 all-matches) nil)
         teams-results (map-values calculate-points-pgw grouped-matches)
         results (calculate-omw-ogw teams-results)
         lst (for [[team result] results]

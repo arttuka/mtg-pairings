@@ -148,23 +148,23 @@
 
 (defn ^:private results-of-round [round-id]
   (for [pairing (sql/select db/pairing
-                  (sql/fields [:team1 :team_1] 
-                              [:team2 :team_2]
-                              [:team1_points :team_1_points]
-                              [:team2_points :team_2_points]
+                  (sql/fields [:team1 :team1] 
+                              [:team2 :team2]
+                              [:team1_points :team1_points]
+                              [:team2_points :team2_points]
                               :table_number)
                   (sql/with db/team1
-                    (sql/fields [:name :team_1_name]))
+                    (sql/fields [:name :team1_name]))
                   (sql/with db/team2
-                    (sql/fields [:name :team_2_name]))
+                    (sql/fields [:name :team2_name]))
                   (sql/with db/result
                     (sql/fields [:team1_wins :wins] 
                                 [:team2_wins :losses]
                                 :draws))
                   (sql/where {:round round-id}))]
-    (if-not (:team_2 pairing)
-      (merge pairing {:team_2_name "***BYE***"
-                      :team_2_points 0})
+    (if-not (:team2 pairing)
+      (merge pairing {:team2_name "***BYE***"
+                      :team2_points 0})
       pairing)))
 
 (defn ^:private calculate-standings [tournament-id]

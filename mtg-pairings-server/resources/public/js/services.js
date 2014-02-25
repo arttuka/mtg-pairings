@@ -6,10 +6,10 @@ angular.module('services', [])
       draws: p.draws,
       losses: p.wins,
       wins: p.losses,
-      team_1_name: p.team_2_name,
-      team_2_name: p.team_1_name,
-      team_1_points: p.team_2_points,
-      team_2_points: p.team_1_points,
+      team1_name: p.team2_name,
+      team2_name: p.team1_name,
+      team1_points: p.team2_points,
+      team2_points: p.team1_points,
       table_number: p.table_number
     };
   }

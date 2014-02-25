@@ -6,8 +6,8 @@
         <i class="left glyphicon glyphicon-chevron-down" ng-class="{'inactive': sort != 'table_number'}"></i>
         Pöytä
       </th>
-      <th class="players" ng-click="sort = 'team_1_name'">
-        <i class="left glyphicon glyphicon-chevron-down" ng-class="{'inactive': sort != 'team_1_name'}"></i>
+      <th class="players" ng-click="sort = 'team1_name'">
+        <i class="left glyphicon glyphicon-chevron-down" ng-class="{'inactive': sort != 'team1_name'}"></i>
         <span class="hidden-xs">Pelaaja 1</span>
         <span class="hidden-sm hidden-md hidden-lg">Pelaajat</span>
       </th>
@@ -25,16 +25,16 @@
     <tr ng-class="{'even': $even, 'odd': $odd}" ng-repeat="p in pairings | orderBy:sort">
       <td class="table">{{p.table_number}}</td>
       <td class="players">
-        {{p.team_1_name}}<br class="hidden-sm hidden-md hidden-lg"><span class="hidden-sm hidden-md hidden-lg" ng-class="{'opponent': sort == 'team_1_name'}">{{p.team_2_name}}</span>
+        {{p.team1_name}}<br class="hidden-sm hidden-md hidden-lg"><span class="hidden-sm hidden-md hidden-lg" ng-class="{'opponent': sort == 'team1_name'}">{{p.team2_name}}</span>
       </td>
       <td class="players2 hidden-xs">
-        <span ng-class="{'opponent': sort == 'team_1_name'}">{{p.team_2_name}}</span>
+        <span ng-class="{'opponent': sort == 'team1_name'}">{{p.team2_name}}</span>
       </td>
       <td class="points">
-        {{p.team_1_points}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span ng-class="{'opponent': sort == 'team_1_name'}">{{p.team_2_points}}</span>
+        {{p.team1_points}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span ng-class="{'opponent': sort == 'team1_name'}">{{p.team2_points}}</span>
       </td>
       <td class="result">
-        {{p.wins}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span ng-class="{'opponent': sort == 'team_1_name'}">{{p.losses}}</span>
+        {{p.wins}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span ng-class="{'opponent': sort == 'team1_name'}">{{p.losses}}</span>
       </td>
     </tr>
   </tbody>

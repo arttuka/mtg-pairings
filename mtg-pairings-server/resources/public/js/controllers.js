@@ -98,7 +98,7 @@ angular.module('controllers', [])
 
 
   function sortPairings() {
-    if($scope.sort == 'team_1_name') {
+    if($scope.sort == 'team1_name') {
       $scope.pairings = PairingService.duplicatePairings($scope.allPairings);
     } else {
       $scope.pairings = $scope.allPairings;
@@ -224,7 +224,7 @@ angular.module('controllers', [])
   function showPairings() {
     var round = $scope.pairings_round;
     TournamentResource.pairings({id: tournamentId, round: round}).$promise.then(function(pairings) {
-      var duplicated = _.sortBy(PairingService.duplicatePairings(pairings), "team_1_name");
+      var duplicated = _.sortBy(PairingService.duplicatePairings(pairings), "team1_name");
       var pairings = [];
       var perColumn = Math.ceil(duplicated.length / Math.ceil(duplicated.length / 45));
       while(!_.isEmpty(duplicated)) {
