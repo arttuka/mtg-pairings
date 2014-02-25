@@ -1,88 +1,111 @@
 (ns mtg-pairings.db-reader
-  (:require [clojess.core :as db]))
+  (:require [clojess.core :as db]
+            [mtg-pairings.util :as util]))
 
 (defn open [filename]
   (db/open-db filename))
 
 (defn tournaments
-  "Returns a list of tournaments in the database"
-  [db]
-  (->> (db/table db "Tournament")
-    db/rows
-    (map #(select-keys % [:TournamentId :Title :StartDate]))))
+  "Returns a list of tournaments in the database matching the given criteria"
+  [db criteria]
+  (doall (as-> (db/table db "Tournament") <>
+           (db/rows <> criteria)
+           (map #(select-keys % [:TournamentId :Title :StartDate :NumberOfRounds]) <>))))
 
 (def bye
   {:id 0
    :name "***BYE***"
    :dci-numbers []})
 
-(defn dcinumbers-for-players
+(defn data-for-players
   "Returns a list of DCI numbers for a list of players"
   [db players]
   (let [person-table (db/table db "Person")] 
-    (for [player players
-          :let [person (db/row person-table (:PersonId player))]]
-      (:PrimaryDciNumber person))))
+    (doall (for [player players
+                 :let [person (db/row person-table (:PersonId player))]] 
+             {:dci (:PrimaryDciNumber person)
+              :name (str (:LastName person) ", " (:FirstName person) 
+                         (when (seq (:MiddleInitial person))
+                           (str " " (:MiddleInitial person))))}))))
 
-(defn teams
-  "Returns a list of teams in the tournament with the given id number."
+(defn teams 
   [db tournament-id]
   (let [team-table (db/table db "Team")
         teamplayer-table (db/table db "TeamPlayers")]
-    (into {} (for [team (db/rows team-table {:TournamentId tournament-id})
-                   :let [teamplayers (db/rows teamplayer-table {:TeamId (:TeamId team)})]]
-               {(:TeamId team) {:id (:TeamId team)
-                                :name (:Name team)
-                                :dci-numbers (dcinumbers-for-players db teamplayers)}}))))
+    (doall (for [team (db/rows team-table {:TournamentId tournament-id})
+                 :let [teamplayers (db/rows teamplayer-table {:TeamId (:TeamId team)})]]
+             {:id (:TeamId team)
+              :name (:Name team)
+              :players (data-for-players db teamplayers)}))))
 
-(defn teams-from-ids
-  [team-ids all-teams]
-  (if (= 2 (count team-ids))
-    (let [pair (map all-teams team-ids)]
-      [pair (reverse pair)])
-    [[(all-teams (first team-ids)) bye]]))
+(defn id->team
+  "Returns a map of team-id -> team in the tournament with the given id number."
+  [db tournament-id]
+  (into {} (for [team (teams db tournament-id)]
+             [(:id team) team])))
 
 (defn results-for-round
+  [db round-id]
+  (let [match-table (db/table db "Match")
+        result-table (db/table db "TeamMatchResult")
+        matches (db/rows match-table {:RoundId round-id})]
+   (doall (for [match matches
+                :let [[first-row second-row] (db/rows result-table {:MatchId (:MatchId match)})]]
+            (merge {:table_number (:TableNumber match)}
+                   (if (or (nil? second-row) (> (:TeamId first-row) (:TeamId second-row)))
+                     {:team1_wins (:GameWins first-row)
+                      :team2_wins (:GameLosses first-row)
+                      :draws (:GameDraws first-row)}
+                     {:team1_wins (:GameWins second-row)
+                      :team2_wins (:GameLosses second-row)
+                      :draws (:GameDraws second-row)}))))))
+(defn pairings-for-round
+  "Returns a list of pairings for the round so that team1 is the one with the higher id" 
   [db round-id all-teams]
   (let [match-table (db/table db "Match")
         result-table (db/table db "TeamMatchResult")
         matches (db/rows match-table {:RoundId round-id})]
-   (for [match matches
-         :let [[first-row second-row] (db/rows result-table {:MatchId (:MatchId match)})]]
-     (if (>= (:GameWins first-row) (:GameWins second-row))
-       {:GameWins (:GameWins first-row)
-        :GameLosses (:GameLosses first-row)
-        :GameDraws (:GameDraws first-row)
-        :WinnerTeamId (:TeamId first-row)
-        :LoserTeamId (:TeamId second-row)}
-       {:GameWins (:GameWins second-row)
-        :GameLosses (:GameLosses second-row)
-        :GameDraws (:GameDraws second-row)
-        :WinnerTeamId (:TeamId second-row)
-        :LoserTeamId (:TeamId first-row)}))))
-(defn pairings-for-round
-  [db round-id all-teams]
-  (let [match-table (db/table db "Match")
-        result-table (db/table db "TeamMatchResult")
-        matches (db/rows match-table {:RoundId round-id})
-        results (for [match matches]
-                  (map :TeamId (db/rows result-table {:MatchId (:MatchId match)})))]
-    (mapcat #(teams-from-ids % all-teams) results)))
+    (doall (for [match matches
+                 :let [match-teams (map :TeamId (db/rows result-table {:MatchId (:MatchId match)}))
+                       teams (reverse (sort match-teams))
+                       team1 (first teams)
+                       team2 (second teams)]]
+             {:team1 (:name (all-teams team1))
+              :team2 (:name (all-teams team2))
+              :table_number (:TableNumber match)}))))
 
 (defn rounds
   [db tournament-id]
-  (-> (db/table db "Round")
-    (db/rows {:TournamentId tournament-id})
-    (select-keys [:RoundId :Number])))
+  (doall (as-> (db/table db "Round") <>
+           (db/rows <> {:TournamentId tournament-id})
+           (map #(select-keys % [:RoundId :Number]) <>))))
+
+(defn results
+  [db tournament-id]
+  (let [round-table (db/table db "Round")
+        rounds (sort-by :Number (db/rows round-table {:TournamentId tournament-id}))]
+    (doall (for [round rounds
+                 :let [results (results-for-round db (:RoundId round))]
+                 :when (seq results)]
+             results))))
 
 (defn pairings
   [db tournament-id]
   (let [round-table (db/table db "Round")
-        rounds (db/rows round-table {:TournamentId tournament-id})
-        teams (teams db tournament-id)]
-    (for [round rounds]
-      (pairings-for-round db (:RoundId round) teams))))
+        rounds (sort-by :Number (db/rows round-table {:TournamentId tournament-id}))
+        teams (id->team db tournament-id)]
+    (doall (for [round rounds
+                 :let [pairings (pairings-for-round db (:RoundId round) teams)]
+                 :when (seq pairings)]
+             pairings))))
 
-(defn print-pairings [pairings]
-  (doseq [pairing pairings]
-    (println (:name (first pairing)) "-" (:name (second pairing)))))
+(defn seatings
+  [db tournament-id]
+  (let [tournamenttable-table (db/table db "TournamentTable")
+        seat-table (db/table db "Seat")
+        teams (id->team db tournament-id)
+        tables (db/rows tournamenttable-table {:TournamentId tournament-id})]
+    (doall (for [table tables
+                 seat (db/rows seat-table {:TournamentTableId (:TournamentTableId table)})]
+             {:table_number (:TableNumber table)
+              :team (-> seat :TeamId teams :name)}))))
