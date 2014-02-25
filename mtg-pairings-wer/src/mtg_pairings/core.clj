@@ -1,7 +1,9 @@
 (ns mtg-pairings.core
   (:gen-class)
   (:use seesaw.core)
-  (:use seesaw.chooser))
+  (:use seesaw.chooser)
+  (:use mtg-pairings.db-reader)
+  (:require [cheshire.core :refer :all]))
 
 (native!)
 
@@ -24,6 +26,18 @@
 
 (def upload-button (button :text "Upload"
                      :listen [:action upload-results]))
+
+(def tournament-label (text ""))
+
+(def tournament-selector "")
+
+(defn select-tournament [event]
+  ())
+
+(def tournament-button (button :text "Select"
+                         :listen [:action select-tournament]))
+
+(def api-key (text ""))
  
 (def about-window
   (frame
@@ -49,6 +63,11 @@
 
 (def exit-action (menu-item :text "Exit" :listen [:action exit-handler]))
 
+(def pairings-checkbox (checkbox :text "New pairings" :selected? false))
+
+(def results-checkbox (checkbox :text "Standings" :selected? false))
+
+
 
 (defn main-window []
   (frame
@@ -64,8 +83,11 @@
                :hgap 5
                :items ["Database file:" database-location database-button
                        "Server address:" server-address ""
+                       "API key:" api-key ""
+                       "Tournament:" tournament-label tournament-button
                        "" "" ""
-                       "Upload results:" upload-button])
+                       "Upload results:" upload-button pairings-checkbox
+                       "" "" results-checkbox])
                ))
 
 
