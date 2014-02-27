@@ -20,10 +20,12 @@
 (defn options [api-key body]
   {:timeout 1000
    :query-params {:key api-key}
-   :body (json/generate-string body)})
+   :body (json/generate-string body)
+   :headers {"Content-Type" "application/json"}
+   :as :text})
 
 (defn upload-tournament! [url api-key tournament & [callback]]
-  (POST (str url "/tournament") 
+  (POST (str url "/tournament/") 
         (options api-key tournament) 
         callback))
 
