@@ -20,7 +20,6 @@
         (let [tournament (-> (:body request)
                            (update-in [:day] parse-date)
                            (assoc :owner user))
-              _ (println tournament)
               id (add-tournament tournament)]
           (response {:id id}))
         {:status 400}))

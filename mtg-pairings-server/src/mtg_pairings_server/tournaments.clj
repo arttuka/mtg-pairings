@@ -101,11 +101,14 @@
       :standings
       edn/read-string))
 
-(defn ^:private add-round [tournament-id round-num]
-  (let [round (sql/insert db/round 
-                (sql/values {:tournament tournament-id
-                             :num round-num}))]
-    (:id round)))
+(defn ^:private get-or-add-round [tournament-id round-num]
+  (if-let [old-round (first (sql/select db/round
+                              (sql/where {:tournament tournament-id
+                                          :num round-num})))]
+    (:id old-round)
+    (:id (sql/insert db/round 
+           (sql/values {:tournament tournament-id
+                        :num round-num})))))
 
 (defn teams-by-name [tournament-id]
   (let [teams (sql/select db/team
@@ -123,13 +126,31 @@
                      :table_number (:table_number seating)
                      :tournament tournament-id})))))
 
+(defn ^:private delete-results [round-id]
+  (sql/delete db/result 
+    (sql/where {:pairing [in (sql/subselect db/pairing 
+                               (sql/fields :id) 
+                               (sql/where {:round round-id}))]})))
+
+(defn ^:private delete-pairings [round-id]
+  (sql/delete db/pairing
+    (sql/where {:round round-id})))
+
+(defn ^:private delete-standings [tournament-id round-num]
+  (sql/delete db/standings
+    (sql/where {:tournament tournament-id
+                :round round-num})))
+
 (defn add-pairings [tournament-id round-num pairings]
   (let [name->id (teams-by-name tournament-id)
         team->points (if-let [standings (standings tournament-id (dec round-num))]
                        (into {} (for [row standings]
                                   [(:team row) (:points row)]))
                        #(when % 0))
-        round-id (add-round tournament-id round-num)]
+        round-id (get-or-add-round tournament-id round-num)]
+    (delete-results round-id)
+    (delete-pairings round-id)
+    (delete-standings tournament-id round-num)
     (sql/insert db/pairing
       (sql/values (for [pairing pairings
                         :let [team1 (name->id (:team1 pairing))
@@ -185,6 +206,8 @@
   (let [round-id (:id (first (sql/select db/round
                                (sql/where {:tournament tournament-id
                                            :num round-num}))))]
+    (delete-results round-id)
+    (delete-standings tournament-id round-num)
     (doseq [res results
             :let [pairing-id (:id (find-pairing round-id (:table_number res)))]]
       (sql/insert db/result
