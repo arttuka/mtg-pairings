@@ -64,6 +64,9 @@
 (defn get-teams [id]
   (seq (get-in @state [id :teams])))
 
+(defn get-tournaments [] (for [[id tournament] @state] 
+                           (-> tournament (select-keys [:name :rounds :day]) (assoc :id id))))
+
 (defn start! [path & {:as handlers}]
   (let [file (File. path)
         fname (.getName file)
