@@ -29,22 +29,22 @@
         (options api-key tournament) 
         callback))
 
-(defn upload-teams! [url tournament-id api-key teams & [callback]]
-  (PUT (str url "/tournament/" tournament-id "/teams")
+(defn upload-teams! [url sanction-id api-key teams & [callback]]
+  (PUT (str url "/tournament/" sanction-id "/teams")
        (options api-key teams)
        callback))
 
-(defn upload-seatings! [url tournament-id api-key seatings & [callback]]
-  (PUT (str url "/tournament/" tournament-id "/seatings")
+(defn upload-seatings! [url sanction-id api-key seatings & [callback]]
+  (PUT (str url "/tournament/" sanction-id "/seatings")
        (options api-key seatings)
        callback))
 
-(defn upload-pairings! [url tournament-id round api-key pairings & [callback]]
-  (PUT (str url "/tournament/" tournament-id "/round-" round "/pairings") 
+(defn upload-pairings! [url sanction-id round api-key pairings & [callback]]
+  (PUT (str url "/tournament/" sanction-id "/round-" round "/pairings") 
        (options api-key pairings)
        callback))
 
-(defn upload-results! [url tournament-id round api-key results & [callback]]
-  (PUT (str url "/tournament/" tournament-id "/round-" round "/results") 
+(defn upload-results! [url sanction-id round api-key results & [callback]]
+  (PUT (str url "/tournament/" sanction-id "/round-" round "/results") 
        (options api-key results)
        callback))

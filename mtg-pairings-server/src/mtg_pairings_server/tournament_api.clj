@@ -4,9 +4,9 @@
             [mtg-pairings-server.tournaments :refer :all]
             [mtg-pairings-server.util :refer [parse-date]]))
 
-(defmacro validate-request [tournament-id request & body]
+(defmacro validate-request [sanction-id request & body]
   `(let [user# (user-for-request ~request)
-         owner# (owner-of-tournament (Integer/parseInt ~tournament-id))]
+         owner# (owner-of-tournament ~sanction-id)]
      (cond
        (nil? owner#) {:status 404}
        (nil? user#) {:status 400}
@@ -19,9 +19,9 @@
       (if-let [user (user-for-request request)]
         (let [tournament (-> (:body request)
                            (update-in [:day] parse-date)
-                           (assoc :owner user))
-              id (add-tournament tournament)]
-          (response {:id id}))
+                           (assoc :owner user))]
+          (add-tournament tournament)
+          {:status 204})
         {:status 400}))
     (c/GET "/" []
       (response (tournaments)))
@@ -35,19 +35,19 @@
       (response (standings (Integer/parseInt id) (Integer/parseInt round))))
     (c/GET "/:id/seatings" [id]
       (response (seatings (Integer/parseInt id))))
-    (c/PUT "/:id/round-:round/pairings" [id round :as request]
-      (validate-request id request
-        (add-pairings (Integer/parseInt id) (Integer/parseInt round) (:body request))
-        {:status 200}))
-    (c/PUT "/:id/round-:round/results" [id round :as request]
-      (validate-request id request
-        (add-results (Integer/parseInt id) (Integer/parseInt round) (:body request))
-        {:status 200}))
-    (c/PUT "/:id/seatings" [id :as request]
-      (validate-request id request
-        (add-seatings (Integer/parseInt id) (:body request))
-        {:status 200}))
-    (c/PUT "/:id/teams" [id :as request]
-      (validate-request id request
-        (add-teams (Integer/parseInt id) (:body request))
-        {:status 200}))))
+    (c/PUT "/:sanctionid/round-:round/pairings" [sanctionid round :as request]
+      (validate-request sanctionid request
+        (add-pairings sanctionid (Integer/parseInt round) (:body request))
+        {:status 204}))
+    (c/PUT "/:sanctionid/round-:round/results" [sanctionid round :as request]
+      (validate-request sanctionid request
+        (add-results sanctionid (Integer/parseInt round) (:body request))
+        {:status 204}))
+    (c/PUT "/:sanctionid/seatings" [sanctionid :as request]
+      (validate-request sanctionid request
+        (add-seatings sanctionid (:body request))
+        {:status 204}))
+    (c/PUT "/:sanctionid/teams" [sanctionid :as request]
+      (validate-request sanctionid request
+        (add-teams sanctionid (:body request))
+        {:status 204}))))

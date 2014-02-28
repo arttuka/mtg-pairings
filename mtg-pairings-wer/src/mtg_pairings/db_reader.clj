@@ -1,5 +1,6 @@
 (ns mtg-pairings.db-reader
   (:require [clojess.core :as db]
+            [clj-time.coerce :as coerce]
             [mtg-pairings.util :as util]))
 
 (defn open [filename]
@@ -10,7 +11,8 @@
   [db criteria]
   (doall (as-> (db/table db "Tournament") <>
            (db/rows <> criteria)
-           (map #(select-keys % [:TournamentId :Title :StartDate :NumberOfRounds]) <>))))
+           (map #(select-keys % [:TournamentId :Title :StartDate :NumberOfRounds :SanctionId]) <>)
+           (map #(update-in % [:StartDate] coerce/to-local-date) <>))))
 
 (def bye
   {:id 0
