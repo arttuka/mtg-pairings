@@ -38,7 +38,7 @@
 
 (def tournament-label (text :text "" :editable? false))
 
-(def tournament-listbox (listbox :model "none"))
+(def tournament-listbox (listbox :model "none" :selection-mode :multi-interval))
   
 (def tournament-selector
   (frame
@@ -56,7 +56,7 @@
 (defn select-tournament [event]
   (if @watcher
     (do (config! tournament-listbox :model (for [tournaments (get-tournaments)] 
-                                             [(:name tournaments)  (:id tournaments)]) )
+                                             [(:name tournaments)  (do (set-tournament-tracking! (:id tournaments) false) (:id tournaments))]) )
           (-> tournament-selector pack! show! ))
     (-> (dialog :content "No database opened") pack! show!)))
 
