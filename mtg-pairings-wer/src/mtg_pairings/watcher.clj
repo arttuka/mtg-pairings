@@ -2,7 +2,7 @@
   (:require [watchtower.core :as watch]
             [mtg-pairings.db-reader :as reader]
             [clojure.tools.reader.edn :as edn]
-            [mtg-pairings.util :refer [filename]])
+            [mtg-pairings.util :refer [filename zip]])
   (:import (java.io File FileNotFoundException)))
 
 (defonce watcher (atom nil))
@@ -16,6 +16,7 @@
                                     {:name (:Title tournament)
                                      :rounds (:NumberOfRounds tournament)
                                      :day (:StartDate tournament)
+                                     :sanctioning-num (:S)
                                      :teams []
                                      :seatings []
                                      :pairings []
@@ -28,19 +29,33 @@
 (defn ^:private round-done? [results]
   (not-any? neg? (map :team1_wins results)))
 
+(defn ^:private changed-index [idx [old new]]
+  (when (not= old new) (inc idx)))
+
+(defn ^:private changed-round [old-values new-values]
+  (if (< (count old-values) (count new-values))
+    (count new-values)
+    (let [changed-rounds (keep-indexed changed-index (zip old-values new-values))]
+      (first changed-rounds))))
+
 (defn ^:private tournament-checker [handlers]
-  (fn [db tournament-id]
-    (println "Checking tournament" tournament-id)
-    (letfn [(handler! [type values]
-              (let [f (get handlers type)]
-                (when (not= (get-in @state [tournament-id type]) values)
-                  (swap! state assoc-in [tournament-id type] values)
-                  (when f
-                    (f tournament-id)))))]
-      (handler! :teams (reader/teams db tournament-id))
-      (handler! :seatings (reader/seatings db tournament-id))
-      (handler! :pairings (reader/pairings db tournament-id))
-      (handler! :results (filter round-done? (reader/results db tournament-id))))))
+  (letfn [(handler [type values tournament-id]
+            (let [f (get handlers type)
+                  old-values (get-in @state [tournament-id type])
+                  round (changed-round old-values values)]
+              (when (not= old-values values)
+                (swap! state assoc-in [tournament-id type] values)
+                (when f
+                  (case type
+                    :teams (f tournament-id)
+                    :seatings (f tournament-id)
+                    :pairings (f tournament-id changed-round)
+                    :results (f tournament-id changed-round))))))]
+    (fn [db tournament-id]
+      (handler :teams (reader/teams db tournament-id) tournament-id)
+      (handler :seatings (reader/seatings db tournament-id) tournament-id)
+      (handler :pairings (reader/pairings db tournament-id) tournament-id)
+      (handler :results (filter round-done? (reader/results db tournament-id)) tournament-id))))
 
 (defn get-tournament [id]
   (let [tournament (get @state id)]
