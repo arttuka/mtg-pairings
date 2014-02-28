@@ -16,12 +16,19 @@
       (catch IllegalArgumentException e
         nil))))
 
-(defn owner-of-tournament [id]
+(defn owner-of-tournament [sanction-id]
   (:owner 
     (first 
       (sql/select db/tournament
         (sql/fields :owner)
-        (sql/where {:id id})))))
+        (sql/where {:sanctionid sanction-id})))))
+
+(defn sanctionid->id [sanction-id]
+  (:id
+    (first 
+      (sql/select db/tournament
+        (sql/fields :id)
+        (sql/where {:sanctionid sanction-id})))))
 
 (def ^:private select-tournaments
   (-> (sql/select* db/tournament)
@@ -55,9 +62,10 @@
     (map update-round-data tourns)))
 
 (defn add-tournament [tourn]
-  (let [tourn (sql/insert db/tournament
-                (sql/values (select-keys tourn [:name :day :rounds :owner])))]
-    (:id tourn)))
+  (when-not (first (sql/select db/tournament
+                     (sql/where {:sanctionid (:sanctionid tourn)})))
+    (sql/insert db/tournament
+      (sql/values (select-keys tourn [:name :day :sanctionid :rounds :owner])))))
 
 (defn add-players [players]
   (let [old-players (->> (sql/select db/player)
@@ -76,14 +84,15 @@
                          :tournament tournament-id}))]
     (:id t)))
 
-(defn add-teams [tournament-id teams]
+(defn add-teams [sanction-id teams]
   (add-players (mapcat :players teams))
-  (doseq [team teams
-          :let [team-id (add-team (:name team) tournament-id)]]
-    (sql/insert db/team-players
-      (sql/values (for [player (:players team)]
-                    {:team team-id
-                     :player (:dci player)})))))
+  (let [tournament-id (sanctionid->id sanction-id)] 
+    (doseq [team teams
+            :let [team-id (add-team (:name team) tournament-id)]]
+      (sql/insert db/team-players
+        (sql/values (for [player (:players team)]
+                      {:team team-id
+                       :player (:dci player)}))))))
 
 (defn seatings [tournament-id]
   (sql/select db/seating
@@ -116,15 +125,16 @@
     (into {} (for [team teams]
                [(:name team) (:id team)]))))
 
-(defn add-seatings [tournament-id seatings]
-  (sql/delete db/seating
-    (sql/where {:tournament tournament-id}))
-  (let [name->id (teams-by-name tournament-id)] 
-    (sql/insert db/seating
-      (sql/values (for [seating seatings]
-                    {:team (name->id (:team seating))
-                     :table_number (:table_number seating)
-                     :tournament tournament-id})))))
+(defn add-seatings [sanction-id seatings]
+  (let [tournament-id (sanctionid->id sanction-id)] 
+    (sql/delete db/seating
+      (sql/where {:tournament tournament-id}))
+    (let [name->id (teams-by-name tournament-id)] 
+      (sql/insert db/seating
+        (sql/values (for [seating seatings]
+                      {:team (name->id (:team seating))
+                       :table_number (:table_number seating)
+                       :tournament tournament-id}))))))
 
 (defn ^:private delete-results [round-id]
   (sql/delete db/result 
@@ -141,8 +151,9 @@
     (sql/where {:tournament tournament-id
                 :round round-num})))
 
-(defn add-pairings [tournament-id round-num pairings]
-  (let [name->id (teams-by-name tournament-id)
+(defn add-pairings [sanction-id round-num pairings]
+  (let [tournament-id (sanctionid->id sanction-id)
+        name->id (teams-by-name tournament-id)
         team->points (if-let [standings (standings tournament-id (dec round-num))]
                        (into {} (for [row standings]
                                   [(:team row) (:points row)]))
@@ -202,8 +213,9 @@
                   :tournament tournament-id
                   :round round-num}))))
 
-(defn add-results [tournament-id round-num results]
-  (let [round-id (:id (first (sql/select db/round
+(defn add-results [sanction-id round-num results]
+  (let [tournament-id (sanctionid->id sanction-id)
+        round-id (:id (first (sql/select db/round
                                (sql/where {:tournament tournament-id
                                            :num round-num}))))]
     (delete-results round-id)

@@ -2,7 +2,7 @@
   (:require [watchtower.core :as watch]
             [mtg-pairings.db-reader :as reader]
             [clojure.tools.reader.edn :as edn]
-            [mtg-pairings.util :refer [filename zip]])
+            [mtg-pairings.util :refer :all])
   (:import (java.io File FileNotFoundException)))
 
 (defonce watcher (atom nil))
@@ -16,7 +16,7 @@
                                     {:name (:Title tournament)
                                      :rounds (:NumberOfRounds tournament)
                                      :day (:StartDate tournament)
-                                     :sanctioning-num (:S)
+                                     :sanctionid (sanction-id tournament)
                                      :teams []
                                      :seatings []
                                      :pairings []
@@ -49,8 +49,8 @@
                   (case type
                     :teams (f tournament-id)
                     :seatings (f tournament-id)
-                    :pairings (f tournament-id changed-round)
-                    :results (f tournament-id changed-round))))))]
+                    :pairings (f tournament-id round)
+                    :results (f tournament-id round))))))]
     (fn [db tournament-id]
       (handler :teams (reader/teams db tournament-id) tournament-id)
       (handler :seatings (reader/seatings db tournament-id) tournament-id)
@@ -59,7 +59,7 @@
 
 (defn get-tournament [id]
   (let [tournament (get @state id)]
-    (select-keys tournament [:name :rounds :day])))
+    (select-keys tournament [:name :rounds :day :sanctionid])))
 
 (defn get-pairings [id round]
   (nth (get-in @state [id :pairings]) (dec round) nil))
