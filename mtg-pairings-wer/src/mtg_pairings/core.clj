@@ -50,12 +50,13 @@
                :border ""
                :north tournament-listbox
                :south (button :text "OK" :listen [:action (fn [event] (-> tournament-selector hide!)
-                                                            (text! tournament-label (selection tournament-listbox)  ) )]))))
+                                                            (text! tournament-label (first (selection tournament-listbox)))
+                                                            (set-tournament-tracking! (second (selection tournament-listbox)) true   ))]))))
 
 (defn select-tournament [event]
   (if @watcher
     (do (config! tournament-listbox :model (for [tournaments (get-tournaments)] 
-                                             (str (:name tournaments) ", id: " (:id tournaments)) ))
+                                             [(:name tournaments)  (:id tournaments)]) )
           (-> tournament-selector pack! show! ))
     (-> (dialog :content "No database opened") pack! show!)))
 
