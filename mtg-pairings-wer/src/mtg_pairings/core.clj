@@ -3,43 +3,16 @@
   (:use seesaw.core)
   (:use seesaw.chooser)
   (:use mtg-pairings.watcher)
+  (:use mtg-pairings.uploader)
   (:require [cheshire.core :refer :all])
   (:import (java.io File FileNotFoundException)))
 
 (native!)
 
-
-(def database-location (text :editable? false :text "%AppData%\\Wizards of the Coast\\Event Reporter\\TournamentData.dat"))
-
-(def server-address  (text :editable? false :text "http://mtgsuomi.fi/pairings/api"))
-
-(def address-checkbox (checkbox :text "Edit address" :selected? false 
-                        :listen [:action (fn [event] (config! server-address :editable? (config address-checkbox :selected?)))]))
-
-
-(defn select-file [event]
-  (if @watcher (stop!))
-  (text! database-location 
-         (choose-file :success-fn (fn [fc file] (.getAbsolutePath file))
-                    :cancel-fn (fn [fc] (text database-location) )))
-  (if (.exists (File. (text database-location)))
-   (start! (text database-location) )
-   (-> (dialog :content "Error opening file") pack! show!)))
-
-
-(def database-button (button :text "..."
-                       :listen [:action select-file]))
-
-(defn upload-results []
-  ())
-
-(def upload-button (button :text "Upload"
-                     :listen [:action upload-results]))
-
 (def tournament-label (text :text "" :editable? false))
 
 (def tournament-listbox (listbox :model "none" :selection-mode :multi-interval))
-  
+
 (def tournament-selector
   (frame
     :on-close :dispose
@@ -60,10 +33,73 @@
           (-> tournament-selector pack! show! ))
     (-> (dialog :content "No database opened") pack! show!)))
 
-(def tournament-button (button :text "Select"
-                         :listen [:action select-tournament]))
+(def pairings-checkbox (checkbox :text "Pairings" :selected? false))
+
+(def results-checkbox (checkbox :text "Results" :selected? false))
+
+(def seatings-checkbox (checkbox :text "Seatings" :selected? false))
 
 (def api-key (text ""))
+
+(def database-location (text :editable? false :text "%AppData%\\Wizards of the Coast\\Event Reporter\\TournamentData.dat"))
+
+(def server-address  (text :editable? false :text "http://mtgsuomi.fi/pairings"))
+
+(def address-checkbox (checkbox :text "Edit address" :selected? false 
+                        :listen [:action (fn [event] (config! server-address :editable? (config address-checkbox :selected?)))]))
+
+(defn tournament-handler [id]
+  (-> (dialog :content "New tournament has been added to database!") pack! show!)) 
+
+(defn standings-handler [id]
+  (-> (dialog :content "New standings have been added to database!") pack! show!)) 
+
+(defn pairings-handler [id]
+  (-> (dialog :content "New pairings have been added to database!") pack! show!)) 
+
+(defn results-handler [id]
+  (-> (dialog :content "New results have been added to database!") pack! show!)) 
+
+(defn seatings-handler [id]
+  (-> (dialog :content "New seatings have been added to database!") pack! show!)) 
+
+
+
+(defn select-file [event]
+  (if @watcher (stop!))
+  (text! database-location 
+         (choose-file :success-fn (fn [fc file] (.getAbsolutePath file))
+                    :cancel-fn (fn [fc] (text database-location) )))
+  (if (.exists (File. (text database-location)))
+   (start! (text database-location) :tournament tournament-handler :standings standings-handler 
+                 :pairings pairings-handler :results results-handler :seatings seatings-handler )
+   (-> (dialog :content "Error opening file") pack! show!)))
+
+
+(def database-button (button :text "..."
+                       :listen [:action select-file]))
+
+(defn upload-results [parametri]
+  (let [url (text server-address) key (text api-key) sanction-id 
+        (:sanction-id (get-tournament (second (selection tournament-listbox))))
+        tournament-id (get-tournament (second (selection tournament-listbox)))]
+    (upload-tournament! url key (get-tournament tournament-id))
+    (upload-teams! url sanction-id key (get-teams tournament-id))
+    (if (config seatings-checkbox :selected?)
+      (upload-seatings! url sanction-id key (get-seatings tournament-id)))
+    (if (config pairings-checkbox :selected?)
+      (upload-pairings! url sanction-id (get-pairings-count tournament-id) 
+                        key (get-pairings tournament-id (get-pairings-count tournament-id))))
+    (if (config results-checkbox :selected?)
+      (upload-results! url sanction-id (get-results-count tournament-id) 
+                       key (get-results tournament-id (get-results-count (tournament-id)))))))
+
+(def upload-button (button :text "Upload"
+                     :listen [:action upload-results]))
+
+
+(def tournament-button (button :text "Select"
+                         :listen [:action select-tournament]))
  
 (def about-window
   (frame
@@ -89,11 +125,6 @@
 
 (def exit-action (menu-item :text "Exit" :listen [:action exit-handler]))
 
-(def pairings-checkbox (checkbox :text "New pairings" :selected? false))
-
-(def results-checkbox (checkbox :text "Standings" :selected? false))
-
-
 
 (def main-window
   (frame
@@ -113,7 +144,8 @@
                        "Tournament:" tournament-label tournament-button
                        "" "" ""
                        "Upload results:" upload-button pairings-checkbox
-                       "" "" results-checkbox])
+                       "" "" results-checkbox
+                       "" "" seatings-checkbox])
                ))
 
 
@@ -121,5 +153,6 @@
  (-> main-window pack! show!)
  (if @watcher (stop!))
  (if (.exists (File. (text database-location))) 
-   (start! (text database-location) )
+   (start! (text database-location) :tournament tournament-handler :standings standings-handler 
+                 :pairings pairings-handler :results results-handler :seatings seatings-handler )
    (-> (dialog :content "Database not found at default location, please set database location.") pack! show!)))
