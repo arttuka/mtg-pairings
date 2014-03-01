@@ -2,105 +2,131 @@
   (:gen-class)
   (:use seesaw.core)
   (:use seesaw.chooser)
-  (:use mtg-pairings.watcher)
-  (:use mtg-pairings.uploader)
-  (:require [cheshire.core :refer :all])
+  (:require [cheshire.core :refer :all]
+            [cheshire.generate :as json-gen]
+            [seesaw.table :as table]
+            [seesaw.mig :as mig]
+            [mtg-pairings.watcher :as watcher]
+            [mtg-pairings.uploader :as uploader]
+            [clojure.java.io :refer [as-file]]
+            [clojure.tools.reader.edn :as edn])
   (:import (java.io File FileNotFoundException)))
 
 (native!)
 
-(def tournament-label (text :text "" :editable? false))
+(defonce state (atom {:properties {}}))
 
-(def tournament-listbox (listbox :model "none" :selection-mode :multi-interval))
+(def default-properties {:db (str (System/getenv "APPDATA") "\\Wizards of the Coast\\Event Reporter\\TournamentData.dat")
+                         :server "http://mtgsuomi.fi/pairings"
+                         :api-key ""})
 
-(def tournament-selector
-  (frame
-    :on-close :dispose
-    :title "Select tournament"
-    :content (border-panel
-               :vgap 5
-               :hgap 5
-               :border ""
-               :north tournament-listbox
-               :south (button :text "OK" :listen [:action (fn [event] (-> tournament-selector hide!)
-                                                            (text! tournament-label (first (selection tournament-listbox)))
-                                                            (set-tournament-tracking! (second (selection tournament-listbox)) true   ))]))))
+(let [prop-file (as-file "properties.edn")]
+  (swap! state assoc :properties (if (.exists prop-file)
+                                   (merge default-properties
+                                          (edn/read-string (slurp prop-file)))
+                                   default-properties)))
 
-(defn select-tournament [event]
-  (if @watcher
-    (do (config! tournament-listbox :model (for [tournaments (get-tournaments)] 
-                                             [(:name tournaments)  (do (set-tournament-tracking! (:id tournaments) false) (:id tournaments))]) )
-          (-> tournament-selector pack! show! ))
-    (-> (dialog :content "No database opened") pack! show!)))
+(defn property [key]
+  (get-in @state [:properties key]))
 
-(def pairings-checkbox (checkbox :text "Pairings" :selected? false))
+(defn set-property! [key value]
+  (swap! state assoc-in [:properties key] value))
 
-(def results-checkbox (checkbox :text "Results" :selected? false))
+(defn tournament-table-model [tournaments]
+  (letfn [(column [value num]
+            (case num
+              0 (:name value)
+              1 (:day value)
+              2 (:tracking value)))] 
+    (doto (proxy
+            [javax.swing.table.AbstractTableModel] []
+            (getRowCount []
+              (count tournaments))
+            (getColumnCount []
+              3)
+            (getValueAt [row col]
+              (-> tournaments
+                (nth row)
+                (column col)))
+            (getColumnClass [col]
+              (if (= col 2)
+                Boolean
+                String))
+            (isCellEditable [row col]
+              (= col 2))
+            (setValueAt [value row col]
+              (let [tournament (nth tournaments row)] 
+                (when (= col 2)
+                  (watcher/set-tournament-tracking! (:id tournament) value)
+                  (update-tournaments! (watcher/get-tournaments)))))
+            (getColumnName [col]
+              (column {:name "Nimi"
+                       :day "Päivä"
+                       :tracking "Seuranta"}
+                      col))))))
+  #_(table/table-model :rows tournaments
+                      :columns [{:key :name, :text "Turnaus"}
+                                {:key :day, :text "Päivä"}
+                                {:key :tracking, :text "Seuranta", :class Boolean}])
 
-(def seatings-checkbox (checkbox :text "Seatings" :selected? false))
+(defn set-column-width [table column width]
+  (-> table .getColumnModel (.getColumn column) (.setPreferredWidth width)))
 
-(def api-key (text ""))
+(def tournament-table (doto (table :model (tournament-table-model (watcher/get-tournaments))
+                                   :show-vertical-lines? false)
+                        (set-column-width 0 230)
+                        (set-column-width 1 100)
+                        (set-column-width 2 70)))
 
-(def database-location (text :editable? false :text "%AppData%\\Wizards of the Coast\\Event Reporter\\TournamentData.dat"))
+(def updates-panel (vertical-panel :items []))
 
-(def server-address  (text :editable? false :text "http://mtgsuomi.fi/pairings"))
+(defn update-tournaments! [tournaments]
+  (config! tournament-table :model (tournament-table-model tournaments)))
 
-(def address-checkbox (checkbox :text "Edit address" :selected? false 
-                        :listen [:action (fn [event] (config! server-address :editable? (config address-checkbox :selected?)))]))
+(defn create-upload-panel [id type & [round]]
+  (let [tournament (watcher/get-tournament id)
+        text (case type
+               :tournament (str "Uusi turnaus:\n" (:name tournament))
+               :seatings (str "Uudet seatingit turnauksessa\n" (:name tournament))
+               :teams (str "Uudet tiimit turnauksessa\n" (:name tournament))
+               :pairings (str "Uudet pairingit turnauksessa\n" (:name tournament) ", kierros " round)
+               :results (str "Uudet tulokset turnauksessa\n" (:name tournament) ", kierros " round))
+        server (property :server)
+        api-key (property :api-key)
+        sanction-id (:sanctionid tournament)
+        panel-id (keyword (str id "-" (name type) "-" round))
+        callback (fn [response] 
+                   (println (:status response))
+                   (when (= 204 (:status response)) 
+                     (remove! updates-panel 
+                              (select updates-panel [(keyword (str "#" (name panel-id)))]))))
+        action (fn [_] 
+                 (case type
+                   :tournament (uploader/upload-tournament! server api-key tournament callback)
+                   :seatings (uploader/upload-seatings! server sanction-id api-key (watcher/get-seatings id) callback)
+                   :teams (uploader/upload-teams! server sanction-id api-key (watcher/get-teams id) callback)
+                   :pairings (uploader/upload-pairings! server sanction-id round api-key (watcher/get-pairings id round) callback)
+                   :results (uploader/upload-results! server sanction-id round api-key (watcher/get-results id round) callback)))
+        panel (horizontal-panel :items [text (button :text "Lähetä" :listen [:action action])]
+                                :id panel-id)]
+    (add! updates-panel panel)))
 
 (defn tournament-handler [id]
-  (-> (dialog :content "New tournament has been added to database!") pack! show!)) 
+  (update-tournaments! (watcher/get-tournaments))
+  (create-upload-panel id :tournament)) 
 
-(defn standings-handler [id]
-  (-> (dialog :content "New standings have been added to database!") pack! show!)) 
+(defn teams-handler [id]
+  (create-upload-panel id :teams)) 
 
-(defn pairings-handler [id]
-  (-> (dialog :content "New pairings have been added to database!") pack! show!)) 
+(defn pairings-handler [id round]
+  (create-upload-panel id :pairings round)) 
 
-(defn results-handler [id]
-  (-> (dialog :content "New results have been added to database!") pack! show!)) 
+(defn results-handler [id round]
+  (create-upload-panel id :results round)) 
 
 (defn seatings-handler [id]
-  (-> (dialog :content "New seatings have been added to database!") pack! show!)) 
+  (create-upload-panel id :seatings)) 
 
-
-
-(defn select-file [event]
-  (if @watcher (stop!))
-  (text! database-location 
-         (choose-file :success-fn (fn [fc file] (.getAbsolutePath file))
-                    :cancel-fn (fn [fc] (text database-location) )))
-  (if (.exists (File. (text database-location)))
-   (start! (text database-location) :tournament tournament-handler :standings standings-handler 
-                 :pairings pairings-handler :results results-handler :seatings seatings-handler )
-   (-> (dialog :content "Error opening file") pack! show!)))
-
-
-(def database-button (button :text "..."
-                       :listen [:action select-file]))
-
-(defn upload-results [parametri]
-  (let [url (text server-address) key (text api-key) sanction-id 
-        (:sanction-id (get-tournament (second (selection tournament-listbox))))
-        tournament-id (get-tournament (second (selection tournament-listbox)))]
-    (upload-tournament! url key (get-tournament tournament-id))
-    (upload-teams! url sanction-id key (get-teams tournament-id))
-    (if (config seatings-checkbox :selected?)
-      (upload-seatings! url sanction-id key (get-seatings tournament-id)))
-    (if (config pairings-checkbox :selected?)
-      (upload-pairings! url sanction-id (get-pairings-count tournament-id) 
-                        key (get-pairings tournament-id (get-pairings-count tournament-id))))
-    (if (config results-checkbox :selected?)
-      (upload-results! url sanction-id (get-results-count tournament-id) 
-                       key (get-results tournament-id (get-results-count (tournament-id)))))))
-
-(def upload-button (button :text "Upload"
-                     :listen [:action upload-results]))
-
-
-(def tournament-button (button :text "Select"
-                         :listen [:action select-tournament]))
- 
 (def about-window
   (frame
     :on-close :dispose
@@ -113,46 +139,59 @@
                :north "This is the WER database sniffer and result uploader"
                :south (button :text "Close" :listen [:action (fn [event] (-> about-window hide!))]))))
   
-
 (defn about-handler [event]
   (-> about-window pack! show!))
 
 (defn exit-handler [event]
   (System/exit 0))
 
+(defn apikey-window []
+  (dialog
+    :option-type :ok-cancel
+    :title "API key"
+    :size [300 :by 100]
+    :content (text :id :key
+                   :text (property :api-key))
+    :success-fn (fn [p] (let [value (text (select (to-root p) [:#key]))]
+                          (set-property! :api-key value)))))
+
+(defn apikey-handler [& args]
+  (-> (apikey-window) pack! show!))
 
 (def about-action (menu-item :text "About" :listen [:action about-handler]))
 
-(def exit-action (menu-item :text "Exit" :listen [:action exit-handler]))
+(def apikey-action (menu-item :text "API key..." :listen [:action apikey-handler]))
 
+(def exit-action (menu-item :text "Exit" :listen [:action exit-handler]))
 
 (def main-window
   (frame
     :on-close :dispose
-    :title "MTG pairings database sniffer"
+    :title "MtgSuomi Pairings"
     :size [300 :by 300]
     :menubar (menubar :items
-               [(menu :text "File" :items [about-action exit-action])]) 
-    :content (grid-panel 
-               :columns 3
-               :border "Settings"
-               :vgap 5
-               :hgap 5
-               :items ["Database file:" database-location database-button
-                       "Server address:" server-address address-checkbox
-                       "API key:" api-key ""
-                       "Tournament:" tournament-label tournament-button
-                       "" "" ""
-                       "Upload results:" upload-button pairings-checkbox
-                       "" "" results-checkbox
-                       "" "" seatings-checkbox])
-               ))
-
+               [(menu :text "Asetukset" :items [apikey-action exit-action])]) 
+    :content (mig/mig-panel
+               :constraints ["fill, wrap 3" 
+                             "[100!][300!][300!]" 
+                             ""]
+               :items [[(scrollable tournament-table) "span 2, grow"] [updates-panel "grow"]])))
 
 (defn -main []
- (-> main-window pack! show!)
- (if @watcher (stop!))
- (if (.exists (File. (text database-location))) 
-   (start! (text database-location) :tournament tournament-handler :standings standings-handler 
-                 :pairings pairings-handler :results results-handler :seatings seatings-handler )
-   (-> (dialog :content "Database not found at default location, please set database location.") pack! show!)))
+  (json-gen/add-encoder org.joda.time.LocalDate
+    (fn [c generator]
+      (.writeString generator (str c))))
+  (-> main-window pack! show!)
+  (watcher/stop!)
+  (when (clojure.string/blank? (property :api-key))
+    (apikey-handler))
+  (let [database-location (if (.exists (as-file (property :db)))
+                            (property :db)
+                            (choose-file :success-fn (fn [_ file] (.getAbsolutePath file))
+                                         :cancel-fn (constantly nil)))]
+    (watcher/start! database-location 
+                    :tournament tournament-handler 
+                    :teams teams-handler 
+                    :pairings pairings-handler 
+                    :results results-handler 
+                    :seatings seatings-handler)))

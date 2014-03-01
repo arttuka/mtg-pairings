@@ -2,6 +2,7 @@
   (:require [watchtower.core :as watch]
             [mtg-pairings.db-reader :as reader]
             [clojure.tools.reader.edn :as edn]
+            [clj-time.core :refer [today]]
             [mtg-pairings.util :refer :all])
   (:import (java.io File FileNotFoundException)))
 
@@ -10,6 +11,7 @@
 
 (defn ^:private check-tournaments! [db handler]
   (let [tournaments (reader/tournaments db {:IsStarted true})
+        tournaments (filter #(= (:StartDate %) (clj-time.core/local-date 2014 2 24)) tournaments)
         new-tournaments (remove #((set (keys @state)) (:TournamentId %)) tournaments)
         new-tournaments (into {} (for [tournament new-tournaments]
                                    [(:TournamentId tournament)
@@ -21,7 +23,7 @@
                                      :seatings []
                                      :pairings []
                                      :results []
-                                     :tracking false}]))]
+                                     :tracking true}]))]
     (swap! state merge new-tournaments)
     (doseq [[id t] new-tournaments]
       (handler id))))
@@ -59,7 +61,7 @@
 
 (defn get-tournament [id]
   (let [tournament (get @state id)]
-    (select-keys tournament [:name :rounds :day :sanctionid])))
+    (select-keys tournament [:name :rounds :day :sanctionid :tracking])))
 
 (defn get-pairings [id round]
   (nth (get-in @state [id :pairings]) (dec round) nil))
@@ -80,7 +82,7 @@
   (seq (get-in @state [id :teams])))
 
 (defn get-tournaments [] (for [[id tournament] @state] 
-                           (-> tournament (select-keys [:name :rounds :day]) (assoc :id id))))
+                           (-> tournament (select-keys [:name :rounds :day :tracking]) (assoc :id id))))
 
 (defn start! [path & {:as handlers}]
   (let [file (File. path)
