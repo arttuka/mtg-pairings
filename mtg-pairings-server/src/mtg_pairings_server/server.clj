@@ -44,10 +44,12 @@
 (defn wrap-request-log
   [handler]
   (fn [request]
-    (log/info (:remote-addr request)
-              (-> request :request-method name string/upper-case)
-              (:uri request))
-    (handler request)))
+    (let [response (handler request)]
+      (log/info (:remote-addr request)
+                (-> request :request-method name string/upper-case)
+                (:uri request)
+                (:status response))
+      response)))
 
 (defn run! []
   (let [{db-properties :db, server-properties :server} (edn/read-string (slurp "properties.edn"))
