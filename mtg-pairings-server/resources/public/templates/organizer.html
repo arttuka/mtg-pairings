@@ -14,13 +14,22 @@
     <button ng-click="stopClock()" ng-disabled="!clock.running" class="btn btn-danger">Pysäytä</button>
   </form>
 </div>
-<div ng-show="displayPairings" class="organizer-pairings">
-<h2 style="text-align:center; margin-top:0">{{tournament.name}} - kierros 2</h3>
+<div ng-show="mode == 'pairings'" class="organizer-pairings">
+  <h2 style="text-align:center; margin-top:0">{{tournament.name}} - kierros {{pairings_round}}</h2>
   <div class="pairing-column" ng-repeat="column in pairings">
     <pairing ng-repeat="pairing in column" model="pairing" even="$even" display-round="false">
   </div>
 </div>
-<div ng-show="displayStandings" class="organizer-standings">
+<div ng-show="mode == 'seatings'" class="organizer-seatings">
+  <h2 style="text-align:center; margin-top:0">{{tournament.name}} - seatings</h2>
+  <div class="seating-column" ng-repeat="column in seatings">
+    <div class="seating" ng-class="{'even': $even, 'odd': $odd}" ng-repeat="seating in column">
+      <span class="table-number">{{seating.table_number}}</span>
+      <span><div class="name">{{seating.name}}</div></span>
+    </div>
+  </div>
+</div>
+<div ng-show="mode == 'standings'" class="organizer-standings">
   <table class="standings-table" ng-repeat="column in standings">
     <thead>
       <tr>
@@ -66,4 +75,4 @@
     </tbody>
   </table>
 </div>
-<div ng-show="displayClock" class="organizer-clock" ng-class="{'timeout': clock.timeout}">{{clock.text}}</div>
+<div ng-show="mode == 'clock'" class="organizer-clock" ng-class="{'timeout': clock.timeout}">{{clock.text}}</div>

@@ -3,6 +3,7 @@
             [mtg-pairings.db-reader :as reader]
             [clojure.tools.reader.edn :as edn]
             [clj-time.core :refer [today]]
+            [clojure.java.io :refer [as-file]]
             [mtg-pairings.util :refer :all])
   (:import (java.io File FileNotFoundException)))
 
@@ -11,7 +12,7 @@
 
 (defn ^:private check-tournaments! [db handler]
   (let [tournaments (reader/tournaments db {:IsStarted true})
-        tournaments (filter #(= (:StartDate %) (clj-time.core/local-date 2014 2 24)) tournaments)
+        tournaments (filter #(= (:StartDate %) (clj-time.core/today)) tournaments)
         new-tournaments (remove #((set (keys @state)) (:TournamentId %)) tournaments)
         new-tournaments (into {} (for [tournament new-tournaments]
                                    [(:TournamentId tournament)
@@ -34,25 +35,24 @@
 (defn ^:private changed-index [idx [old new]]
   (when (not= old new) (inc idx)))
 
-(defn ^:private changed-round [old-values new-values]
-  (if (< (count old-values) (count new-values))
-    (count new-values)
-    (let [changed-rounds (keep-indexed changed-index (zip old-values new-values))]
-      (first changed-rounds))))
+(defn ^:private changed-rounds [old-values new-values]
+  (keep-indexed changed-index (zip old-values new-values)))
 
 (defn ^:private tournament-checker [handlers]
   (letfn [(handler [type values tournament-id]
             (let [f (get handlers type)
                   old-values (get-in @state [tournament-id type])
-                  round (changed-round old-values values)]
+                  rounds (changed-rounds old-values values)]
               (when (not= old-values values)
                 (swap! state assoc-in [tournament-id type] values)
                 (when f
                   (case type
                     :teams (f tournament-id)
                     :seatings (f tournament-id)
-                    :pairings (f tournament-id round)
-                    :results (f tournament-id round))))))]
+                    :pairings (doseq [round rounds]
+                                (f tournament-id round))
+                    :results (doseq [round rounds] 
+                               (f tournament-id round)))))))]
     (fn [db tournament-id]
       (handler :teams (reader/teams db tournament-id) tournament-id)
       (handler :seatings (reader/seatings db tournament-id) tournament-id)
@@ -115,4 +115,7 @@
   (spit filename (pr-str @state)))
 
 (defn load-state! [filename]
-  (reset! state (edn/read-string (slurp filename))))
+  (let [data (if (.exists (as-file filename))
+               (edn/read-string (slurp filename))
+               {})] 
+    (reset! state data)))

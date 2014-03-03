@@ -4,9 +4,14 @@
 
 (defmacro response [callback]
   `(fn [response#]
-     (let [callback# (or ~callback identity)] 
-       (doto (update-in response# [:body] #(json/parse-string % true))
-         callback#))))
+     (let [callback# (or ~callback identity)
+           parsed-response# (try (update-in response# [:body] #(json/parse-string % true))
+                              (catch Exception e#
+                                (println e#)
+                                (println response#)
+                                response#))]
+       (callback# parsed-response#)
+       parsed-response#)))
 
 (defmacro GET [url callback]
   `(http/get ~url {} (response ~callback)))

@@ -16,7 +16,10 @@ angular.module('services', [])
 
   return {
     duplicatePairings: function(pairings) {
-      return pairings.concat(_.map(pairings, duplicatePairing));
+      return _.filter(pairings.concat(_.map(pairings, duplicatePairing)),
+        function(pairing) {
+          return pairing.team1_name !== '***BYE***';
+        });
     }
   };
 })

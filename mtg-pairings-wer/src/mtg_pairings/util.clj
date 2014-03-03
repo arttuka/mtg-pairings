@@ -8,7 +8,11 @@
     (= (.getName f) name)))
 
 (defn zip [& colls]
-  (apply map vector colls))
+  (let [firsts (mapv first colls)
+        rests (map rest colls)]
+    (lazy-seq
+      (when (not-every? nil? firsts)
+        (cons firsts (apply zip rests))))))
 
 (defn sanction-id [tournament]
   (if-not (string/blank? (:SanctionId tournament))

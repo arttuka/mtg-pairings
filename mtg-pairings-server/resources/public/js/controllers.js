@@ -136,6 +136,10 @@ angular.module('controllers', [])
     $scope.standings_round = round;
     showStandings();
   });
+  $scope.showSeatings = showSeatings;
+  $scope.$on('showSeatings', function() {
+    showSeatings();
+  });
   $scope.showClock = showClock;
   $scope.$on('showClock', showClock);
   $scope.setClock = setClock;
@@ -232,9 +236,7 @@ angular.module('controllers', [])
         duplicated = _.drop(duplicated, perColumn);
       }
       $scope.pairings = pairings;
-      $scope.displayStandings = false;
-      $scope.displayClock = false;
-      $scope.displayPairings = true;
+      $scope.mode = "pairings";
       $scope.newPairings = false;
     });
   }
@@ -249,10 +251,21 @@ angular.module('controllers', [])
         data = _.drop(data, perColumn);
       }
       $scope.standings = standings;
-      $scope.displayClock = false;
-      $scope.displayPairings = false;
-      $scope.displayStandings = true;
+      $scope.mode = "standings";
       $scope.newStandings = false;
+    });
+  }
+
+  function showSeatings() {
+    TournamentResource.seatings({id: tournamentId}).$promise.then(function(data) {
+      var seatings = [];
+      var perColumn = Math.ceil(data.length / Math.ceil(data.length / 45));
+      while(!_.isEmpty(data)) {
+        seatings.push(_.take(data, perColumn));
+        data = _.drop(data, perColumn);
+      }
+      $scope.seatings = seatings;
+      $scope.mode = "seatings";
     });
   }
 
@@ -272,9 +285,7 @@ angular.module('controllers', [])
   }
 
   function showClock() {
-    $scope.displayPairings = false;
-    $scope.displayStandings = false;
-    $scope.displayClock = true;
+    $scope.mode = "clock";
     setTimeout(function(){ $scope.$apply(); });
   }
 

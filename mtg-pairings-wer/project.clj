@@ -10,4 +10,6 @@
                  [http-kit "2.1.16"]
                  [org.clojure/tools.reader "0.8.3"]
                  [cheshire "5.3.1"]
-                 [clj-time "0.6.0"]])
+                 [clj-time "0.6.0"]]
+  :profiles {:uberjar {:main mtg-pairings.core
+                       :aot [mtg-pairings.core]}})
