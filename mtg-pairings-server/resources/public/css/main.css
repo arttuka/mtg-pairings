@@ -2,7 +2,6 @@ html, body {
   margin: 0;
   padding: 0;
   border: 0;
-  background-color: #eeeeee;
 }
 
 * {
@@ -39,8 +38,8 @@ span.menu-icon i:before {
   height:40px;
   line-height: 40px;
   font-size: 20px;
-  border-top: 1px solid #eeeeee;
-  color: #eeeeee;
+  border-top: 1px solid #e6e6e6;
+  color: #e6e6e6;
   background-color: #424242;
   text-decoration: none;
   font-weight: normal !important;
@@ -55,7 +54,7 @@ span.menu-icon i:before {
 
 #header {
   background-color: #333333;
-  color: #eeeeee;
+  color: #e6e6e6;
   border-bottom: 1px solid #000000;
   height:60px;
   font-size: 20px;
@@ -85,7 +84,7 @@ span.menu-icon i:before {
   border:0;
   background-color: #424242;
   text-decoration: none;
-  color: #eeeeee;
+  color: #e6e6e6;
   height:40px;
   line-height: 40px;
   text-align: center;
@@ -101,8 +100,8 @@ span.menu-icon i:before {
   width: 150px;
   padding: 0 8px;
   background-color: #333333;
-  color: #eeeeee;
-  border: 2px solid #eeeeee;
+  color: #e6e6e6;
+  border: 2px solid #e6e6e6;
   font-size: 18px;
   line-height: 32px;
   margin-top: 10px;
@@ -112,7 +111,7 @@ span.menu-icon i:before {
 
 .pairing, .seating {
   clear:left;
-  border-left: 1px solid #eeeeee;
+  border-left: 1px solid #e6e6e6;
   margin-left:20px;
 }
 
@@ -124,7 +123,7 @@ span.menu-icon i:before {
 }
 
 .even {
-  background-color:#eeeeee;
+  background-color:#e6e6e6;
 }
 .odd {
   background-color:#ffffff;
@@ -166,6 +165,15 @@ i.pull-left {
   margin-right:15px;
 }
 
+.newest-tournament-name {
+  display:block;
+  margin-left:20px;
+  font-size:16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .own-tournament {
   clear:left;
 }
@@ -178,10 +186,33 @@ i.pull-left {
 .own-tournament-header h3 {
   line-height:50px;
   margin:0;
+  white-space: nowrap;
+  text-overflow:ellipsis;
+  overflow: hidden;
+}
+
+.own-tournament-header h3 .date {
+  font-size: 16px;
 }
 
 .own-tournament-header i {
   line-height:50px;
+}
+
+.own-tournament a {
+  font-size: 20px;
+  margin-left: 20px;
+  padding-left: 60px;
+  display: block;
+  height: 40px;
+  line-height: 40px;
+  border-top: 1px solid #e6e6e6;
+  border-left: 1px solid #e6e6e6;
+}
+
+.own-tournament a i {
+  top: 10px;
+  margin-right: 15px;
 }
 
 .pairings-table, .standings-table {
@@ -214,8 +245,13 @@ i.pull-left {
   text-align: center;
 }
 
-.standings-table .pgw, .standings-table .ogw, .standings-table .omw, .standings-table .points, .standings-table .rank {
+.standings-table .points, .standings-table .rank {
   width:50px;
+  text-align: center;
+}
+
+.standings-table .pgw, .standings-table .ogw, .standings-table .omw {
+  width: 70px;
   text-align: center;
 }
 
@@ -232,27 +268,49 @@ h3 {
 }
 
 .organizer-pairings .pairing-column, .organizer-seatings .seating-column {
-  width:400px;
+  width:500px;
   display: inline-block;
   margin: 0 10px;
+  vertical-align: top;
 }
 
-.organizer-seatings .seating-column 
-
-.organizer-standings table {
+.organizer-standings .standings-table {
   width:500px;
   display: inline-block;
   margin: 0 20px;
 }
 
-.organizer-pairings .pairing.no-round, .organizer-seatings .seating {
-  height: 20px;
+.organizer-pairings .pairing.no-round, .organizer-seatings .seating, .organizer-standings td {
+  height: 24px;
 }
 
 .organizer-pairings .pairing .names, .organizer-pairings .pairing .table-number, .organizer-pairings .pairing .points,
-.organizer-seatings .seating .table-number, .organizer-seatings .seating .name { 
-  line-height:20px;
-  font-size:14px;
+.organizer-seatings .seating .table-number, .organizer-seatings .seating .name, .organizer-standings td { 
+  line-height:24px;
+  font-size:17px;
+}
+
+.organizer-pairings .pairing .table-number,
+.organizer-seatings .seating .table-number {
+  width: 40px;
+  font-size:20px;
+}
+
+.organizer-pairings .pairing .names {
+  display: block;
+  float: none;
+  text-align: left;
+}
+
+.organizer-pairings .pairing .names .player,
+.organizer-pairings .pairing .names .opponent {
+  display: inline-block;
+  width: 215px;
+}
+
+.organizer-pairings .pairing .names .hidden-xs,
+.organizer-pairings .pairing .points {
+  display: none;
 }
 
 #organizer-menu {

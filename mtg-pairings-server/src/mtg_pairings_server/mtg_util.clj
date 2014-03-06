@@ -53,3 +53,22 @@
               (assoc result :team team))
         sorted (reverse (sort-by (juxt :points :omw :pgw :ogw) lst))]
     (map (fn [idx res] (assoc res :rank idx)) (iterate inc 1) sorted)))
+
+(defn ^:private check-digit [n]
+  (let [primes [43 47 53 71 73 31 37 41 59 61 67 29]
+        checksum (reduce + (map * n primes))]
+    (-> checksum 
+      (/ 10) 
+      int
+      (mod 9)
+      (+ 1))))
+
+(defn add-check-digits [dci-number]
+  (let [digits (map #(Integer/parseInt (str %)) dci-number)
+        length (count digits)] 
+    (cond->> digits
+      (>= 6 length) (cons 0)
+      (>= 7 length) (#(cons (check-digit %) %))
+      (>= 8 length) (cons 0)
+      (>= 9 length) (#(cons (check-digit %) %))
+      true (apply str))))

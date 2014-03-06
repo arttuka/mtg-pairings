@@ -30,6 +30,7 @@
   </div>
 </div>
 <div ng-show="mode == 'standings'" class="organizer-standings">
+  <h2 style="text-align:center; margin-top:0">{{tournament.name}} - kierros {{standings_round}}</h2>
   <table class="standings-table" ng-repeat="column in standings">
     <thead>
       <tr>
@@ -63,13 +64,13 @@
           {{s.points}}
         </td>
         <td class="omw">
-          {{s.omw | round:3}}
+          {{s.omw | round:4}}
         </td>
         <td class="pgw">
-          {{s.pgw | round:3}}
+          {{s.pgw | round:4}}
         </td>
         <td class="ogw">
-          {{s.ogw | round:3}}
+          {{s.ogw | round:4}}
         </td>
       </tr>
     </tbody>

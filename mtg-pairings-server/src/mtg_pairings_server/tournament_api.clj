@@ -35,19 +35,19 @@
       (response (standings (Integer/parseInt id) (Integer/parseInt round))))
     (c/GET "/:id/seatings" [id]
       (response (seatings (Integer/parseInt id))))
-    (c/PUT "/:sanctionid/round-:round/pairings" [sanctionid round :as request]
+    (c/POST "/:sanctionid/round-:round/pairings" [sanctionid round :as request]
       (validate-request sanctionid request
         (add-pairings sanctionid (Integer/parseInt round) (:body request))
         {:status 204}))
-    (c/PUT "/:sanctionid/round-:round/results" [sanctionid round :as request]
+    (c/POST "/:sanctionid/round-:round/results" [sanctionid round :as request]
       (validate-request sanctionid request
         (add-results sanctionid (Integer/parseInt round) (:body request))
         {:status 204}))
-    (c/PUT "/:sanctionid/seatings" [sanctionid :as request]
+    (c/POST "/:sanctionid/seatings" [sanctionid :as request]
       (validate-request sanctionid request
         (add-seatings sanctionid (:body request))
         {:status 204}))
-    (c/PUT "/:sanctionid/teams" [sanctionid :as request]
+    (c/POST "/:sanctionid/teams" [sanctionid :as request]
       (validate-request sanctionid request
         (add-teams sanctionid (:body request))
         {:status 204}))))

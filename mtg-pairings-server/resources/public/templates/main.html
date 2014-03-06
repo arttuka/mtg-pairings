@@ -1,6 +1,7 @@
 <div ng-show="loggedIn">
   <div class="newest-pairing" ng-hide="!latestPairing">
-    <h3>Uusin pairing: {{latestPairing.tournament}}</h3>
+    <h3>Uusin pairing:</h3>
+    <span class="newest-tournament-name">{{latestPairing.tournament}}</span>
     <pairing model="latestPairing" even="true" is-pairing="!!latestPairing.team2_name" display-round="true">
   </div>
   <own-tournament model="t" ng-repeat="t in tournaments">

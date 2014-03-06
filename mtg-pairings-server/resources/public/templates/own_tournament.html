@@ -2,10 +2,14 @@
   <div class="own-tournament-header" ng-click="isCollapsed = !isCollapsed">
     <h3>
       <i class="pull-left glyphicon" ng-class="{'glyphicon-chevron-down': !isCollapsed, 'glyphicon-chevron-right': isCollapsed}"></i>
-      {{model.name}} - {{model.day | date:'dd.MM.yyyy'}}
+      <span class="date">{{model.day | date:'dd.MM.yyyy'}} - </span>{{model.name}}
     </h3>
   </div>
   <div class="own-tournament-content" collapse="isCollapsed">
+    <a href="#/tournaments/{{model.id}}/standings-{{model.max_standings_round}}">
+      Standings, kierros {{model.max_standings_round}}
+      <i class="pull-right glyphicon glyphicon-chevron-right"></i>
+    </a>
     <div class="own-tournament-pairing" ng-repeat="pairing in model.pairings">
       <pairing model="pairing" even="$even" display-round="true">
     </div>

@@ -4,10 +4,10 @@
             [compojure.core :as c]
             [compojure.route :as r]
             [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
-            [ring.middleware.session :refer [wrap-session]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.content-type :refer [wrap-content-type]]
             [ring.middleware.params :refer [wrap-params]]
+            [ring.middleware.not-modified :refer [wrap-not-modified]]
             [ring.util.response :refer [resource-response file-response]]
             [cheshire.generate :as json-gen]
             [clojure.java.io :as io]
@@ -51,6 +51,20 @@
                 (:status response))
       response)))
 
+(defn wrap-remove-content-length
+  [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (update-in response [:headers] dissoc "Content-Length" "content-length"))))
+
+(defn wrap-resource-304
+  [handler root]
+  (-> handler
+    (wrap-resource root)
+    wrap-content-type
+    wrap-not-modified
+    wrap-remove-content-length))
+
 (defn run! []
   (let [{db-properties :db, server-properties :server} (edn/read-string (slurp "properties.edn"))
         _ (log/info "Starting server on port" (:port server-properties) "...")
@@ -58,9 +72,7 @@
         stop-fn (hs/run-server 
                   (-> (routes)
                     wrap-request-log
-                    (wrap-resource "public")
-                    wrap-content-type
-                    wrap-session
+                    (wrap-resource-304 "public")
                     wrap-params
                     wrap-json-response
                     (wrap-json-body {:keywords? true})

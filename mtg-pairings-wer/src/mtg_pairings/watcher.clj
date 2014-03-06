@@ -12,7 +12,7 @@
 
 (defn ^:private check-tournaments! [db handler]
   (let [tournaments (reader/tournaments db {:IsStarted true})
-        tournaments (filter #(= (:StartDate %) (clj-time.core/today)) tournaments)
+        tournaments (filter #(= (:StartDate %) (clj-time.core/local-date 2014 3 3)) tournaments)
         new-tournaments (remove #((set (keys @state)) (:TournamentId %)) tournaments)
         new-tournaments (into {} (for [tournament new-tournaments]
                                    [(:TournamentId tournament)

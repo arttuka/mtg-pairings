@@ -91,10 +91,12 @@
         api-key (property :api-key)
         sanction-id (:sanctionid tournament)
         panel-id (keyword (str id "-" (name type) "-" round))
+        remove-panel! (fn []
+                        (when-let [panel (ui/select updates-panel [(keyword (str "#" (name panel-id)))])]
+                          (ui/remove! updates-panel panel)))
         callback (fn [response]
                    (when (= 204 (:status response)) 
-                     (ui/remove! updates-panel 
-                              (ui/select updates-panel [(keyword (str "#" (name panel-id)))]))))
+                     (remove-panel!)))
         action (fn [_] 
                  (case type
                    :tournament (uploader/upload-tournament! server api-key tournament callback)
@@ -103,7 +105,8 @@
                    :pairings (uploader/upload-pairings! server sanction-id round api-key (watcher/get-pairings id round) callback)
                    :results (uploader/upload-results! server sanction-id round api-key (watcher/get-results id round) callback)))
         panel (ui/horizontal-panel :items [text (ui/button :text "Lähetä" :listen [:action action])]
-                                :id panel-id)]
+                                   :id panel-id)]
+    (remove-panel!)
     (ui/add! updates-panel panel)))
 
 (defn tournament-handler [id]
@@ -168,7 +171,7 @@
                [(ui/menu :text "Asetukset" :items [apikey-action exit-action])]) 
     :content (mig/mig-panel
                :constraints ["fill, wrap 3" 
-                             "[100!][300!][300!]" 
+                             "[100!][300!][500!]" 
                              ""]
                :items [[(ui/scrollable tournament-table) "span 2, grow"] [updates-panel "grow"]])))
 

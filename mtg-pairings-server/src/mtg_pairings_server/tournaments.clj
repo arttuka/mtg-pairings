@@ -84,15 +84,22 @@
                          :tournament tournament-id}))]
     (:id t)))
 
+(defn ^:private fix-dci-number [player]
+  (update-in player [:dci] mtg-util/add-check-digits))
+
+(defn ^:private fix-dci-numbers [team]
+  (update-in team [:players] #(map fix-dci-number %)))
+
 (defn add-teams [sanction-id teams]
-  (add-players (mapcat :players teams))
-  (let [tournament-id (sanctionid->id sanction-id)] 
-    (doseq [team teams
-            :let [team-id (add-team (:name team) tournament-id)]]
-      (sql/insert db/team-players
-        (sql/values (for [player (:players team)]
-                      {:team team-id
-                       :player (:dci player)}))))))
+  (let [teams (map fix-dci-numbers teams)] 
+    (add-players (mapcat :players teams))
+    (let [tournament-id (sanctionid->id sanction-id)] 
+      (doseq [team teams
+              :let [team-id (add-team (:name team) tournament-id)]]
+        (sql/insert db/team-players
+          (sql/values (for [player (:players team)]
+                        {:team team-id
+                         :player (:dci player)})))))))
 
 (defn seatings [tournament-id]
   (sql/select db/seating

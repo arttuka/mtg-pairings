@@ -230,7 +230,7 @@ angular.module('controllers', [])
     TournamentResource.pairings({id: tournamentId, round: round}).$promise.then(function(pairings) {
       var duplicated = _.sortBy(PairingService.duplicatePairings(pairings), "team1_name");
       var pairings = [];
-      var perColumn = Math.ceil(duplicated.length / Math.ceil(duplicated.length / 45));
+      var perColumn = Math.ceil(duplicated.length / Math.ceil(duplicated.length / 40));
       while(!_.isEmpty(duplicated)) {
         pairings.push(_.take(duplicated, perColumn));
         duplicated = _.drop(duplicated, perColumn);
@@ -245,7 +245,7 @@ angular.module('controllers', [])
     var round = $scope.standings_round;
     TournamentResource.standings({id: tournamentId, round: round}).$promise.then(function(data) {
       var standings = [];
-      var perColumn = Math.ceil(data.length / Math.ceil(data.length / 45));
+      var perColumn = Math.ceil(data.length / Math.ceil(data.length / 40));
       while(!_.isEmpty(data)) {
         standings.push(_.take(data, perColumn));
         data = _.drop(data, perColumn);
@@ -259,7 +259,7 @@ angular.module('controllers', [])
   function showSeatings() {
     TournamentResource.seatings({id: tournamentId}).$promise.then(function(data) {
       var seatings = [];
-      var perColumn = Math.ceil(data.length / Math.ceil(data.length / 45));
+      var perColumn = Math.ceil(data.length / Math.ceil(data.length / 40));
       while(!_.isEmpty(data)) {
         seatings.push(_.take(data, perColumn));
         data = _.drop(data, perColumn);

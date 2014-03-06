@@ -1,12 +1,13 @@
 (ns mtg-pairings-server.players
   (:require [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
-            [mtg-pairings-server.util :refer [select-and-rename-keys]]))
+            [mtg-pairings-server.util :refer [select-and-rename-keys]]
+            [mtg-pairings-server.mtg-util :refer [add-check-digits]]))
 
 (defn player [dci]
   (first
     (sql/select db/player
-      (sql/where {:dci dci}))))
+      (sql/where {:dci (add-check-digits dci)}))))
 
 (defn players []
   (sql/select db/player))
@@ -52,11 +53,20 @@
     (assoc tournament :pairings pairings
                       :seating seating)))
 
+(defn ^:private add-newest-standings [tournament]
+  (let [standings (first (sql/select db/standings
+                           (sql/aggregate (max :round) :max_standings_round)
+                           (sql/where {:tournament (:id tournament)})))]
+    (merge tournament standings)))
+
 (defn tournaments [dci]
-  (for [tournament (sql/select db/tournament
-                     (sql/where (sql/sqlfn exists 
-                                  (sql/subselect db/team-players
-                                    (sql/join db/team (= :team.id :team_players.team))
-                                    (sql/where {:team_players.player dci
-                                                :team.tournament :tournament.id})))))]
-    (add-players-data tournament dci)))
+  (let [dci (add-check-digits dci)] 
+    (for [tournament (sql/select db/tournament
+                       (sql/where (sql/sqlfn exists 
+                                    (sql/subselect db/team-players
+                                      (sql/join db/team (= :team.id :team_players.team))
+                                      (sql/where {:team_players.player dci
+                                                  :team.tournament :tournament.id})))))]
+      (-> tournament
+        (add-players-data dci)
+        add-newest-standings))))

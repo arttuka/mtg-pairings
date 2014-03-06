@@ -7,10 +7,10 @@
   </span>
   <span ng-hide="!isPairing">
     <div class="names">
-      {{model.team1_name}} ({{model.team1_points}})<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span class="opponent">{{model.team2_name}} ({{model.team2_points}})</span>
+      <span class="player">{{model.team1_name}} ({{model.team1_points}})</span><span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span class="opponent">{{model.team2_name}} ({{model.team2_points}})</span>
     </div>
     <div class="points">
-      {{model.team1_wins}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span class="opponent">{{model.team2_wins}}</span>
+      <span class="player">{{model.team1_wins}}</span><span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span class="opponent">{{model.team2_wins}}</span>
     </div>
   </span>
 </div>
