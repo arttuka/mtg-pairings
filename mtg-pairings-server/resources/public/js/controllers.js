@@ -32,14 +32,14 @@ angular.module('controllers', [])
 .controller('TournamentController', function($scope, $routeParams, TournamentResource) {
   TournamentResource.get({id: $routeParams.tournament}).$promise.then(function(tournament) {
     $scope.model = tournament;
-    $scope.model.round_nums = _.union(tournament.round, tournament.standings);
+    $scope.model.round_nums = _(_.union(tournament.round, tournament.standings)).sortBy().reverse().value();
   });
 })
 
 .controller('TournamentsController', function($scope, TournamentResource) {
   TournamentResource.query().$promise.then(function(tournaments) {
     $scope.tournaments = _.map(tournaments, function(tournament) {
-      tournament.round_nums = _.union(tournament.round, tournament.standings);
+      tournament.round_nums = _(_.union(tournament.round, tournament.standings)).sortBy().reverse().value();
       return tournament;
     });
   });
@@ -66,7 +66,7 @@ angular.module('controllers', [])
     } else {
       TournamentResource.query().$promise.then(function(tournaments) {
         $scope.tournaments = _.map(tournaments, function(tournament) {
-          tournament.round_nums = _.union(tournament.round, tournament.standings);
+          tournament.round_nums = _(_.union(tournament.round, tournament.standings)).sortBy().reverse().value();
           return tournament;
         });
       });
