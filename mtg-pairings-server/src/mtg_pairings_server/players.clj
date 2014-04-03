@@ -66,7 +66,9 @@
                                     (sql/subselect db/team-players
                                       (sql/join db/team (= :team.id :team_players.team))
                                       (sql/where {:team_players.player dci
-                                                  :team.tournament :tournament.id})))))]
+                                                  :team.tournament :tournament.id}))))
+                       (sql/order :day :DESC)
+                       (sql/order :id :DESC))]
       (-> tournament
         (add-players-data dci)
         add-newest-standings))))
