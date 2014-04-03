@@ -16,7 +16,7 @@
   (let [reduced (reduce add-result {:match_points 0, :game_points 0, :games_played 0, :matches_played 0} matches)]
     {:points (:match_points reduced)
      :pmw (max 0.33 (/ (:match_points reduced) (* 3 (:matches_played reduced))))
-     :pgw (max 0.33 (/ (:game_points reduced) (* 3 (:games_played reduced))))
+     :pgw (/ (:game_points reduced) (* 3 (:games_played reduced)))
      :opponents (keep :team2 matches)
      :team_name (:team1_name (first matches))}))
 

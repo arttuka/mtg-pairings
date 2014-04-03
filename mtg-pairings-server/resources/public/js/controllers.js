@@ -243,7 +243,7 @@ angular.module('controllers', [])
 
   function showStandings() {
     var round = $scope.standings_round;
-    TournamentResource.standings({id: tournamentId, round: round}).$promise.then(function(data) {
+    TournamentResource.standings({id: tournamentId, round: round, secret: "secret"}).$promise.then(function(data) {
       var standings = [];
       var perColumn = Math.ceil(data.length / Math.ceil(data.length / 40));
       while(!_.isEmpty(data)) {

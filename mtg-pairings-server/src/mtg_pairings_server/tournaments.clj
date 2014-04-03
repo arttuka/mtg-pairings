@@ -43,6 +43,7 @@
         (sql/sqlfn exists (sql/subselect db/pairing
                             (sql/where {:round :round.id})))))
     (sql/with db/standings
+      (sql/where {:hidden false})
       (sql/fields [:round :num])
       (sql/order :round))))
 
@@ -109,10 +110,12 @@
     (sql/where {:tournament tournament-id})
     (sql/order :team.name :ASC)))
 
-(defn standings [tournament-id round-num]
+(defn standings [tournament-id round-num secret]
   (-> (sql/select db/standings
-       (sql/where {:tournament tournament-id
-                   :round round-num}))
+       (sql/where (and {:tournament tournament-id
+                        :round round-num}
+                       (or (= secret "secret")
+                           (not :hidden)))))
       first
       :standings
       edn/read-string))
@@ -153,15 +156,19 @@
   (sql/delete db/pairing
     (sql/where {:round round-id})))
 
-(defn ^:private delete-standings [tournament-id round-num]
-  (sql/delete db/standings
-    (sql/where {:tournament tournament-id
-                :round round-num})))
+(defn ^:private delete-standings 
+  ([tournament-id]
+    (sql/delete db/standings
+      (sql/where {:tournament tournament-id})))
+  ([tournament-id round-num]
+    (sql/delete db/standings
+      (sql/where {:tournament tournament-id
+                  :round round-num}))))
 
 (defn add-pairings [sanction-id round-num pairings]
   (let [tournament-id (sanctionid->id sanction-id)
         name->id (teams-by-name tournament-id)
-        team->points (if-let [standings (standings tournament-id (dec round-num))]
+        team->points (if-let [standings (standings tournament-id (dec round-num) "secret")]
                        (into {} (for [row standings]
                                   [(:team row) (:points row)]))
                        #(when % 0))
@@ -218,7 +225,8 @@
     (sql/insert db/standings 
      (sql/values {:standings (pr-str std)
                   :tournament tournament-id
-                  :round round-num}))))
+                  :round round-num
+                  :hidden true}))))
 
 (defn add-results [sanction-id round-num results]
   (let [tournament-id (sanctionid->id sanction-id)
@@ -236,8 +244,40 @@
                      :draws (:draws res)})))
     (calculate-standings tournament-id)))
 
+(defn publish-results [sanction-id round-num]
+  (let [tournament-id (sanctionid->id sanction-id)]
+    (sql/update db/standings
+      (sql/set-fields {:hidden false})
+      (sql/where {:tournament tournament-id
+                  :round round-num}))))
+
 (defn get-round [tournament-id round-num]
   (let [round-id (:id (first (sql/select db/round
                                (sql/where {:tournament tournament-id
                                            :num round-num}))))]
     (results-of-round round-id)))
+
+(defn ^:private delete-teams [tournament-id]
+  (sql/delete db/team-players
+    (sql/where {:team [in (sql/subselect db/team 
+                            (sql/fields :id) 
+                            (sql/where {:tournament tournament-id}))]}))
+  (sql/delete db/team
+    (sql/where {:tournament tournament-id})))
+
+(defn ^:private delete-seatings [tournament-id]
+  (sql/delete db/seating
+    (sql/where {:tournament tournament-id})))
+
+(defn reset-tournament [sanction-id]
+  (let [tournament-id (sanctionid->id sanction-id)]
+    (doseq [round (doall (map :id (sql/select db/round
+                                    (sql/where {:tournament tournament-id})
+                                    (sql/order :num :DESC))))]
+      (delete-results round)
+      (delete-pairings round)
+      (sql/delete db/round
+        (sql/where {:id round})))
+    (delete-seatings tournament-id)
+    (delete-teams tournament-id)
+    (delete-standings tournament-id)))

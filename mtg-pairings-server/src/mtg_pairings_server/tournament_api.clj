@@ -31,8 +31,8 @@
       (response (get-round (Integer/parseInt id) (Integer/parseInt round))))
     (c/GET "/:id/round-:round/results" [id round]
       (response (get-round (Integer/parseInt id) (Integer/parseInt round))))
-    (c/GET "/:id/round-:round/standings" [id round]
-      (response (standings (Integer/parseInt id) (Integer/parseInt round))))
+    (c/GET "/:id/round-:round/standings" [id round :as request]
+      (response (standings (Integer/parseInt id) (Integer/parseInt round) (get-in request [:params :secret]))))
     (c/GET "/:id/seatings" [id]
       (response (seatings (Integer/parseInt id))))
     (c/POST "/:sanctionid/round-:round/pairings" [sanctionid round :as request]
@@ -43,6 +43,10 @@
       (validate-request sanctionid request
         (add-results sanctionid (Integer/parseInt round) (:body request))
         {:status 204}))
+    (c/POST "/:sanctionid/round-:round/results/publish" [sanctionid round :as request]
+      (validate-request sanctionid request
+        (publish-results sanctionid (Integer/parseInt round))
+        {:status 204}))
     (c/POST "/:sanctionid/seatings" [sanctionid :as request]
       (validate-request sanctionid request
         (add-seatings sanctionid (:body request))
@@ -50,4 +54,8 @@
     (c/POST "/:sanctionid/teams" [sanctionid :as request]
       (validate-request sanctionid request
         (add-teams sanctionid (:body request))
+        {:status 204}))
+    (c/POST "/:sanctionid/reset" [sanctionid :as request]
+      (validate-request sanctionid request
+        (reset-tournament sanctionid)
         {:status 204}))))
