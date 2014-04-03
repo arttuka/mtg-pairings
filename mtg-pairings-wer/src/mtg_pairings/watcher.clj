@@ -2,7 +2,7 @@
   (:require [watchtower.core :as watch]
             [mtg-pairings.db-reader :as reader]
             [clojure.tools.reader.edn :as edn]
-            [clj-time.core :refer [today]]
+            [clj-time.core :refer [today local-date]]
             [clojure.java.io :refer [as-file]]
             [mtg-pairings.util :refer :all])
   (:import (java.io File FileNotFoundException)))
@@ -12,7 +12,6 @@
 
 (defn ^:private check-tournaments! [db handler]
   (let [tournaments (reader/tournaments db {:IsStarted true})
-        tournaments (filter #(= (:StartDate %) (clj-time.core/local-date 2014 3 3)) tournaments)
         new-tournaments (remove #((set (keys @state)) (:TournamentId %)) tournaments)
         new-tournaments (into {} (for [tournament new-tournaments]
                                    [(:TournamentId tournament)
@@ -22,15 +21,34 @@
                                      :sanctionid (sanction-id tournament)
                                      :teams []
                                      :seatings []
-                                     :pairings []
-                                     :results []
-                                     :tracking true}]))]
+                                     :pairings {}
+                                     :results {}
+                                     :uploaded {:tournament false
+                                                :teams false
+                                                :seatings false
+                                                :pairings {}
+                                                :results {}}
+                                     :tracking false}]))]
     (swap! state merge new-tournaments)
     (doseq [[id t] new-tournaments]
       (handler id))))
 
+(defn set-uploaded! [tournament-id type & [round]]
+  (swap! state assoc-in (if round
+                          [tournament-id :uploaded type round]
+                          [tournament-id :uploaded type]) 
+                        true))
+
+(defn uploaded? [tournament-id type & [round]]
+  (get-in @state (if round
+                   [tournament-id :uploaded type round]
+                   [tournament-id :uploaded type])))
+
 (defn ^:private round-done? [results]
   (not-any? neg? (map :team1_wins results)))
+
+(defn ^:private done-rounds [all-results]
+  (into {} (filter (comp round-done? val) all-results)))
 
 (defn ^:private changed-index [idx [old new]]
   (when (not= old new) (inc idx)))
@@ -57,14 +75,14 @@
       (handler :teams (reader/teams db tournament-id) tournament-id)
       (handler :seatings (reader/seatings db tournament-id) tournament-id)
       (handler :pairings (reader/pairings db tournament-id) tournament-id)
-      (handler :results (filter round-done? (reader/results db tournament-id)) tournament-id))))
+      (handler :results (done-rounds (reader/results db tournament-id)) tournament-id))))
 
 (defn get-tournament [id]
   (let [tournament (get @state id)]
     (select-keys tournament [:name :rounds :day :sanctionid :tracking])))
 
 (defn get-pairings [id round]
-  (nth (get-in @state [id :pairings]) (dec round) nil))
+  (get-in @state [id :pairings round]))
 
 (defn get-pairings-count [id]
   (count (get-in @state [id :pairings])))
@@ -73,7 +91,7 @@
   (seq (get-in @state [id :seatings])))
 
 (defn get-results [id round]
-  (nth (get-in @state [id :results]) (dec round) nil))
+  (get-in @state [id :results round]))
 
 (defn get-results-count [id]
   (count (get-in @state [id :results])))
@@ -111,11 +129,21 @@
 (defn set-tournament-tracking! [tournament-id tracking]
   (swap! state assoc-in [tournament-id :tracking] tracking))
 
+(defn reset-tournament! [tournament-id]
+  (swap! state assoc-in [tournament-id :uploaded :teams] false)
+  (swap! state assoc-in [tournament-id :uploaded :seatings] false)
+  (swap! state assoc-in [tournament-id :uploaded :pairings] {})
+  (swap! state assoc-in [tournament-id :uploaded :results] {}))
+
 (defn save-state! [filename]
-  (spit filename (pr-str @state)))
+  (let [s (joda-date->java-date @state)] 
+    (spit filename (pr-str s))))
 
 (defn load-state! [filename]
   (let [data (if (.exists (as-file filename))
-               (edn/read-string (slurp filename))
+               (->> (slurp filename)
+                 edn/read-string
+                 java-date->joda-date
+                 (map-keys int))
                {})] 
     (reset! state data)))

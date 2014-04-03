@@ -86,20 +86,20 @@
   [db tournament-id]
   (let [round-table (db/table db "Round")
         rounds (sort-by :Number (db/rows round-table {:TournamentId tournament-id}))]
-    (doall (for [round rounds
-                 :let [results (results-for-round db (:RoundId round))]
-                 :when (seq results)]
-             results))))
+    (into {} (for [round rounds
+                   :let [results (results-for-round db (:RoundId round))]
+                   :when (seq results)]
+               [(:Number round) results]))))
 
 (defn pairings
   [db tournament-id]
   (let [round-table (db/table db "Round")
         rounds (sort-by :Number (db/rows round-table {:TournamentId tournament-id}))
         teams (id->team db tournament-id)]
-    (doall (for [round rounds
-                 :let [pairings (pairings-for-round db (:RoundId round) teams)]
-                 :when (seq pairings)]
-             pairings))))
+    (into {} (for [round rounds
+                   :let [pairings (pairings-for-round db (:RoundId round) teams)]
+                   :when (seq pairings)]
+               [(:Number round) pairings]))))
 
 (defn seatings
   [db tournament-id]

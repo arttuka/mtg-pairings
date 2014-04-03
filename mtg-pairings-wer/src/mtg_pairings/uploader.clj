@@ -1,17 +1,15 @@
 (ns mtg-pairings.uploader
   (:require [org.httpkit.client :as http]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [mtg-pairings.watcher :as watcher]))
 
 (defmacro response [callback]
   `(fn [response#]
-     (let [callback# (or ~callback identity)
-           parsed-response# (try (update-in response# [:body] #(json/parse-string % true))
-                              (catch Exception e#
-                                (println e#)
-                                (println response#)
-                                response#))]
-       (callback# parsed-response#)
-       parsed-response#)))
+     (if (#{200 204} (:status response#))
+       (let [callback# (or ~callback identity)
+             parsed-response# (update-in response# [:body] #(json/parse-string % true))]
+         (doto parsed-response# callback#))
+       (throw (ex-info "HTTP Error" response#)))))
 
 (defmacro GET [url callback]
   `(http/get ~url {} (response ~callback)))
@@ -22,6 +20,30 @@
 (defmacro PUT [url options callback]
   `(http/put ~url ~options (response ~callback)))
 
+(defmacro DELETE [url options callback]
+  `(http/delete ~url ~options (response ~callback)))
+
+(declare upload-teams! upload-pairings! upload-results! upload-seatings! upload-tournament!)
+
+(defn check-dependency! [settings tournament-id type round callback]
+  (case type
+    :teams (when-not (watcher/uploaded? tournament-id :tournament)
+             @(upload-tournament! settings tournament-id))
+    :seatings (when-not (watcher/uploaded? tournament-id :teams)
+                @(upload-teams! settings tournament-id))
+    :pairings (do 
+                (when-not (watcher/uploaded? tournament-id :teams)
+                  @(upload-teams! settings tournament-id))
+                (let [prev (dec round)]
+                  (when (and (pos? prev) (not (watcher/uploaded? tournament-id :results prev)))
+                    @(upload-results! settings tournament-id prev))))
+    :results (when-not (watcher/uploaded? tournament-id :pairings round)
+                @(upload-pairings! settings tournament-id round))
+    :publish (when-not (watcher/uploaded? tournament-id :results round)
+               @(upload-results! settings tournament-id round))
+    nil)
+  (callback))
+
 (defn options [api-key body]
   {:timeout 1000
    :query-params {:key api-key}
@@ -29,27 +51,56 @@
    :headers {"Content-Type" "application/json"}
    :as :text})
 
-(defn upload-tournament! [url api-key tournament & [callback]]
-  (POST (str url "/tournament/") 
-        (options api-key tournament) 
-        callback))
+(defn upload-tournament! [{:keys [url api-key] :as settings} tournament-id & [callback]]
+  (check-dependency! settings tournament-id :tournament nil 
+                    #(POST (str url "/tournament/") 
+                           (options api-key (watcher/get-tournament tournament-id)) 
+                           (fn [response]
+                             (watcher/set-uploaded! tournament-id :tournament)
+                             (when callback (callback))))))
 
-(defn upload-teams! [url sanction-id api-key teams & [callback]]
-  (POST (str url "/tournament/" sanction-id "/teams")
-       (options api-key teams)
-       callback))
+(defn upload-teams! [{:keys [url api-key sanction-id] :as settings} tournament-id & [callback]]
+  (check-dependency! settings tournament-id :teams nil 
+                    #(POST (str url "/tournament/" sanction-id "/teams")
+                           (options api-key (watcher/get-teams tournament-id))
+                           (fn [response]
+                             (watcher/set-uploaded! tournament-id :teams)
+                             (when callback (callback))))))
 
-(defn upload-seatings! [url sanction-id api-key seatings & [callback]]
-  (POST (str url "/tournament/" sanction-id "/seatings")
-       (options api-key seatings)
-       callback))
+(defn upload-seatings! [{:keys [url api-key sanction-id] :as settings} tournament-id & [callback]]
+  (check-dependency! settings tournament-id :seatings nil 
+  #(POST (str url "/tournament/" sanction-id "/seatings")
+        (options api-key (watcher/get-seatings tournament-id))
+        (fn [response]
+          (watcher/set-uploaded! tournament-id :seatings)
+          (when callback (callback))))))
 
-(defn upload-pairings! [url sanction-id round api-key pairings & [callback]]
-  (POST (str url "/tournament/" sanction-id "/round-" round "/pairings") 
-       (options api-key pairings)
-       callback))
+(defn upload-pairings! [{:keys [url api-key sanction-id] :as settings} tournament-id round & [callback]]
+  (check-dependency! settings tournament-id :pairings round 
+                    #(POST (str url "/tournament/" sanction-id "/round-" round "/pairings") 
+                           (options api-key (watcher/get-pairings tournament-id round))
+                           (fn [response]
+                             (watcher/set-uploaded! tournament-id :pairings round)
+                             (when callback (callback))))))
 
-(defn upload-results! [url sanction-id round api-key results & [callback]]
-  (POST (str url "/tournament/" sanction-id "/round-" round "/results") 
-       (options api-key results)
-       callback))
+(defn upload-results! [{:keys [url api-key sanction-id] :as settings} tournament-id round & [callback]]
+  (check-dependency! settings tournament-id :results round 
+                    #(POST (str url "/tournament/" sanction-id "/round-" round "/results") 
+                           (options api-key (watcher/get-results tournament-id round))
+                           (fn [response]
+                             (watcher/set-uploaded! tournament-id :results round)
+                             (when callback (callback))))))
+
+(defn publish-results! [{:keys [url api-key sanction-id] :as settings} tournament-id round & [callback]]
+  (check-dependency! settings tournament-id :publish round
+                     #(POST (str url "/tournament/" sanction-id "/round-" round "/results/publish")
+                            (options api-key nil)
+                            (fn [response]
+                              (when callback (callback))))))
+
+(defn reset-tournament! [{:keys [url api-key sanction-id]} tournament-id & [callback]]
+  (POST (str url "/tournament/" sanction-id "/reset")
+          (options api-key nil)
+          (fn [response]
+            (watcher/reset-tournament! tournament-id)
+            (when callback (callback)))))
