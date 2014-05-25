@@ -21,12 +21,16 @@
      :team_name (:team1_name (first matches))}))
 
 (defn ^:private calculate-omw-ogw [teams-results]
-  (map-values (fn [results] 
+  (map-values (fn [results]
                 (let [opponents (for [opp (:opponents results)]
                                   (teams-results opp))
                       cnt (count opponents)
-                      omw (/ (reduce + 0 (map :pmw opponents)) cnt)
-                      ogw (/ (reduce + 0 (map :pgw opponents)) cnt)]
+                      omw (if (zero? cnt)
+                            0
+                            (/ (reduce + 0 (map :pmw opponents)) cnt))
+                      ogw (if (zero? cnt)
+                            0
+                            (/ (reduce + 0 (map :pgw opponents)) cnt))]
                   (assoc results
                          :omw omw
                          :ogw ogw)))
@@ -57,15 +61,15 @@
 (defn ^:private check-digit [n]
   (let [primes [43 47 53 71 73 31 37 41 59 61 67 29]
         checksum (reduce + (map * n primes))]
-    (-> checksum 
-      (/ 10) 
+    (-> checksum
+      (/ 10)
       int
       (mod 9)
       (+ 1))))
 
 (defn add-check-digits [dci-number]
   (let [digits (map #(Integer/parseInt (str %)) dci-number)
-        length (count digits)] 
+        length (count digits)]
     (cond->> digits
       (>= 6 length) (cons 0)
       (>= 7 length) (#(cons (check-digit %) %))
