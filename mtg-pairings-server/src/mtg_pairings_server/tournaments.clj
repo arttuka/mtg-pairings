@@ -17,15 +17,15 @@
         nil))))
 
 (defn owner-of-tournament [sanction-id]
-  (:owner 
-    (first 
+  (:owner
+    (first
       (sql/select db/tournament
         (sql/fields :owner)
         (sql/where {:sanctionid sanction-id})))))
 
 (defn sanctionid->id [sanction-id]
   (:id
-    (first 
+    (first
       (sql/select db/tournament
         (sql/fields :id)
         (sql/where {:sanctionid sanction-id})))))
@@ -48,12 +48,12 @@
       (sql/order :round))))
 
 (defn ^:private update-round-data [tournament]
-  (-> tournament 
+  (-> tournament
     (update-in [:round] #(map :num %))
     (update-in [:standings] #(map :num %))))
 
 (defn tournament [id]
-  (update-round-data (first 
+  (update-round-data (first
                        (-> select-tournaments
                          (sql/where {:id id})
                          (sql/exec)))))
@@ -75,7 +75,7 @@
         new-players (->> players
                       (remove #(old-players (:dci %)))
                       (map #(select-keys % [:name :dci])))]
-    (when (seq new-players) 
+    (when (seq new-players)
       (sql/insert db/player
         (sql/values new-players)))))
 
@@ -92,9 +92,9 @@
   (update-in team [:players] #(map fix-dci-number %)))
 
 (defn add-teams [sanction-id teams]
-  (let [teams (map fix-dci-numbers teams)] 
+  (let [teams (map fix-dci-numbers teams)]
     (add-players (mapcat :players teams))
-    (let [tournament-id (sanctionid->id sanction-id)] 
+    (let [tournament-id (sanctionid->id sanction-id)]
       (doseq [team teams
               :let [team-id (add-team (:name team) tournament-id)]]
         (sql/insert db/team-players
@@ -125,7 +125,7 @@
                               (sql/where {:tournament tournament-id
                                           :num round-num})))]
     (:id old-round)
-    (:id (sql/insert db/round 
+    (:id (sql/insert db/round
            (sql/values {:tournament tournament-id
                         :num round-num})))))
 
@@ -136,10 +136,10 @@
                [(:name team) (:id team)]))))
 
 (defn add-seatings [sanction-id seatings]
-  (let [tournament-id (sanctionid->id sanction-id)] 
+  (let [tournament-id (sanctionid->id sanction-id)]
     (sql/delete db/seating
       (sql/where {:tournament tournament-id}))
-    (let [name->id (teams-by-name tournament-id)] 
+    (let [name->id (teams-by-name tournament-id)]
       (sql/insert db/seating
         (sql/values (for [seating seatings]
                       {:team (name->id (:team seating))
@@ -147,16 +147,16 @@
                        :tournament tournament-id}))))))
 
 (defn ^:private delete-results [round-id]
-  (sql/delete db/result 
-    (sql/where {:pairing [in (sql/subselect db/pairing 
-                               (sql/fields :id) 
+  (sql/delete db/result
+    (sql/where {:pairing [in (sql/subselect db/pairing
+                               (sql/fields :id)
                                (sql/where {:round round-id}))]})))
 
 (defn ^:private delete-pairings [round-id]
   (sql/delete db/pairing
     (sql/where {:round round-id})))
 
-(defn ^:private delete-standings 
+(defn ^:private delete-standings
   ([tournament-id]
     (sql/delete db/standings
       (sql/where {:tournament tournament-id})))
@@ -187,14 +187,19 @@
                      :team2_points (team->points team2)
                      :table_number (:table_number pairing)})))))
 
-(defn ^:private find-pairing [round-id table_number]
+(defn ^:private find-pairing [round-id {:keys [team1 team2]}]
   (first (sql/select db/pairing
-           (sql/where {:round round-id
-                       :table_number table_number}))))
+           (sql/with db/team1)
+           (sql/with db/team2)
+           (sql/where (merge
+                        {:round round-id}
+                        (when team1 {:team1.name team1})
+                        (when team2 {:team2.name team2})))
+           (sql/fields :pairing.id))))
 
 (defn ^:private results-of-round [round-id]
   (for [pairing (sql/select db/pairing
-                  (sql/fields [:team1 :team1] 
+                  (sql/fields [:team1 :team1]
                               [:team2 :team2]
                               [:team1_points :team1_points]
                               [:team2_points :team2_points]
@@ -204,7 +209,7 @@
                   (sql/with db/team2
                     (sql/fields [:name :team2_name]))
                   (sql/with db/result
-                    (sql/fields [:team1_wins :wins] 
+                    (sql/fields [:team1_wins :wins]
                                 [:team2_wins :losses]
                                 :draws))
                   (sql/where {:round round-id}))]
@@ -222,7 +227,7 @@
         round-num (:num (first rounds))
         round-id (:id (first rounds))
         std (mtg-util/calculate-standings rounds-results round-num)]
-    (sql/insert db/standings 
+    (sql/insert db/standings
      (sql/values {:standings (pr-str std)
                   :tournament tournament-id
                   :round round-num
@@ -236,7 +241,7 @@
     (delete-results round-id)
     (delete-standings tournament-id round-num)
     (doseq [res results
-            :let [pairing-id (:id (find-pairing round-id (:table_number res)))]]
+            :let [pairing-id (:id (find-pairing round-id res))]]
       (sql/insert db/result
         (sql/values {:pairing pairing-id
                      :team1_wins (:team1_wins res)
@@ -259,8 +264,8 @@
 
 (defn ^:private delete-teams [tournament-id]
   (sql/delete db/team-players
-    (sql/where {:team [in (sql/subselect db/team 
-                            (sql/fields :id) 
+    (sql/where {:team [in (sql/subselect db/team
+                            (sql/fields :id)
                             (sql/where {:tournament tournament-id}))]}))
   (sql/delete db/team
     (sql/where {:tournament tournament-id})))

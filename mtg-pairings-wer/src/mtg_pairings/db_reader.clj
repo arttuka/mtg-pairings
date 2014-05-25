@@ -22,15 +22,15 @@
 (defn data-for-players
   "Returns a list of DCI numbers for a list of players"
   [db players]
-  (let [person-table (db/table db "Person")] 
+  (let [person-table (db/table db "Person")]
     (doall (for [player players
-                 :let [person (db/row person-table (:PersonId player))]] 
+                 :let [person (db/row person-table (:PersonId player))]]
              {:dci (:PrimaryDciNumber person)
-              :name (str (:LastName person) ", " (:FirstName person) 
+              :name (str (:LastName person) ", " (:FirstName person)
                          (when (seq (:MiddleInitial person))
                            (str " " (:MiddleInitial person))))}))))
 
-(defn teams 
+(defn teams
   [db tournament-id]
   (let [team-table (db/table db "Team")
         teamplayer-table (db/table db "TeamPlayers")]
@@ -47,7 +47,7 @@
              [(:id team) team])))
 
 (defn results-for-round
-  [db round-id]
+  [db round-id all-teams]
   (let [match-table (db/table db "Match")
         result-table (db/table db "TeamMatchResult")
         matches (db/rows match-table {:RoundId round-id})]
@@ -57,12 +57,16 @@
                    (if (or (nil? second-row) (> (:TeamId first-row) (:TeamId second-row)))
                      {:team1_wins (:GameWins first-row)
                       :team2_wins (:GameLosses first-row)
-                      :draws (:GameDraws first-row)}
+                      :draws (:GameDraws first-row)
+                      :team1 (:name (all-teams (:TeamId first-row)))
+                      :team2 (:name (all-teams (:TeamId second-row)))}
                      {:team1_wins (:GameWins second-row)
                       :team2_wins (:GameLosses second-row)
-                      :draws (:GameDraws second-row)}))))))
+                      :draws (:GameDraws second-row)
+                      :team1 (:name (all-teams (:TeamId second-row)))
+                      :team2 (:name (all-teams (:TeamId first-row)))}))))))
 (defn pairings-for-round
-  "Returns a list of pairings for the round so that team1 is the one with the higher id" 
+  "Returns a list of pairings for the round so that team1 is the one with the higher id"
   [db round-id all-teams]
   (let [match-table (db/table db "Match")
         result-table (db/table db "TeamMatchResult")
@@ -85,9 +89,10 @@
 (defn results
   [db tournament-id]
   (let [round-table (db/table db "Round")
-        rounds (sort-by :Number (db/rows round-table {:TournamentId tournament-id}))]
+        rounds (sort-by :Number (db/rows round-table {:TournamentId tournament-id}))
+        teams (id->team db tournament-id)]
     (into {} (for [round rounds
-                   :let [results (results-for-round db (:RoundId round))]
+                   :let [results (results-for-round db (:RoundId round) teams)]
                    :when (seq results)]
                [(:Number round) results]))))
 
