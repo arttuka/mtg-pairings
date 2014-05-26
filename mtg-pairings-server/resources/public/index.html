@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html ng-app="pairings">
 <head>
   <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
@@ -15,8 +16,8 @@
   <script src="js/resources.js"></script>
   <script src="js/app.js"></script>
   <link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
-  <link rel="stylesheet" type="text/css" href="css/main.css"> 
-  <link rel="stylesheet" type="text/css" href="css/bootstrap.css"> 
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+  <link rel="stylesheet" type="text/css" href="css/bootstrap.css">
   <link rel="stylesheet" type="text/css" href="css/bootstrap-theme.css">
 </head>
 <body ng-controller="MenuController">
@@ -30,13 +31,13 @@
       </form>
     </div>
     <div ng-show="loggedIn" class="hidden-xs logged-menu">
-      <span>{{name}}</span> 
+      <span>{{name}}</span>
       <button ng-click="logout()">KIRJAUDU ULOS</button>
       <a href="#/tournaments">KAIKKI TURNAUKSET</a>
       <a href="#/">ETUSIVU</a>
     </div>
     <div ng-show="loggedIn" class="hidden-sm hidden-md hidden-lg">
-      <span>{{name}}</span> 
+      <span>{{name}}</span>
       <span class="pull-right menu-icon" ng-click="menuCollapsed = !menuCollapsed"><i></i></span>
     </div>
   </div>
@@ -46,7 +47,7 @@
     <a ng-hide="!loggedIn" ng-click="menuCollapsed = true; logout()">KIRJAUDU ULOS</a>
   </div>
   <div id="content" ng-view>
-    
+
   </div>
 </body>
 </html>
