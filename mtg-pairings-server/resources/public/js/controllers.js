@@ -13,11 +13,9 @@ angular.module('controllers', [])
       $scope.loggedIn = true;
       $scope.name = data.name;
       $rootScope.$broadcast('loggedIn', $scope.dci);
-      console.log("Logged in: " + data.dci + " " + data.name);
     }, function() {
       $scope.dci = '';
       $scope.loggedIn = false;
-      console.log("Failed to log in");
     });
   };
   $scope.logout = function() {
