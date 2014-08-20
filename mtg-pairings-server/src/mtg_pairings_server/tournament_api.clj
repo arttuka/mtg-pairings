@@ -35,27 +35,27 @@
       (response (standings (Integer/parseInt id) (Integer/parseInt round) (get-in request [:params :secret]))))
     (c/GET "/:id/seatings" [id]
       (response (seatings (Integer/parseInt id))))
-    (c/POST "/:sanctionid/round-:round/pairings" [sanctionid round :as request]
+    (c/PUT "/:sanctionid/round-:round/pairings" [sanctionid round :as request]
       (validate-request sanctionid request
         (add-pairings sanctionid (Integer/parseInt round) (:body request))
         {:status 204}))
-    (c/POST "/:sanctionid/round-:round/results" [sanctionid round :as request]
+    (c/PUT "/:sanctionid/round-:round/results" [sanctionid round :as request]
       (validate-request sanctionid request
         (add-results sanctionid (Integer/parseInt round) (:body request))
         {:status 204}))
-    (c/POST "/:sanctionid/round-:round/results/publish" [sanctionid round :as request]
+    (c/PUT "/:sanctionid/round-:round/results/publish" [sanctionid round :as request]
       (validate-request sanctionid request
         (publish-results sanctionid (Integer/parseInt round))
         {:status 204}))
-    (c/POST "/:sanctionid/seatings" [sanctionid :as request]
+    (c/PUT "/:sanctionid/seatings" [sanctionid :as request]
       (validate-request sanctionid request
         (add-seatings sanctionid (:body request))
         {:status 204}))
-    (c/POST "/:sanctionid/teams" [sanctionid :as request]
+    (c/PUT "/:sanctionid/teams" [sanctionid :as request]
       (validate-request sanctionid request
         (add-teams sanctionid (:body request))
         {:status 204}))
-    (c/POST "/:sanctionid/reset" [sanctionid :as request]
+    (c/DELETE "/:sanctionid" [sanctionid :as request]
       (validate-request sanctionid request
         (reset-tournament sanctionid)
         {:status 204}))))

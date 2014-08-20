@@ -61,7 +61,7 @@
 
 (defn upload-teams! [{:keys [url api-key sanction-id] :as settings} tournament-id & [callback]]
   (check-dependency! settings tournament-id :teams nil 
-                    #(POST (str url "/tournament/" sanction-id "/teams")
+                    #(PUT (str url "/tournament/" sanction-id "/teams")
                            (options api-key (watcher/get-teams tournament-id))
                            (fn [response]
                              (watcher/set-uploaded! tournament-id :teams)
@@ -69,7 +69,7 @@
 
 (defn upload-seatings! [{:keys [url api-key sanction-id] :as settings} tournament-id & [callback]]
   (check-dependency! settings tournament-id :seatings nil 
-  #(POST (str url "/tournament/" sanction-id "/seatings")
+  #(PUT (str url "/tournament/" sanction-id "/seatings")
         (options api-key (watcher/get-seatings tournament-id))
         (fn [response]
           (watcher/set-uploaded! tournament-id :seatings)
@@ -77,7 +77,7 @@
 
 (defn upload-pairings! [{:keys [url api-key sanction-id] :as settings} tournament-id round & [callback]]
   (check-dependency! settings tournament-id :pairings round 
-                    #(POST (str url "/tournament/" sanction-id "/round-" round "/pairings") 
+                    #(PUT (str url "/tournament/" sanction-id "/round-" round "/pairings") 
                            (options api-key (watcher/get-pairings tournament-id round))
                            (fn [response]
                              (watcher/set-uploaded! tournament-id :pairings round)
@@ -85,7 +85,7 @@
 
 (defn upload-results! [{:keys [url api-key sanction-id] :as settings} tournament-id round & [callback]]
   (check-dependency! settings tournament-id :results round 
-                    #(POST (str url "/tournament/" sanction-id "/round-" round "/results") 
+                    #(PUT (str url "/tournament/" sanction-id "/round-" round "/results") 
                            (options api-key (watcher/get-results tournament-id round))
                            (fn [response]
                              (watcher/set-uploaded! tournament-id :results round)
@@ -93,13 +93,13 @@
 
 (defn publish-results! [{:keys [url api-key sanction-id] :as settings} tournament-id round & [callback]]
   (check-dependency! settings tournament-id :publish round
-                     #(POST (str url "/tournament/" sanction-id "/round-" round "/results/publish")
+                     #(PUT (str url "/tournament/" sanction-id "/round-" round "/results/publish")
                             (options api-key nil)
                             (fn [response]
                               (when callback (callback))))))
 
 (defn reset-tournament! [{:keys [url api-key sanction-id]} tournament-id & [callback]]
-  (POST (str url "/tournament/" sanction-id "/reset")
+  (DELETE (str url "/tournament/" sanction-id)
           (options api-key nil)
           (fn [response]
             (watcher/reset-tournament! tournament-id)
