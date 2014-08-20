@@ -9,11 +9,16 @@
             [mtg-pairings.watcher :as watcher]
             [mtg-pairings.uploader :as uploader]
             [clojure.java.io :refer [as-file]]
-            [clojure.tools.reader.edn :as edn])
-  (:import (java.io File FileNotFoundException)))
+            [clojure.tools.reader.edn :as edn]
+            [org.httpkit.client :as http])
+  (:import (java.io File FileNotFoundException)
+           java.awt.Desktop
+           java.net.URI))
 
 
 (ui/native!)
+
+(def version "0.2.0")
 
 (defonce state (atom {:properties {}}))
 
@@ -295,6 +300,21 @@
 (defn apikey-handler [& args]
   (-> (apikey-window) ui/pack! ui/show!))
 
+(defn new-version-window []
+  (ui/dialog
+    :type :warning
+    :content "Pairings-ohjelmasta on uusi versio. Lataa uusi versio painamalla OK."
+    :success-fn (fn [p] 
+                  (.browse (Desktop/getDesktop) (URI. "http://www.mtgsuomi.fi/mtg-pairings.zip"))
+                  (System/exit 0))))
+
+(defn new-version-handler []
+  (-> (new-version-window) ui/pack! ui/show!))
+
+(defn get-version-from-server []
+  (let [url (str (-> @state :properties :url) "/version")]
+    (-> @(http/get url) :body slurp edn/read-string :client)))
+
 (def about-action (ui/menu-item :text "About" :listen [:action about-handler]))
 
 (def apikey-action (ui/menu-item :text "API key..." :listen [:action apikey-handler]))
@@ -340,6 +360,8 @@
       (update-results-combo id)))
   (when (clojure.string/blank? (property :api-key))
     (apikey-handler))
+  (when (not= version (get-version-from-server))
+    (new-version-handler))
   (let [database-location (if (.exists (as-file (property :db)))
                             (property :db)
                             (chooser/choose-file :success-fn (fn [_ file] (.getAbsolutePath file))
