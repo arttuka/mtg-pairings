@@ -2,7 +2,8 @@
   (:require [mtg-pairings-server.util :refer [response]]
             [compojure.core :as c]
             [mtg-pairings-server.tournaments :refer :all]
-            [mtg-pairings-server.util :refer [parse-date]]))
+            [mtg-pairings-server.util :refer [parse-date]]
+            clj-time.coerce))
 
 (defmacro validate-request [sanction-id request & body]
   `(let [user# (user-for-request ~request)
@@ -18,7 +19,7 @@
     (c/POST "/" [:as request]
       (if-let [user (user-for-request request)]
         (let [tournament (-> (:body request)
-                           (update-in [:day] parse-date)
+                           (update-in [:day] clj-time.coerce/to-local-date)
                            (assoc :owner user))]
           (add-tournament tournament)
           {:status 204})

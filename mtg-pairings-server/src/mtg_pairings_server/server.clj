@@ -26,7 +26,7 @@
   (let [tournament-routes (tournament-api/routes)
         player-routes (player-api/routes)]
     (c/routes
-      (c/GET "/version" [] #spy/p (edn-response (:version @properties)))
+      (c/GET "/version" [] (edn-response (:version @properties)))
       (c/GET "/params" [:as request] {:status 200, :body (:params request)})
       (c/GET "/" [] (->
                       (resource-response "public/index.html")
@@ -69,6 +69,13 @@
     wrap-not-modified
     wrap-remove-content-length))
 
+(defn wrap-edn-body [handler]
+  (fn [request]
+    (if (= "application/edn" (:content-type request))
+      (let [body (edn/read-string (slurp (:body request)))]
+        (handler (assoc request :body body)))
+      (handler request))))
+
 (defn run! []
   (let [{db-properties :db, server-properties :server :as props} (edn/read-string (slurp "properties.edn"))
         _ (deliver properties props)
@@ -80,7 +87,7 @@
                     (wrap-resource-304 "public")
                     wrap-params
                     wrap-json-response
-                    (wrap-json-body {:keywords? true})
+                    wrap-edn-body
                     wrap-exceptions) 
                   server-properties)]
     (json-gen/add-encoder org.joda.time.LocalDate

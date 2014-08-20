@@ -50,3 +50,6 @@
 
 (def joda-date->java-date
   (partial convert-instances-of org.joda.time.LocalDate time-coerce/to-date))
+
+(defn ->edn [obj]
+  (pr-str (joda-date->java-date obj)))

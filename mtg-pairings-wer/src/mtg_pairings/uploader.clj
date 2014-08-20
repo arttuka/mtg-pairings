@@ -1,7 +1,8 @@
 (ns mtg-pairings.uploader
   (:require [org.httpkit.client :as http]
             [cheshire.core :as json]
-            [mtg-pairings.watcher :as watcher]))
+            [mtg-pairings.watcher :as watcher]
+            [mtg-pairings.util :refer [->edn]]))
 
 (defmacro response [callback]
   `(fn [response#]
@@ -47,8 +48,8 @@
 (defn options [api-key body]
   {:timeout 1000
    :query-params {:key api-key}
-   :body (json/generate-string body)
-   :headers {"Content-Type" "application/json"}
+   :body (->edn body)
+   :headers {"Content-Type" "application/edn"}
    :as :text})
 
 (defn upload-tournament! [{:keys [url api-key] :as settings} tournament-id & [callback]]
