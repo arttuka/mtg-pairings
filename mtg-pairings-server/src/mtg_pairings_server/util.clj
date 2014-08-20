@@ -30,6 +30,13 @@ Function f should accept one argument."
           (next keys)))
       ret)))
 
+(defn edn-response [body]
+  (if body
+    {:status 200
+     :headers {"Content-Type" "application/edn"}
+     :body (pr-str body)}
+    (ring/not-found body)))
+
 (defn response [body]
   (if body
     (ring/response body)

@@ -17,12 +17,16 @@
             
             [mtg-pairings-server.tournament-api :as tournament-api]
             [mtg-pairings-server.player-api :as player-api]
-            [mtg-pairings-server.sql-db :refer [create-korma-db]]))
+            [mtg-pairings-server.sql-db :refer [create-korma-db]]
+            [mtg-pairings-server.util :refer [edn-response]]))
+
+(def properties (promise))
 
 (defn routes []
   (let [tournament-routes (tournament-api/routes)
         player-routes (player-api/routes)]
     (c/routes
+      (c/GET "/version" [] #spy/p (edn-response (:version @properties)))
       (c/GET "/params" [:as request] {:status 200, :body (:params request)})
       (c/GET "/" [] (->
                       (resource-response "public/index.html")
@@ -66,7 +70,8 @@
     wrap-remove-content-length))
 
 (defn run! []
-  (let [{db-properties :db, server-properties :server} (edn/read-string (slurp "properties.edn"))
+  (let [{db-properties :db, server-properties :server :as props} (edn/read-string (slurp "properties.edn"))
+        _ (deliver properties props)
         _ (log/info "Starting server on port" (:port server-properties) "...")
         db (create-korma-db db-properties)
         stop-fn (hs/run-server 
