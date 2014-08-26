@@ -71,6 +71,9 @@
 (defn publish-button-id [tournament-id]
   (keyword (str "publish" tournament-id)))
 
+(defn check-button-id [tournament-id]
+  (keyword (str "check" tournament-id)))
+
 (defn pairings-combo-id [tournament-id]
   (keyword (str "pairingscombo" tournament-id)))
 
@@ -115,6 +118,8 @@
       (-> (ui/select root [(id->selector (publish-button-id tournament-id))])
         (ui/config! :enabled? true)))
     (-> (ui/select root [(id->selector (reset-button-id tournament-id))])
+      (ui/config! :enabled? true))
+    (-> (ui/select root [(id->selector (check-button-id tournament-id))])
       (ui/config! :enabled? true))))
 
 (defmacro upload [action done tournament-id & params]
@@ -126,6 +131,15 @@
                                                      ~done 
                                                      (enable-buttons ~tournament-id)
                                                      (save-state!))))))
+
+(defn check-results-window [tournament-id]
+  (fn [& _] 
+    (-> 
+      (ui/dialog
+        :type :info
+        :content (clojure.string/join \newline (cons "Seuraavien pöytien tulos puuttuu:" (watcher/get-missing-results tournament-id))))
+      ui/pack!
+      ui/show!)))
 
 (defn create-tab [tournament-id]
   (let [pairings-combo (ui/combobox :model []
@@ -184,6 +198,10 @@
                                                                                                    tournament-id 
                                                                                                    (ui/selection results-combo))]
                                                                           :id (publish-button-id tournament-id)
+                                                                          :enabled? false)
+                                                               (ui/button :text "Tarkista"
+                                                                          :listen [:action (check-results-window tournament-id)]
+                                                                          :id (check-button-id tournament-id)
                                                                           :enabled? false)])]
                                    
                                    [(ui/label "Resetoi")]

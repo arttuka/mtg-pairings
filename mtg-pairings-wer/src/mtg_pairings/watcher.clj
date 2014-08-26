@@ -50,6 +50,19 @@
 (defn ^:private done-rounds [all-results]
   (into {} (filter (comp round-done? val) all-results)))
 
+(defn ^:private incomplete-round [all-results]
+  (some-> 
+    (remove (comp round-done? val) all-results)
+    first
+    val))
+
+(defn ^:private missing-results [all-results]
+  (->>
+    (incomplete-round all-results)
+    (filter #(neg? (:team1_wins %)))
+    (map :table_number)
+    sort))
+
 (defn ^:private changed-index [idx [old new]]
   (when (not= old new) (inc idx)))
 
@@ -75,7 +88,8 @@
       (handler :teams (reader/teams db tournament-id) tournament-id)
       (handler :seatings (reader/seatings db tournament-id) tournament-id)
       (handler :pairings (reader/pairings db tournament-id) tournament-id)
-      (handler :results (done-rounds (reader/results db tournament-id)) tournament-id))))
+      (handler :results (done-rounds (reader/results db tournament-id)) tournament-id)
+      (handler :missing-results (missing-results (reader/results db tournament-id)) tournament-id))))
 
 (defn get-tournament [id]
   (let [tournament (get @state id)]
@@ -92,6 +106,9 @@
 
 (defn get-results [id round]
   (get-in @state [id :results round]))
+
+(defn get-missing-results [id]
+  (get-in @state [id :missing-results]))
 
 (defn get-results-count [id]
   (count (get-in @state [id :results])))
