@@ -13,7 +13,9 @@
             [org.httpkit.client :as http])
   (:import (java.io File FileNotFoundException)
            java.awt.Desktop
-           java.net.URI))
+           java.net.URI
+           javax.swing.table.TableRowSorter
+           org.joda.time.LocalDate))
 
 
 (ui/native!)
@@ -260,14 +262,28 @@
 (defn set-column-width [table column width]
   (-> table .getColumnModel (.getColumn column) (.setPreferredWidth width)))
 
-(def tournament-table (doto (ui/table :model (tournament-table-model (watcher/get-tournaments))
-                                   :show-vertical-lines? false)
-                        (set-column-width 0 230)
-                        (set-column-width 1 100)
-                        (set-column-width 2 70)))
+(def local-date-comparator (comparator (fn [^LocalDate this ^LocalDate that]
+                                         (.isBefore this that))))
+
+(def tournament-table 
+  (let [table-model (tournament-table-model (watcher/get-tournaments))
+        row-sorter (doto (TableRowSorter. table-model)
+                     (.setComparator 1 local-date-comparator)
+                     (.setSortable 2 false))]
+    (doto (ui/table :model table-model
+                    :show-vertical-lines? false)
+      (.setRowSorter row-sorter)
+      (set-column-width 0 230)
+      (set-column-width 1 100)
+      (set-column-width 2 70))))
 
 (defn update-tournaments! [tournaments]
-  (ui/config! tournament-table :model (tournament-table-model tournaments)))
+  (let [table-model (tournament-table-model tournaments)
+        row-sorter (doto (TableRowSorter. table-model)
+                     (.setComparator 1 local-date-comparator)
+                     (.setSortable 2 false))]
+    (.setModel tournament-table table-model)
+    (.setRowSorter tournament-table row-sorter)))
 
 (defn tournament-handler [id]
   (update-tournaments! (watcher/get-tournaments))
