@@ -1,7 +1,7 @@
 (ns mtg-pairings.core
   (:gen-class)
   (:require [cheshire.generate :as json-gen]
-            [seesaw.core :as ui]
+            [seesaw.core :as swing]
             [seesaw.color :as color]
             [seesaw.table :as table]
             [seesaw.chooser :as chooser]
@@ -18,7 +18,7 @@
            org.joda.time.LocalDate))
 
 
-(ui/native!)
+(swing/native!)
 
 (def version "0.2.0")
 
@@ -83,46 +83,46 @@
   (keyword (str "resultscombo" tournament-id)))
 
 (defn disable-buttons [tournament-id]
-  (doseq [btn (ui/select (ui/to-root tabbed-pane) [(id->selector (tab-id tournament-id)) :JButton])]
-    (ui/config! btn :enabled? false))
-  (-> (ui/select (ui/to-root tabbed-pane) [(id->selector (reset-button-id tournament-id))])
-    (ui/config! :enabled? true)))
+  (doseq [btn (swing/select (swing/to-root tabbed-pane) [(id->selector (tab-id tournament-id)) :JButton])]
+    (swing/config! btn :enabled? false))
+  (-> (swing/select (swing/to-root tabbed-pane) [(id->selector (reset-button-id tournament-id))])
+    (swing/config! :enabled? true)))
 
 (defn update-pairings-combo [tournament-id]
-  (let [combo (ui/select (ui/to-root tabbed-pane) [(id->selector (pairings-combo-id tournament-id))])
+  (let [combo (swing/select (swing/to-root tabbed-pane) [(id->selector (pairings-combo-id tournament-id))])
         cnt (watcher/get-pairings-count tournament-id)]
-    (ui/config! combo :model (range 1 (inc cnt)))
-    (ui/selection! combo (long cnt))))
+    (swing/config! combo :model (range 1 (inc cnt)))
+    (swing/selection! combo (long cnt))))
 
 (defn update-results-combo [tournament-id]
-  (let [combo (ui/select (ui/to-root tabbed-pane) [(id->selector (results-combo-id tournament-id))])
+  (let [combo (swing/select (swing/to-root tabbed-pane) [(id->selector (results-combo-id tournament-id))])
         cnt (watcher/get-results-count tournament-id)]
-    (ui/config! combo :model (range 1 (inc cnt)))
-    (ui/selection! combo (long cnt))))
+    (swing/config! combo :model (range 1 (inc cnt)))
+    (swing/selection! combo (long cnt))))
 
 (defn enable-buttons [tournament-id]
-  (let [root (ui/to-root tabbed-pane)] 
+  (let [root (swing/to-root tabbed-pane)] 
     (when (watcher/get-tournament tournament-id)
-      (-> (ui/select root [(id->selector (tournament-button-id tournament-id))])
-        (ui/config! :enabled? true)))
+      (-> (swing/select root [(id->selector (tournament-button-id tournament-id))])
+        (swing/config! :enabled? true)))
     (when (watcher/get-teams tournament-id)
-      (-> (ui/select root [(id->selector (teams-button-id tournament-id))])
-        (ui/config! :enabled? true)))
+      (-> (swing/select root [(id->selector (teams-button-id tournament-id))])
+        (swing/config! :enabled? true)))
     (when (watcher/get-seatings tournament-id)
-      (-> (ui/select root [(id->selector (seatings-button-id tournament-id))])
-        (ui/config! :enabled? true)))
+      (-> (swing/select root [(id->selector (seatings-button-id tournament-id))])
+        (swing/config! :enabled? true)))
     (when (pos? (watcher/get-pairings-count tournament-id))
-      (-> (ui/select root [(id->selector (pairings-button-id tournament-id))])
-        (ui/config! :enabled? true)))
+      (-> (swing/select root [(id->selector (pairings-button-id tournament-id))])
+        (swing/config! :enabled? true)))
     (when (pos? (watcher/get-results-count tournament-id))
-      (-> (ui/select root [(id->selector (results-button-id tournament-id))])
-        (ui/config! :enabled? true))
-      (-> (ui/select root [(id->selector (publish-button-id tournament-id))])
-        (ui/config! :enabled? true)))
-    (-> (ui/select root [(id->selector (reset-button-id tournament-id))])
-      (ui/config! :enabled? true))
-    (-> (ui/select root [(id->selector (check-button-id tournament-id))])
-      (ui/config! :enabled? true))))
+      (-> (swing/select root [(id->selector (results-button-id tournament-id))])
+        (swing/config! :enabled? true))
+      (-> (swing/select root [(id->selector (publish-button-id tournament-id))])
+        (swing/config! :enabled? true)))
+    (-> (swing/select root [(id->selector (reset-button-id tournament-id))])
+      (swing/config! :enabled? true))
+    (-> (swing/select root [(id->selector (check-button-id tournament-id))])
+      (swing/config! :enabled? true))))
 
 (defmacro upload [action done tournament-id & params]
   `(fn [_#]
@@ -137,81 +137,81 @@
 (defn check-results-window [tournament-id]
   (fn [& _] 
     (-> 
-      (ui/dialog
+      (swing/dialog
         :type :info
         :content (clojure.string/join \newline (cons "Seuraavien pöytien tulos puuttuu:" (watcher/get-missing-results tournament-id))))
-      ui/pack!
-      ui/show!)))
+      swing/pack!
+      swing/show!)))
 
 (defn create-tab [tournament-id]
-  (let [pairings-combo (ui/combobox :model []
+  (let [pairings-combo (swing/combobox :model []
                                     :id (pairings-combo-id tournament-id))
-        results-combo (ui/combobox :model []
+        results-combo (swing/combobox :model []
                                    :id (results-combo-id tournament-id))
-        info (ui/label "")
-        info! (fn [& args] (ui/text! info (apply str args)))
+        info (swing/label "")
+        info! (fn [& args] (swing/text! info (apply str args)))
         tab (mig/mig-panel :constraints ["fill, wrap 3" 
                                          "[100!][100!][200!]" 
                                          ""]
                            :id (tab-id tournament-id)
-                           :items [[(ui/label "Turnaus")]
-                                   [(ui/label "")]
-                                   [(ui/button :text "Lähetä"
-                                               :listen [:action (upload uploader/upload-tournament! (info! "Turnaus lähetetty") tournament-id)]
-                                               :id (tournament-button-id tournament-id)
-                                               :enabled? false)]
+                           :items [[(swing/label "Turnaus")]
+                                   [(swing/label "")]
+                                   [(swing/button :text "Lähetä"
+                                                  :listen [:action (upload uploader/upload-tournament! (info! "Turnaus lähetetty") tournament-id)]
+                                                  :id (tournament-button-id tournament-id)
+                                                  :enabled? false)]
                                    
-                                   [(ui/label "Tiimit")]
-                                   [(ui/label "")]
-                                   [(ui/button :text "Lähetä"
-                                               :listen [:action (upload uploader/upload-teams! (info! "Tiimit lähetetty") tournament-id)]
-                                               :id (teams-button-id tournament-id)
-                                               :enabled? false)]
+                                   [(swing/label "Tiimit")]
+                                   [(swing/label "")]
+                                   [(swing/button :text "Lähetä"
+                                                  :listen [:action (upload uploader/upload-teams! (info! "Tiimit lähetetty") tournament-id)]
+                                                  :id (teams-button-id tournament-id)
+                                                  :enabled? false)]
                                    
-                                   [(ui/label "Seatingit")]
-                                   [(ui/label "")]
-                                   [(ui/button :text "Lähetä"
-                                               :listen [:action (upload uploader/upload-seatings! (info! "Seatingit lähetetty") tournament-id)]
-                                               :id (seatings-button-id tournament-id)
-                                               :enabled? false)]
+                                   [(swing/label "Seatingit")]
+                                   [(swing/label "")]
+                                   [(swing/button :text "Lähetä"
+                                                  :listen [:action (upload uploader/upload-seatings! (info! "Seatingit lähetetty") tournament-id)]
+                                                  :id (seatings-button-id tournament-id)
+                                                  :enabled? false)]
                                    
-                                   [(ui/label "Pairingit")]
+                                   [(swing/label "Pairingit")]
                                    [pairings-combo]
-                                   [(ui/button :text "Lähetä"
-                                               :listen [:action (upload uploader/upload-pairings! 
-                                                                        (info! "Pairingit " (ui/selection pairings-combo) " lähetetty") 
-                                                                        tournament-id 
-                                                                        (ui/selection pairings-combo))]
-                                               :id (pairings-button-id tournament-id)
-                                               :enabled? false)]
+                                   [(swing/button :text "Lähetä"
+                                                  :listen [:action (upload uploader/upload-pairings! 
+                                                                           (info! "Pairingit " (swing/selection pairings-combo) " lähetetty") 
+                                                                           tournament-id 
+                                                                           (swing/selection pairings-combo))]
+                                                  :id (pairings-button-id tournament-id)
+                                                  :enabled? false)]
                                    
-                                   [(ui/label "Tulokset")]
+                                   [(swing/label "Tulokset")]
                                    [results-combo]
-                                   [(ui/vertical-panel :items [(ui/button :text "Lähetä"
-                                                                          :listen [:action (upload uploader/upload-results! 
-                                                                                                   (info! "Tulokset " (ui/selection pairings-combo) " lähetetty")
-                                                                                                   tournament-id 
-                                                                                                   (ui/selection results-combo))]
-                                                                          :id (results-button-id tournament-id)
-                                                                          :enabled? false)
-                                                               (ui/button :text "Julkaise"
-                                                                          :listen [:action (upload uploader/publish-results! 
-                                                                                                   (info! "Tulokset " (ui/selection pairings-combo) " julkaistu")
-                                                                                                   tournament-id 
-                                                                                                   (ui/selection results-combo))]
-                                                                          :id (publish-button-id tournament-id)
-                                                                          :enabled? false)
-                                                               (ui/button :text "Tarkista"
-                                                                          :listen [:action (check-results-window tournament-id)]
-                                                                          :id (check-button-id tournament-id)
-                                                                          :enabled? false)])]
+                                   [(swing/vertical-panel :items [(swing/button :text "Lähetä"
+                                                                                :listen [:action (upload uploader/upload-results! 
+                                                                                                         (info! "Tulokset " (swing/selection pairings-combo) " lähetetty")
+                                                                                                         tournament-id 
+                                                                                                         (swing/selection results-combo))]
+                                                                                :id (results-button-id tournament-id)
+                                                                                :enabled? false)
+                                                                  (swing/button :text "Julkaise"
+                                                                                :listen [:action (upload uploader/publish-results! 
+                                                                                                         (info! "Tulokset " (swing/selection pairings-combo) " julkaistu")
+                                                                                                         tournament-id 
+                                                                                                         (swing/selection results-combo))]
+                                                                                :id (publish-button-id tournament-id)
+                                                                                :enabled? false)
+                                                                  (swing/button :text "Tarkista"
+                                                                                :listen [:action (check-results-window tournament-id)]
+                                                                                :id (check-button-id tournament-id)
+                                                                                :enabled? false)])]
                                    
-                                   [(ui/label "Resetoi")]
-                                   [(ui/label "")]
-                                   [(ui/button :text "Resetoi"
-                                               :listen [:action (upload uploader/reset-tournament! (info! "Turnaus resetoitu") tournament-id)]
-                                               :id (reset-button-id tournament-id)
-                                               :enabled? false)]
+                                   [(swing/label "Resetoi")]
+                                   [(swing/label "")]
+                                   [(swing/button :text "Resetoi"
+                                                  :listen [:action (upload uploader/reset-tournament! (info! "Turnaus resetoitu") tournament-id)]
+                                                  :id (reset-button-id tournament-id)
+                                                  :enabled? false)]
                                    
                                    [info "span 3"]])]
     (disable-buttons tournament-id)
@@ -223,7 +223,7 @@
   (let [name (:name (watcher/get-tournament tournament-id))] 
     (if track?
       (.addTab tabbed-pane name (create-tab tournament-id))
-      (let [tab (ui/select (ui/to-root tabbed-pane) [(id->selector (tab-id tournament-id))])]
+      (let [tab (swing/select (swing/to-root tabbed-pane) [(id->selector (tab-id tournament-id))])]
         (.remove tabbed-pane tab)))))
 
 (defn tournament-table-model [tournaments]
@@ -270,8 +270,8 @@
         row-sorter (doto (TableRowSorter. table-model)
                      (.setComparator 1 local-date-comparator)
                      (.setSortable 2 false))]
-    (doto (ui/table :model table-model
-                    :show-vertical-lines? false)
+    (doto (swing/table :model table-model
+                       :show-vertical-lines? false)
       (.setRowSorter row-sorter)
       (set-column-width 0 230)
       (set-column-width 1 100)
@@ -304,38 +304,38 @@
   (enable-buttons id)) 
 
 (def about-window
-  (ui/frame
+  (swing/frame
     :on-close :dispose
     :title "About MTG pairings"
     :size [100 :by 100]
-    :content (ui/border-panel 
+    :content (swing/border-panel 
                :vgap 5
                :hgap 5
                :border ""
                :north "This is the WER database sniffer and result uploader"
-               :south (ui/button :text "Close" :listen [:action (fn [event] (-> about-window ui/hide!))]))))
+               :south (swing/button :text "Close" :listen [:action (fn [event] (-> about-window swing/hide!))]))))
   
 (defn about-handler [event]
-  (-> about-window ui/pack! ui/show!))
+  (-> about-window swing/pack! swing/show!))
 
 (defn exit-handler [event]
   (System/exit 0))
 
 (defn apikey-window []
-  (ui/dialog
+  (swing/dialog
     :option-type :ok-cancel
     :title "API key"
     :size [300 :by 100]
-    :content (ui/text :id :key
+    :content (swing/text :id :key
                       :text (property :api-key))
-    :success-fn (fn [p] (let [value (ui/text (ui/select (ui/to-root p) [:#key]))]
+    :success-fn (fn [p] (let [value (swing/text (swing/select (swing/to-root p) [:#key]))]
                           (set-property! :api-key value)))))
 
 (defn apikey-handler [& args]
-  (-> (apikey-window) ui/pack! ui/show!))
+  (-> (apikey-window) swing/pack! swing/show!))
 
 (defn new-version-window []
-  (ui/dialog
+  (swing/dialog
     :type :warning
     :content "Pairings-ohjelmasta on uusi versio. Lataa uusi versio painamalla OK."
     :success-fn (fn [p] 
@@ -343,28 +343,28 @@
                   (System/exit 0))))
 
 (defn new-version-handler []
-  (-> (new-version-window) ui/pack! ui/show!))
+  (-> (new-version-window) swing/pack! swing/show!))
 
 (defn get-version-from-server []
   (let [url (str (-> @state :properties :url) "/version")]
     (-> @(http/get url) :body slurp edn/read-string :client)))
 
-(def about-action (ui/menu-item :text "About" :listen [:action about-handler]))
+(def about-action (swing/menu-item :text "About" :listen [:action about-handler]))
 
-(def apikey-action (ui/menu-item :text "API key..." :listen [:action apikey-handler]))
+(def apikey-action (swing/menu-item :text "API key..." :listen [:action apikey-handler]))
 
-(def exit-action (ui/menu-item :text "Sulje" :listen [:action exit-handler]))
+(def exit-action (swing/menu-item :text "Sulje" :listen [:action exit-handler]))
 
-(def tabbed-pane (ui/tabbed-panel :tabs [{:title "Turnaukset"
-                                          :content (ui/scrollable tournament-table)}]))
+(def tabbed-pane (swing/tabbed-panel :tabs [{:title "Turnaukset"
+                                          :content (swing/scrollable tournament-table)}]))
 
 (def main-window
-  (ui/frame
+  (swing/frame
     :on-close :exit
     :title "MtgSuomi Pairings"
     :size [300 :by 300]
-    :menubar (ui/menubar :items
-               [(ui/menu :text "Asetukset" :items [apikey-action exit-action])]) 
+    :menubar (swing/menubar :items
+               [(swing/menu :text "Asetukset" :items [apikey-action exit-action])]) 
     :content (mig/mig-panel
                :constraints ["fill, wrap 1" 
                              "[500!]" 
@@ -382,7 +382,7 @@
                                      default-properties)))
   (watcher/stop!)
   (watcher/load-state! "wer.edn")
-  (-> main-window ui/pack! ui/show!)
+  (-> main-window swing/pack! swing/show!)
   (let [tournaments (watcher/get-tournaments)]
     (update-tournaments! tournaments)
     (doseq [tournament tournaments
