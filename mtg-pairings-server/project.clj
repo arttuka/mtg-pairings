@@ -1,6 +1,4 @@
 (defproject mtg-pairings-server "0.2.0"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
   :license {:name "MIT License"
             :url "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.5.1"]
