@@ -59,6 +59,9 @@
                            (sql/where {:tournament (:id tournament)})))]
     (merge tournament standings)))
 
+(defn ^:private select-tournament-fields [tournament]
+  (select-keys tournament [:id :name :day :rounds :seating :pairings :max_standings_round]))
+
 (defn tournaments [dci]
   (let [dci (add-check-digits dci)] 
     (for [tournament (sql/select db/tournament
@@ -71,4 +74,5 @@
                        (sql/order :id :DESC))]
       (-> tournament
         (add-players-data dci)
-        add-newest-standings))))
+        add-newest-standings
+        select-tournament-fields))))

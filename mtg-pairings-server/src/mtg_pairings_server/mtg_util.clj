@@ -3,12 +3,12 @@
 
 (defn ^:private add-result [acc res]
   (let [result {:match_points (cond
-                                (= (:wins res) (:losses res)) 1
-                                (> (:wins res) (:losses res)) 3
+                                (= (:team1_wins res) (:team2_wins res)) 1
+                                (> (:team1_wins res) (:team2_wins res)) 3
                                 :else 0)
-               :game_points (+ (* 3 (:wins res))
+               :game_points (+ (* 3 (:team1_wins res))
                                (* 1 (:draws res)))
-               :games_played (+ (:wins res) (:draws res) (:losses res))
+               :games_played (+ (:team1_wins res) (:draws res) (:team2_wins res))
                :matches_played 1}]
     (merge-with + acc result)))
 
@@ -41,8 +41,8 @@
    :team2 (:team1 match)
    :team1_name (:team2_name match)
    :team2_name (:team1_name match)
-   :wins (:losses match)
-   :losses (:wins match)
+   :team1_wins (:team2_wins match)
+   :team2_wins (:team1_wins match)
    :draws (:draws match)})
 
 (defn calculate-standings [rounds up-to-round-num]

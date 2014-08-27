@@ -96,16 +96,16 @@
     (select-keys tournament [:name :rounds :day :sanctionid :tracking])))
 
 (defn get-pairings [id round]
-  (get-in @state [id :pairings round]))
+  {:pairings (get-in @state [id :pairings round])})
 
 (defn get-pairings-count [id]
   (count (get-in @state [id :pairings])))
 
 (defn get-seatings [id]
-  (seq (get-in @state [id :seatings])))
+  {:seatings (seq (get-in @state [id :seatings]))})
 
 (defn get-results [id round]
-  (get-in @state [id :results round]))
+  {:results (get-in @state [id :results round])})
 
 (defn get-missing-results [id]
   (get-in @state [id :missing-results]))
@@ -114,7 +114,7 @@
   (count (get-in @state [id :results])))
 
 (defn get-teams [id]
-  (seq (get-in @state [id :teams])))
+  {:teams (seq (get-in @state [id :teams]))})
 
 (defn get-tournaments [] (for [[id tournament] @state] 
                            (-> tournament (select-keys [:name :rounds :day :tracking]) (assoc :id id))))

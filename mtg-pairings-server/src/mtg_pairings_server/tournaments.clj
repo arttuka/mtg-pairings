@@ -5,16 +5,15 @@
             [mtg-pairings-server.util :as util]
             [clojure.tools.reader.edn :as edn]))
 
-(defn user-for-request [request]
-  (when-let [uuid (get-in request [:params "key"])]
-    (try
-      (-> (sql/select db/user
-            (sql/fields :id)
-            (sql/where {:uuid (java.util.UUID/fromString uuid)}))
-        first
-        :id)
-      (catch IllegalArgumentException e
-        nil))))
+(defn user-for-apikey [apikey]
+  (try
+    (-> (sql/select db/user
+          (sql/fields :id)
+          (sql/where {:uuid (java.util.UUID/fromString apikey)}))
+      first
+      :id)
+    (catch IllegalArgumentException e
+      nil)))
 
 (defn owner-of-tournament [sanction-id]
   (:owner
@@ -120,6 +119,10 @@
       :standings
       edn/read-string))
 
+(defn standings-for-api [tournament-id round-num secret]
+  (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw Double]) 
+       (standings tournament-id round-num secret)))
+
 (defn ^:private get-or-add-round [tournament-id round-num]
   (if-let [old-round (first (sql/select db/round
                               (sql/where {:tournament tournament-id
@@ -208,9 +211,11 @@
                     (sql/fields [:name :team1_name]))
                   (sql/with db/team2
                     (sql/fields [:name :team2_name]))
+                  (sql/with db/round
+                    (sql/fields [:num :round_number]))
                   (sql/with db/result
-                    (sql/fields [:team1_wins :wins]
-                                [:team2_wins :losses]
+                    (sql/fields :team1_wins
+                                :team2_wins
                                 :draws))
                   (sql/where {:round round-id}))]
     (if-not (:team2 pairing)
@@ -260,7 +265,7 @@
   (let [round-id (:id (first (sql/select db/round
                                (sql/where {:tournament tournament-id
                                            :num round-num}))))]
-    (results-of-round round-id)))
+    (map #(dissoc % :team1 :team2) (results-of-round round-id))))
 
 (defn ^:private delete-teams [tournament-id]
   (sql/delete db/team-players

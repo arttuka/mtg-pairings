@@ -1,13 +1,20 @@
 (ns mtg-pairings-server.player-api
   (:require [mtg-pairings-server.util :refer [response]]
-            [compojure.core :as c]
-            [mtg-pairings-server.players :refer :all]))
+            [mtg-pairings-server.players :refer :all]
+            [mtg-pairings-server.schema :refer :all]
+            [compojure.api.sweet :refer :all]
+            compojure.api.swagger))
 
-(defn routes []
-  (c/routes
-    (c/GET "/" []
-      (response (players)))
-    (c/GET "/:dci" [dci]
-      (response (player dci)))
-    (c/GET "/:dci/tournaments" [dci]
-      (response (tournaments dci)))))
+(defroutes* player-routes
+  (GET* "/" []
+    :return [Player]
+    :summary "Hae kaikki pelaajat"
+    (response (players)))
+  (GET* "/:dci" [dci]
+    :return Player
+    :summary "Hae pelaaja DCI-numeron perusteella"
+    (response (player dci)))
+  (GET* "/:dci/tournaments" [dci]
+    :return [PlayersTournament]
+    :summary "Hae tietyn pelaajan turnaukset"
+    (response (tournaments dci))))
