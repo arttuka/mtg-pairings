@@ -144,3 +144,4 @@
                     :pairings pairings-handler 
                     :results results-handler 
                     :seatings seatings-handler)))
+
