@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Data;
 using System.Data.OleDb;
+using MtgPairings.Domain;
 
 namespace MtgPairings.Data
 {
@@ -17,18 +16,86 @@ namespace MtgPairings.Data
             connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=" + path;
         }
 
-        private static IEnumerable<T> OleDbFetch<T>(Func<OleDbDataReader, T> formatter, string connectionString, string query)
+        private IEnumerable<T> OleDbFetch<T>(Func<OleDbDataReader, T> formatter, string query, object[] parameters)
         {
             using (var conn = new OleDbConnection(connectionString))
             {
                 conn.Open();
                 using (var cmd = new OleDbCommand(query, conn))
-                using (var reader = cmd.ExecuteReader())
                 {
-                    while (reader.Read())
-                        yield return formatter(reader);
+                    int i = 0;
+                    foreach (var p in parameters)
+                    {
+                        cmd.Parameters.AddWithValue("param" + i++, p);
+                    }
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                            yield return formatter(reader);
+                    }
                 }
             }
         }
+
+        private IEnumerable<T> OleDbFetch<T>(Func<OleDbDataReader, T> formatter, string query)
+        {
+            return OleDbFetch(formatter, query, new object[0]);
+        }
+
+        public ImmutableList<TeamPlayer> getPlayersInTournament(int tournamentId)
+        {
+            return ImmutableList.ToImmutableList(
+                OleDbFetch(
+                    p => new TeamPlayer(new Player(p["PrimaryDciNumber"].ToString(), p["LastName"].ToString() + ", " + p["FirstName"].ToString()), Convert.ToInt32(p["TeamId"])),
+                    "SELECT Person.FirstName, Person.LastName, Person.PrimaryDciNumber, Team.TeamId " +
+                    "FROM   ((Person INNER JOIN " +
+                    "         TeamPlayers ON Person.PersonId = TeamPlayers.PersonId) INNER JOIN " +
+                    "         Team ON TeamPlayers.TeamId = Team.TeamId) " +
+                    "WHERE (Team.TournamentId = ?)",
+                    new object[] {tournamentId}));
+        }
+
+        public ImmutableList<Team> getTeamsInTournament(int tournamentId)
+        {
+            ILookup<int, Player> players = getPlayersInTournament(tournamentId).ToLookup(p => p.teamId, p => p.player);
+            return ImmutableList.ToImmutableList(
+                OleDbFetch(
+                    t => new Team(t["Name"].ToString(), ImmutableList.ToImmutableList(players[Convert.ToInt32(t["TeamId"])])),
+                    "SELECT Team.TeamId, Team.Name " +
+                    "FROM   Team " +
+                    "WHERE (Team.TournamentId = ?)",
+                    new object[] { tournamentId })
+                .OrderBy(t => t.name));
+        }
+
+        public Tournament getTournament(int tournamentId)
+        {
+            ImmutableList<Team> teams = getTeamsInTournament(tournamentId);
+            return OleDbFetch(
+                t => new Tournament(tournamentId,
+                                    t["SanctionId"].ToString(),
+                                    t["Title"].ToString(),
+                                    Convert.ToInt32(t["NumberOfRounds"]),
+                                    ImmutableList<Round>.Empty,
+                                    teams),
+                "SELECT SanctionId, Title, NumberOfRounds FROM Tournament " +
+                "WHERE (TournamentId = ?)",
+                new object[] {tournamentId}).First();
+        }
+
+        public ImmutableList<Tournament> getAllTournaments()
+        {
+            return ImmutableList.ToImmutableList(OleDbFetch<Tournament>(
+                t => new Tournament(Convert.ToInt32(t["TournamentId"]),
+                                    t["SanctionId"].ToString(),
+                                    t["Title"].ToString(),
+                                    Convert.ToInt32(t["NumberOfRounds"]),
+                                    ImmutableList<Round>.Empty,
+                                    ImmutableList<Team>.Empty),
+                "SELECT TournamentId, SanctionId, Title, NumberOfRounds FROM Tournament"
+              ));
+        }
+
+
     }
 }

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using MtgPairings.Data;
+using MtgPairings.Domain;
 
 namespace MtgPairings
 {
@@ -23,6 +25,8 @@ namespace MtgPairings
         public MainWindow()
         {
             InitializeComponent();
+
+            DatabaseReader r = new DatabaseReader("TournamentData.mdb");
         }
     }
 }
