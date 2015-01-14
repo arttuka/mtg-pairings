@@ -44,28 +44,27 @@ namespace MtgPairings.Data
 
         public ImmutableList<TeamPlayer> getPlayersInTournament(int tournamentId)
         {
-            return ImmutableList.ToImmutableList(
-                OleDbFetch(
-                    p => new TeamPlayer(new Player(p["PrimaryDciNumber"].ToString(), p["LastName"].ToString() + ", " + p["FirstName"].ToString()), Convert.ToInt32(p["TeamId"])),
-                    "SELECT Person.FirstName, Person.LastName, Person.PrimaryDciNumber, Team.TeamId " +
-                    "FROM   ((Person INNER JOIN " +
-                    "         TeamPlayers ON Person.PersonId = TeamPlayers.PersonId) INNER JOIN " +
-                    "         Team ON TeamPlayers.TeamId = Team.TeamId) " +
-                    "WHERE (Team.TournamentId = ?)",
-                    new object[] {tournamentId}));
+            return OleDbFetch(
+                p => new TeamPlayer(new Player(p["PrimaryDciNumber"].ToString(), p["LastName"].ToString() + ", " + p["FirstName"].ToString()), Convert.ToInt32(p["TeamId"])),
+                "SELECT Person.FirstName, Person.LastName, Person.PrimaryDciNumber, Team.TeamId " +
+                "FROM   ((Person INNER JOIN " +
+                "         TeamPlayers ON Person.PersonId = TeamPlayers.PersonId) INNER JOIN " +
+                "         Team ON TeamPlayers.TeamId = Team.TeamId) " +
+                "WHERE (Team.TournamentId = ?)",
+                new object[] {tournamentId}).ToImmutableList();
         }
 
         public ImmutableList<Team> getTeamsInTournament(int tournamentId)
         {
             ILookup<int, Player> players = getPlayersInTournament(tournamentId).ToLookup(p => p.teamId, p => p.player);
-            return ImmutableList.ToImmutableList(
-                OleDbFetch(
-                    t => new Team(t["Name"].ToString(), ImmutableList.ToImmutableList(players[Convert.ToInt32(t["TeamId"])])),
-                    "SELECT Team.TeamId, Team.Name " +
-                    "FROM   Team " +
-                    "WHERE (Team.TournamentId = ?)",
-                    new object[] { tournamentId })
-                .OrderBy(t => t.name));
+            return OleDbFetch(
+                t => new Team(t["Name"].ToString(), players[Convert.ToInt32(t["TeamId"])].ToImmutableList()),
+                "SELECT Team.TeamId, Team.Name " +
+                "FROM   Team " +
+                "WHERE (Team.TournamentId = ?)",
+                new object[] { tournamentId })
+                .OrderBy(t => t.name)
+                .ToImmutableList();
         }
 
         public Tournament getTournament(int tournamentId)
@@ -85,7 +84,7 @@ namespace MtgPairings.Data
 
         public ImmutableList<Tournament> getAllTournaments()
         {
-            return ImmutableList.ToImmutableList(OleDbFetch<Tournament>(
+            return OleDbFetch<Tournament>(
                 t => new Tournament(Convert.ToInt32(t["TournamentId"]),
                                     t["SanctionId"].ToString(),
                                     t["Title"].ToString(),
@@ -93,7 +92,7 @@ namespace MtgPairings.Data
                                     ImmutableList<Round>.Empty,
                                     ImmutableList<Team>.Empty),
                 "SELECT TournamentId, SanctionId, Title, NumberOfRounds FROM Tournament"
-              ));
+              ).ToImmutableList();
         }
 
 
