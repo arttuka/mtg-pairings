@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Data.OleDb;
 using MtgPairings.Domain;
+using MtgPairings.Service;
 
 namespace MtgPairings.Data
 {
@@ -58,7 +59,7 @@ namespace MtgPairings.Data
         {
             ILookup<int, Player> players = getPlayersInTournament(tournamentId).ToLookup(p => p.teamId, p => p.player);
             return OleDbFetch(
-                t => new Team(t["Name"].ToString(), players[Convert.ToInt32(t["TeamId"])].ToImmutableList()),
+                t => new Team(Convert.ToInt32(t["TeamId"]), t["Name"].ToString(), players[Convert.ToInt32(t["TeamId"])].ToImmutableList()),
                 "SELECT Team.TeamId, Team.Name " +
                 "FROM   Team " +
                 "WHERE (Team.TournamentId = ?)",
@@ -66,6 +67,71 @@ namespace MtgPairings.Data
                 .OrderBy(t => t.name)
                 .ToImmutableList();
         }
+
+        private Result resultFromData(int wins, int draws, int losses, bool bye, bool winByDrop, bool lossByDrop)
+        {
+            if (bye)
+            {
+                return new Result(2, 0, 0);
+            }
+            else if (winByDrop)
+            {
+                return new Result(2, 0, 0);
+            }
+            else if (lossByDrop)
+            {
+                return new Result(0, 2, 0);
+            }
+            else
+            {
+                return new Result(wins, losses, draws);
+            }
+        }
+
+        public ImmutableList<Round> getRoundsInTournament(int tournamentId)
+        {
+            var teams = getTeamsInTournament(tournamentId).ToImmutableDictionary(t => t.id, t => t);
+
+            var results = OleDbFetch(
+                r => new { match = new { roundId = Convert.ToInt32(r["RoundId"]),
+                                         table = Convert.ToInt32(r["TableNumber"]),
+                                         matchId = Convert.ToInt32(r["MatchId"])},
+                           teamId = Convert.ToInt32(r["TeamId"]),
+                           wins = Convert.ToInt32(r["GameWins"]),
+                           draws = Convert.ToInt32(r["GameDraws"]),
+                           losses = Convert.ToInt32(r["GameLosses"]),
+                           bye = Convert.ToBoolean(r["IsBye"]),
+                           winByDrow = Convert.ToBoolean(r["WinByDrop"]),
+                           lossByDrop = Convert.ToBoolean(r["LossByDrop"])},
+                "SELECT       Match.RoundId, Match.TableNumber, Match.MatchId, TeamMatchResult.* " +
+                "FROM         ((Round INNER JOIN " +
+                "               Match ON Round.RoundId = Match.RoundId) INNER JOIN " +
+                "               TeamMatchResult ON Match.MatchId = TeamMatchResult.MatchId " +
+                "WHERE        (Round.TournamentId = ?)) ");
+            
+            var pairings = from r in results
+                           orderby r.teamId
+                           group r by r.match into m
+                           let match = m.Key
+                           let matchResults = m.ToList()
+                           let result = m.First()
+                           let team1 = teams[result.teamId]
+                           let team2 = matchResults.Get(1).Select(r => teams[r.teamId]).ValueOrElse(null)
+                           select new Pairing(match.table,
+                                              team1,
+                                              team2,
+                                              resultFromData(result.wins, result.draws, result.losses,
+                                                             result.bye, result.winByDrow, result.lossByDrop));
+
+
+
+            return OleDbFetch<Round>(
+                r => null,
+                "SELECT       Match.RoundId, Match.TableNumber, Round.Number " +
+                "FROM         (Round INNER JOIN " +
+                "              Match ON Round.RoundId = Match.RoundId) " +
+                "WHERE        (Round.TournamentId = ?)").ToImmutableList();
+        } 
 
         public Tournament getTournament(int tournamentId)
         {
