@@ -5,6 +5,7 @@ using System.Linq;
 using System.Data.OleDb;
 using MtgPairings.Domain;
 using MtgPairings.Service;
+using MtgPairings.Functional;
 
 namespace MtgPairings.Data
 {
@@ -68,23 +69,27 @@ namespace MtgPairings.Data
                 .ToImmutableList();
         }
 
-        private Result resultFromData(int wins, int draws, int losses, bool bye, bool winByDrop, bool lossByDrop)
+        private Option<Result> resultFromData(int wins, int draws, int losses, bool bye, bool winByDrop, bool lossByDrop)
         {
             if (bye)
             {
-                return new Result(2, 0, 0);
+                return Option.Of(new Result(2, 0, 0));
             }
             else if (winByDrop)
             {
-                return new Result(2, 0, 0);
+                return Option.Of(new Result(2, 0, 0));
             }
             else if (lossByDrop)
             {
-                return new Result(0, 2, 0);
+                return Option.Of(new Result(0, 2, 0));
+            }
+            else if(wins > -1 && draws > -1 && losses > -1)
+            {
+                return Option.Of(new Result(wins, losses, draws));
             }
             else
             {
-                return new Result(wins, losses, draws);
+                return Option<Result>.Empty;
             }
         }
 
@@ -93,21 +98,24 @@ namespace MtgPairings.Data
             var teams = getTeamsInTournament(tournamentId).ToImmutableDictionary(t => t.id, t => t);
 
             var results = OleDbFetch(
-                r => new { match = new { roundId = Convert.ToInt32(r["RoundId"]),
-                                         table = Convert.ToInt32(r["TableNumber"]),
-                                         matchId = Convert.ToInt32(r["MatchId"])},
-                           teamId = Convert.ToInt32(r["TeamId"]),
-                           wins = Convert.ToInt32(r["GameWins"]),
-                           draws = Convert.ToInt32(r["GameDraws"]),
-                           losses = Convert.ToInt32(r["GameLosses"]),
-                           bye = Convert.ToBoolean(r["IsBye"]),
-                           winByDrow = Convert.ToBoolean(r["WinByDrop"]),
-                           lossByDrop = Convert.ToBoolean(r["LossByDrop"])},
-                "SELECT       Match.RoundId, Match.TableNumber, Match.MatchId, TeamMatchResult.* " +
-                "FROM         ((Round INNER JOIN " +
-                "               Match ON Round.RoundId = Match.RoundId) INNER JOIN " +
-                "               TeamMatchResult ON Match.MatchId = TeamMatchResult.MatchId " +
-                "WHERE        (Round.TournamentId = ?)) ");
+                r => new {
+                    match = new {
+                        roundId = Convert.ToInt32(r["RoundId"]),
+                        table = Convert.ToInt32(r["TableNumber"]),
+                        matchId = Convert.ToInt32(r["MatchId"])},
+                    teamId = Convert.ToInt32(r["TeamId"]),
+                    wins = Convert.ToInt32(r["GameWins"]),
+                    draws = Convert.ToInt32(r["GameDraws"]),
+                    losses = Convert.ToInt32(r["GameLosses"]),
+                    bye = Convert.ToBoolean(r["IsBye"]),
+                    winByDrow = Convert.ToBoolean(r["WinByDrop"]),
+                    lossByDrop = Convert.ToBoolean(r["LossByDrop"])},
+                "SELECT        TeamMatchResult.*, [Match].RoundId, [Match].TableNumber " +
+                "FROM            ((Round INNER JOIN " +
+                "                 [Match] ON Round.RoundId = [Match].RoundId) INNER JOIN " +
+                "                 TeamMatchResult ON [Match].MatchId = TeamMatchResult.MatchId) " +
+                "WHERE        (Round.TournamentId = ?)",
+                new object[] { tournamentId });
             
             var pairings = from r in results
                            orderby r.teamId
@@ -116,32 +124,37 @@ namespace MtgPairings.Data
                            let matchResults = m.ToList()
                            let result = m.First()
                            let team1 = teams[result.teamId]
-                           let team2 = matchResults.Get(1).Select(r => teams[r.teamId]).ValueOrElse(null)
-                           select new Pairing(match.table,
-                                              team1,
-                                              team2,
-                                              resultFromData(result.wins, result.draws, result.losses,
-                                                             result.bye, result.winByDrow, result.lossByDrop));
+                           let team2 = from res in matchResults.Get(1)
+                                       select teams[res.teamId]
+                           orderby match.table
+                           select new {pairing = new Pairing(match.table,
+                                                             team1,
+                                                             team2,
+                                                             resultFromData(result.wins, result.draws, result.losses,
+                                                                            result.bye, result.winByDrow, result.lossByDrop)),
+                                       roundId = match.roundId};
 
-
+            var pairingsByRound = pairings.ToLookup(p => p.roundId, p => p.pairing);
 
             return OleDbFetch<Round>(
-                r => null,
-                "SELECT       Match.RoundId, Match.TableNumber, Round.Number " +
-                "FROM         (Round INNER JOIN " +
-                "              Match ON Round.RoundId = Match.RoundId) " +
-                "WHERE        (Round.TournamentId = ?)").ToImmutableList();
+                r => new Round(Convert.ToInt32(r["Number"]), 
+                               pairingsByRound[Convert.ToInt32(r["RoundId"])].ToImmutableList()),
+                "SELECT Round.RoundId, Round.Number " +
+                "FROM   Round " +
+                "WHERE  (Round.TournamentId = ?)",
+                new object[] {tournamentId}).OrderBy(r => r.number).ToImmutableList();
         } 
 
         public Tournament getTournament(int tournamentId)
         {
             ImmutableList<Team> teams = getTeamsInTournament(tournamentId);
+            ImmutableList<Round> rounds = getRoundsInTournament(tournamentId);
             return OleDbFetch(
                 t => new Tournament(tournamentId,
                                     t["SanctionId"].ToString(),
                                     t["Title"].ToString(),
                                     Convert.ToInt32(t["NumberOfRounds"]),
-                                    ImmutableList<Round>.Empty,
+                                    rounds,
                                     teams),
                 "SELECT SanctionId, Title, NumberOfRounds FROM Tournament " +
                 "WHERE (TournamentId = ?)",
