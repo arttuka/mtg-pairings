@@ -71,7 +71,6 @@
     <Compile Include="Domain\Player.cs" />
     <Compile Include="Domain\Result.cs" />
     <Compile Include="Domain\Round.cs" />
-    <Compile Include="Domain\RoundPairing.cs" />
     <Compile Include="Domain\Seating.cs" />
     <Compile Include="Domain\Team.cs" />
     <Compile Include="Domain\TeamPlayer.cs" />

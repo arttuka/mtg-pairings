@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="OptionTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UtilTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MtgPairings\MtgPairings.csproj">
