@@ -69,6 +69,18 @@ namespace MtgPairings.Data
                 .ToImmutableList();
         }
 
+        private ImmutableList<Seating> getSeatingsInTournament(int tournamentId)
+        {
+            var teams = getTeamsInTournament(tournamentId).ToImmutableDictionary(t => t.Id, t => t);
+            return OleDbFetch(
+                s => new Seating(Convert.ToInt32(s["TableNumber"]), teams[Convert.ToInt32(s["TeamId"])]),
+                "SELECT        TournamentTable.TableNumber, Seat.TeamId " +
+                "FROM            (Seat INNER JOIN " +
+                "                 TournamentTable ON Seat.TournamentTableId = TournamentTable.TournamentTableId) " +
+                "WHERE         (TournamentTable.TournamentId = ?)",
+                new object[] { tournamentId }).ToImmutableList();
+        }
+
         private Option<Result> resultFromData(int wins, int draws, int losses, bool bye, bool winByDrop, bool lossByDrop)
         {
             if (bye)
@@ -149,6 +161,7 @@ namespace MtgPairings.Data
         {
             ImmutableList<Team> teams = getTeamsInTournament(tournamentId);
             ImmutableList<Round> rounds = getRoundsInTournament(tournamentId);
+            ImmutableList<Seating> seatings = getSeatingsInTournament(tournamentId);
             return OleDbFetch(
                 t => new Tournament(tournamentId,
                                     t["SanctionId"].ToString(),
@@ -156,7 +169,8 @@ namespace MtgPairings.Data
                                     Convert.ToInt32(t["NumberOfRounds"]),
                                     Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
                                     rounds,
-                                    teams),
+                                    teams,
+                                    seatings),
                 "SELECT SanctionId, Title, NumberOfRounds, StartDate FROM Tournament " +
                 "WHERE (TournamentId = ?)",
                 new object[] {tournamentId}).First();
@@ -171,7 +185,8 @@ namespace MtgPairings.Data
                                     Convert.ToInt32(t["NumberOfRounds"]),
                                     Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
                                     ImmutableList<Round>.Empty,
-                                    ImmutableList<Team>.Empty),
+                                    ImmutableList<Team>.Empty,
+                                    ImmutableList<Seating>.Empty),
                 "SELECT TournamentId, SanctionId, Title, NumberOfRounds FROM Tournament"
               ).ToImmutableList();
         }
