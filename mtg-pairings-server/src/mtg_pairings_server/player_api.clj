@@ -15,6 +15,5 @@
     :summary "Hae pelaaja DCI-numeron perusteella"
     (response (player dci)))
   (GET* "/:dci/tournaments" [dci]
-    :return [PlayersTournament]
     :summary "Hae tietyn pelaajan turnaukset"
     (response (tournaments dci))))

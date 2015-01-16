@@ -30,7 +30,7 @@ angular.module('controllers', [])
 .controller('TournamentController', function($scope, $routeParams, TournamentResource) {
   TournamentResource.get({id: $routeParams.tournament}).$promise.then(function(tournament) {
     $scope.model = tournament;
-    $scope.model.round_nums = _(_.union(tournament.round, tournament.standings)).sortBy().reverse().value();
+    $scope.model.round_nums = _(_.union(tournament.pairings, tournament.standings)).sortBy().reverse().value();
   });
 })
 
@@ -64,7 +64,7 @@ angular.module('controllers', [])
     } else {
       TournamentResource.query().$promise.then(function(tournaments) {
         $scope.tournaments = _.map(tournaments, function(tournament) {
-          tournament.round_nums = _(_.union(tournament.round, tournament.standings)).sortBy().reverse().value();
+          tournament.round_nums = _(_.union(tournament.pairings, tournament.standings)).sortBy().reverse().value();
           return tournament;
         });
       });
