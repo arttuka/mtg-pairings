@@ -37,7 +37,7 @@ angular.module('controllers', [])
 .controller('TournamentsController', function($scope, TournamentResource) {
   TournamentResource.query().$promise.then(function(tournaments) {
     $scope.tournaments = _.map(tournaments, function(tournament) {
-      tournament.round_nums = _(_.union(tournament.round, tournament.standings)).sortBy().reverse().value();
+      tournament.round_nums = _(_.union(tournament.pairings, tournament.standings)).sortBy().reverse().value();
       return tournament;
     });
   });

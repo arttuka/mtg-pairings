@@ -11,7 +11,8 @@
                              :rounds Long})
 
 (s/defschema Tournament (merge BaseTournament 
-                               {:round [Long]
+                               {:pairings [Long]
+                                :results [Long]
                                 :standings [Long]
                                 :seatings Boolean}))
 

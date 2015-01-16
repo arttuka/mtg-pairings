@@ -37,6 +37,12 @@
     (sql/order :name :ASC)
     (sql/with db/round
       (sql/fields :num)
+      (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
+                                             (sql/join :left db/result
+                                                       (= :pairing.id :result.pairing))
+                                             (sql/where {:pairing.round :round.id
+                                                         :result.pairing nil})))
+                   :results])
       (sql/order :num)
       (sql/where
         (sql/sqlfn exists (sql/subselect db/pairing
@@ -47,9 +53,14 @@
       (sql/order :round))))
 
 (defn ^:private update-round-data [tournament]
-  (-> tournament
-    (update-in [:round] #(map :num %))
-    (update-in [:standings] #(map :num %))))
+  (let [rounds (:round tournament)
+        pairings (map :num rounds)
+        results (map :num (filter :results rounds))]
+    (-> tournament
+      (assoc :pairings pairings)
+      (assoc :results results)
+      (update-in [:standings] #(map :num %))
+      (dissoc :round))))
 
 (defn tournament [id]
   (update-round-data (first
