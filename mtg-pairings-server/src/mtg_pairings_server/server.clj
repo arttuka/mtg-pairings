@@ -52,6 +52,14 @@
     wrap-not-modified
     wrap-remove-content-length))
 
+(defn wrap-allow-origin
+  [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (if (= (:request-method request) :get)
+        (assoc-in response [:headers "Access-Control-Allow-Origin"] "*")
+        response))))
+
 (defn run! []
   (let [{db-properties :db, server-properties :server :as props} (edn/read-string (slurp "properties.edn"))
         _ (deliver properties props)
@@ -64,6 +72,7 @@
                     (wrap-resource-304 "public")
                     wrap-params
                     wrap-json-response
+                    wrap-allow-origin
                     wrap-exceptions)
                   server-properties)]
     (json-gen/add-encoder org.joda.time.LocalDate
