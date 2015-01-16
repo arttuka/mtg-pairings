@@ -2,13 +2,13 @@
 {
     class Seating
     {
-        public readonly int table;
-        public readonly Team team;
+        public readonly int Table;
+        public readonly Team Team;
 
         public Seating(int table, Team team)
         {
-            this.table = table;
-            this.team = team;
+            this.Table = table;
+            this.Team = team;
         }
     }
 }

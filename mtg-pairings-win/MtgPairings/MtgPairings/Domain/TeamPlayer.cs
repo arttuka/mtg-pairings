@@ -8,13 +8,13 @@ namespace MtgPairings.Domain
 {
     class TeamPlayer
     {
-        public readonly Player player;
-        public readonly int teamId;
+        public readonly Player Player;
+        public readonly int TeamId;
 
         public TeamPlayer(Player player, int teamId)
         {
-            this.player = player;
-            this.teamId = teamId;
+            this.Player = player;
+            this.TeamId = teamId;
         }
     }
 }

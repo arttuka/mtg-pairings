@@ -4,17 +4,17 @@ namespace MtgPairings.Domain
 {
     class Pairing
     {
-        public readonly int table;
-        public readonly Team team1;
-        public readonly Option<Team> team2;
-        public readonly Option<Result> result;
+        public readonly int Table;
+        public readonly Team Team1;
+        public readonly Option<Team> Team2;
+        public readonly Option<Result> Result;
 
         public Pairing(int table, Team team1, Option<Team> team2, Option<Result> result)
         {
-            this.table = table;
-            this.team1 = team1;
-            this.team2 = team2;
-            this.result = result;
+            this.Table = table;
+            this.Team1 = team1;
+            this.Team2 = team2;
+            this.Result = result;
         }
     }
 }

@@ -4,13 +4,13 @@ namespace MtgPairings.Domain
 {
     class Round
     {
-        public readonly int number;
-        public readonly ImmutableList<Pairing> pairings;
+        public readonly int Number;
+        public readonly ImmutableList<Pairing> Pairings;
 
         public Round(int number, ImmutableList<Pairing> pairings)
         {
-            this.number = number;
-            this.pairings = pairings;
+            this.Number = number;
+            this.Pairings = pairings;
         }
     }
 }

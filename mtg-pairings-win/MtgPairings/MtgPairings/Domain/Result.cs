@@ -2,15 +2,15 @@
 {
     class Result
     {
-        public readonly int team1Wins;
-        public readonly int team2Wins;
-        public readonly int draws;
+        public readonly int Team1Wins;
+        public readonly int Team2Wins;
+        public readonly int Draws;
 
         public Result(int team1Wins, int team2Wins, int draws)
         {
-            this.team1Wins = team1Wins;
-            this.team2Wins = team2Wins;
-            this.draws = draws;
+            this.Team1Wins = team1Wins;
+            this.Team2Wins = team2Wins;
+            this.Draws = draws;
         }
     }
 }

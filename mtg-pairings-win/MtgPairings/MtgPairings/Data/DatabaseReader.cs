@@ -45,7 +45,7 @@ namespace MtgPairings.Data
             return OleDbFetch(formatter, query, new object[0]);
         }
 
-        public ImmutableList<TeamPlayer> getPlayersInTournament(int tournamentId)
+        private ImmutableList<TeamPlayer> getPlayersInTournament(int tournamentId)
         {
             return OleDbFetch(
                 p => new TeamPlayer(new Player(p["PrimaryDciNumber"].ToString(), p["LastName"].ToString() + ", " + p["FirstName"].ToString()), Convert.ToInt32(p["TeamId"])),
@@ -57,16 +57,16 @@ namespace MtgPairings.Data
                 new object[] {tournamentId}).ToImmutableList();
         }
 
-        public ImmutableList<Team> getTeamsInTournament(int tournamentId)
+        private ImmutableList<Team> getTeamsInTournament(int tournamentId)
         {
-            ILookup<int, Player> players = getPlayersInTournament(tournamentId).ToLookup(p => p.teamId, p => p.player);
+            ILookup<int, Player> players = getPlayersInTournament(tournamentId).ToLookup(p => p.TeamId, p => p.Player);
             return OleDbFetch(
                 t => new Team(Convert.ToInt32(t["TeamId"]), t["Name"].ToString(), players[Convert.ToInt32(t["TeamId"])].ToImmutableList()),
                 "SELECT Team.TeamId, Team.Name " +
                 "FROM   Team " +
                 "WHERE (Team.TournamentId = ?)",
                 new object[] { tournamentId })
-                .OrderBy(t => t.name)
+                .OrderBy(t => t.Name)
                 .ToImmutableList();
         }
 
@@ -94,9 +94,9 @@ namespace MtgPairings.Data
             }
         }
 
-        public ImmutableList<Round> getRoundsInTournament(int tournamentId)
+        private ImmutableList<Round> getRoundsInTournament(int tournamentId)
         {
-            var teams = getTeamsInTournament(tournamentId).ToImmutableDictionary(t => t.id, t => t);
+            var teams = getTeamsInTournament(tournamentId).ToImmutableDictionary(t => t.Id, t => t);
 
             var results = OleDbFetch(
                 r => new {
@@ -143,7 +143,7 @@ namespace MtgPairings.Data
                 "SELECT Round.RoundId, Round.Number " +
                 "FROM   Round " +
                 "WHERE  (Round.TournamentId = ?)",
-                new object[] {tournamentId}).OrderBy(r => r.number).ToImmutableList();
+                new object[] {tournamentId}).OrderBy(r => r.Number).ToImmutableList();
         } 
 
         public Tournament getTournament(int tournamentId)

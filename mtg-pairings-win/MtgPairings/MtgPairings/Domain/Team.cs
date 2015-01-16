@@ -4,15 +4,15 @@ namespace MtgPairings.Domain
 {
     class Team
     {
-        public readonly int id;
-        public readonly string name;
-        public readonly ImmutableList<Player> players;
+        public readonly int Id;
+        public readonly string Name;
+        public readonly ImmutableList<Player> Players;
 
         public Team(int id, string name, ImmutableList<Player> players)
         {
-            this.id = id;
-            this.name = name;
-            this.players = players;
+            this.Id = id;
+            this.Name = name;
+            this.Players = players;
         }
     }
 }
