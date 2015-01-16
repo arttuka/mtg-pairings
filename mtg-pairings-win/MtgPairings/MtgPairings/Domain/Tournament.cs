@@ -1,5 +1,5 @@
-﻿using System.Collections.Immutable;
-using NodaTime;
+﻿using NodaTime;
+using System.Collections.Immutable;
 
 namespace MtgPairings.Domain
 {

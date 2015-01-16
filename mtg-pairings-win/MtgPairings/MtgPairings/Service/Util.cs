@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-using MtgPairings.Functional;
+﻿using MtgPairings.Functional;
 using NodaTime;
 using System;
+using System.Collections.Generic;
 
 namespace MtgPairings.Service
 {

@@ -1,12 +1,11 @@
-﻿using System;
+﻿using MtgPairings.Domain;
+using MtgPairings.Functional;
+using MtgPairings.Service;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Data.OleDb;
-using MtgPairings.Domain;
-using MtgPairings.Service;
-using MtgPairings.Functional;
-using NodaTime;
+using System.Linq;
 
 namespace MtgPairings.Data
 {
