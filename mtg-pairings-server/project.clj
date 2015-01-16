@@ -13,7 +13,8 @@
                  [org.clojure/tools.logging "0.2.6"]
                  [ch.qos.logback/logback-classic "1.1.1"]
                  [metosin/compojure-api "0.15.1-edn"]
-                 [metosin/ring-swagger-ui "2.0.17"]]
+                 [metosin/ring-swagger-ui "2.0.17"]
+                 [ring.middleware.jsonp "0.1.6"]]
   :profiles {:dev {:source-paths ["dev"]
                    :dependencies [[org.clojure/tools.namespace "0.2.4"]]}
              :uberjar {:main mtg-pairings-server.server

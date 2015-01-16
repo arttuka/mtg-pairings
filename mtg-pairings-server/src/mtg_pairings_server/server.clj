@@ -6,6 +6,7 @@
             [ring.middleware.content-type :refer [wrap-content-type]]
             [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.not-modified :refer [wrap-not-modified]]
+            [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
             [cheshire.generate :as json-gen]
             [clojure.java.io :as io]
@@ -58,6 +59,7 @@
         db (create-korma-db db-properties)
         stop-fn (hs/run-server 
                   (-> #'mtg-pairings-server.api/app
+                    wrap-json-with-padding
                     wrap-request-log
                     (wrap-resource-304 "public")
                     wrap-params
