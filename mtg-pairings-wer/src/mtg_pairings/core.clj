@@ -131,7 +131,7 @@
       (ui/update-pairings-combo id (watcher/get-pairings-count id))
       (ui/update-results-combo id (watcher/get-results-count id))))
   (when (clojure.string/blank? (property :api-key))
-    (ui/apikey-window))
+    (ui/apikey-window state))
   (when (not= version (get-version-from-server))
     (ui/new-version-window))
   (let [database-location (if (.exists (as-file (property :db)))
