@@ -6,6 +6,7 @@ using System.Data.OleDb;
 using MtgPairings.Domain;
 using MtgPairings.Service;
 using MtgPairings.Functional;
+using NodaTime;
 
 namespace MtgPairings.Data
 {
@@ -154,9 +155,10 @@ namespace MtgPairings.Data
                                     t["SanctionId"].ToString(),
                                     t["Title"].ToString(),
                                     Convert.ToInt32(t["NumberOfRounds"]),
+                                    Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
                                     rounds,
                                     teams),
-                "SELECT SanctionId, Title, NumberOfRounds FROM Tournament " +
+                "SELECT SanctionId, Title, NumberOfRounds, StartDate FROM Tournament " +
                 "WHERE (TournamentId = ?)",
                 new object[] {tournamentId}).First();
         }
@@ -168,6 +170,7 @@ namespace MtgPairings.Data
                                     t["SanctionId"].ToString(),
                                     t["Title"].ToString(),
                                     Convert.ToInt32(t["NumberOfRounds"]),
+                                    Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
                                     ImmutableList<Round>.Empty,
                                     ImmutableList<Team>.Empty),
                 "SELECT TournamentId, SanctionId, Title, NumberOfRounds FROM Tournament"

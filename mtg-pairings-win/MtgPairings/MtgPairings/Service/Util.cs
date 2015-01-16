@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using MtgPairings.Functional;
+using NodaTime;
 using System;
 
 namespace MtgPairings.Service
@@ -29,6 +30,11 @@ namespace MtgPairings.Service
             {
                 return Option<T>.Empty;
             }
+        }
+
+        public static LocalDate ToLocalDate(this DateTime source)
+        {
+            return new LocalDate(source.Year, source.Month, source.Day);
         }
     }
 }
