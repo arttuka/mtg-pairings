@@ -1,6 +1,6 @@
 ﻿namespace MtgPairings.Domain
 {
-    class Result
+    public class Result
     {
         public readonly int Team1Wins;
         public readonly int Team2Wins;

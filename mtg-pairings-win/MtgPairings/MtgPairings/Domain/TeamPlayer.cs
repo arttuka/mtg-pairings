@@ -1,6 +1,6 @@
 ﻿namespace MtgPairings.Domain
 {
-    class TeamPlayer
+    public class TeamPlayer
     {
         public readonly Player Player;
         public readonly int TeamId;

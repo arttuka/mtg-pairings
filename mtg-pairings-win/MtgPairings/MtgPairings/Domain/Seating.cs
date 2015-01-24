@@ -1,6 +1,6 @@
 ﻿namespace MtgPairings.Domain
 {
-    class Seating
+    public class Seating
     {
         public readonly int Table;
         public readonly Team Team;

@@ -1,6 +1,6 @@
 ﻿namespace MtgPairings.Domain
 {
-    class Player
+    public class Player
     {
         public readonly string DciNumber;
         public readonly string Name;

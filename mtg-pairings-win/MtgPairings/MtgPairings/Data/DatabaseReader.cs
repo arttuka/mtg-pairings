@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data.OleDb;
 using System.Linq;
+using NodaTime;
 
 namespace MtgPairings.Data
 {
-    class DatabaseReader
+    public class DatabaseReader
     {
         private string connectionString;
 
@@ -155,7 +156,19 @@ namespace MtgPairings.Data
                 "FROM   Round " +
                 "WHERE  (Round.TournamentId = ?)",
                 new object[] {tournamentId}).OrderBy(r => r.Number).ToImmutableList();
-        } 
+        }
+
+        private String getSanctionNumber(string sanctionNumber, int tournamentId, LocalDate date)
+        {
+            if (sanctionNumber != null && sanctionNumber != "")
+            {
+                return sanctionNumber;
+            }
+            else
+            {
+                return tournamentId + "-" + date.ToString("yyyy-MM-dd", null);
+            }
+        }
 
         public Tournament getTournament(int tournamentId)
         {
@@ -163,14 +176,18 @@ namespace MtgPairings.Data
             ImmutableList<Round> rounds = getRoundsInTournament(tournamentId);
             ImmutableList<Seating> seatings = getSeatingsInTournament(tournamentId);
             return OleDbFetch(
-                t => new Tournament(tournamentId,
-                                    t["SanctionId"].ToString(),
-                                    t["Title"].ToString(),
-                                    Convert.ToInt32(t["NumberOfRounds"]),
-                                    Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
-                                    rounds,
-                                    teams,
-                                    seatings),
+                t => {
+                    var date = Convert.ToDateTime(t["StartDate"]).ToLocalDate();
+                    var sanctionNumber = getSanctionNumber(t["SanctionId"].ToString(), tournamentId, date);
+                    return new Tournament(tournamentId,
+                                          sanctionNumber,
+                                          t["Title"].ToString(),
+                                          Convert.ToInt32(t["NumberOfRounds"]),
+                                          date,
+                                          rounds,
+                                          teams,
+                                          seatings);
+                },
                 "SELECT SanctionId, Title, NumberOfRounds, StartDate FROM Tournament " +
                 "WHERE (TournamentId = ?)",
                 new object[] {tournamentId}).First();

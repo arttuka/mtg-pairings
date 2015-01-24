@@ -2,7 +2,7 @@
 
 namespace MtgPairings.Domain
 {
-    class Round
+    public class Round
     {
         public readonly int Number;
         public readonly ImmutableList<Pairing> Pairings;

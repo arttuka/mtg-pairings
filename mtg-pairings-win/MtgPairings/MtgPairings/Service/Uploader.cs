@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace MtgPairings.Service
 {
-    class Uploader
+    public class Uploader
     {
         private string url;
         private string apiKey;

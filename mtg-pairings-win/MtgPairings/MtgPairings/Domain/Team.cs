@@ -2,7 +2,7 @@
 
 namespace MtgPairings.Domain
 {
-    class Team
+    public class Team
     {
         public readonly int Id;
         public readonly string Name;

@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 
 namespace MtgPairings.Domain
 {
-    class Tournament
+    public class Tournament
     {
         public readonly int TournamentId;
         public readonly string Name;
