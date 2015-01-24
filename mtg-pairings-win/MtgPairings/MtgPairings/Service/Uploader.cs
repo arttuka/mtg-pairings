@@ -54,7 +54,7 @@ namespace MtgPairings.Service
                 new
                 {
                     name = t.Name,
-                    day = t.Date,
+                    day = t.Date.ToString("yyyy-MM-dd", null),
                     rounds = t.RoundCount,
                     sanctionid = t.SanctionNumber,
                     tracking = true
@@ -65,16 +65,16 @@ namespace MtgPairings.Service
         public void UploadTeams(string sanctionid, IEnumerable<Team> teams)
         {
             var request = createRequest("api/tournament/{sanctionid}/teams", Method.PUT,
-                teams.Select(t => new
-                {
-                    id = t.Id,
-                    name = t.Name,
-                    players = t.Players.Select(p => new
-                    {
-                        dci = p.DciNumber,
-                        name = p.Name
+                new { 
+                    teams = teams.Select(t => new {
+                        id = t.Id,
+                        name = t.Name,
+                        players = t.Players.Select(p => new {
+                            dci = p.DciNumber,
+                            name = p.Name
+                        })
                     })
-                }));
+                });
             request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
             Execute(request);
         }
@@ -82,12 +82,13 @@ namespace MtgPairings.Service
         public void UploadPairings(string sanctionid, int round, IEnumerable<Pairing> pairings)
         {
             var request = createRequest("api/tournament/{sanctionid}/round-{round}/pairings", Method.PUT,
-                pairings.Select(p => new
-                {
-                    team1 = p.Team1.Name,
-                    team2 = p.Team2.Select(t => t.Name).ValueOrElse(null),
-                    table_number = p.Table
-                }));
+                new {
+                    pairings = pairings.Select(p => new {
+                        team1 = p.Team1.Name,
+                        team2 = p.Team2.Select(t => t.Name).ValueOrElse(null),
+                        table_number = p.Table
+                    })
+                });
             request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
             request.AddParameter("round", round, ParameterType.UrlSegment);
             Execute(request);
@@ -96,15 +97,16 @@ namespace MtgPairings.Service
         public void UploadResults(string sanctionid, int round, IEnumerable<Pairing> pairings)
         {
             var request = createRequest("api/tournament/{sanctionid}/round-{round}/results", Method.PUT,
-                pairings.Where(p => p.Result.HasValue).Select(p => new
-                {
-                    team1 = p.Team1.Name,
-                    team2 = p.Team2.Select(t => t.Name).ValueOrElse(null),
-                    table_number = p.Table,
-                    team1_wins = p.Result.Value.Team1Wins,
-                    team2_wins = p.Result.Value.Team2Wins,
-                    draws = p.Result.Value.Draws
-                }));
+                new {
+                    results = pairings.Where(p => p.Result.HasValue).Select(p => new {
+                        team1 = p.Team1.Name,
+                        team2 = p.Team2.Select(t => t.Name).ValueOrElse(null),
+                        table_number = p.Table,
+                        team1_wins = p.Result.Value.Team1Wins,
+                        team2_wins = p.Result.Value.Team2Wins,
+                        draws = p.Result.Value.Draws
+                    })
+                });
             request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
             request.AddParameter("round", round, ParameterType.UrlSegment);
             Execute(request);
@@ -113,11 +115,12 @@ namespace MtgPairings.Service
         public void UploadSeatings(string sanctionid, IEnumerable<Seating> seatings)
         {
             var request = createRequest("api/tournament/{sanctionid}/seatings", Method.PUT,
-                seatings.Select(s => new
-                {
-                    name = s.Team.Name,
-                    table_number = s.Table
-                }));
+                new {
+                    seatings = seatings.Select(s => new {
+                        name = s.Team.Name,
+                        table_number = s.Table
+                    })
+                });
             request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
             Execute(request);
         }
