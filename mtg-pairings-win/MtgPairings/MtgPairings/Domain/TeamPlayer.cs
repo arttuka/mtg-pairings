@@ -2,13 +2,13 @@
 {
     public class TeamPlayer
     {
-        public readonly Player Player;
-        public readonly int TeamId;
+        public Player Player { get; private set; }
+        public int TeamId { get; private set; }
 
         public TeamPlayer(Player player, int teamId)
         {
-            this.Player = player;
-            this.TeamId = teamId;
+            Player = player;
+            TeamId = teamId;
         }
     }
 }

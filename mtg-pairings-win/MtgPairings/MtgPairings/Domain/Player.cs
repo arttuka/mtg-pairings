@@ -2,13 +2,13 @@
 {
     public class Player
     {
-        public readonly string DciNumber;
-        public readonly string Name;
+        public string DciNumber { get; private set; }
+        public string Name { get; private set; }
 
         public Player(string dciNumber, string name)
         {
-            this.DciNumber = dciNumber;
-            this.Name = name;
+            DciNumber = dciNumber;
+            Name = name;
         }
     }
 }

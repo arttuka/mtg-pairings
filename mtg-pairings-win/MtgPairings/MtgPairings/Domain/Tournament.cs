@@ -5,25 +5,25 @@ namespace MtgPairings.Domain
 {
     public class Tournament
     {
-        public readonly int TournamentId;
-        public readonly string Name;
-        public readonly int RoundCount;
-        public readonly string SanctionNumber;
-        public readonly LocalDate Date;
-        public readonly ImmutableList<Round> Rounds;
-        public readonly ImmutableList<Team> Teams;
-        public readonly ImmutableList<Seating> Seatings;
+        public int TournamentId { get; private set; }
+        public string Name { get; private set; }
+        public int RoundCount { get; private set; }
+        public string SanctionNumber { get; private set; }
+        public LocalDate Date { get; private set; }
+        public ImmutableList<Round> Rounds { get; private set; }
+        public ImmutableList<Team> Teams { get; private set; }
+        public ImmutableList<Seating> Seatings { get; private set; }
 
         public Tournament(int tournamentId, string sanctionNumber, string name, int roundCount, LocalDate date, ImmutableList<Round> rounds, ImmutableList<Team> teams, ImmutableList<Seating> seatings)
         {
-            this.TournamentId = tournamentId;
-            this.SanctionNumber = sanctionNumber;
-            this.Name = name;
-            this.RoundCount = roundCount;
-            this.Date = date;
-            this.Rounds = rounds;
-            this.Teams = teams;
-            this.Seatings = seatings;
+            TournamentId = tournamentId;
+            SanctionNumber = sanctionNumber;
+            Name = name;
+            RoundCount = roundCount;
+            Date = date;
+            Rounds = rounds;
+            Teams = teams;
+            Seatings = seatings;
         }
     }
 }
