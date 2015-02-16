@@ -95,6 +95,31 @@ namespace MtgPairings.Functional
                 return Empty;
             }
         }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as Option<T>);
+        }
+
+        public bool Equals(Option<T> other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+            else if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+            else if(this.HasValue)
+            {
+                return other.HasValue && EqualityComparer<T>.Default.Equals(this.Value, other.Value);
+            }
+            else
+            {
+                return !other.HasValue;
+            }
+        }
     }
 
     public sealed class Option

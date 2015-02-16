@@ -16,5 +16,29 @@ namespace MtgPairings.Domain
             Team2 = team2;
             Result = result;
         }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as Pairing);
+        }
+
+        public bool Equals(Pairing other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+            else if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+            else
+            {
+                return this.Table == other.Table &&
+                       this.Team1.Equals(other.Team1) &&
+                       this.Team2.Equals(other.Team2) &&
+                       this.Result.Equals(other.Result);
+            }
+        }
     }
 }

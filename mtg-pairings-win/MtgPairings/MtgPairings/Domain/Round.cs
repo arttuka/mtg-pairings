@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Linq;
 
 namespace MtgPairings.Domain
 {
@@ -11,6 +12,28 @@ namespace MtgPairings.Domain
         {
             Number = number;
             Pairings = pairings;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this.Equals(obj as Round);
+        }
+
+        public bool Equals(Round other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+            else if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+            else
+            {
+                return this.Number == other.Number &&
+                       this.Pairings.SequenceEqual(other.Pairings);
+            }
         }
     }
 }
