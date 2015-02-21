@@ -204,7 +204,7 @@ namespace MtgPairings.Data
                                     ImmutableList<Round>.Empty,
                                     ImmutableList<Team>.Empty,
                                     ImmutableList<Seating>.Empty),
-                "SELECT TournamentId, SanctionId, Title, NumberOfRounds FROM Tournament"
+                "SELECT TournamentId, SanctionId, Title, NumberOfRounds, StartDate FROM Tournament"
               ).ToImmutableList();
         }
 
