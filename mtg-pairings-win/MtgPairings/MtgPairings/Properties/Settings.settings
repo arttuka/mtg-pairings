@@ -1,7 +1,12 @@
 ﻿<?xml version='1.0' encoding='utf-8'?>
-<SettingsFile xmlns="uri:settings" CurrentProfile="(Default)">
-  <Profiles>
-    <Profile Name="(Default)" />
-  </Profiles>
-  <Settings />
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="MtgPairings.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="ServerURL" Type="System.String" Scope="Application">
+      <Value Profile="(Default)">http://10.0.2.2:8080/</Value>
+    </Setting>
+    <Setting Name="Apikey" Type="System.String" Scope="User">
+      <Value Profile="(Default)">a628cdf3-25cd-4b21-a578-6064dd96a3fd</Value>
+    </Setting>
+  </Settings>
 </SettingsFile>

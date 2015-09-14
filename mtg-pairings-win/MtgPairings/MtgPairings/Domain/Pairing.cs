@@ -40,5 +40,23 @@ namespace MtgPairings.Domain
                        this.Result.Equals(other.Result);
             }
         }
+
+        public bool PairingEquals(Pairing other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+            else if (ReferenceEquals(other, this))
+            {
+                return true;
+            }
+            else
+            {
+                return this.Table == other.Table &&
+                       this.Team1.Equals(other.Team1) &&
+                       this.Team2.Equals(other.Team2);
+            }
+        }
     }
 }

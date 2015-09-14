@@ -11,12 +11,14 @@ namespace MtgPairings.Domain
         public Boolean Tracking { get; set; }
         public Boolean AutoUpload { get; set; }
         public Tournament Tournament { get; set; }
+        public Boolean TournamentUploaded { get; set; }
 
         public TrackableTournament(Tournament t)
         {
             Tracking = false;
             AutoUpload = true;
             Tournament = t;
+            TournamentUploaded = false;
         }
     }
 }

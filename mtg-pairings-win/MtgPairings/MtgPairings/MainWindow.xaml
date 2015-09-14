@@ -1,8 +1,26 @@
 ﻿<Window x:Class="MtgPairings.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
-    <Grid>
-        
-    </Grid>
+        Title="MainWindow" Height="654" Width="900">
+    <StackPanel Orientation="Horizontal">
+        <DataGrid Width="450"
+                  ItemsSource="{Binding Tournaments}"
+                  AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Sanktiointinumero" Binding="{Binding Tournament.SanctionNumber}"/>
+                <DataGridTextColumn Header="Nimi" Binding="{Binding Tournament.Name}"/>
+                <DataGridCheckBoxColumn Header="Seuranta" Binding="{Binding Tracking}"/>
+                <DataGridCheckBoxColumn Header="Auto" Binding="{Binding AutoUpload}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel Width="450">
+            <ItemsControl ItemsSource="{Binding Events}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding EventText}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </StackPanel>
 </Window>

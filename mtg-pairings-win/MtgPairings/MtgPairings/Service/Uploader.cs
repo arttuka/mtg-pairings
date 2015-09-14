@@ -2,6 +2,7 @@
 using RestSharp;
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace MtgPairings.Service
 {
@@ -25,7 +26,14 @@ namespace MtgPairings.Service
             {
                 throw response.ErrorException;
             }
-            return response;
+            else if (response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            {
+                return response;
+            }
+            else
+            {
+                throw new UploadFailedException(response.StatusCode);
+            }
         }
 
         private IRestResponse Execute(RestRequest request)
@@ -37,7 +45,15 @@ namespace MtgPairings.Service
             {
                 throw response.ErrorException;
             }
-            return response;
+            else if (response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            {
+                return response;
+            }
+            else
+            {
+                throw new UploadFailedException(response.StatusCode);
+            }
+            
         }
 
         private RestRequest createRequest(string url, Method method, object body) {
