@@ -46,6 +46,21 @@
   (into {} (for [team (teams db tournament-id)]
              [(:id team) team])))
 
+(defn ^:private wins [row]
+  (if (:IsBye row)
+    2
+    (:GameWins row)))
+
+(defn ^:private losses [row]
+  (if (:IsBye row)
+    0
+    (:GameLosses row)))
+
+(defn ^:private draws [row]
+  (if (:IsBye row)
+    0
+    (:GameDraws row)))
+
 (defn results-for-round
   [db round-id all-teams]
   (let [match-table (db/table db "Match")
@@ -55,14 +70,14 @@
                 :let [[first-row second-row] (db/rows result-table {:MatchId (:MatchId match)})]]
             (merge {:table_number (:TableNumber match)}
                    (if (or (nil? second-row) (> (:TeamId first-row) (:TeamId second-row)))
-                     {:team1_wins (:GameWins first-row)
-                      :team2_wins (:GameLosses first-row)
-                      :draws (:GameDraws first-row)
+                     {:team1_wins (wins first-row)
+                      :team2_wins (losses first-row)
+                      :draws (draws first-row)
                       :team1 (:name (all-teams (:TeamId first-row)))
                       :team2 (:name (all-teams (:TeamId second-row)))}
-                     {:team1_wins (:GameWins second-row)
-                      :team2_wins (:GameLosses second-row)
-                      :draws (:GameDraws second-row)
+                     {:team1_wins (wins second-row)
+                      :team2_wins (losses second-row)
+                      :draws (draws second-row)
                       :team1 (:name (all-teams (:TeamId second-row)))
                       :team2 (:name (all-teams (:TeamId first-row)))}))))))
 (defn pairings-for-round

@@ -62,10 +62,9 @@
   (let [primes [43 47 53 71 73 31 37 41 59 61 67 29]
         checksum (reduce + (map * n primes))]
     (-> checksum
-      (/ 10)
-      int
+      (quot 10)
       (mod 9)
-      (+ 1))))
+      inc)))
 
 (defn add-check-digits [dci-number]
   (let [digits (map #(Integer/parseInt (str %)) dci-number)

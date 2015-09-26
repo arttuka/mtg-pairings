@@ -131,7 +131,7 @@
       edn/read-string))
 
 (defn standings-for-api [tournament-id round-num secret]
-  (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw Double]) 
+  (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw Double])
        (standings tournament-id round-num secret)))
 
 (defn ^:private get-or-add-round [tournament-id round-num]
@@ -234,9 +234,10 @@
                       :team2_points 0})
       pairing)))
 
-(defn ^:private calculate-standings [tournament-id]
+(defn ^:private calculate-standings [tournament-id round]
   (let [rounds (sql/select db/round
-                 (sql/where {:tournament tournament-id})
+                 (sql/where {:tournament tournament-id
+                             :num [<= round]})
                  (sql/order :num :DESC))
         rounds-results (into {} (for [r rounds]
                                   [(:num r) (results-of-round (:id r))]))
@@ -263,7 +264,7 @@
                      :team1_wins (:team1_wins res)
                      :team2_wins (:team2_wins res)
                      :draws (:draws res)})))
-    (calculate-standings tournament-id)))
+    (calculate-standings tournament-id round-num)))
 
 (defn publish-results [sanction-id round-num]
   (let [tournament-id (sanctionid->id sanction-id)]

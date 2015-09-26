@@ -183,11 +183,11 @@ angular.module('controllers', [])
   function loadTournament() {
     TournamentResource.get({id: tournamentId}).$promise.then(function(t) {
       $scope.tournament = t;
-      if(!arraysIdentical($scope.pairing_rounds, t.round)) {
+      if(!arraysIdentical($scope.pairing_rounds, t.pairings)) {
         $scope.newPairings = true;
-        $scope.pairings_round = t.round[t.round.length - 1];
+        $scope.pairings_round = t.pairings[t.pairings.length - 1];
       }
-      $scope.pairing_rounds = t.round;
+      $scope.pairing_rounds = t.pairings;
       if(!arraysIdentical($scope.standings_rounds, t.standings)) {
         $scope.newStandings = true;
         $scope.standings_round = t.standings[t.standings.length - 1];

@@ -50,7 +50,6 @@
     :summary "Hae kierroksen jälkeiset standingsit"
     (response (standings-for-api (Integer/parseInt id) (Integer/parseInt round) (get-in request [:params :secret]))))
   (GET* "/:id/seatings" [id]
-    :return [Seating]
     :summary "Hae seatingit"
     (response (seatings (Integer/parseInt id))))
   (PUT* "/:sanctionid/round-:round/pairings" [sanctionid round]
