@@ -18,7 +18,7 @@
            javax.swing.table.TableRowSorter
            org.joda.time.LocalDate))
 
-(def version "0.2.0")
+(def version "0.2.1")
 
 (defonce state (atom {:properties {}}))
 
