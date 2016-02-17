@@ -1,3 +1,6 @@
 .DS_Store
 .vagrant
+.idea
+.nrepl-port
 .project
+mtg-pairings.iml
