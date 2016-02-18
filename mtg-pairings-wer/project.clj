@@ -2,7 +2,7 @@
   :license {:name "MIT License"
             :url "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [clojess "0.3"]
+                 [clojess "0.3.1"]
                  [seesaw "1.4.4"]
                  [watchtower "0.1.1"]
                  [http-kit "2.1.18"]
