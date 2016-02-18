@@ -27,7 +27,7 @@
   (watcher/save-state! "wer.edn"))
 
 (def default-properties {:db (str (System/getenv "APPDATA") "\\Wizards of the Coast\\Event Reporter\\TournamentData.dat")
-                         :url "http://mtgsuomi.fi/pairings"
+                         :url "http://p.mtgsuomi.fi"
                          :api-key ""})
 
 (defn property [key]
