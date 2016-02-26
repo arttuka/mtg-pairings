@@ -16,7 +16,7 @@ create table tournament(
   name varchar(100) not null,
   day date not null,
   rounds int not null,
-  owner id not null references trader_user (id);
+  owner int not null references trader_user (id)
 );
 
 create table team(
@@ -60,6 +60,7 @@ create table standings(
   tournament int references tournament(id),
   round int not null,
   standings text not null,
+  hidden boolean default false,
   primary key (tournament, round)
 );
 
