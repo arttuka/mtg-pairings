@@ -1,10 +1,8 @@
 (ns mtg-pairings-server.server
   (:gen-class)
   (:require [org.httpkit.server :as hs]
-            [ring.middleware.json :refer [wrap-json-body wrap-json-response]]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.content-type :refer [wrap-content-type]]
-            [ring.middleware.params :refer [wrap-params]]
             [ring.middleware.not-modified :refer [wrap-not-modified]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
@@ -65,13 +63,11 @@
         _ (deliver properties props)
         _ (log/info "Starting server on port" (:port server-properties) "...")
         db (create-korma-db db-properties)
-        stop-fn (hs/run-server 
+        stop-fn (hs/run-server
                   (-> #'mtg-pairings-server.api/app
                     wrap-json-with-padding
                     wrap-request-log
                     (wrap-resource-304 "public")
-                    wrap-params
-                    wrap-json-response
                     wrap-allow-origin
                     wrap-exceptions)
                   server-properties)]
