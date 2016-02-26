@@ -27,7 +27,7 @@
 (defn ^:private add-players-data [tournament dci]
   (let [players-team (:id (first (sql/select db/team
                         (sql/where (and {:tournament (:id tournament)}
-                                        (sql/sqlfn exists
+                                        (sql/sqlfn "exists"
                                           (sql/subselect db/team-players
                                             (sql/where {:team_players.player dci
                                                         :team_players.team :team.id}))))))))
@@ -63,9 +63,9 @@
   (select-keys tournament [:id :name :day :rounds :seating :pairings :max_standings_round]))
 
 (defn tournaments [dci]
-  (let [dci (add-check-digits dci)] 
+  (let [dci (add-check-digits dci)]
     (for [tournament (sql/select db/tournament
-                       (sql/where (sql/sqlfn exists 
+                       (sql/where (sql/sqlfn "exists"
                                     (sql/subselect db/team-players
                                       (sql/join db/team (= :team.id :team_players.team))
                                       (sql/where {:team_players.player dci

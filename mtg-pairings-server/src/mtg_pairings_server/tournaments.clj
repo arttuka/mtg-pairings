@@ -45,8 +45,8 @@
                    :results])
       (sql/order :num)
       (sql/where
-        (sql/sqlfn exists (sql/subselect db/pairing
-                            (sql/where {:round :round.id})))))
+        (sql/sqlfn "exists" (sql/subselect db/pairing
+                              (sql/where {:round :round.id})))))
     (sql/with db/standings
       (sql/where {:hidden false})
       (sql/fields [:round :num])
