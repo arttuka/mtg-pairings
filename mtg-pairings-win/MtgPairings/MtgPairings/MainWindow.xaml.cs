@@ -97,21 +97,29 @@ namespace MtgPairings
                     {
                         foreach (var round in oldTournament.Rounds.ZipAll(newTournament.Rounds, (r1, r2) => new { OldRound = r1, NewRound = r2 }))
                         {
-                            if (round.OldRound == null || !round.OldRound.Pairings.SequenceEqual(round.NewRound.Pairings) || round.NewRound != null && uploadAll)
+                            if ( round.NewRound == null)
                             {
-                                UploadEvent e = new UploadEvent(() => _uploader.UploadPairings(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
-                                                                t.AutoUpload, newTournament, UploadEvent.Type.Pairings, round.NewRound.Number);
-                                UploadQueue.Enqueue(e);
-                                Events.Add(e);
-                                uploadAll = true;
+                                UploadEvent e = new UploadEvent(() => _uploader.DeleteRound(newTournament.SanctionNumber, round.OldRound.Number), t.AutoUpload, newTournament, round.OldRound.Number);
                             }
-                            if (round.OldRound == null || !round.OldRound.Pairings.Select(p => p.Result).SequenceEqual(round.NewRound.Pairings.Select(p => p.Result)) || round.NewRound != null && uploadAll)
+                            else
                             {
-                                UploadEvent e = new UploadEvent(() => _uploader.UploadResults(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
-                                                                t.AutoUpload, newTournament, UploadEvent.Type.Results, round.NewRound.Number);
-                                UploadQueue.Enqueue(e);
-                                Events.Add(e);
-                                uploadAll = true;
+                                if (round.OldRound == null || round.NewRound == null || !round.OldRound.Pairings.SequenceEqual(round.NewRound.Pairings) || round.NewRound != null && uploadAll)
+                                {
+                                    UploadEvent e = new UploadEvent(() => _uploader.UploadPairings(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
+                                                                    t.AutoUpload, newTournament, UploadEvent.Type.Pairings, round.NewRound.Number);
+                                    UploadQueue.Enqueue(e);
+                                    Events.Add(e);
+                                    uploadAll = true;
+                                }
+                                if (round.OldRound == null || !round.OldRound.Pairings.Select(p => p.Result).SequenceEqual(round.NewRound.Pairings.Select(p => p.Result)) || round.NewRound != null && uploadAll)
+                                {
+                                    UploadEvent e = new UploadEvent(() => _uploader.UploadResults(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
+                                                                    t.AutoUpload, newTournament, UploadEvent.Type.Results, round.NewRound.Number);
+                                    UploadQueue.Enqueue(e);
+                                    Events.Add(e);
+                                    uploadAll = true;
+                                }
+
                             }
                         }
                     }

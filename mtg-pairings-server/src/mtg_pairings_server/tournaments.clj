@@ -101,10 +101,38 @@
 (defn ^:private fix-dci-numbers [team]
   (update-in team [:players] #(map fix-dci-number %)))
 
+(defn ^:private delete-teams! [tournament-id]
+  (sql/delete db/team-players
+    (sql/where (sql/sqlfn "exists" (sql/subselect db/team
+                                     (sql/where {:team_players.team :team.id
+                                                 :team.tournament tournament-id})))))
+  (sql/delete db/team
+    (sql/where {:tournament tournament-id})))
+
+(defn ^:private delete-rounds! [tournament-id]
+  (sql/delete db/result
+    (sql/where (sql/sqlfn "exists" (sql/subselect db/pairing
+                                     (sql/where {:id :result.pairing})
+                                     (sql/with db/round
+                                       (sql/where {:tournament tournament-id}))))))
+  (sql/delete db/pairing
+    (sql/where (sql/sqlfn "exists" (sql/subselect db/round
+                                     (sql/where {:tournament tournament-id
+                                                 :id :pairing.round})))))
+  (sql/delete db/round
+    (sql/where {:tournament tournament-id})))
+
+(defn ^:private delete-seatings! [tournament-id]
+  (sql/delete db/seating
+    (sql/where {:tournament tournament-id})))
+
 (defn add-teams [sanction-id teams]
-  (let [teams (map fix-dci-numbers teams)]
-    (add-players (mapcat :players teams))
-    (let [tournament-id (sanctionid->id sanction-id)]
+  (let [tournament-id (sanctionid->id sanction-id)]
+    (delete-seatings! tournament-id)
+    (delete-rounds! tournament-id)
+    (delete-teams! tournament-id)
+    (let [teams (map fix-dci-numbers teams)]
+      (add-players (mapcat :players teams))
       (doseq [team teams
               :let [team-id (add-team (:name team) tournament-id)]]
         (sql/insert db/team-players
@@ -188,7 +216,7 @@
         team->points (if-let [standings (standings tournament-id (dec round-num) "secret")]
                        (into {} (for [row standings]
                                   [(:team row) (:points row)]))
-                       #(when % 0))
+                       (constantly 0))
         round-id (get-or-add-round tournament-id round-num)]
     (when (seq pairings)
       (delete-results round-id)
@@ -202,7 +230,7 @@
                        :team1 team1
                        :team2 team2
                        :team1_points (team->points team1)
-                       :team2_points (team->points team2)
+                       :team2_points (team->points team2 0)
                        :table_number (:table_number pairing)}))))))
 
 (defn ^:private add-team-where [query key dcis]

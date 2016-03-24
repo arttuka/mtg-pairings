@@ -56,6 +56,13 @@ namespace MtgPairings.Service
             
         }
 
+        private RestRequest createRequest(string url, Method method)
+        {
+            var request = new RestRequest(method);
+            request.Resource = url;
+            return request;
+        }
+
         private RestRequest createRequest(string url, Method method, object body) {
             var request = new RestRequest(method);
             request.Resource = url;
@@ -92,6 +99,12 @@ namespace MtgPairings.Service
                     })
                 });
             request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
+            Execute(request);
+        }
+
+        public void DeleteRound(string sanctionid, int round)
+        {
+            var request = createRequest("api/tournament/{sanctionid}/round-{round", Method.DELETE);
             Execute(request);
         }
 
