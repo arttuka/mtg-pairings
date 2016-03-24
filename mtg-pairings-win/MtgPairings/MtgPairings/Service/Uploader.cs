@@ -133,7 +133,7 @@ namespace MtgPairings.Service
             var request = createRequest("api/tournament/{sanctionid}/seatings", Method.PUT,
                 new {
                     seatings = seatings.Select(s => new {
-                        name = s.Team.Players.Select(player => player.DciNumber),
+                        team = s.Team.Players.Select(player => player.DciNumber),
                         table_number = s.Table
                     })
                 });

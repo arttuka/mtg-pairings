@@ -10,7 +10,7 @@
                              :day org.joda.time.LocalDate
                              :rounds Long})
 
-(s/defschema Tournament (merge BaseTournament 
+(s/defschema Tournament (merge BaseTournament
                                {:pairings [Long]
                                 :results [Long]
                                 :standings [Long]
@@ -34,7 +34,7 @@
 (s/defschema Seating {:team1_name String
                       :table_number Long})
 
-(s/defschema InputSeating {:team String
+(s/defschema InputSeating {:team [String]
                            :table_number Long})
 
 (s/defschema InputSeatings {:seatings [InputSeating]} )
@@ -56,14 +56,14 @@
                        :pgw Double
                        :ogw Double})
 
-(s/defschema InputPairing {:team1 String
-                           :team2 (s/maybe String)
+(s/defschema InputPairing {:team1 [String]
+                           :team2 (s/maybe [String])
                            :table_number Long})
 
 (s/defschema InputPairings {:pairings [InputPairing]})
-  
-(s/defschema InputResult {:team1 String
-                          :team2 (s/maybe String)
+
+(s/defschema InputResult {:team1 [String]
+                          :team2 (s/maybe [String])
                           :table_number Long
                           :team1_wins Long
                           :team2_wins Long
