@@ -23,8 +23,8 @@
     :body [tournament InputTournament {:description "Uusi turnaus"}]
     (if-let [user (user-for-apikey key)]
       (let [tournament (-> tournament
-                         (update-in [:day] clj-time.coerce/to-local-date)
-                         (assoc :owner user))]
+                           (update-in [:day] clj-time.coerce/to-local-date)
+                           (assoc :owner user))]
         (add-tournament tournament)
         {:status 204})
       {:status 400}))
