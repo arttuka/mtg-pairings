@@ -31,7 +31,7 @@ namespace MtgPairings
     {
         public List<TrackableTournament> Tournaments { get; private set; }
         public List<UploadEvent> Events { get; private set; }
-        public BlockingCollection<UploadEvent> UploadQueue { get; private set; }
+        public ConcurrentQueue<UploadEvent> UploadQueue { get; private set; }
         private Object _eventLock = new Object();
         private DatabaseReader _reader;
         private Uploader _uploader;
@@ -47,7 +47,7 @@ namespace MtgPairings
             _reader = reader;
             _uploader = uploader;
             Events = new List<UploadEvent>();
-            UploadQueue = new BlockingCollection<UploadEvent>();
+            UploadQueue = new ConcurrentQueue<UploadEvent>();
             _worker = new UploadWorker(this.UploadQueue);
             _workerThread = new Thread(_worker.DoUpload);
             _workerThread.IsBackground = true;
@@ -63,15 +63,6 @@ namespace MtgPairings
         public void CheckTournaments()
         {
             Console.WriteLine("Checking tournaments...");
-            //ImmutableHashSet<string> currentTournaments = (from t in Tournaments
-            //                                               select t.Tournament.SanctionNumber).ToImmutableHashSet();
-            //ImmutableHashSet<string> trackedTournaments = (from t in Tournaments
-            //                                               where t.Tracking
-            //                                               select t.Tournament.SanctionNumber).ToImmutableHashSet();
-            //ImmutableList<TrackableTournament> newTournaments = (from t in _reader.getAllTournaments()
-            //                                                     where !currentTournaments.Contains(t.SanctionNumber)
-            //                                                     select new TrackableTournament(t)).ToImmutableList();
-
             foreach (TrackableTournament t in Tournaments.Where(t => t.Tracking))
             {
                 Console.WriteLine("Checking " + t.Tournament.Name);
@@ -80,7 +71,7 @@ namespace MtgPairings
                 if (!t.TournamentUploaded)
                 {
                     UploadEvent e = new UploadEvent(() => _uploader.UploadTournament(newTournament), t.AutoUpload, newTournament, UploadEvent.Type.Tournament, 0);
-                    UploadQueue.Add(e);
+                    UploadQueue.Enqueue(e);
                     Events.Add(e);
                     t.TournamentUploaded = true;
                 }
@@ -91,7 +82,7 @@ namespace MtgPairings
                     {
                         UploadEvent e = new UploadEvent(() => _uploader.UploadTeams(newTournament.SanctionNumber, newTournament.Teams),
                                                         t.AutoUpload, newTournament, UploadEvent.Type.Teams, 0);
-                        UploadQueue.Add(e);
+                        UploadQueue.Enqueue(e);
                         Events.Add(e);
                         uploadAll = true;
                     }
@@ -99,7 +90,7 @@ namespace MtgPairings
                     {
                         UploadEvent e = new UploadEvent(() => _uploader.UploadSeatings(newTournament.SanctionNumber, newTournament.Seatings),
                                                         t.AutoUpload, newTournament, UploadEvent.Type.Seatings, 0);
-                        UploadQueue.Add(e);
+                        UploadQueue.Enqueue(e);
                         Events.Add(e);
                     }
                     if (!oldTournament.Rounds.SequenceEqual(newTournament.Rounds) || !newTournament.Rounds.IsEmpty && uploadAll)
@@ -110,7 +101,7 @@ namespace MtgPairings
                             {
                                 UploadEvent e = new UploadEvent(() => _uploader.UploadPairings(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
                                                                 t.AutoUpload, newTournament, UploadEvent.Type.Pairings, round.NewRound.Number);
-                                UploadQueue.Add(e);
+                                UploadQueue.Enqueue(e);
                                 Events.Add(e);
                                 uploadAll = true;
                             }
@@ -118,7 +109,7 @@ namespace MtgPairings
                             {
                                 UploadEvent e = new UploadEvent(() => _uploader.UploadResults(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
                                                                 t.AutoUpload, newTournament, UploadEvent.Type.Results, round.NewRound.Number);
-                                UploadQueue.Add(e);
+                                UploadQueue.Enqueue(e);
                                 Events.Add(e);
                                 uploadAll = true;
                             }

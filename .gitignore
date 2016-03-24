@@ -4,3 +4,5 @@
 .nrepl-port
 .project
 mtg-pairings.iml
+mtg-pairings-win/MtgPairings/packages/
+.vs

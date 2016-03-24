@@ -100,8 +100,8 @@ namespace MtgPairings.Service
             var request = createRequest("api/tournament/{sanctionid}/round-{round}/pairings", Method.PUT,
                 new {
                     pairings = pairings.Select(p => new {
-                        team1 = p.Team1.Name,
-                        team2 = p.Team2.Select(t => t.Name).ValueOrElse(null),
+                        team1 = p.Team1.Players.Select(player => player.DciNumber),
+                        team2 = p.Team2.Select(t => t.Players.Select(player => player.DciNumber)).ValueOrElse(Enumerable.Empty<string>()),
                         table_number = p.Table
                     })
                 });
@@ -115,8 +115,8 @@ namespace MtgPairings.Service
             var request = createRequest("api/tournament/{sanctionid}/round-{round}/results", Method.PUT,
                 new {
                     results = pairings.Where(p => p.Result.HasValue).Select(p => new {
-                        team1 = p.Team1.Name,
-                        team2 = p.Team2.Select(t => t.Name).ValueOrElse(null),
+                        team1 = p.Team1.Players.Select(player => player.DciNumber),
+                        team2 = p.Team2.Select(t => t.Players.Select(player => player.DciNumber)).ValueOrElse(Enumerable.Empty<string>()),
                         table_number = p.Table,
                         team1_wins = p.Result.Value.Team1Wins,
                         team2_wins = p.Result.Value.Team2Wins,
@@ -133,7 +133,7 @@ namespace MtgPairings.Service
             var request = createRequest("api/tournament/{sanctionid}/seatings", Method.PUT,
                 new {
                     seatings = seatings.Select(s => new {
-                        name = s.Team.Name,
+                        name = s.Team.Players.Select(player => player.DciNumber),
                         table_number = s.Table
                     })
                 });

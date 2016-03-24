@@ -9,6 +9,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Sanktiointinumero" Binding="{Binding Tournament.SanctionNumber}"/>
                 <DataGridTextColumn Header="Nimi" Binding="{Binding Tournament.Name}"/>
+                <DataGridTextColumn Header="Info" Binding="{Binding Tournament.Information}"/>
                 <DataGridCheckBoxColumn Header="Seuranta" Binding="{Binding Tracking}"/>
                 <DataGridCheckBoxColumn Header="Auto" Binding="{Binding AutoUpload}"/>
             </DataGrid.Columns>
