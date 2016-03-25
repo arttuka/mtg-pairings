@@ -6,6 +6,8 @@
     <select class="form-control" ng-model="pairings_round" ng-options="round for round in pairing_rounds"></select>
     <button ng-click="showStandings()" class="btn" ng-class='{"btn-success": newStandings, "btn-default": !newStandings}'>Standings</button>
     <select class="form-control" ng-model="standings_round" ng-options="round for round in standings_rounds"></select>
+    <button ng-click="showPods()" class="btn" ng-class='{"btn-success": newPods, "btn-default": !newPods}'>Pods</button>
+    <select class="form-control" ng-model="pod_number" ng-options="number for number in pod_numbers"></select>
     <button ng-click="showSeatings()" class="btn btn-default">Seatings</button>
     <button ng-click="showClock()" class="btn btn-default">Kello</button>
     <input class="form-control" type="number" ng-model="minutes" min="0" max="99">
@@ -26,6 +28,16 @@
     <div class="seating" ng-class="{'even': $even, 'odd': $odd}" ng-repeat="seating in column">
       <span class="table-number">{{seating.table_number}}</span>
       <span><div class="name">{{seating.name}}</div></span>
+    </div>
+  </div>
+</div>
+<div ng-show="mode == 'pods'" class="organizer-pods">
+  <h2 style="text-align:center; margin-top:0">{{tournament.name}} - pods</h2>
+  <div class="pod-column" ng-repeat="pod in pods">
+    <div class="seat" ng-class="{'even': $even, 'odd': $odd}" ng-repeat="seat in pod">
+      <span class="pod-number">{{seat.pod}}</span>
+      <span class="seat-number">{{seat.seat}}</span>
+      <span><div class="name">{{seat.team_name}}</div></span>
     </div>
   </div>
 </div>

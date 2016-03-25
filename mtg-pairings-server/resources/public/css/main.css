@@ -109,7 +109,7 @@ span.menu-icon i:before {
   float:left;
 }
 
-.pairing, .seating {
+.pairing, .seating, .organizer-pods .seat {
   clear:left;
   border-left: 1px solid #e6e6e6;
   margin-left:20px;
@@ -129,7 +129,7 @@ span.menu-icon i:before {
   background-color:#ffffff;
 }
 
-.pairing .table-number, .seating .table-number {
+.pairing .table-number, .seating .table-number, .seat .seat-number, .seat .pod-number {
   display: inline-block;
   text-align:center;
   font-weight: bold;
@@ -215,7 +215,7 @@ i.pull-left {
   margin-right: 15px;
 }
 
-.pairings-table, .standings-table {
+.pairings-table, .standings-table, .pods-table {
   width:100%;
 }
 
@@ -232,12 +232,11 @@ i.pull-left {
   left:0;
 }
 
-.pairings-table .table {
+.pairings-table .table,
+.pods-table .pod,
+.pods-table .seat {
   width: 100px;
   text-align: center;
-}
-
-.pairings-table .players {
 }
 
 .pairings-table .points, .pairings-table .result {
@@ -263,14 +262,14 @@ h3 {
   color: #cccccc;
 }
 
-.organizer-pairings, .organizer-standings, .organizer-seatings {
+.organizer-pairings, .organizer-standings, .organizer-seatings, .organizer-pods {
   text-align: center;
 }
 
-.organizer-pairings .pairing-column, .organizer-seatings .seating-column {
+.organizer-pairings .pairing-column, .organizer-seatings .seating-column, .organizer-pods .pod-column {
   width:500px;
   display: inline-block;
-  margin: 0 10px;
+  margin: 0 10px 24px;
   vertical-align: top;
 }
 
@@ -280,20 +279,28 @@ h3 {
   margin: 0 20px;
 }
 
-.organizer-pairings .pairing.no-round, .organizer-seatings .seating, .organizer-standings td {
+.organizer-pairings .pairing.no-round, .organizer-seatings .seating, .organizer-standings td, .organizer-pods .pod {
   height: 24px;
 }
 
 .organizer-pairings .pairing .names, .organizer-pairings .pairing .table-number, .organizer-pairings .pairing .points,
-.organizer-seatings .seating .table-number, .organizer-seatings .seating .name, .organizer-standings td { 
+.organizer-seatings .seating .table-number, .organizer-seatings .seating .name, .organizer-standings td,
+.organizer-pods .seat .name, .organizer-pods .seat .pod-number, .organizer-pods .seat .seat-number {
   line-height:24px;
   font-size:17px;
 }
 
 .organizer-pairings .pairing .table-number,
-.organizer-seatings .seating .table-number {
+.organizer-seatings .seating .table-number,
+.organizer-pods .seat .pod-number,
+.organizer-pods .seat .seat-number {
   width: 40px;
   font-size:20px;
+}
+
+.organizer-pods .seat .name {
+  display: inline-block;
+  width: 390px;
 }
 
 .organizer-pairings .pairing .names {

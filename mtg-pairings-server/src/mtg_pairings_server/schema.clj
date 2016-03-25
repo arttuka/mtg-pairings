@@ -14,6 +14,7 @@
                                {:pairings [Long]
                                 :results [Long]
                                 :standings [Long]
+                                :pods [Long]
                                 :seatings Boolean}))
 
 (s/defschema InputTournament (-> BaseTournament

@@ -6,5 +6,6 @@
   </div>
   <div class="tournament-row">
     <a class="btn btn-default" ng-show="model.seatings" href="#/tournaments/{{model.id}}/seatings">Seatings</a>
+    <a class="btn btn-default" ng-repeat="num in model.pods" href="#/tournaments/{{model.id}}/pods-{{num}}">Pods {{num}}</a>
   </div>
 </div>

@@ -116,6 +116,14 @@ angular.module('controllers', [])
   $scope.tournament = TournamentResource.get({id: $routeParams.tournament});
 })
 
+.controller('PodsController', function($scope, $routeParams, TournamentResource) {
+  $scope.sort = 'pod';
+  $scope.pods = TournamentResource.pods({id: $routeParams.tournament,
+                                         number: $routeParams.number});
+  $scope.number = $routeParams.number;
+  $scope.tournament = TournamentResource.get({id: $routeParams.tournament});
+})
+
 .controller('OrganizerController', function($scope, $routeParams, $window, TournamentResource, PairingService) {
   var tournamentId = $routeParams.tournament;
   var menuWindow;
@@ -123,6 +131,7 @@ angular.module('controllers', [])
   $scope.displayMenu = true;
   $scope.newStandings = false;
   $scope.newPairings = false;
+  $scope.newPods = false;
   $scope.popupMenu = popupMenu;
   $scope.showPairings = showPairings;
   $scope.$on('showPairings', function(event, round) {
@@ -133,6 +142,10 @@ angular.module('controllers', [])
   $scope.$on('showStandings', function(event, round) {
     $scope.standings_round = round;
     showStandings();
+  });
+  $scope.showPods = showPods;
+  $scope.$on('showPods', function() {
+    showPods();
   });
   $scope.showSeatings = showSeatings;
   $scope.$on('showSeatings', function() {
@@ -193,12 +206,19 @@ angular.module('controllers', [])
         $scope.standings_round = t.standings[t.standings.length - 1];
       }
       $scope.standings_rounds = t.standings;
+      if(!arraysIdentical($scope.pod_numbers, t.pods)) {
+        $scope.newPods = true;
+        $scope.pod_number = t.pods[t.pods.length - 1];
+      }
+      $scope.pod_numbers = t.pods;
       if(menuScope) {
         menuScope.$emit('tournament', {
           newPairings: $scope.newPairings,
           newStandings: $scope.newStandings,
+          newPods: $scope.newPods,
           pairing_rounds: $scope.pairing_rounds,
-          standings_rounds: $scope.standings_rounds
+          standings_rounds: $scope.standings_rounds,
+          pod_numbers: $scope.pod_numbers
         });
       }
     });
@@ -254,6 +274,27 @@ angular.module('controllers', [])
     });
   }
 
+  function showPods() {
+    var number = $scope.pod_number;
+    TournamentResource.pods({id: tournamentId, number: number}).$promise.then(function(data) {
+      var pods = [];
+      var pod = [];
+      var previousPod;
+      _.forEach(data, function(seat) {
+        if(previousPod && previousPod != seat.pod) {
+          pods.push(pod);
+          pod = [];
+        }
+        pod.push(seat);
+        previousPod = seat.pod;
+      });
+      pods.push(pod);
+      $scope.pods = pods;
+      $scope.mode = "pods";
+      $scope.newPods = false;
+    })
+  }
+
   function showSeatings() {
     TournamentResource.seatings({id: tournamentId}).$promise.then(function(data) {
       var seatings = [];
@@ -302,8 +343,10 @@ angular.module('controllers', [])
     $scope.newStandings = tournament.newStandings;
     $scope.pairing_rounds = tournament.pairing_rounds;
     $scope.standings_rounds = tournament.standings_rounds;
+    $scope.pod_numbers = tournament.pod_numbers;
     if(tournament.newPairings) $scope.pairings_round = tournament.pairing_rounds[tournament.pairing_rounds.length - 1];
     if(tournament.newStandings) $scope.standings_round = tournament.standings_rounds[tournament.standings_rounds.length - 1];
+    if(tournament.newPods) $scope.pod_number = tournament.pod_numbers[tournament.pod_numbers.length - 1];
     setTimeout(function(){ $scope.$apply(); });
   });
   $scope.newPairings = false;
@@ -313,6 +356,7 @@ angular.module('controllers', [])
   $scope.showPairings = showPairings;
   $scope.showStandings = showStandings;
   $scope.showSeatings = showSeatings;
+  $scope.showPods = showPods;
   $scope.showClock = showClock;
   $scope.setClock = setClock;
   $scope.startClock = startClock;
@@ -343,6 +387,11 @@ angular.module('controllers', [])
         $scope.standings_round = t.standings[t.standings.length - 1];
       }
       $scope.standings_rounds = t.standings;
+      if(!arraysIdentical($scope.pod_numbers, t.pods)) {
+        $scope.newPods = true;
+        $scope.pod_number = t.pods[t.pods.length - 1];
+      }
+      $scope.pod_numbers = t.pods;
     });
   }
 
@@ -359,6 +408,9 @@ angular.module('controllers', [])
   }
   function showStandings() {
     send('showStandings', $scope.standings_round);
+  }
+  function showPods() {
+    send('showPods');
   }
   function showSeatings() {
     send('showSeatings');

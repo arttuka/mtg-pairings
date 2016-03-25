@@ -30,7 +30,8 @@
         (sql/where {:sanctionid sanction-id})))))
 
 (def ^:private select-tournaments
-  (-> (sql/select* db/tournament)
+  (->
+    (sql/select* db/tournament)
     (sql/fields :rounds :day :name :id
                 (sql/raw "exists (select 1 from seating where \"tournament\" = \"tournament\".\"id\") as \"seatings\""))
     (sql/order :day :DESC)
@@ -50,17 +51,23 @@
     (sql/with db/standings
       (sql/where {:hidden false})
       (sql/fields [:round :num])
-      (sql/order :round))))
+      (sql/order :round))
+    (sql/with db/pod-round
+      (sql/fields :id)
+      (sql/order :id))))
 
 (defn ^:private update-round-data [tournament]
   (let [rounds (:round tournament)
         pairings (map :num rounds)
-        results (map :num (filter :results rounds))]
-    (-> tournament
+        results (map :num (filter :results rounds))
+        pods (map inc (range (count (:pod_round tournament))))]
+    (->
+      tournament
       (assoc :pairings pairings)
       (assoc :results results)
+      (assoc :pods pods)
       (update-in [:standings] #(map :num %))
-      (dissoc :round))))
+      (dissoc :round :pod_round))))
 
 (defn tournament [id]
   (update-round-data (first
@@ -154,6 +161,22 @@
       (sql/fields :name))
     (sql/where {:tournament tournament-id})
     (sql/order :team.name :ASC)))
+
+(defn pods [tournament-id number]
+  (let [pod-rounds (map :id (sql/select db/pod-round
+                              (sql/fields :id)
+                              (sql/where {:tournament tournament-id})
+                              (sql/order :id)))
+        round-id (nth pod-rounds (dec number))]
+    (sql/select db/seat
+      (sql/fields :seat)
+      (sql/with db/team
+        (sql/fields [:name :team_name]))
+      (sql/with db/pod
+        (sql/fields [:number :pod])
+        (sql/where {:pod_round round-id}))
+      (sql/order :pod.number)
+      (sql/order :seat))))
 
 (defn standings [tournament-id round-num secret]
   (-> (sql/select db/standings

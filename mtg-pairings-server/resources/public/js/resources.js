@@ -17,6 +17,11 @@ angular.module('resources', [])
       method: 'GET',
       url: '/api/tournament/:id/seatings',
       isArray: true
+    },
+    pods: {
+      method: 'GET',
+      url: '/api/tournament/:id/pods-:number',
+      isArray: true
     }
   });
 })

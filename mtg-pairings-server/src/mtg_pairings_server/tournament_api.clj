@@ -55,10 +55,15 @@
     :return [Standing]
     :summary "Hae kierroksen jälkeiset standingsit"
     (response (standings-for-api id round (get-in request [:params :secret]))))
-  (GET "/:id/seatings" [id]
+  (GET "/:id/seatings" []
     :path-params [id :- s/Int]
     :summary "Hae seatingit"
     (response (seatings id)))
+  (GET "/:id/pods-:number" []
+    :path-params [id :- s/Int
+                  number :- s/Int]
+    :summary "Hae podit"
+    (response (pods id number)))
   (PUT "/:sanctionid/round-:round/pairings" []
     :path-params [sanctionid :- s/Str
                   round :- s/Int]
