@@ -158,6 +158,32 @@ namespace MtgPairings.Data
                 new object[] {tournamentId}).OrderBy(r => r.Number).ToImmutableList();
         }
 
+        private ImmutableList<PodRound> getPodsInTournament(int tournamentId)
+        {
+            var teams = getTeamsInTournament(tournamentId).ToImmutableDictionary(t => t.Id, t => t);
+
+            var results = OleDbFetch(
+                r => new
+                {
+                    podRoundId = Convert.ToInt32(r["PodRoundId"]),
+                    tableNumber = Convert.ToInt32(r["TableNumber"]),
+                    seatNumber = Convert.ToInt32(r["SeatNumber"]),
+                    teamId = Convert.ToInt32(r["TeamId"])
+                },
+                "SELECT PodRound.PodRoundId, Pod.TableNumber, PodSeat.SeatNumber, PodSeat.TeamId " +
+                "FROM ((PodSeat INNER JOIN " +
+                "       Pod ON (PodSeat.PodId = Pod.PodId)) INNER JOIN " +
+                "      PodRound ON (Pod.PodRoundId = PodRound.PodRoundId)) " +
+                "WHERE (PodRound.TournamentId = ?)",
+                new object[] { tournamentId }).ToImmutableList();
+
+            return (from r in results
+                    orderby r.podRoundId, r.tableNumber, r.seatNumber
+                    group new Seat(r.seatNumber, teams[r.teamId]) by new { tableNumber = r.tableNumber, podRoundId = r.podRoundId } into pod
+                    group new Pod(pod.Key.tableNumber, pod.ToImmutableList()) by pod.Key.podRoundId into podRound
+                    select new PodRound(podRound.ToImmutableList())).ToImmutableList();
+        }
+
         private String getSanctionNumber(string sanctionNumber, int tournamentId, LocalDate date)
         {
             if (sanctionNumber != null && sanctionNumber != "")
@@ -175,6 +201,7 @@ namespace MtgPairings.Data
             ImmutableList<Team> teams = getTeamsInTournament(tournamentId);
             ImmutableList<Round> rounds = getRoundsInTournament(tournamentId);
             ImmutableList<Seating> seatings = getSeatingsInTournament(tournamentId);
+            ImmutableList<PodRound> pods = getPodsInTournament(tournamentId);
             return OleDbFetch(
                 t => {
                     var date = Convert.ToDateTime(t["StartDate"]).ToLocalDate();
@@ -187,7 +214,8 @@ namespace MtgPairings.Data
                                           date,
                                           rounds,
                                           teams,
-                                          seatings);
+                                          seatings,
+                                          pods);
                 },
                 "SELECT SanctionId, Title, EventInformation, NumberOfRounds, StartDate FROM Tournament " +
                 "WHERE (TournamentId = ?)",
@@ -205,7 +233,8 @@ namespace MtgPairings.Data
                                     Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
                                     ImmutableList<Round>.Empty,
                                     ImmutableList<Team>.Empty,
-                                    ImmutableList<Seating>.Empty),
+                                    ImmutableList<Seating>.Empty,
+                                    ImmutableList<PodRound>.Empty),
                 "SELECT TournamentId, SanctionId, Title, EventInformation, NumberOfRounds, StartDate FROM Tournament"
               ).ToImmutableList();
         }

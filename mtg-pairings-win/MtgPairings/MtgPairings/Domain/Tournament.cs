@@ -15,8 +15,9 @@ namespace MtgPairings.Domain
         public ImmutableList<Round> Rounds { get; private set; }
         public ImmutableList<Team> Teams { get; private set; }
         public ImmutableList<Seating> Seatings { get; private set; }
+        public ImmutableList<PodRound> Pods { get; private set; }
 
-        public Tournament(int tournamentId, string sanctionNumber, string name, string information, int roundCount, LocalDate date, ImmutableList<Round> rounds, ImmutableList<Team> teams, ImmutableList<Seating> seatings)
+        public Tournament(int tournamentId, string sanctionNumber, string name, string information, int roundCount, LocalDate date, ImmutableList<Round> rounds, ImmutableList<Team> teams, ImmutableList<Seating> seatings, ImmutableList<PodRound> pods)
         {
             TournamentId = tournamentId;
             SanctionNumber = sanctionNumber;
@@ -27,6 +28,7 @@ namespace MtgPairings.Domain
             Rounds = rounds;
             Teams = teams;
             Seatings = seatings;
+            Pods = pods;
         }
 
         public override bool Equals(object obj)
@@ -51,10 +53,11 @@ namespace MtgPairings.Domain
                        this.Name == other.Name &&
                        this.Information == other.Information &&
                        this.RoundCount == other.RoundCount &&
-                       this.Date == other.Date &&
+                       this.Date.Equals(other.Date) &&
                        this.Rounds.SequenceEqual(other.Rounds) &&
                        this.Teams.SequenceEqual(other.Teams) &&
-                       this.Seatings.SequenceEqual(other.Seatings);
+                       this.Seatings.SequenceEqual(other.Seatings) &&
+                       this.Pods.SequenceEqual(other.Pods);
             }
         }
     }

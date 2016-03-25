@@ -13,7 +13,7 @@ namespace MtgPairings.Domain
         private Tournament newTournament;
         private int number;
 
-        public enum Type {Tournament, Teams, Seatings, Pairings, Results};
+        public enum Type {Tournament, Teams, Seatings, Pairings, Results, Pods};
 
         public Action UploadAction { get; private set; }
         public Boolean Upload { get; set; }
@@ -35,6 +35,8 @@ namespace MtgPairings.Domain
                         return "Turnauksen " + Tournament.Name + " pairingit " + Round + " lähetetty.";
                     case Type.Results:
                         return "Turnauksen " + Tournament.Name + " tulokset " + Round + " lähetetty.";
+                    case Type.Pods:
+                        return "Turnauksen " + Tournament.Name + " podit " + Round + " lähetetty";
                     default:
                         return "";
                 }

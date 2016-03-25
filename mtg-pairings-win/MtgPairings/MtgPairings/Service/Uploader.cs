@@ -153,5 +153,21 @@ namespace MtgPairings.Service
             request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
             Execute(request);
         }
+
+        public void UploadPods(string sanctionid, IEnumerable<PodRound> pods)
+        {
+            var request = createRequest("api/tournament/{sanctionid}/pods", Method.PUT,
+                pods.Select(pr => new {
+                    pods = pr.Pods.Select(p => new {
+                        number = p.Number,
+                        seats = p.Seats.Select(s => new {
+                            seat = s.Number,
+                            team = s.Team.Players.Select(player => player.DciNumber)
+                        })
+                    })
+                }));
+            request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
+            Execute(request);
+       }
     }
 }
