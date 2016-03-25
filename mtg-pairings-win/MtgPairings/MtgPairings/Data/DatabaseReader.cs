@@ -210,6 +210,7 @@ namespace MtgPairings.Data
                                           sanctionNumber,
                                           t["Title"].ToString(),
                                           t["EventInformation"].ToString(),
+                                          t["OrgName"].ToString(),
                                           Convert.ToInt32(t["NumberOfRounds"]),
                                           date,
                                           rounds,
@@ -217,7 +218,7 @@ namespace MtgPairings.Data
                                           seatings,
                                           pods);
                 },
-                "SELECT SanctionId, Title, EventInformation, NumberOfRounds, StartDate FROM Tournament " +
+                "SELECT SanctionId, Title, EventInformation, OrgName, NumberOfRounds, StartDate FROM Tournament " +
                 "WHERE (TournamentId = ?)",
                 new object[] {tournamentId}).First();
         }
@@ -229,16 +230,15 @@ namespace MtgPairings.Data
                                     t["SanctionId"].ToString(),
                                     t["Title"].ToString(),
                                     t["EventInformation"].ToString(),
+                                    t["OrgName"].ToString(),
                                     Convert.ToInt32(t["NumberOfRounds"]),
                                     Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
                                     ImmutableList<Round>.Empty,
                                     ImmutableList<Team>.Empty,
                                     ImmutableList<Seating>.Empty,
                                     ImmutableList<PodRound>.Empty),
-                "SELECT TournamentId, SanctionId, Title, EventInformation, NumberOfRounds, StartDate FROM Tournament"
+                "SELECT TournamentId, SanctionId, Title, EventInformation, OrgName, NumberOfRounds, StartDate FROM Tournament"
               ).ToImmutableList();
         }
-
-
     }
 }

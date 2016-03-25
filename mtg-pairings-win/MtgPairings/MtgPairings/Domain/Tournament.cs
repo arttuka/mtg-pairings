@@ -9,6 +9,7 @@ namespace MtgPairings.Domain
         public int TournamentId { get; private set; }
         public string Name { get; private set; }
         public string Information { get; private set; }
+        public string Organizer { get; private set; }
         public int RoundCount { get; private set; }
         public string SanctionNumber { get; private set; }
         public LocalDate Date { get; private set; }
@@ -17,12 +18,13 @@ namespace MtgPairings.Domain
         public ImmutableList<Seating> Seatings { get; private set; }
         public ImmutableList<PodRound> Pods { get; private set; }
 
-        public Tournament(int tournamentId, string sanctionNumber, string name, string information, int roundCount, LocalDate date, ImmutableList<Round> rounds, ImmutableList<Team> teams, ImmutableList<Seating> seatings, ImmutableList<PodRound> pods)
+        public Tournament(int tournamentId, string sanctionNumber, string name, string information, string organizer, int roundCount, LocalDate date, ImmutableList<Round> rounds, ImmutableList<Team> teams, ImmutableList<Seating> seatings, ImmutableList<PodRound> pods)
         {
             TournamentId = tournamentId;
             SanctionNumber = sanctionNumber;
             Name = name;
             Information = information;
+            Organizer = organizer;
             RoundCount = roundCount;
             Date = date;
             Rounds = rounds;
@@ -52,6 +54,7 @@ namespace MtgPairings.Domain
                        this.SanctionNumber == other.SanctionNumber &&
                        this.Name == other.Name &&
                        this.Information == other.Information &&
+                       this.Organizer == other.Organizer &&
                        this.RoundCount == other.RoundCount &&
                        this.Date.Equals(other.Date) &&
                        this.Rounds.SequenceEqual(other.Rounds) &&

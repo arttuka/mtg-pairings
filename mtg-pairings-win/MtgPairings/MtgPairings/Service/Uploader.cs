@@ -77,6 +77,7 @@ namespace MtgPairings.Service
                 new
                 {
                     name = t.Name,
+                    organizer = t.Organizer,
                     day = t.Date.ToString("yyyy-MM-dd", null),
                     rounds = t.RoundCount,
                     sanctionid = t.SanctionNumber,
