@@ -101,7 +101,13 @@
 (defn ^:private fix-dci-numbers [team]
   (update-in team [:players] #(map fix-dci-number %)))
 
-(defn ^:private delete-teams! [tournament-id]
+(defn ^:private delete-pods [tournament-id]
+  (sql/exec-raw ["DELETE FROM pod_seat USING pod JOIN pod_round ON pod.pod_round = pod_round.id WHERE pod_round.tournament = ? AND pod = pod.id" [tournament-id]])
+  (sql/exec-raw ["DELETE FROM pod USING pod_round WHERE pod_round.tournament = ? AND pod_round = pod_round.id" [tournament-id]])
+  (sql/delete db/pod-round
+    (sql/where {:tournament tournament-id})))
+
+(defn ^:private delete-teams [tournament-id]
   (sql/delete db/team-players
     (sql/where (sql/sqlfn "exists" (sql/subselect db/team
                                      (sql/where {:team_players.team :team.id
@@ -109,7 +115,7 @@
   (sql/delete db/team
     (sql/where {:tournament tournament-id})))
 
-(defn ^:private delete-rounds! [tournament-id]
+(defn ^:private delete-rounds [tournament-id]
   (sql/delete db/result
     (sql/where (sql/sqlfn "exists" (sql/subselect db/pairing
                                      (sql/where {:id :result.pairing})
@@ -122,15 +128,16 @@
   (sql/delete db/round
     (sql/where {:tournament tournament-id})))
 
-(defn ^:private delete-seatings! [tournament-id]
+(defn ^:private delete-seatings [tournament-id]
   (sql/delete db/seating
     (sql/where {:tournament tournament-id})))
 
 (defn add-teams [sanction-id teams]
   (let [tournament-id (sanctionid->id sanction-id)]
-    (delete-seatings! tournament-id)
-    (delete-rounds! tournament-id)
-    (delete-teams! tournament-id)
+    (delete-seatings tournament-id)
+    (delete-rounds tournament-id)
+    (delete-pods tournament-id)
+    (delete-teams tournament-id)
     (let [teams (map fix-dci-numbers teams)]
       (add-players (mapcat :players teams))
       (doseq [team teams
@@ -288,7 +295,6 @@
                                   [(:num r) (results-of-round (:id r))]))
         round-num (:num (first rounds))
         round-id (:id (first rounds))]
-    (println "Tuloksia:" (str (count (filter :team1_wins (rounds-results round-num))) "/" (count (rounds-results round-num))))
     (when (every? :team1_wins (rounds-results round-num))
       (let [std (mtg-util/calculate-standings rounds-results round-num)]
         (sql/insert db/standings
@@ -327,17 +333,22 @@
                                            :num round-num}))))]
     (map #(dissoc % :team1 :team2) (results-of-round round-id))))
 
-(defn ^:private delete-teams [tournament-id]
-  (sql/delete db/team-players
-    (sql/where {:team [in (sql/subselect db/team
-                            (sql/fields :id)
-                            (sql/where {:tournament tournament-id}))]}))
-  (sql/delete db/team
-    (sql/where {:tournament tournament-id})))
-
-(defn ^:private delete-seatings [tournament-id]
-  (sql/delete db/seating
-    (sql/where {:tournament tournament-id})))
+(defn add-pods [sanction-id pods]
+  (let [tournament-id (sanctionid->id sanction-id)
+        dci->id (teams-by-dci tournament-id)]
+    (delete-pods tournament-id)
+    (doseq [pod-round pods
+            :let [r (sql/insert db/pod-round
+                      (sql/values {:tournament tournament-id}))]
+            pod (:pods pod-round)
+            :let [p (sql/insert db/pod
+                      (sql/values {:pod_round (:id r)
+                                   :number (:number pod)}))]
+            seat (:seats pod)]
+      (sql/insert db/seat
+        (sql/values {:pod (:id p)
+                     :seat (:seat seat)
+                     :team (dci->id (:team seat))})))))
 
 (defn reset-tournament [sanction-id]
   (let [tournament-id (sanctionid->id sanction-id)]
@@ -349,5 +360,6 @@
       (sql/delete db/round
         (sql/where {:id round})))
     (delete-seatings tournament-id)
+    (delete-pods tournament-id)
     (delete-teams tournament-id)
     (delete-standings tournament-id)))

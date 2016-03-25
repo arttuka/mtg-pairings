@@ -71,4 +71,22 @@ create table seating (
   team int not null references team(id)
 );
 
+create table pod_round (
+  id serial primary key,
+  tournament int not null references tournament(id)
+);
+
+create table pod (
+  id serial primary key,
+  pod_round int not null references pod_round(id),
+  number int not null
+);
+
+create table pod_seat (
+  id serial primary key,
+  team int not null references team(id),
+  pod int not null references pod(id),
+  seat int not null
+);
+
 commit;

@@ -114,3 +114,21 @@
   (sql/pk :id)
   (sql/has-many tournament
     {:fk :owner}))
+
+(sql/defentity pod-round
+  (sql/table :pod_round)
+  (sql/pk :id)
+  (sql/belongs-to tournament
+    {:fk :tournament}))
+
+(sql/defentity pod
+  (sql/table :pod)
+  (sql/pk :id)
+  (sql/belongs-to pod-round
+    {:fk :pod_round}))
+
+(sql/defentity seat
+  (sql/table :pod_seat)
+  (sql/pk :id)
+  (sql/belongs-to pod
+    {:fk pod}))

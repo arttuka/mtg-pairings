@@ -29,12 +29,14 @@
                    :name String
                    :players [Player]})
 
+(s/defschema InputTeam [String])
+
 (s/defschema InputTeams {:teams [Team]})
 
 (s/defschema Seating {:team1_name String
                       :table_number Long})
 
-(s/defschema InputSeating {:team [String]
+(s/defschema InputSeating {:team InputTeam
                            :table_number Long})
 
 (s/defschema InputSeatings {:seatings [InputSeating]} )
@@ -56,14 +58,14 @@
                        :pgw Double
                        :ogw Double})
 
-(s/defschema InputPairing {:team1 [String]
+(s/defschema InputPairing {:team1 InputTeam
                            :team2 (s/maybe [String])
                            :table_number Long})
 
 (s/defschema InputPairings {:pairings [InputPairing]})
 
-(s/defschema InputResult {:team1 [String]
-                          :team2 (s/maybe [String])
+(s/defschema InputResult {:team1 InputTeam
+                          :team2 (s/maybe InputTeam)
                           :table_number Long
                           :team1_wins Long
                           :team2_wins Long
@@ -75,3 +77,11 @@
                                       {:seating Seating
                                        :pairings [Pairing]
                                        :max_standings_round Long}))
+
+(s/defschema InputPodSeat {:seat s/Int
+                           :team InputTeam})
+
+(s/defschema InputPod {:number s/Int
+                       :seats [InputPodSeat]})
+
+(s/defschema InputPodRound {:pods [InputPod]})

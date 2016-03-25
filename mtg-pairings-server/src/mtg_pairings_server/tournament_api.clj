@@ -107,4 +107,12 @@
     :query-params [key :- String]
     (validate-request sanctionid key
       (reset-tournament sanctionid)
+      {:status 204}))
+  (PUT "/:sanctionid/pods" []
+    :summary "Lisää draftipodin tiedot"
+    :query-params [key :- String]
+    :path-params [sanctionid :- s/Str]
+    :body [pods [InputPodRound]]
+    (validate-request sanctionid key
+      (add-pods sanctionid pods)
       {:status 204})))
