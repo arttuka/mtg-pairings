@@ -7,6 +7,7 @@
 
 (s/defschema BaseTournament {:id Long
                              :name String
+                             :organizer (s/maybe String)
                              :day org.joda.time.LocalDate
                              :rounds Long})
 

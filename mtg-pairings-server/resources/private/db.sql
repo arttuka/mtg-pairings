@@ -13,7 +13,8 @@ create table player(
 create table tournament(
   id serial primary key,
   sanctionid varchar(20) not null unique,
-  name varchar(100) not null,
+  name text not null,
+  organizer text not null,
   day date not null,
   rounds int not null,
   owner int not null references trader_user (id)

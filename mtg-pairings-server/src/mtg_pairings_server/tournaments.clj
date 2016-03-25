@@ -32,7 +32,7 @@
 (def ^:private select-tournaments
   (->
     (sql/select* db/tournament)
-    (sql/fields :rounds :day :name :id
+    (sql/fields :rounds :day :name :organizer :id
                 (sql/raw "exists (select 1 from seating where \"tournament\" = \"tournament\".\"id\") as \"seatings\""))
     (sql/order :day :DESC)
     (sql/order :name :ASC)
@@ -83,7 +83,7 @@
   (when-not (first (sql/select db/tournament
                      (sql/where {:sanctionid (:sanctionid tourn)})))
     (sql/insert db/tournament
-      (sql/values (select-keys tourn [:name :day :sanctionid :rounds :owner])))))
+      (sql/values (select-keys tourn [:name :organizer :day :sanctionid :rounds :owner])))))
 
 (defn add-players [players]
   (let [old-players (->> (sql/select db/player)
