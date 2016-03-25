@@ -6,7 +6,7 @@
       <Value Profile="(Default)">http://10.0.2.2:8080/</Value>
     </Setting>
     <Setting Name="Apikey" Type="System.String" Scope="User">
-      <Value Profile="(Default)">a628cdf3-25cd-4b21-a578-6064dd96a3fd</Value>
+      <Value Profile="(Default)" />
     </Setting>
   </Settings>
 </SettingsFile>
