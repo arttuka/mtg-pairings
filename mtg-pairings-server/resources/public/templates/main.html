@@ -2,9 +2,10 @@
   <div class="newest-pairing" ng-hide="!latestPairing">
     <h3>Uusin pairing:</h3>
     <span class="newest-tournament-name">{{latestPairing.tournament}}</span>
-    <pairing model="latestPairing" even="true" is-pairing="!!latestPairing.team2_name" display-round="true">
+    <pairing model="latestPairing" even="true" is-pairing="!!latestPairing.team2_name" display-round="true"></pairing>
   </div>
   <own-tournament model="t" ng-repeat="t in tournaments">
 </div>
-<tournament ng-show="!loggedIn" model="tournament" ng-repeat="tournament in tournaments">
-  
+<tournament ng-show="!loggedIn" model="tournament" ng-repeat="tournament in filteredTournaments"></tournament>
+<pagination page="currentPage" total-items="tournaments.length" boundary-links="true" items-per-page="numPerPage"
+            next-text="Seuraava" previous-text="Edellinen" first-text="Ensimmäinen" last-text="Viimeinen"></pagination>

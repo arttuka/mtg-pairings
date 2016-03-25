@@ -44,6 +44,13 @@ angular.module('controllers', [])
 })
 
 .controller('MainController', function($scope, localStorageService, TournamentResource, PlayerResource) {
+  var paginateTournaments = function() {
+    var begin = ($scope.currentPage - 1) * $scope.numPerPage;
+    var end = begin + $scope.numPerPage;
+    if($scope.tournaments !== undefined) {
+      $scope.filteredTournaments = $scope.tournaments.slice(begin, end);
+    }
+  };
   var loadTournaments = function() {
     if($scope.loggedIn) {
       PlayerResource.tournaments({dci: $scope.dci}).$promise.then(function(tournaments) {
@@ -67,9 +74,13 @@ angular.module('controllers', [])
           tournament.round_nums = _(_.union(tournament.pairings, tournament.standings)).sortBy().reverse().value();
           return tournament;
         });
+        paginateTournaments();
       });
     }
   };
+  $scope.currentPage = 1;
+  $scope.numPerPage = 10;
+  $scope.$watch('currentPage', paginateTournaments);
   $scope.dci = localStorageService.get('dci') || '';
   $scope.loggedIn = ($scope.dci !== '');
   $scope.$on('loggedIn', function(event, dci) {
@@ -185,7 +196,7 @@ angular.module('controllers', [])
       if (a[i] !== b[i]) return false;
     }
     return true;
-  };
+  }
 
   function pad(num) {
     if(Math.abs(num) >= 10) return "" + num;
@@ -372,7 +383,7 @@ angular.module('controllers', [])
       if (a[i] !== b[i]) return false;
     }
     return true;
-  };
+  }
 
   function loadTournament() {
     TournamentResource.get({id: tournamentId}).$promise.then(function(t) {
