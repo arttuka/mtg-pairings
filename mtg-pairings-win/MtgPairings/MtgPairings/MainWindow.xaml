@@ -3,25 +3,19 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="654" Width="900">
     <StackPanel Orientation="Horizontal">
-        <DataGrid Width="450"
-                  ItemsSource="{Binding Tournaments}"
-                  AutoGenerateColumns="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Sanktiointinumero" Binding="{Binding Tournament.SanctionNumber}"/>
-                <DataGridTextColumn Header="Nimi" Binding="{Binding Tournament.Name}"/>
-                <DataGridTextColumn Header="Info" Binding="{Binding Tournament.Information}"/>
-                <DataGridCheckBoxColumn Header="Seuranta" Binding="{Binding Tracking}"/>
-                <DataGridCheckBoxColumn Header="Auto" Binding="{Binding AutoUpload}"/>
-            </DataGrid.Columns>
-        </DataGrid>
-        <StackPanel Width="450">
-            <ItemsControl ItemsSource="{Binding Events}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding EventText}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </StackPanel>
+        <ListBox Width="450"
+                 ItemsSource="{Binding Tournaments}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <CheckBox IsChecked="{Binding Tracking}"/>
+                        <Label Content="{Binding Tournament.SanctionNumber}"/>
+                        <Label Content="{Binding Tournament.Name}"/>
+                        <Label Content="{Binding Tournament.Date}" ContentStringFormat="dd.MM.yyyy"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        <ListBox x:Name="EventList" ItemsSource="{Binding Events}" DisplayMemberPath="EventText" Height="620" Width="450"/>
     </StackPanel>
 </Window>
