@@ -29,7 +29,7 @@ namespace MtgPairings.Service
             }
             else
             {
-                throw new UploadFailedException(response.StatusCode);
+                throw new UploadFailedException(response.StatusCode, response.Content);
             }
         }
 
@@ -48,7 +48,7 @@ namespace MtgPairings.Service
             }
             else
             {
-                throw new UploadFailedException(response.StatusCode);
+                throw new UploadFailedException(response.StatusCode, response.Content);
             }
             
         }

@@ -32,7 +32,7 @@ namespace MtgPairings
     public partial class MainWindow : Window
     {
         public List<TrackableTournament> Tournaments { get; private set; }
-        public ObservableCollection<UploadEvent> Events { get; private set; }
+        public ObservableCollection<string> Events { get; private set; }
         public ConcurrentQueue<UploadEvent> UploadQueue { get; private set; }
         private Object _eventLock = new Object();
         private DatabaseReader _reader;
@@ -48,9 +48,9 @@ namespace MtgPairings
             this.DataContext = this;
             _reader = reader;
             _uploader = uploader;
-            Events = new ObservableCollection<UploadEvent>();
+            Events = new ObservableCollection<string>();
             UploadQueue = new ConcurrentQueue<UploadEvent>();
-            _worker = new UploadWorker(this.UploadQueue);
+            _worker = new UploadWorker(this.UploadQueue, this.AddEvent);
             _workerThread = new Thread(_worker.DoUpload);
             _workerThread.IsBackground = true;
             _workerThread.Start();
@@ -58,11 +58,11 @@ namespace MtgPairings
             new CheckTournamentsDelegate(CheckTournaments).BeginInvoke(null, null);
         }
 
-        private void AddEvent(UploadEvent e)
+        private void AddEvent(string s)
         {
             this.Dispatcher.Invoke(() =>
             {
-                Events.Add(e);
+                Events.Add(s);
                 EventList.ScrollIntoView(EventList.Items[EventList.Items.Count - 1]);
             });
         }
@@ -77,7 +77,6 @@ namespace MtgPairings
                 {
                     UploadEvent e = new UploadEvent(() => _uploader.UploadTournament(newTournament), t.AutoUpload, newTournament, UploadEvent.Type.Tournament, 0);
                     UploadQueue.Enqueue(e);
-                    AddEvent(e);
                     t.TournamentUploaded = true;
                 }
                 if (!oldTournament.Equals(newTournament))
@@ -88,7 +87,6 @@ namespace MtgPairings
                         UploadEvent e = new UploadEvent(() => _uploader.UploadTeams(newTournament.SanctionNumber, newTournament.Teams),
                                                         t.AutoUpload, newTournament, UploadEvent.Type.Teams, 0);
                         UploadQueue.Enqueue(e);
-                        AddEvent(e);
                         uploadAll = true;
                     }
                     if (!oldTournament.Seatings.SequenceEqual(newTournament.Seatings) || !newTournament.Seatings.IsEmpty && uploadAll)
@@ -96,14 +94,12 @@ namespace MtgPairings
                         UploadEvent e = new UploadEvent(() => _uploader.UploadSeatings(newTournament.SanctionNumber, newTournament.Seatings),
                                                         t.AutoUpload, newTournament, UploadEvent.Type.Seatings, 0);
                         UploadQueue.Enqueue(e);
-                        AddEvent(e);
                     }
                     if (!oldTournament.Pods.SequenceEqual(newTournament.Pods) || !newTournament.Pods.IsEmpty && uploadAll)
                     {
                         UploadEvent e = new UploadEvent(() => _uploader.UploadPods(newTournament.SanctionNumber, newTournament.Pods),
                                                         t.AutoUpload, newTournament, UploadEvent.Type.Pods, 0);
                         UploadQueue.Enqueue(e);
-                        AddEvent(e);
                     }
                     if (!oldTournament.Rounds.SequenceEqual(newTournament.Rounds) || !newTournament.Rounds.IsEmpty && uploadAll)
                     {
@@ -120,7 +116,6 @@ namespace MtgPairings
                                     UploadEvent e = new UploadEvent(() => _uploader.UploadPairings(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
                                                                     t.AutoUpload, newTournament, UploadEvent.Type.Pairings, round.NewRound.Number);
                                     UploadQueue.Enqueue(e);
-                                    AddEvent(e);
                                     uploadAll = true;
                                 }
                                 if (round.OldRound == null || !round.OldRound.Pairings.Select(p => p.Result).SequenceEqual(round.NewRound.Pairings.Select(p => p.Result)) || round.NewRound != null && uploadAll)
@@ -128,7 +123,6 @@ namespace MtgPairings
                                     UploadEvent e = new UploadEvent(() => _uploader.UploadResults(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
                                                                     t.AutoUpload, newTournament, UploadEvent.Type.Results, round.NewRound.Number);
                                     UploadQueue.Enqueue(e);
-                                    AddEvent(e);
                                     uploadAll = true;
                                 }
 

@@ -9,12 +9,13 @@ namespace MtgPairings.Service
 {
     public class UploadFailedException: System.Exception
     {
+
         public UploadFailedException()
         {
         }
 
-        public UploadFailedException(HttpStatusCode status)
-            : base("Upload failed with status " + status)
+        public UploadFailedException(HttpStatusCode status, string message)
+            : base(status + " " + message)
         {
         }
     }
