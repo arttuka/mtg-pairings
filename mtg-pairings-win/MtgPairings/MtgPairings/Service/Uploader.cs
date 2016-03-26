@@ -1,4 +1,5 @@
 ﻿using MtgPairings.Domain;
+using MtgPairings.Properties;
 using RestSharp;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,19 +9,15 @@ namespace MtgPairings.Service
 {
     public class Uploader
     {
-        private string url;
-        private string apiKey;
 
-        public Uploader(string url, string apiKey)
+        public Uploader()
         {
-            this.url = url;
-            this.apiKey = apiKey;
         }
 
         private IRestResponse<T> Execute<T>(RestRequest request) where T : new()
         {
-            var client = new RestClient(url);
-            request.AddParameter("key", apiKey, ParameterType.QueryString);
+            var client = new RestClient(Settings.Default.ServerURL);
+            request.AddParameter("key", Settings.Default.Apikey, ParameterType.QueryString);
             var response = client.Execute<T>(request);
             if (response.ErrorException != null)
             {
@@ -38,8 +35,8 @@ namespace MtgPairings.Service
 
         private IRestResponse Execute(RestRequest request)
         {
-            var client = new RestClient(url);
-            request.AddParameter("key", apiKey, ParameterType.QueryString);
+            var client = new RestClient(Settings.Default.ServerURL);
+            request.AddParameter("key", Settings.Default.Apikey, ParameterType.QueryString);
             var response = client.Execute(request);
             if (response.ErrorException != null)
             {

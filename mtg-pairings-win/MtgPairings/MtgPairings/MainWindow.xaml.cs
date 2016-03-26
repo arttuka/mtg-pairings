@@ -22,6 +22,7 @@ using System.Collections.Concurrent;
 using System.ComponentModel;
 using MtgPairings.Functional;
 using System.Collections.ObjectModel;
+using MtgPairings.Properties;
 
 namespace MtgPairings
 {
@@ -140,6 +141,14 @@ namespace MtgPairings
 
             Thread.Sleep(1000);
             new CheckTournamentsDelegate(CheckTournaments).BeginInvoke(null, null);
+        }
+
+        private void MenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            ApiKeyDialog dialog = new ApiKeyDialog();
+            dialog.ShowDialog();
+            Settings.Default.Apikey = dialog.ApiKey;
+            Settings.Default.Save();
         }
     }
 }
