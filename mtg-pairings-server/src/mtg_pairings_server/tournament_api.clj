@@ -10,9 +10,12 @@
   `(let [user# (user-for-apikey ~apikey)
          owner# (owner-of-tournament ~sanction-id)]
      (cond
-       (nil? owner#) {:status 404}
-       (nil? user#) {:status 400}
-       (not= owner# user#) {:status 403}
+       (nil? owner#) {:status 404
+                      :body "Virheellinen sanktiointinumero"}
+       (nil? user#) {:status 400
+                     :body "Virheellinen API key"}
+       (not= owner# user#) {:status 403
+                            :body "Eri käyttäjän tallentama turnaus"}
        :else (do ~@body))))
 
 (defroutes tournament-routes
@@ -27,7 +30,8 @@
                            (assoc :owner user))]
         (add-tournament tournament)
         {:status 204})
-      {:status 400}))
+      {:status 400
+       :body "Virheellinen API key"}))
   (GET "/" []
     :return [Tournament]
     :summary "Hae kaikki turnaukset"
