@@ -33,6 +33,11 @@ namespace MtgPairings.Domain
             Pods = pods;
         }
 
+        public Tournament WithName(string name)
+        {
+            return new Tournament(TournamentId, SanctionNumber, name, Information, Organizer, RoundCount, Date, Rounds, Teams, Seatings, Pods);
+        }
+
         public override bool Equals(object obj)
         {
             return this.Equals(obj as Tournament);

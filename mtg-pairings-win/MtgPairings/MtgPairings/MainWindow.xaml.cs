@@ -88,7 +88,7 @@ namespace MtgPairings
             foreach (TrackableTournament t in Tournaments.Where(t => t.Tracking))
             {
                 Tournament oldTournament = t.Tournament;
-                Tournament newTournament = _reader.getTournament(t.Tournament.TournamentId);
+                Tournament newTournament = _reader.getTournament(t.Tournament.TournamentId).WithName(t.Name);
                 if (!t.TournamentUploaded)
                 {
                     UploadEvent e = new UploadEvent(() => _uploader.UploadTournament(newTournament), t.AutoUpload, newTournament, UploadEvent.Type.Tournament, 0);
@@ -149,7 +149,7 @@ namespace MtgPairings
                 }
             }
 
-            Thread.Sleep(1000);
+            Thread.Sleep(5000);
             new CheckTournamentsDelegate(CheckTournaments).BeginInvoke(null, null);
         }
 
@@ -159,6 +159,18 @@ namespace MtgPairings
             dialog.ShowDialog();
             Settings.Default.Apikey = dialog.ApiKey;
             Settings.Default.Save();
+        }
+
+        private void Tallenna_Click(object sender, RoutedEventArgs e)
+        {
+            var tournament = (TrackableTournament)TournamentList.SelectedItem;
+            if (tournament.Tracking && tournament.Name != tournament.Tournament.Name)
+            {
+                UploadEvent ev = new UploadEvent(() => _uploader.UploadName(tournament.Tournament.SanctionNumber, tournament.Name),
+                                                 tournament.AutoUpload, tournament.Tournament.WithName(tournament.Name), UploadEvent.Type.Name, 0);
+                UploadQueue.Enqueue(ev);
+                tournament.Tournament = tournament.Tournament.WithName(tournament.Name);
+            }
         }
     }
 }

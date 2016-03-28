@@ -83,6 +83,17 @@ namespace MtgPairings.Service
             Execute(request);
         }
 
+        public void UploadName(string sanctionid, string name)
+        {
+            var request = createRequest("api/tournament/{sanctionid}", Method.PUT,
+                new
+                {
+                    name = name
+                });
+            request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
+            Execute(request);
+        }
+
         public void UploadTeams(string sanctionid, IEnumerable<Team> teams)
         {
             var request = createRequest("api/tournament/{sanctionid}/teams", Method.PUT,

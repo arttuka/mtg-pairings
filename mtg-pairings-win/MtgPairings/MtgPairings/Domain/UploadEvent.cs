@@ -9,7 +9,7 @@ namespace MtgPairings.Domain
         private Tournament newTournament;
         private int number;
 
-        public enum Type {Tournament, Teams, Seatings, Pairings, Results, Pods};
+        public enum Type {Tournament, Name, Teams, Seatings, Pairings, Results, Pods};
 
         public Action UploadAction { get; private set; }
         public Boolean Upload { get; set; }

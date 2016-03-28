@@ -6,21 +6,27 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="API key" Click="MenuItem_Click"/>
         </Menu>
-        <StackPanel Orientation="Horizontal">
-            <ListBox Width="450"
-                 ItemsSource="{Binding Tournaments}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                            <CheckBox IsChecked="{Binding Tracking}"/>
-                            <Label Content="{Binding Tournament.SanctionNumber}"/>
-                            <Label Content="{Binding Tournament.Name}"/>
-                            <Label Content="{Binding Tournament.Date}" ContentStringFormat="dd.MM.yyyy"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-            <ListBox x:Name="EventList" ItemsSource="{Binding Events}" Height="620" Width="450"/>
+        <StackPanel Orientation="Vertical">
+            <StackPanel Orientation="Horizontal" Height="500">
+                <ListBox x:Name="TournamentList" Width="450" ItemsSource="{Binding Tournaments}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <CheckBox IsChecked="{Binding Tracking}"/>
+                                <Label Content="{Binding Tournament.SanctionNumber}"/>
+                                <Label Content="{Binding Name}"/>
+                                <Label Content="{Binding Tournament.Date}" ContentStringFormat="dd.MM.yyyy"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <ListBox x:Name="EventList" ItemsSource="{Binding Events}" Width="440"/>
+            </StackPanel>
+            <Grid Height="105" Width="890">
+                <TextBox x:Name="textBox" HorizontalAlignment="Left" Height="27" Margin="10,41,0,0" TextWrapping="Wrap" Text="{Binding ElementName=TournamentList, Path=SelectedItem.Name}" VerticalAlignment="Top" Width="320"/>
+                <Label x:Name="label" Content="Valittu turnaus" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                <Button x:Name="button" Content="Tallenna" HorizontalAlignment="Left" Margin="372,41,0,0" VerticalAlignment="Top" Width="70" Height="27" Click="Tallenna_Click"/>
+            </Grid>
         </StackPanel>
     </DockPanel>
 </Window>
