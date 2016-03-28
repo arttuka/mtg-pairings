@@ -80,10 +80,20 @@
     (map update-round-data tourns)))
 
 (defn add-tournament [tourn]
-  (when-not (first (sql/select db/tournament
-                     (sql/where {:sanctionid (:sanctionid tourn)})))
+  (if (seq (sql/select db/tournament
+             (sql/where {:sanctionid (:sanctionid tourn)})))
+    (sql/update db/tournament
+      (sql/set-fields (select-keys tourn [:name :organizer :day :rounds]))
+      (sql/where {:sanctionid (:sanctionid tourn)
+                  :owner (:owner tourn)}))
     (sql/insert db/tournament
       (sql/values (select-keys tourn [:name :organizer :day :sanctionid :rounds :owner])))))
+
+(defn save-tournament [sanctionid tourn]
+  (let [tournament-id (sanctionid->id sanctionid)]
+    (sql/update db/tournament
+      (sql/set-fields tourn)
+      (sql/where {:id tournament-id}))))
 
 (defn add-players [players]
   (let [old-players (->> (sql/select db/player)

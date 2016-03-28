@@ -32,6 +32,12 @@
         {:status 204})
       {:status 400
        :body "Virheellinen API key"}))
+  (PUT "/:sanctionid" []
+    :path-params [sanctionid :- s/Str]
+    :query-params [key :- s/Str]
+    :body [tournament {:name s/Str}]
+    (save-tournament sanctionid tournament)
+    {:status 204})
   (GET "/" []
     :return [Tournament]
     :summary "Hae kaikki turnaukset"
