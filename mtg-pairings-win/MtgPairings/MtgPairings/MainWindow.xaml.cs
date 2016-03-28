@@ -31,7 +31,7 @@ namespace MtgPairings
     /// </summary>
     public partial class MainWindow : Window
     {
-        public List<TrackableTournament> Tournaments { get; private set; }
+        public ObservableCollection<TrackableTournament> Tournaments { get; private set; }
         public ObservableCollection<string> Events { get; private set; }
         public ConcurrentQueue<UploadEvent> UploadQueue { get; private set; }
         private Object _eventLock = new Object();
@@ -54,7 +54,8 @@ namespace MtgPairings
             _workerThread = new Thread(_worker.DoUpload);
             _workerThread.IsBackground = true;
             _workerThread.Start();
-            Tournaments = _reader.getAllTournaments().Select(t => new TrackableTournament(t)).ToList();
+            Tournaments = new ObservableCollection<TrackableTournament>(from t in _reader.getAllTournaments()
+                                                                        select new TrackableTournament(t));
             new CheckTournamentsDelegate(CheckTournaments).BeginInvoke(null, null);
         }
 
@@ -67,8 +68,23 @@ namespace MtgPairings
             });
         }
 
+        private void AddNewTournaments()
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                var oldTournaments = Tournaments.Select(t => t.Tournament.TournamentId).ToImmutableHashSet();
+                foreach(var tournament in (from t in _reader.getAllTournaments()
+                                           where !oldTournaments.Contains(t.TournamentId)
+                                           select new TrackableTournament(t)))
+                {
+                    Tournaments.Add(tournament);
+                }
+            });
+        }
+
         public void CheckTournaments()
         {
+            AddNewTournaments();
             foreach (TrackableTournament t in Tournaments.Where(t => t.Tracking))
             {
                 Tournament oldTournament = t.Tournament;
