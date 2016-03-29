@@ -34,6 +34,8 @@ namespace MtgPairings.Service
                     return new LogItem("Turnauksen " + e.Tournament.Name + " tulokset " + e.Round + " lähetetty.");
                 case UploadEvent.Type.Pods:
                     return new LogItem("Turnauksen " + e.Tournament.Name + " podit lähetetty");
+                case UploadEvent.Type.Round:
+                    return new LogItem("Turnauksen " + e.Tournament.Name + " kierros " + e.Round + " poistettu.");
                 default:
                     return new LogItem("");
             }

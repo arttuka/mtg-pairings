@@ -161,7 +161,9 @@ namespace MtgPairings
                         {
                             if ( round.NewRound == null)
                             {
-                                UploadEvent e = new UploadEvent(() => _uploader.DeleteRound(newTournament.SanctionNumber, round.OldRound.Number), t.AutoUpload, newTournament, round.OldRound.Number);
+                                UploadEvent e = new UploadEvent(() => _uploader.DeleteRound(newTournament.SanctionNumber, round.OldRound.Number),
+                                                                t.AutoUpload, newTournament, UploadEvent.Type.Round, round.OldRound.Number);
+                                UploadQueue.Enqueue(e);
                             }
                             else
                             {

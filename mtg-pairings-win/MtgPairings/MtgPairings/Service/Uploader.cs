@@ -113,7 +113,9 @@ namespace MtgPairings.Service
 
         public void DeleteRound(string sanctionid, int round)
         {
-            var request = createRequest("api/tournament/{sanctionid}/round-{round", Method.DELETE);
+            var request = createRequest("api/tournament/{sanctionid}/round-{round}", Method.DELETE);
+            request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
+            request.AddParameter("round", round, ParameterType.UrlSegment);
             Execute(request);
         }
 
