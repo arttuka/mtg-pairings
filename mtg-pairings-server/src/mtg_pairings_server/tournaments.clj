@@ -226,12 +226,13 @@
   (let [tournament-id (sanctionid->id sanction-id)]
     (sql/delete db/seating
       (sql/where {:tournament tournament-id}))
-    (let [dci->id (teams-by-dci tournament-id)]
-      (sql/insert db/seating
-        (sql/values (for [seating seatings]
-                      {:team (dci->id (:team seating))
-                       :table_number (:table_number seating)
-                       :tournament tournament-id}))))))
+    (when (seq seatings)
+      (let [dci->id (teams-by-dci tournament-id)]
+        (sql/insert db/seating
+          (sql/values (for [seating seatings]
+                        {:team (dci->id (:team seating))
+                         :table_number (:table_number seating)
+                         :tournament tournament-id})))))))
 
 (defn ^:private delete-results [round-id]
   (sql/delete db/result
