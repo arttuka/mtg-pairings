@@ -10,32 +10,32 @@ namespace MtgPairings.Service
         private volatile Boolean _running;
         public Boolean Running { get { return _running; } set { _running = value; } }
         private ConcurrentQueue<UploadEvent> _events;
-        private Action<string> _addEvent;
+        private Action<LogItem> _addEvent;
         
-        public UploadWorker(ConcurrentQueue<UploadEvent> events, Action<string> addEvent) {
+        public UploadWorker(ConcurrentQueue<UploadEvent> events, Action<LogItem> addEvent) {
             this._events = events;
             this._addEvent = addEvent;
             this.Running = true;
         }
 
-        private string SuccessEvent(UploadEvent e)
+        private LogItem SuccessEvent(UploadEvent e)
         {
             switch (e.UploadType)
             {
                 case UploadEvent.Type.Tournament:
-                    return "Turnaus " + e.Tournament.Name + " lähetetty.";
+                    return new LogItem("Turnaus " + e.Tournament.Name + " lähetetty.");
                 case UploadEvent.Type.Teams:
-                    return "Turnauksen " + e.Tournament.Name + " tiimit lähetetty.";
+                    return new LogItem("Turnauksen " + e.Tournament.Name + " tiimit lähetetty.");
                 case UploadEvent.Type.Seatings:
-                    return "Turnauksen " + e.Tournament.Name + " seatingit lähetetty.";
+                    return new LogItem("Turnauksen " + e.Tournament.Name + " seatingit lähetetty.");
                 case UploadEvent.Type.Pairings:
-                    return "Turnauksen " + e.Tournament.Name + " pairingit " + e.Round + " lähetetty.";
+                    return new LogItem("Turnauksen " + e.Tournament.Name + " pairingit " + e.Round + " lähetetty.");
                 case UploadEvent.Type.Results:
-                    return "Turnauksen " + e.Tournament.Name + " tulokset " + e.Round + " lähetetty.";
+                    return new LogItem("Turnauksen " + e.Tournament.Name + " tulokset " + e.Round + " lähetetty.");
                 case UploadEvent.Type.Pods:
-                    return "Turnauksen " + e.Tournament.Name + " podit lähetetty";
+                    return new LogItem("Turnauksen " + e.Tournament.Name + " podit lähetetty");
                 default:
-                    return "";
+                    return new LogItem("");
             }
         }
 
@@ -52,12 +52,12 @@ namespace MtgPairings.Service
                     }
                     catch (UploadFailedException ex)
                     {
-                        _addEvent(ex.Message);
+                        _addEvent(new LogItem(ex.Message));
                         Thread.Sleep(10000);
                     }
                     catch (System.Net.WebException)
                     {
-                        _addEvent("Ei yhteyttä palvelimeen");
+                        _addEvent(new LogItem("Ei yhteyttä palvelimeen"));
                         Thread.Sleep(10000);
                     }
                 }

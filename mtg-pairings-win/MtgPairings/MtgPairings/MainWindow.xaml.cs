@@ -32,7 +32,7 @@ namespace MtgPairings
     public partial class MainWindow : Window
     {
         public ObservableCollection<TrackableTournament> Tournaments { get; private set; }
-        public ObservableCollection<string> Events { get; private set; }
+        public ObservableCollection<LogItem> Events { get; private set; }
         public ConcurrentQueue<UploadEvent> UploadQueue { get; private set; }
         private bool _activeOnly;
         public bool ActiveOnly
@@ -61,7 +61,7 @@ namespace MtgPairings
             this.DataContext = this;
             _reader = reader;
             _uploader = uploader;
-            Events = new ObservableCollection<string>();
+            Events = new ObservableCollection<LogItem>();
             UploadQueue = new ConcurrentQueue<UploadEvent>();
             ActiveOnly = true;
             ((CollectionViewSource)this.Resources["FilteredTournaments"]).Filter += (sender, e) =>
@@ -87,11 +87,11 @@ namespace MtgPairings
             }
         }
 
-        private void AddEvent(string s)
+        private void AddEvent(LogItem i)
         {
             this.Dispatcher.Invoke(() =>
             {
-                Events.Add(s);
+                Events.Add(i);
                 EventList.ScrollIntoView(EventList.Items[EventList.Items.Count - 1]);
             });
         }
