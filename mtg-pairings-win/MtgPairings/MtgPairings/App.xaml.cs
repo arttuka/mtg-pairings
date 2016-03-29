@@ -21,6 +21,7 @@ namespace MtgPairings
     {
         private void ApplicationStartup(object sender, StartupEventArgs e)
         {
+            Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             if(Settings.Default.Apikey == "")
             {
                 ApiKeyDialog dialog = new ApiKeyDialog();
@@ -28,6 +29,7 @@ namespace MtgPairings
                 Settings.Default.Apikey = dialog.ApiKey;
                 Settings.Default.Save();
             }
+            Current.ShutdownMode = ShutdownMode.OnMainWindowClose;
             Uploader uploader = new Uploader();
             string dbPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Wizards of the Coast\\Event Reporter\\TournamentData.dat";
             DatabaseReader reader = new DatabaseReader(dbPath);

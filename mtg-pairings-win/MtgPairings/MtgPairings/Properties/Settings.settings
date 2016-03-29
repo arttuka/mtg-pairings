@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="ServerURL" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">http://10.0.2.2:8080/</Value>
+      <Value Profile="(Default)">http://p.mtgsuomi.fi/</Value>
     </Setting>
     <Setting Name="Apikey" Type="System.String" Scope="User">
       <Value Profile="(Default)" />
