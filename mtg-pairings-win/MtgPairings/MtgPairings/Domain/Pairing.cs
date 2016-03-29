@@ -1,4 +1,6 @@
 ﻿using MtgPairings.Functional;
+using System.Collections.Generic;
+using System;
 
 namespace MtgPairings.Domain
 {
@@ -41,21 +43,29 @@ namespace MtgPairings.Domain
             }
         }
 
-        public bool PairingEquals(Pairing other)
+        public class PairingEqualityComparer : IEqualityComparer<Pairing>
         {
-            if (other == null)
+            public bool Equals(Pairing left, Pairing right)
             {
-                return false;
+                if (left == null || right == null)
+                {
+                    return left == null && right == null;
+                }
+                else if (ReferenceEquals(left, right))
+                {
+                    return true;
+                }
+                else
+                {
+                    return left.Table == right.Table &&
+                           left.Team1.Equals(right.Team1) &&
+                           left.Team2.Equals(right.Team2);
+                }
             }
-            else if (ReferenceEquals(other, this))
+
+            public int GetHashCode(Pairing obj)
             {
-                return true;
-            }
-            else
-            {
-                return this.Table == other.Table &&
-                       this.Team1.Equals(other.Team1) &&
-                       this.Team2.Equals(other.Team2);
+                return obj.GetHashCode();
             }
         }
     }
