@@ -212,13 +212,14 @@ namespace MtgPairings.Data
                                           t["EventInformation"].ToString(),
                                           t["OrgName"].ToString(),
                                           Convert.ToInt32(t["NumberOfRounds"]),
+                                          Convert.ToInt32(t["Status"]) == 1 && Convert.ToBoolean(t["IsStarted"]),
                                           date,
                                           rounds,
                                           teams,
                                           seatings,
                                           pods);
                 },
-                "SELECT SanctionId, Title, EventInformation, OrgName, NumberOfRounds, StartDate FROM Tournament " +
+                "SELECT SanctionId, Title, EventInformation, OrgName, NumberOfRounds, Status, IsStarted, StartDate FROM Tournament " +
                 "WHERE (TournamentId = ?)",
                 new object[] {tournamentId}).First();
         }
@@ -232,12 +233,13 @@ namespace MtgPairings.Data
                                     t["EventInformation"].ToString(),
                                     t["OrgName"].ToString(),
                                     Convert.ToInt32(t["NumberOfRounds"]),
+                                    Convert.ToInt32(t["Status"]) == 1 && Convert.ToBoolean(t["IsStarted"]),
                                     Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
                                     ImmutableList<Round>.Empty,
                                     ImmutableList<Team>.Empty,
                                     ImmutableList<Seating>.Empty,
                                     ImmutableList<PodRound>.Empty),
-                "SELECT TournamentId, SanctionId, Title, EventInformation, OrgName, NumberOfRounds, StartDate FROM Tournament"
+                "SELECT TournamentId, SanctionId, Title, EventInformation, OrgName, NumberOfRounds, Status, IsStarted, StartDate FROM Tournament"
               ).ToImmutableList();
         }
     }

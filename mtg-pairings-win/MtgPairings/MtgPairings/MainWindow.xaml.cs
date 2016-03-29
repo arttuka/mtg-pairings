@@ -34,6 +34,19 @@ namespace MtgPairings
         public ObservableCollection<TrackableTournament> Tournaments { get; private set; }
         public ObservableCollection<string> Events { get; private set; }
         public ConcurrentQueue<UploadEvent> UploadQueue { get; private set; }
+        private bool _activeOnly;
+        public bool ActiveOnly
+        {
+            get { return _activeOnly; }
+            set
+            {
+                if (value != _activeOnly)
+                {
+                    _activeOnly = value;
+                    RefreshTournamentView();
+                }
+            }
+        }
         private Object _eventLock = new Object();
         private DatabaseReader _reader;
         private Uploader _uploader;
@@ -50,6 +63,12 @@ namespace MtgPairings
             _uploader = uploader;
             Events = new ObservableCollection<string>();
             UploadQueue = new ConcurrentQueue<UploadEvent>();
+            ActiveOnly = true;
+            ((CollectionViewSource)this.Resources["FilteredTournaments"]).Filter += (sender, e) =>
+            {
+                TrackableTournament t = e.Item as TrackableTournament;
+                e.Accepted = !ActiveOnly || t.Tournament.Active;
+            };
             _worker = new UploadWorker(this.UploadQueue, this.AddEvent);
             _workerThread = new Thread(_worker.DoUpload);
             _workerThread.IsBackground = true;
@@ -57,6 +76,15 @@ namespace MtgPairings
             Tournaments = new ObservableCollection<TrackableTournament>(from t in _reader.getAllTournaments()
                                                                         select new TrackableTournament(t));
             new CheckTournamentsDelegate(CheckTournaments).BeginInvoke(null, null);
+        }
+
+        private void RefreshTournamentView()
+        {
+            var view = ((CollectionViewSource)this.Resources["FilteredTournaments"]).View;
+            if (view != null)
+            {
+                view.Refresh();
+            }
         }
 
         private void AddEvent(string s)
@@ -68,23 +96,33 @@ namespace MtgPairings
             });
         }
 
-        private void AddNewTournaments()
+        private void AddNewAndActiveTournaments()
         {
             this.Dispatcher.Invoke(() =>
             {
-                var oldTournaments = Tournaments.Select(t => t.Tournament.TournamentId).ToImmutableHashSet();
-                foreach(var tournament in (from t in _reader.getAllTournaments()
-                                           where !oldTournaments.Contains(t.TournamentId)
+                var oldTournaments = Tournaments.ToDictionary(t => t.Tournament.TournamentId);
+                var newTournaments = _reader.getAllTournaments();
+                foreach(var tournament in (from t in newTournaments
+                                           where !oldTournaments.ContainsKey(t.TournamentId)
                                            select new TrackableTournament(t)))
                 {
                     Tournaments.Add(tournament);
                 }
+                foreach(var tournament in newTournaments)
+                {
+                    if(oldTournaments.ContainsKey(tournament.TournamentId))
+                    {
+                        var oldTournament = oldTournaments[tournament.TournamentId];
+                        oldTournament.Tournament = oldTournament.Tournament.WithActive(tournament.Active);
+                    }
+                }
+                RefreshTournamentView();
             });
         }
 
         public void CheckTournaments()
         {
-            AddNewTournaments();
+            AddNewAndActiveTournaments();
             foreach (TrackableTournament t in Tournaments.Where(t => t.Tracking))
             {
                 Tournament oldTournament = t.Tournament;

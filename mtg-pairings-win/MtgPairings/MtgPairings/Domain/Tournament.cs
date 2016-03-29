@@ -12,13 +12,14 @@ namespace MtgPairings.Domain
         public string Organizer { get; private set; }
         public int RoundCount { get; private set; }
         public string SanctionNumber { get; private set; }
+        public bool Active { get; private set; }
         public LocalDate Date { get; private set; }
         public ImmutableList<Round> Rounds { get; private set; }
         public ImmutableList<Team> Teams { get; private set; }
         public ImmutableList<Seating> Seatings { get; private set; }
         public ImmutableList<PodRound> Pods { get; private set; }
 
-        public Tournament(int tournamentId, string sanctionNumber, string name, string information, string organizer, int roundCount, LocalDate date, ImmutableList<Round> rounds, ImmutableList<Team> teams, ImmutableList<Seating> seatings, ImmutableList<PodRound> pods)
+        public Tournament(int tournamentId, string sanctionNumber, string name, string information, string organizer, int roundCount, bool active, LocalDate date, ImmutableList<Round> rounds, ImmutableList<Team> teams, ImmutableList<Seating> seatings, ImmutableList<PodRound> pods)
         {
             TournamentId = tournamentId;
             SanctionNumber = sanctionNumber;
@@ -26,6 +27,7 @@ namespace MtgPairings.Domain
             Information = information;
             Organizer = organizer;
             RoundCount = roundCount;
+            Active = active;
             Date = date;
             Rounds = rounds;
             Teams = teams;
@@ -35,7 +37,12 @@ namespace MtgPairings.Domain
 
         public Tournament WithName(string name)
         {
-            return new Tournament(TournamentId, SanctionNumber, name, Information, Organizer, RoundCount, Date, Rounds, Teams, Seatings, Pods);
+            return new Tournament(TournamentId, SanctionNumber, name, Information, Organizer, RoundCount, Active, Date, Rounds, Teams, Seatings, Pods);
+        }
+
+        public Tournament WithActive(bool active)
+        {
+            return new Tournament(TournamentId, SanctionNumber, Name, Information, Organizer, RoundCount, active, Date, Rounds, Teams, Seatings, Pods);
         }
 
         public override bool Equals(object obj)
@@ -61,6 +68,7 @@ namespace MtgPairings.Domain
                        this.Information == other.Information &&
                        this.Organizer == other.Organizer &&
                        this.RoundCount == other.RoundCount &&
+                       this.Active == other.Active &&
                        this.Date.Equals(other.Date) &&
                        this.Rounds.SequenceEqual(other.Rounds) &&
                        this.Teams.SequenceEqual(other.Teams) &&

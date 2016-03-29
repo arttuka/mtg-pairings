@@ -2,13 +2,19 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="654" Width="900">
+    <Window.Resources>
+        <CollectionViewSource x:Key="FilteredTournaments"
+                              Source="{Binding Tournaments}"
+                              IsLiveFilteringRequested="True"/>
+    </Window.Resources>
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="API key" Click="MenuItem_Click"/>
         </Menu>
         <StackPanel Orientation="Vertical">
-            <StackPanel Orientation="Horizontal" Height="500">
-                <ListBox x:Name="TournamentList" Width="450" ItemsSource="{Binding Tournaments}">
+            <CheckBox x:Name="ActiveCheckBox" Content="Vain aktiiviset" IsChecked="{Binding ActiveOnly}"/>
+            <StackPanel Orientation="Horizontal" Height="518">
+                <ListBox x:Name="TournamentList" Width="450" ItemsSource="{Binding Source={StaticResource FilteredTournaments}}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
