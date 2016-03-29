@@ -4,8 +4,8 @@ angular.module('services', [])
   function duplicatePairing(p) {
     return {
       draws: p.draws,
-      losses: p.wins,
-      wins: p.losses,
+      team1_wins: p.team2_wins,
+      team2_wins: p.team1_wins,
       team1_name: p.team2_name,
       team2_name: p.team1_name,
       team1_points: p.team2_points,
