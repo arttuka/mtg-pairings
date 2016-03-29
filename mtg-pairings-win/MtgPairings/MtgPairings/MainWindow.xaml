@@ -12,9 +12,9 @@
             <MenuItem Header="API key" Click="MenuItem_Click"/>
         </Menu>
         <StackPanel Orientation="Vertical">
-            <CheckBox x:Name="ActiveCheckBox" Content="Vain aktiiviset" IsChecked="{Binding ActiveOnly}"/>
-            <StackPanel Orientation="Horizontal" Height="518">
-                <ListBox x:Name="TournamentList" Width="450" ItemsSource="{Binding Source={StaticResource FilteredTournaments}}">
+            <CheckBox x:Name="ActiveCheckBox" Content="Vain aktiiviset" IsChecked="{Binding ActiveOnly}" Height="20"/>
+            <StackPanel Orientation="Horizontal" Height="518" Width="880">
+                <ListBox x:Name="TournamentList" Width="450" ItemsSource="{Binding Mode=OneWay, Source={StaticResource FilteredTournaments}}" Margin="0,10">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
@@ -26,12 +26,12 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </ListBox>
-                <ListBox x:Name="EventList" ItemsSource="{Binding Events}" Width="440"/>
+                <ListBox x:Name="EventList" ItemsSource="{Binding Events}" Width="439" Margin="0,10"/>
             </StackPanel>
-            <Grid Height="105" Width="890">
-                <TextBox x:Name="textBox" HorizontalAlignment="Left" Height="27" Margin="10,41,0,0" TextWrapping="Wrap" Text="{Binding ElementName=TournamentList, Path=SelectedItem.Name}" VerticalAlignment="Top" Width="320"/>
+            <Grid Height="72" Width="890">
+                <TextBox x:Name="textBox" HorizontalAlignment="Left" Height="27" Margin="107,10,0,0" TextWrapping="Wrap" Text="{Binding SelectedItem.Name, ElementName=TournamentList}" VerticalAlignment="Top" Width="320"/>
                 <Label x:Name="label" Content="Valittu turnaus" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                <Button x:Name="button" Content="Tallenna" HorizontalAlignment="Left" Margin="372,41,0,0" VerticalAlignment="Top" Width="70" Height="27" Click="Tallenna_Click"/>
+                <Button x:Name="button" Content="Tallenna" HorizontalAlignment="Left" Margin="432,10,0,0" VerticalAlignment="Top" Width="70" Height="27" Click="Tallenna_Click"/>
             </Grid>
         </StackPanel>
     </DockPanel>
