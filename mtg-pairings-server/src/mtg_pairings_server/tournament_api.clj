@@ -123,6 +123,14 @@
     (validate-request sanctionid key
       (reset-tournament sanctionid)
       {:status 204}))
+  (DELETE "/:sanctionid/round-:round" []
+    :path-params [sanctionid :- s/Str
+                  round :- s/Int]
+    :query-params [key :- s/Str]
+    :summary "Poista turnauksesta kierros"
+    (validate-request sanctionid key
+      (delete-round sanctionid round)
+      {:status 204}))
   (PUT "/:sanctionid/pods" []
     :summary "Lisää draftipodin tiedot"
     :query-params [key :- String]

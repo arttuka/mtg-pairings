@@ -142,6 +142,8 @@
     (sql/where (sql/sqlfn "exists" (sql/subselect db/round
                                      (sql/where {:tournament tournament-id
                                                  :id :pairing.round})))))
+  (sql/delete db/standings
+    (sql/where {:tournament tournament-id}))
   (sql/delete db/round
     (sql/where {:tournament tournament-id})))
 
@@ -365,6 +367,26 @@
                                (sql/where {:tournament tournament-id
                                            :num round-num}))))]
     (map #(dissoc % :team1 :team2) (results-of-round round-id))))
+
+(defn delete-round [sanction-id round-num]
+  (let [tournament-id (sanctionid->id sanction-id)]
+    (sql/delete db/standings
+      (sql/where {:tournament tournament-id
+                  :round round-num}))
+    (sql/delete db/result
+      (sql/where (sql/sqlfn "exists" (sql/subselect db/pairing
+                                       (sql/where {:pairing.id :result.pairing})
+                                       (sql/with db/round
+                                         (sql/where {:tournament tournament-id
+                                                     :num round-num}))))))
+    (sql/delete db/pairing
+      (sql/where (sql/sqlfn "exists" (sql/subselect db/round
+                                       (sql/where {:tournament tournament-id
+                                                   :round.id :pairing.round
+                                                   :num round-num})))))
+    (sql/delete db/round
+      (sql/where {:tournament tournament-id
+                  :num round-num}))))
 
 (defn add-pods [sanction-id pods]
   (let [tournament-id (sanctionid->id sanction-id)
