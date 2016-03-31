@@ -1,7 +1,7 @@
 ﻿<Window x:Class="MtgPairings.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MtgSuomi Pairings" Height="654" Width="900">
+        Title="MtgSuomi Pairings" Height="693" Width="900">
     <Window.Resources>
         <CollectionViewSource x:Key="FilteredTournaments"
                               Source="{Binding Tournaments}"
@@ -37,10 +37,20 @@
                     </ListBox.ItemTemplate>
                 </ListBox>
             </StackPanel>
-            <Grid Height="72" Width="890">
+            <Grid Height="106" Width="890">
                 <TextBox x:Name="textBox" HorizontalAlignment="Left" Height="27" Margin="107,10,0,0" TextWrapping="Wrap" Text="{Binding SelectedItem.Name, ElementName=TournamentList}" VerticalAlignment="Top" Width="320"/>
                 <Label x:Name="label" Content="Valittu turnaus" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                <Button x:Name="button" Content="Tallenna" HorizontalAlignment="Left" Margin="432,10,0,0" VerticalAlignment="Top" Width="70" Height="27" Click="Tallenna_Click"/>
+                <Button x:Name="tallenna_button" Content="Tallenna" HorizontalAlignment="Left" Margin="432,10,0,0" VerticalAlignment="Top" Width="70" Height="27" Click="Tallenna_Click"/>
+                <Button x:Name="poista_button" Content="Poista turnaus palvelimelta" HorizontalAlignment="Left" Margin="527,10,0,0" VerticalAlignment="Top" Width="170" Height="27" Click="Poista_Click">
+                </Button>
+                <Label x:Name="label1" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top" Width="417"
+                       Visibility="{Binding Path=SelectedItem.ServerId, ElementName=TournamentList, TargetNullValue=Collapsed }">
+                    <Hyperlink NavigateUri="{Binding SelectedItem.OrganizerURL, ElementName=TournamentList}"
+                               RequestNavigate="Hyperlink_RequestNavigate">
+                        <Run Text="{Binding SelectedItem.OrganizerURL, ElementName=TournamentList, Mode=OneWay}"/>
+                    </Hyperlink>
+                </Label>
+
             </Grid>
         </StackPanel>
     </DockPanel>

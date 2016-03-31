@@ -20,7 +20,7 @@
 
 (defroutes tournament-routes
   (POST "/" request
-    :return Tournament
+    :return {:id s/Int}
     :summary "Lisää turnaus"
     :query-params [key :- String]
     :body [tournament InputTournament {:description "Uusi turnaus"}]
@@ -28,8 +28,7 @@
       (let [tournament (-> tournament
                            (update-in [:day] clj-time.coerce/to-local-date)
                            (assoc :owner user))]
-        (add-tournament tournament)
-        {:status 204})
+        (response (select-keys (add-tournament tournament) [:id])))
       {:status 400
        :body "Virheellinen API key"}))
   (PUT "/:sanctionid" []
@@ -121,7 +120,7 @@
     :summary "Poistaa kaikki turnauksen tiedot"
     :query-params [key :- String]
     (validate-request sanctionid key
-      (reset-tournament sanctionid)
+      (delete-tournament sanctionid)
       {:status 204}))
   (DELETE "/:sanctionid/round-:round" []
     :path-params [sanctionid :- s/Str

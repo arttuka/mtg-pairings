@@ -82,10 +82,13 @@
 (defn add-tournament [tourn]
   (if (seq (sql/select db/tournament
              (sql/where {:sanctionid (:sanctionid tourn)})))
-    (sql/update db/tournament
-      (sql/set-fields (select-keys tourn [:name :organizer :day :rounds]))
-      (sql/where {:sanctionid (:sanctionid tourn)
-                  :owner (:owner tourn)}))
+    (do
+      (sql/update db/tournament
+        (sql/set-fields (select-keys tourn [:name :organizer :day :rounds]))
+        (sql/where {:sanctionid (:sanctionid tourn)
+                    :owner (:owner tourn)}))
+      (first (sql/select db/tournament
+               (sql/where {:sanctionid (:sanctionid tourn)}))))
     (sql/insert db/tournament
       (sql/values (select-keys tourn [:name :organizer :day :sanctionid :rounds :owner])))))
 
@@ -406,7 +409,7 @@
                      :seat (:seat seat)
                      :team (dci->id (:team seat))})))))
 
-(defn reset-tournament [sanction-id]
+(defn delete-tournament [sanction-id]
   (let [tournament-id (sanctionid->id sanction-id)]
     (doseq [round (doall (map :id (sql/select db/round
                                     (sql/where {:tournament tournament-id})
@@ -418,4 +421,6 @@
     (delete-seatings tournament-id)
     (delete-pods tournament-id)
     (delete-teams tournament-id)
-    (delete-standings tournament-id)))
+    (delete-standings tournament-id)
+    (sql/delete db/tournament
+      (sql/where {:id tournament-id}))))
