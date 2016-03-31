@@ -24,6 +24,8 @@ namespace MtgPairings.Service
             {
                 case UploadEvent.Type.Tournament:
                     return new LogItem("Turnaus " + e.Tournament.Name + " lähetetty.");
+                case UploadEvent.Type.DeleteTournament:
+                    return new LogItem("Turnaus " + e.Tournament.Name + " poistettu.");
                 case UploadEvent.Type.Teams:
                     return new LogItem("Turnauksen " + e.Tournament.Name + " tiimit lähetetty.");
                 case UploadEvent.Type.Seatings:

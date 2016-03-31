@@ -80,6 +80,13 @@ namespace MtgPairings.Service
             t.ServerId = response.Data.Id;
         }
 
+        public void DeleteTournament(string sanctionid)
+        {
+            var request = createRequest("api/tournament/{sanctionid}", Method.DELETE);
+            request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
+            Execute(request);
+        }
+
         public void UploadName(string sanctionid, string name)
         {
             var request = createRequest("api/tournament/{sanctionid}", Method.PUT,

@@ -24,6 +24,7 @@ using MtgPairings.Functional;
 using System.Collections.ObjectModel;
 using MtgPairings.Properties;
 using System.Diagnostics;
+using WPFCustomMessageBox;
 
 namespace MtgPairings
 {
@@ -129,15 +130,16 @@ namespace MtgPairings
                 Tournament oldTournament = t.Tournament;
                 Tournament newTournament = _reader.getTournament(t.Tournament.TournamentId).WithName(t.Name);
                 t.Tournament = newTournament;
+                Boolean uploadAll = false;
                 if (!t.TournamentUploaded)
                 {
                     UploadEvent e = new UploadEvent(() => _uploader.UploadTournament(t), t.AutoUpload, newTournament, UploadEvent.Type.Tournament, 0);
                     UploadQueue.Enqueue(e);
                     t.TournamentUploaded = true;
+                    uploadAll = true;
                 }
-                if (!oldTournament.Equals(newTournament))
+                if (!oldTournament.Equals(newTournament) || uploadAll)
                 {
-                    Boolean uploadAll = false;
                     if (!oldTournament.Teams.SequenceEqual(newTournament.Teams))
                     {
                         UploadEvent e = new UploadEvent(() => _uploader.UploadTeams(newTournament.SanctionNumber, newTournament.Teams),
@@ -218,6 +220,24 @@ namespace MtgPairings
         {
             Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
             e.Handled = true;
+        }
+
+        private void Poista_Click(object sender, RoutedEventArgs e)
+        {
+            var tournament = (TrackableTournament)TournamentList.SelectedItem;
+            var confirm = CustomMessageBox.ShowYesNo(
+                "Haluatko varmasti poistaa turnauksen " + tournament.Tournament.SanctionNumber + " " + tournament.Name + "?",
+                "Oletko varma?",
+                "Poista",
+                "Peruuta");
+            if(confirm == MessageBoxResult.Yes)
+            {
+                UploadEvent ev = new UploadEvent(() => _uploader.DeleteTournament(tournament.Tournament.SanctionNumber),
+                                                 tournament.AutoUpload, tournament.Tournament, UploadEvent.Type.DeleteTournament, 0);
+                UploadQueue.Enqueue(ev);
+                tournament.Tracking = false;
+                tournament.TournamentUploaded = false;
+            }
         }
     }
 }
