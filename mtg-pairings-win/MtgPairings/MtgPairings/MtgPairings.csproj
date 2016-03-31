@@ -84,6 +84,7 @@
     <Compile Include="ApiKeyDialog.xaml.cs">
       <DependentUpon>ApiKeyDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Domain\TournamentId.cs" />
     <Compile Include="Domain\LogItem.cs" />
     <Compile Include="Domain\PodRound.cs" />
     <Compile Include="Domain\Seat.cs" />

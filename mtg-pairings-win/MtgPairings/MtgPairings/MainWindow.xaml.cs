@@ -23,6 +23,7 @@ using System.ComponentModel;
 using MtgPairings.Functional;
 using System.Collections.ObjectModel;
 using MtgPairings.Properties;
+using System.Diagnostics;
 
 namespace MtgPairings
 {
@@ -127,9 +128,10 @@ namespace MtgPairings
             {
                 Tournament oldTournament = t.Tournament;
                 Tournament newTournament = _reader.getTournament(t.Tournament.TournamentId).WithName(t.Name);
+                t.Tournament = newTournament;
                 if (!t.TournamentUploaded)
                 {
-                    UploadEvent e = new UploadEvent(() => _uploader.UploadTournament(newTournament), t.AutoUpload, newTournament, UploadEvent.Type.Tournament, 0);
+                    UploadEvent e = new UploadEvent(() => _uploader.UploadTournament(t), t.AutoUpload, newTournament, UploadEvent.Type.Tournament, 0);
                     UploadQueue.Enqueue(e);
                     t.TournamentUploaded = true;
                 }
@@ -185,7 +187,6 @@ namespace MtgPairings
                             }
                         }
                     }
-                    t.Tournament = newTournament;
                 }
             }
 
@@ -211,6 +212,12 @@ namespace MtgPairings
                 UploadQueue.Enqueue(ev);
                 tournament.Tournament = tournament.Tournament.WithName(tournament.Name);
             }
+        }
+
+        private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+            e.Handled = true;
         }
     }
 }

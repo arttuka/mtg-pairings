@@ -19,11 +19,7 @@ namespace MtgPairings.Service
             var client = new RestClient(Settings.Default.ServerURL);
             request.AddParameter("key", Settings.Default.Apikey, ParameterType.QueryString);
             var response = client.Execute<T>(request);
-            if (response.ErrorException != null)
-            {
-                throw response.ErrorException;
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.NoContent)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK || response.StatusCode == System.Net.HttpStatusCode.NoContent)
             {
                 return response;
             }
@@ -68,19 +64,20 @@ namespace MtgPairings.Service
             return request;
         }
 
-        public void UploadTournament(Tournament t)
+        public void UploadTournament(TrackableTournament t)
         {
             var request = createRequest("api/tournament/", Method.POST,
                 new
                 {
                     name = t.Name,
-                    organizer = t.Organizer,
-                    day = t.Date.ToString("yyyy-MM-dd", null),
-                    rounds = t.RoundCount,
-                    sanctionid = t.SanctionNumber,
+                    organizer = t.Tournament.Organizer,
+                    day = t.Tournament.Date.ToString("yyyy-MM-dd", null),
+                    rounds = t.Tournament.RoundCount,
+                    sanctionid = t.Tournament.SanctionNumber,
                     tracking = true
                 });
-            Execute(request);
+            var response = Execute<TournamentId>(request);
+            t.ServerId = response.Data.Id;
         }
 
         public void UploadName(string sanctionid, string name)
