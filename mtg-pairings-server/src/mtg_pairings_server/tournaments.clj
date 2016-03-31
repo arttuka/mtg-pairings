@@ -406,7 +406,7 @@
                      :seat (:seat seat)
                      :team (dci->id (:team seat))})))))
 
-(defn reset-tournament [sanction-id]
+(defn delete-tournament [sanction-id]
   (let [tournament-id (sanctionid->id sanction-id)]
     (doseq [round (doall (map :id (sql/select db/round
                                     (sql/where {:tournament tournament-id})
@@ -418,4 +418,6 @@
     (delete-seatings tournament-id)
     (delete-pods tournament-id)
     (delete-teams tournament-id)
-    (delete-standings tournament-id)))
+    (delete-standings tournament-id)
+    (sql/delete db/tournament
+      (sql/where {:id tournament-id}))))

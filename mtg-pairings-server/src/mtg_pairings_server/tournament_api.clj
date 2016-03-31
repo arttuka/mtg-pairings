@@ -121,7 +121,7 @@
     :summary "Poistaa kaikki turnauksen tiedot"
     :query-params [key :- String]
     (validate-request sanctionid key
-      (reset-tournament sanctionid)
+      (delete-tournament sanctionid)
       {:status 204}))
   (DELETE "/:sanctionid/round-:round" []
     :path-params [sanctionid :- s/Str
