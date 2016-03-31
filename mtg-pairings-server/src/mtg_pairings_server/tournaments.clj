@@ -82,10 +82,13 @@
 (defn add-tournament [tourn]
   (if (seq (sql/select db/tournament
              (sql/where {:sanctionid (:sanctionid tourn)})))
-    (sql/update db/tournament
-      (sql/set-fields (select-keys tourn [:name :organizer :day :rounds]))
-      (sql/where {:sanctionid (:sanctionid tourn)
-                  :owner (:owner tourn)}))
+    (do
+      (sql/update db/tournament
+        (sql/set-fields (select-keys tourn [:name :organizer :day :rounds]))
+        (sql/where {:sanctionid (:sanctionid tourn)
+                    :owner (:owner tourn)}))
+      (first (sql/select db/tournament
+               (sql/where {:sanctionid (:sanctionid tourn)}))))
     (sql/insert db/tournament
       (sql/values (select-keys tourn [:name :organizer :day :sanctionid :rounds :owner])))))
 
