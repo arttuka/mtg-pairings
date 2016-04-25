@@ -3,7 +3,7 @@
             [clj-time.format :as time]))
 
 (defn map-values
-  "Returns a map consisting of the keys of m mapped to 
+  "Returns a map consisting of the keys of m mapped to
 the result of applying f to the value of that key in m.
 Function f should accept one argument."
   [f m]
@@ -44,3 +44,11 @@ Function f should accept one argument."
 
 (defn parse-date [date]
   (time/parse-local-date (time/formatters :year-month-day) date))
+
+(defn group-kv [keyfn valfn coll]
+  (persistent!
+    (reduce
+      (fn [ret x]
+        (let [k (keyfn x)]
+          (assoc! ret k (conj (get ret k []) (valfn x)))))
+      (transient {}) coll)))
