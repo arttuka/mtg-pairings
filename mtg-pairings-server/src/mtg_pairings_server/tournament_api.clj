@@ -58,12 +58,12 @@
     :return [Pairing]
     :summary "Hae yhden kierroksen tulokset"
     (response (get-round id round)))
-  (GET "/:id/round-:round/standings" request
+  (GET "/:id/round-:round/standings" []
     :path-params [id :- s/Int
                   round :- s/Int]
     :return [Standing]
     :summary "Hae kierroksen jälkeiset standingsit"
-    (response (standings-for-api id round (get-in request [:params :secret]))))
+    (response (standings-for-api id round false)))
   (GET "/:id/seatings" []
     :path-params [id :- s/Int]
     :summary "Hae seatingit"
@@ -73,6 +73,13 @@
                   number :- s/Int]
     :summary "Hae podit"
     (response (pods id number)))
+  (GET "/:id/coverage" []
+    :path-params [id :- s/Int]
+    :query-params [key :- s/Str]
+    :summary "Hae coveragen käyttöön uusimmat standingit, pairingit ja pelaajien historia"
+    (let [sanction-id (id->sanctionid id)]
+      (validate-request sanction-id key
+        (response (coverage id)))))
   (PUT "/:sanctionid/round-:round/pairings" []
     :path-params [sanctionid :- s/Str
                   round :- s/Int]

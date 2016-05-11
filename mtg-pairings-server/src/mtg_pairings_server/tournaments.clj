@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.tournaments
-  (:require [korma.core :as sql]
+  (:require [clojure.set :refer [rename-keys]]
+            [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
             [mtg-pairings-server.mtg-util :as mtg-util]
             [mtg-pairings-server.util :as util]
@@ -28,6 +29,13 @@
       (sql/select db/tournament
         (sql/fields :id)
         (sql/where {:sanctionid sanction-id})))))
+
+(defn id->sanctionid [id]
+  (:sanctionid
+    (first
+      (sql/select db/tournament
+        (sql/fields :sanctionid)
+        (sql/where {:id id})))))
 
 (def ^:private select-tournaments
   (->
@@ -224,19 +232,19 @@
       (sql/order :pod.number)
       (sql/order :seat))))
 
-(defn standings [tournament-id round-num secret]
+(defn standings [tournament-id round-num hidden?]
   (-> (sql/select db/standings
        (sql/where (and {:tournament tournament-id
                         :round round-num}
-                       (or (= secret "secret")
+                       (or hidden?
                            (not :hidden)))))
       first
       :standings
       edn/read-string))
 
-(defn standings-for-api [tournament-id round-num secret]
+(defn standings-for-api [tournament-id round-num hidden?]
   (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw Double])
-       (standings tournament-id round-num secret)))
+       (standings tournament-id round-num hidden?)))
 
 (defn ^:private get-or-add-round [tournament-id round-num]
   (if-let [old-round (first (sql/select db/round
@@ -455,3 +463,40 @@
     (delete-standings tournament-id)
     (sql/delete db/tournament
       (sql/where {:id tournament-id}))))
+
+(defn ^:private get-matches-by-team [tournament-id]
+  (let [results (sql/select db/pairing
+                  (sql/fields :team1
+                              :team2)
+                  (sql/with db/team1
+                    (sql/fields [:name :team1_name]))
+                  (sql/with db/team2
+                    (sql/fields [:name :team2_name]))
+                  (sql/with db/round
+                    (sql/fields [:num :round_number])
+                    (sql/where {:tournament tournament-id}))
+                  (sql/with db/result
+                    (sql/fields :team1_wins
+                                :team2_wins
+                                :draws)))
+        all-results (sort-by :round_number
+                             (mapcat (fn [result]
+                                       [result (rename-keys result {:team1      :team2
+                                                                    :team2      :team1
+                                                                    :team1_name :team2_name
+                                                                    :team2_name :team1_name
+                                                                    :team1_wins :team2_wins
+                                                                    :team2_wins :team1_wins})]) results))]
+    (group-by :team1 all-results)))
+
+(defn coverage [tournament-id]
+  (let [round-num (:num (first (sql/select db/round
+                                 (sql/where {:tournament tournament-id})
+                                 (sql/order :num :desc)
+                                 (sql/limit 1))))
+        pairings (get-round tournament-id round-num)
+        matches-by-team (get-matches-by-team tournament-id)
+        standings (standings-for-api tournament-id round-num true)]
+    {:pairings pairings
+     :matches matches-by-team
+     :standings standings}))
