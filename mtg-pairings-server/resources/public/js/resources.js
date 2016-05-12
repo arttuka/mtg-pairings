@@ -22,6 +22,10 @@ angular.module('resources', [])
       method: 'GET',
       url: '/api/tournament/:id/pods-:number',
       isArray: true
+    },
+    coverage: {
+      method: 'GET',
+      url: 'api/tournament/:id/coverage'
     }
   });
 })

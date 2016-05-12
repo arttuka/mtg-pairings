@@ -373,13 +373,12 @@
                                   [(:num r) (results-of-round (:id r))]))
         round-num (:num (first rounds))
         round-id (:id (first rounds))]
-    (when (every? :team1_wins (rounds-results round-num))
-      (let [std (mtg-util/calculate-standings rounds-results round-num)]
-        (sql/insert db/standings
-          (sql/values {:standings  (pr-str std)
-                       :tournament tournament-id
-                       :round      round-num
-                       :hidden     false}))))))
+    (let [std (mtg-util/calculate-standings rounds-results round-num)]
+      (sql/insert db/standings
+        (sql/values {:standings  (pr-str std)
+                     :tournament tournament-id
+                     :round      round-num
+                     :hidden     (not-every? :team1_wins (rounds-results round-num))})))))
 
 (defn add-results [sanction-id round-num results]
   (let [tournament-id (sanctionid->id sanction-id)
@@ -467,7 +466,10 @@
 (defn ^:private get-matches-by-team [tournament-id]
   (let [results (sql/select db/pairing
                   (sql/fields :team1
-                              :team2)
+                              :team2
+                              :team1_points
+                              :team2_points
+                              :table_number)
                   (sql/with db/team1
                     (sql/fields [:name :team1_name]))
                   (sql/with db/team2
@@ -479,15 +481,14 @@
                     (sql/fields :team1_wins
                                 :team2_wins
                                 :draws)))
-        all-results (sort-by :round_number
+        all-results (sort-by :round_number >
                              (mapcat (fn [result]
-                                       [result (rename-keys result {:team1      :team2
-                                                                    :team2      :team1
-                                                                    :team1_name :team2_name
-                                                                    :team2_name :team1_name
-                                                                    :team1_wins :team2_wins
-                                                                    :team2_wins :team1_wins})]) results))]
-    (group-by :team1 all-results)))
+                                       (let [result (if-not (:team2 result)
+                                                      (merge result {:team2_name "***BYE***"
+                                                                      :team2_points 0})
+                                                      result)]
+                                         [result (mtg-util/reverse-match result)])) results))]
+    (group-by :team1_name all-results)))
 
 (defn coverage [tournament-id]
   (let [round-num (:num (first (sql/select db/round

@@ -1,0 +1,113 @@
+<style type="text/css">#header { display: none; } .popover .pairing {margin-left:0 !important;}</style>
+<script type="text/ng-template" id="standing-match-history.html">
+  <div>
+    <div ng-repeat="match in matches[s.team_name]">
+      <pairing model="match" even="$even" display-round="true"/>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="p1-match-history.html">
+  <div>
+    <div ng-repeat="match in matches[p.team1_name]">
+      <pairing model="match" even="$even" display-round="true"/>
+    </div>
+  </div>
+</script>
+<script type="text/ng-template" id="p2-match-history.html">
+  <div>
+    <div ng-repeat="match in matches[p.team2_name]">
+      <pairing model="match" even="$even" display-round="true"/>
+    </div>
+  </div>
+</script>
+<div id="coverage">
+  <div id="apikey" ng-show="showApikey">
+    <input ng-model="apikey" type="text" size="36">
+    <button ng-click="setApikey()">Tallenna</button>
+    <span class="error">{{ error.data }}</span>
+  </div>
+  <table class="standings-table">
+    <thead>
+    <tr>
+      <th class="rank">
+        Sija
+      </th>
+      <th class="players">
+        Pelaaja
+      </th>
+      <th class="points">
+        Pisteet
+      </th>
+      <th class="omw">
+        OMW
+      </th>
+      <th class="pgw">
+        PGW
+      </th>
+      <th class="ogw">
+        OGW
+      </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-class="{'even': $even, 'odd': $odd}" ng-repeat="s in standings" uib-popover-template="'standing-match-history.html'" popover-trigger="outsideClick" popover-placement="bottom" popover-append-to-body="true">
+      <td class="rank">{{s.rank}}</td>
+      <td class="players">
+        {{s.team_name}}
+      </td>
+      <td class="points">
+        {{s.points}}
+      </td>
+      <td class="omw">
+        {{s.omw | round:3}}
+      </td>
+      <td class="pgw">
+        {{s.pgw | round:3}}
+      </td>
+      <td class="ogw">
+        {{s.ogw | round:3}}
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <table class="pairings-table">
+    <thead>
+    <tr>
+      <th class="table" ng-click="sort = 'table_number'">
+        <i class="left glyphicon glyphicon-chevron-down" ng-class="{'inactive': sort != 'table_number'}"></i>
+        Pöytä
+      </th>
+      <th class="players" ng-click="sort = 'team1_name'">
+        <i class="left glyphicon glyphicon-chevron-down" ng-class="{'inactive': sort != 'team1_name'}"></i>
+        <span class="hidden-xs">Pelaaja 1</span>
+        <span class="hidden-sm hidden-md hidden-lg">Pelaajat</span>
+      </th>
+      <th class="players2 hidden-xs">
+        Pelaaja 2
+      <th class="points">
+        Pisteet
+      </th>
+      <th class="result">
+        Tulos
+      <th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-class="{'even': $even, 'odd': $odd}" ng-repeat="p in pairings | orderBy:sort">
+      <td class="table">{{p.table_number}}</td>
+      <td class="players" uib-popover-template="'p1-match-history.html'" popover-trigger="outsideClick" popover-placement="bottom" popover-append-to-body="true">
+        {{p.team1_name}}<br class="hidden-sm hidden-md hidden-lg"><span class="hidden-sm hidden-md hidden-lg" ng-class="{'opponent': sort == 'team1_name'}">{{p.team2_name}}</span>
+      </td>
+      <td class="players2 hidden-xs" uib-popover-template="'p2-match-history.html'" popover-trigger="outsideClick" popover-placement="bottom" popover-append-to-body="true">
+        <span ng-class="{'opponent': sort == 'team1_name'}">{{p.team2_name}}</span>
+      </td>
+      <td class="points">
+        {{p.team1_points}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span ng-class="{'opponent': sort == 'team1_name'}">{{p.team2_points}}</span>
+      </td>
+      <td class="result">
+        {{p.team1_wins}}<span class="hidden-xs"> - </span><br class="hidden-sm hidden-md hidden-lg"><span ng-class="{'opponent': sort == 'team1_name'}">{{p.team2_wins}}</span>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>

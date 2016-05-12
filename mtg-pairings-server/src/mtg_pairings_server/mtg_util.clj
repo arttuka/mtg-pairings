@@ -36,20 +36,22 @@
                          :ogw ogw)))
               teams-results))
 
-(defn ^:private reverse-match [match]
-  {:team1 (:team2 match)
-   :team2 (:team1 match)
-   :team1_name (:team2_name match)
-   :team2_name (:team1_name match)
-   :team1_wins (:team2_wins match)
-   :team2_wins (:team1_wins match)
-   :draws (:draws match)})
+(defn reverse-match [match]
+  (clojure.set/rename-keys match {:team1        :team2
+                                  :team2        :team1
+                                  :team1_name   :team2_name
+                                  :team2_name   :team1_name
+                                  :team1_wins   :team2_wins
+                                  :team2_wins   :team1_wins
+                                  :team1_points :team2_points
+                                  :team2_points :team1_points
+                                  :draws        :draws}))
 
 (defn calculate-standings [rounds up-to-round-num]
   (let [matches (apply concat (for [[round-num matches] rounds
                                     :when (<= round-num up-to-round-num)]
                                 matches))
-        all-matches (concat matches (map reverse-match matches))
+        all-matches (filter :team1_wins (concat matches (map reverse-match matches)))
         grouped-matches (dissoc (group-by :team1 all-matches) nil)
         teams-results (map-values calculate-points-pgw grouped-matches)
         results (calculate-omw-ogw teams-results)
