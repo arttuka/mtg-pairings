@@ -298,7 +298,7 @@
 (defn add-pairings [sanction-id round-num pairings]
   (let [tournament-id (sanctionid->id sanction-id)
         dci->id (teams-by-dci tournament-id)
-        team->points (if-let [standings (standings tournament-id (dec round-num) "secret")]
+        team->points (if-let [standings (standings tournament-id (dec round-num) true)]
                        (into {} (for [row standings]
                                   [(:team row) (:points row)]))
                        (constantly 0))
