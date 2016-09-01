@@ -1,4 +1,4 @@
-angular.module('pairings', ['ngTouch', 'ngRoute', 'ngResource', 'LocalStorageModule', 'ui.bootstrap', 
+angular.module('pairings', ['ngTouch', 'ngRoute', 'ngResource', 'LocalStorageModule', 'ui.bootstrap',
                             'controllers', 'services', 'resources', 'directives'])
 
 .config(function($routeProvider) {
@@ -16,7 +16,9 @@ angular.module('pairings', ['ngTouch', 'ngRoute', 'ngResource', 'LocalStorageMod
     when('/tournaments/:tournament/pods-:number', {controller: 'PodsController',
                                                    templateUrl: 'templates/pods.html'}).
     when('/tournaments/:tournament/organizer', {controller: 'OrganizerController',
-                                                 templateUrl: 'templates/organizer.html'}).
+                                                templateUrl: 'templates/organizer.html'}).
+    when('/tournaments/:tournament/coverage', {controller: 'CoverageController',
+                                               templateUrl: 'templates/coverage.html'}).
     otherwise({controller: 'MainController',
                templateUrl: 'templates/main.html'});
 });

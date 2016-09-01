@@ -358,6 +358,21 @@ h3 {
   width: 100px;
 }
 
+#coverage {
+}
+
+#coverage .standings-table, #coverage .pairings-table {
+  width: 40%;
+  vertical-align: top;
+  float:left;
+  margin-right:50px;
+}
+
+.popover {
+  min-width:600px !important;
+}
+
+
 @media (max-width: 767px) {
   .pairing .table-number {
     line-height: 60px;

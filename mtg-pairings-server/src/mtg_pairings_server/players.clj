@@ -56,7 +56,8 @@
 (defn ^:private add-newest-standings [tournament]
   (let [standings (first (sql/select db/standings
                            (sql/aggregate (max :round) :max_standings_round)
-                           (sql/where {:tournament (:id tournament)})))]
+                           (sql/where {:tournament (:id tournament)
+                                       :hidden false})))]
     (merge tournament standings)))
 
 (defn ^:private select-tournament-fields [tournament]

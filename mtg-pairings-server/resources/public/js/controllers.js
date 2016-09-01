@@ -1,3 +1,13 @@
+function arraysIdentical(a, b) {
+  if(a === undefined || b === undefined) return false;
+  var i = a.length;
+  if (i != b.length) return false;
+  while (i--) {
+    if(!_.isEqual(a[i], b[i])) return false;
+  }
+  return true;
+}
+
 angular.module('controllers', [])
 
 .controller('MenuController', function($scope, $http, $rootScope, PlayerResource, localStorageService) {
@@ -187,16 +197,6 @@ angular.module('controllers', [])
   $scope.minutes = 50;
   loadTournament();
   var interval = setInterval(loadTournament, 5000);
-
-  function arraysIdentical(a, b) {
-    if(a === undefined || b === undefined) return false;
-    var i = a.length;
-    if (i != b.length) return false;
-    while (i--) {
-      if (a[i] !== b[i]) return false;
-    }
-    return true;
-  }
 
   function pad(num) {
     if(Math.abs(num) >= 10) return "" + num;
@@ -440,4 +440,53 @@ angular.module('controllers', [])
     $scope.running = false;
     send('stopClock');
   }
+})
+
+.controller('CoverageController', function($scope, $routeParams, localStorageService, TournamentResource, PairingService) {
+  var previousPairings = [], previousStandings = [];
+  var sortPairings = function() {
+    if($scope.sort == 'team1_name') {
+      $scope.pairings = PairingService.duplicatePairings($scope.allPairings);
+    } else {
+      $scope.pairings = $scope.allPairings;
+    }
+  };
+  var updateData = function() {
+    if($scope.apikey) {
+      TournamentResource.coverage({id: $routeParams.tournament, key: $scope.apikey}, function(data) {
+        $scope.showApikey = false;
+
+        if (!arraysIdentical(previousPairings, data.pairings)) {
+          previousPairings = _.cloneDeep(data.pairings);
+          $scope.allPairings = data.pairings;
+        }
+        if(!arraysIdentical(previousStandings, data.standings)) {
+          previousStandings = _.cloneDeep(data.standings);
+          $scope.standings = data.standings;
+        }
+        if($scope.matches != data.matches) {
+          $scope.matches = data.matches;
+        }
+        setTimeout(updateData, 10000);
+      }, function(response) {
+        $scope.error = response;
+        $scope.showApikey = true;
+      });
+    }
+  };
+  $scope.apikey = localStorageService.get('key') || '';
+  $scope.showApikey = ($scope.apiKey !== '');
+  $scope.allPairings = [];
+  $scope.standings = [];
+  $scope.matches = {};
+  $scope.sort = 'table_number';
+  $scope.$watch('sort', sortPairings);
+  $scope.$watchCollection('allPairings', sortPairings);
+  if($scope.apikey) {
+    setTimeout(updateData, 10);
+  }
+  $scope.setApikey = function() {
+    localStorageService.add('key', $scope.apikey);
+    setTimeout(updateData, 10);
+  };
 });

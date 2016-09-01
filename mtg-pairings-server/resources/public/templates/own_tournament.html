@@ -5,7 +5,7 @@
       <span class="date">{{model.day | date:'dd.MM.yyyy'}} - </span>{{model.name}}
     </h3>
   </div>
-  <div class="own-tournament-content" collapse="isCollapsed">
+  <div class="own-tournament-content" uib-collapse="isCollapsed">
     <a href="#/tournaments/{{model.id}}/standings-{{model.max_standings_round}}">
       Standings, kierros {{model.max_standings_round}}
       <i class="pull-right glyphicon glyphicon-chevron-right"></i>

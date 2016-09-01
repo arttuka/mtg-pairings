@@ -2,11 +2,11 @@
   :license {:name "MIT License"
             :url "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/core.cache "0.6.4"]
+                 [org.clojure/core.cache "0.6.5"]
                  [ring "1.2.1"]
                  [ring/ring-core "1.4.0"]
                  [http-kit "2.1.18"]
-                 [org.clojure/tools.reader "1.0.0-alpha3"]
+                 [org.clojure/tools.reader "1.0.0-beta1"]
                  [clj-time "0.11.0"]
                  [korma "0.4.2"]
                  [org.postgresql/postgresql "9.4.1208"]

@@ -7,5 +7,5 @@
   <own-tournament model="t" ng-repeat="t in tournaments">
 </div>
 <tournament ng-show="!loggedIn" model="tournament" ng-repeat="tournament in filteredTournaments"></tournament>
-<pagination page="currentPage" total-items="tournaments.length" boundary-links="true" items-per-page="numPerPage"
-            next-text="Seuraava" previous-text="Edellinen" first-text="Ensimmäinen" last-text="Viimeinen"></pagination>
+<uib-pagination page="currentPage" total-items="tournaments.length" boundary-links="true" items-per-page="numPerPage"
+                next-text="Seuraava" previous-text="Edellinen" first-text="Ensimmäinen" last-text="Viimeinen"></uib-pagination>

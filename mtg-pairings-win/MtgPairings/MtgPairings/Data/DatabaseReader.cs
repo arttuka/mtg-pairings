@@ -206,13 +206,14 @@ namespace MtgPairings.Data
                 t => {
                     var date = Convert.ToDateTime(t["StartDate"]).ToLocalDate();
                     var sanctionNumber = getSanctionNumber(t["SanctionId"].ToString(), tournamentId, date);
+                    var status = Convert.ToInt32(t["Status"]);
                     return new Tournament(tournamentId,
                                           sanctionNumber,
                                           t["Title"].ToString(),
                                           t["EventInformation"].ToString(),
                                           t["OrgName"].ToString(),
                                           Convert.ToInt32(t["NumberOfRounds"]),
-                                          Convert.ToInt32(t["Status"]) == 1 && Convert.ToBoolean(t["IsStarted"]),
+                                          (status == 1 || status == 7) && Convert.ToBoolean(t["IsStarted"]),
                                           date,
                                           rounds,
                                           teams,
