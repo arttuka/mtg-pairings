@@ -25,7 +25,7 @@ namespace MtgPairings.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://p.mtgsuomi.fi/")]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://pairings.fi/")]
         public string ServerURL {
             get {
                 return ((string)(this["ServerURL"]));
