@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="ServerURL" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">http://p.mtgsuomi.fi/</Value>
+      <Value Profile="(Default)">https://pairings.fi/</Value>
     </Setting>
     <Setting Name="Apikey" Type="System.String" Scope="User">
       <Value Profile="(Default)" />

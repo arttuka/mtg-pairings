@@ -228,18 +228,21 @@ namespace MtgPairings.Data
         public ImmutableList<Tournament> getAllTournaments()
         {
             return OleDbFetch<Tournament>(
-                t => new Tournament(Convert.ToInt32(t["TournamentId"]),
-                                    t["SanctionId"].ToString(),
-                                    t["Title"].ToString(),
-                                    t["EventInformation"].ToString(),
-                                    t["OrgName"].ToString(),
-                                    Convert.ToInt32(t["NumberOfRounds"]),
-                                    Convert.ToInt32(t["Status"]) == 1 && Convert.ToBoolean(t["IsStarted"]),
-                                    Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
-                                    ImmutableList<Round>.Empty,
-                                    ImmutableList<Team>.Empty,
-                                    ImmutableList<Seating>.Empty,
-                                    ImmutableList<PodRound>.Empty),
+                t => {
+                    var status = Convert.ToInt32(t["Status"]);
+                    return new Tournament(Convert.ToInt32(t["TournamentId"]),
+                                          t["SanctionId"].ToString(),
+                                          t["Title"].ToString(),
+                                          t["EventInformation"].ToString(),
+                                          t["OrgName"].ToString(),
+                                          Convert.ToInt32(t["NumberOfRounds"]),
+                                          (status == 1 || status == 7) && Convert.ToBoolean(t["IsStarted"]),
+                                          Convert.ToDateTime(t["StartDate"]).ToLocalDate(),
+                                          ImmutableList<Round>.Empty,
+                                          ImmutableList<Team>.Empty,
+                                          ImmutableList<Seating>.Empty,
+                                          ImmutableList<PodRound>.Empty);
+                },
                 "SELECT TournamentId, SanctionId, Title, EventInformation, OrgName, NumberOfRounds, Status, IsStarted, StartDate FROM Tournament"
               ).ToImmutableList();
         }
