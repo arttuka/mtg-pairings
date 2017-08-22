@@ -1,10 +1,10 @@
 (ns mtg-pairings-server.sql-db
-  (:require [korma.core :as sql]
-            korma.db
-            [mount.core :as m]
-            [clojure.walk :refer [postwalk]]
+  (:require [clojure.walk :refer [postwalk]]
             [clj-time.core :as time]
             [clj-time.coerce :as time-coerce]
+            [korma.core :as sql]
+            [korma.db]
+            [mount.core :as m]
             [mtg-pairings-server.properties :refer [properties]]))
 
 (m/defstate db

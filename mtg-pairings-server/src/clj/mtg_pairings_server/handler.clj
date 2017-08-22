@@ -1,11 +1,11 @@
 (ns mtg-pairings-server.handler
   (:require [compojure.core :refer [GET POST defroutes]]
             [compojure.route :refer [not-found resources]]
+            [config.core :refer [env]]
             [hiccup.page :refer [include-js include-css html5]]
+            [mtg-pairings-server.api.http :as http-api]
             [mtg-pairings-server.middleware :refer [wrap-middleware]]
-            [mtg-pairings-server.http-api :as http-api]
-            [mtg-pairings-server.websocket :as ws]
-            [config.core :refer [env]]))
+            [mtg-pairings-server.websocket :as ws]))
 
 (def mount-target
   [:div#app

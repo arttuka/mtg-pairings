@@ -1,6 +1,6 @@
-(ns mtg-pairings-server.util
-  (:require [ring.util.response :as ring]
-            [clj-time.format :as time]))
+(ns mtg-pairings-server.util.util
+  (:require [clj-time.format :as time]
+            [ring.util.response :as ring]))
 
 (defn map-values
   "Returns a map consisting of the keys of m mapped to

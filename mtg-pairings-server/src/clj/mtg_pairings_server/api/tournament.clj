@@ -1,10 +1,10 @@
-(ns mtg-pairings-server.tournament-api
-  (:require [mtg-pairings-server.util :refer [response]]
-            [mtg-pairings-server.tournaments :refer :all]
-            [mtg-pairings-server.schema :refer :all]
-            clj-time.coerce
-            [compojure.api.sweet :refer :all]
-            [schema.core :as s]))
+(ns mtg-pairings-server.api.tournament
+  (:require [compojure.api.sweet :refer :all]
+            [clj-time.coerce]
+            [schema.core :as s]
+            [mtg-pairings-server.service.tournament :refer :all]
+            [mtg-pairings-server.util.schema :refer :all]
+            [mtg-pairings-server.util.util :refer [response]]))
 
 (defmacro validate-request [sanction-id apikey & body]
   `(let [user# (user-for-apikey ~apikey)

@@ -1,15 +1,15 @@
 (ns mtg-pairings-server.server
   (:gen-class)
-  (:require [org.httpkit.server :as hs]
+  (:require [cheshire.generate :as json-gen]
+            [clojure.tools.logging :as log]
+            [clojure.string :as string]
+            [mount.core :as m]
+            [org.httpkit.server :as hs]
             [ring.middleware.resource :refer [wrap-resource]]
             [ring.middleware.content-type :refer [wrap-content-type]]
             [ring.middleware.not-modified :refer [wrap-not-modified]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
-            [cheshire.generate :as json-gen]
-            [clojure.tools.logging :as log]
-            [clojure.string :as string]
-            [mount.core :as m]
             [mtg-pairings-server.handler]
             [mtg-pairings-server.properties :refer [properties]]))
 

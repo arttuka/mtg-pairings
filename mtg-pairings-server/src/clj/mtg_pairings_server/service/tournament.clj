@@ -1,10 +1,10 @@
-(ns mtg-pairings-server.tournaments
+(ns mtg-pairings-server.service.tournament
   (:require [clojure.set :refer [rename-keys]]
+            [clojure.edn :as edn]
             [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
-            [mtg-pairings-server.mtg-util :as mtg-util]
-            [mtg-pairings-server.util :as util]
-            [clojure.tools.reader.edn :as edn]))
+            [mtg-pairings-server.util.mtg-util :as mtg-util]
+            [mtg-pairings-server.util.util :as util]))
 
 (defn user-for-apikey [apikey]
   (try

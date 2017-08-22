@@ -1,9 +1,9 @@
-(ns mtg-pairings-server.player-api
+(ns mtg-pairings-server.api.player
   (:require [compojure.api.sweet :refer :all]
             [schema.core :as s]
-            [mtg-pairings-server.util :refer [response]]
-            [mtg-pairings-server.players :refer :all]
-            [mtg-pairings-server.schema :refer :all]))
+            [mtg-pairings-server.service.player :refer :all]
+            [mtg-pairings-server.util.schema :refer :all]
+            [mtg-pairings-server.util.util :refer [response]]))
 
 (defroutes player-routes
   (GET "/" []

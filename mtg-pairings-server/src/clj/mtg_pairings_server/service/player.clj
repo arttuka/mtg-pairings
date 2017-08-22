@@ -1,8 +1,8 @@
-(ns mtg-pairings-server.players
+(ns mtg-pairings-server.service.player
   (:require [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
-            [mtg-pairings-server.util :refer [select-and-rename-keys]]
-            [mtg-pairings-server.mtg-util :refer [add-check-digits]]))
+            [mtg-pairings-server.util.mtg-util :refer [add-check-digits]]
+            [mtg-pairings-server.util.util :refer [select-and-rename-keys]]))
 
 (defn player [dci]
   (first

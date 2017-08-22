@@ -1,4 +1,4 @@
-(ns mtg-pairings-server.schema
+(ns mtg-pairings-server.util.schema
   (:require [schema.core :as s])
   (:import org.joda.time.LocalDate
            java.util.Date))
