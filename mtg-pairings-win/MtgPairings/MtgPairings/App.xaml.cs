@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
@@ -21,6 +22,7 @@ namespace MtgPairings
     {
         private void ApplicationStartup(object sender, StartupEventArgs e)
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             if(Settings.Default.Apikey == "")
             {
