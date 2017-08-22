@@ -313,6 +313,7 @@ h3 {
 .organizer-pairings .pairing .names .opponent {
   display: inline-block;
   width: 215px;
+  white-space: nowrap;
 }
 
 .organizer-pairings .pairing .names .hidden-xs,
