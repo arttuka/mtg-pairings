@@ -7,24 +7,11 @@
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
             [cheshire.generate :as json-gen]
-            [clojure.java.io :as io]
-            [clojure.tools.reader.edn :as edn]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
-            [mtg-pairings-server.api :as api]
-            [mtg-pairings-server.sql-db :refer [create-korma-db]]
+            [mount.core :as m]
+            [mtg-pairings-server.handler]
             [mtg-pairings-server.properties :refer [properties]]))
-
-(defn wrap-exceptions
-  [handler]
-  (fn [request]
-    (try
-      (handler request)
-      (catch Throwable t
-        (log/error t (.getMessage t))
-        {:status 500
-         :headers {"Content-Type" "text/plain"}
-         :body (str "500 Internal Server Error\nCause: " t)}))))
 
 (defn wrap-request-log
   [handler]
@@ -58,24 +45,22 @@
         (assoc-in response [:headers "Access-Control-Allow-Origin"] "*")
         response))))
 
-(defn run! []
-  (let [{db-properties :db, server-properties :server :as props} (edn/read-string (slurp "properties.edn"))
-        _ (deliver properties props)
-        _ (log/info "Starting server on port" (:port server-properties) "...")
-        db (create-korma-db db-properties)
-        stop-fn (hs/run-server
-                  (-> #'mtg-pairings-server.api/app
-                    wrap-json-with-padding
-                    wrap-request-log
-                    (wrap-resource-304 "public")
-                    wrap-allow-origin
-                    wrap-exceptions)
-                  server-properties)]
-    (json-gen/add-encoder org.joda.time.LocalDate
-      (fn [c generator]
-        (.writeString generator (str c))))
-    {:db db
-     :stop-fn stop-fn}))
+(defn run! [server-properties]
+  (log/info "Starting server on port" (:port server-properties) "...")
+  (json-gen/add-encoder org.joda.time.LocalDate
+                        (fn [c generator]
+                          (.writeString generator (str c))))
+  (hs/run-server
+    (-> #'mtg-pairings-server.handler/app
+        wrap-json-with-padding
+        wrap-request-log
+        (wrap-resource-304 "public")
+        wrap-allow-origin)
+    server-properties))
+
+(m/defstate server
+  :start (run! (:server properties))
+  :stop (server))
 
 (defn -main []
-  (run!))
+  (m/start))

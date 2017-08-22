@@ -1,4 +1,4 @@
-(ns mtg-pairings-server.api
+(ns mtg-pairings-server.http-api
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
             mtg-pairings-server.tournament-api
@@ -13,10 +13,7 @@
      :spec "/swagger.json"
      :data {:info {:title "WER pairings backend API"}}})
   (undocumented
-    (GET "/" [] (->
-                  (resource-response "public/index.html")
-                  (assoc-in [:headers "content-type"] "text/html")))
-    (GET "/version" [] (edn-response (:version @properties))))
+    (GET "/version" [] (edn-response (get-in properties [:server :version]))))
   (context "/api" []
     (context "/tournament" [] mtg-pairings-server.tournament-api/tournament-routes)
     (context "/player" [] mtg-pairings-server.player-api/player-routes)))

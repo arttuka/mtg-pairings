@@ -9,6 +9,8 @@ pom.xml.asc
 *.class
 *~
 .project
+*.log
+*.iml
 /.lein-*
 /.nrepl-port
 /bin

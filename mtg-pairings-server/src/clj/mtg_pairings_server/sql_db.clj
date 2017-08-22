@@ -1,15 +1,16 @@
 (ns mtg-pairings-server.sql-db
   (:require [korma.core :as sql]
             korma.db
+            [mount.core :as m]
             [clojure.walk :refer [postwalk]]
             [clj-time.core :as time]
-            [clj-time.coerce :as time-coerce]))
+            [clj-time.coerce :as time-coerce]
+            [mtg-pairings-server.properties :refer [properties]]))
 
-(defn create-korma-db
-  [db-properties]
-  (korma.db/default-connection
-    (korma.db/create-db
-      (korma.db/postgres db-properties))))
+(m/defstate db
+  :start (korma.db/default-connection
+           (korma.db/create-db
+             (korma.db/postgres (:db properties)))))
 
 (defn ^:private convert-instances-of
   [cls f m]
