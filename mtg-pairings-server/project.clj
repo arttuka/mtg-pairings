@@ -19,6 +19,7 @@
                  [http-kit "2.2.0"]
                  [org.clojure/tools.reader "1.0.5"]
                  [clj-time "0.14.0"]
+                 [com.andrewmcveigh/cljs-time "0.5.0"]
                  [korma "0.4.3"]
                  [mount "0.1.11"]
                  [org.postgresql/postgresql "9.4.1208"]

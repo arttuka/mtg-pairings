@@ -4,14 +4,22 @@
             [mount.core :as m]
             [cognitect.transit :as transit]
             [taoensso.sente.packers.transit :as sente-transit]
+            [mtg-pairings-server.util.util :refer [parse-date format-iso-date]]
     #?(:clj
             [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])))
 
 ;; Transit communication
 
+(def writers
+  {#?(:clj org.joda.time.LocalDate, :cljs goog.date.Date)
+   (transit/write-handler (constantly "Date") format-iso-date)})
+
+(def readers
+  {"Date" (transit/read-handler #(parse-date %))})
+
 (def packer (sente-transit/->TransitPacker :json
-                                           {:handlers {}}
-                                           {:handlers {}}))
+                                           {:handlers writers}
+                                           {:handlers readers}))
 
 ;; Websocket API
 
