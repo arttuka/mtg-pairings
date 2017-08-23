@@ -1,5 +1,4 @@
 (ns mtg-pairings-server.server
-  (:gen-class)
   (:require [cheshire.generate :as json-gen]
             [clojure.tools.logging :as log]
             [clojure.string :as string]
@@ -11,7 +10,8 @@
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
             [mtg-pairings-server.handler]
-            [mtg-pairings-server.properties :refer [properties]]))
+            [mtg-pairings-server.properties :refer [properties]]
+            [mtg-pairings-server.middleware :refer [wrap-middleware]]))
 
 (defn wrap-request-log
   [handler]
@@ -45,22 +45,16 @@
         (assoc-in response [:headers "Access-Control-Allow-Origin"] "*")
         response))))
 
-(defn run! [server-properties]
+(defn run-server! [handler server-properties]
   (log/info "Starting server on port" (:port server-properties) "...")
   (json-gen/add-encoder org.joda.time.LocalDate
                         (fn [c generator]
                           (.writeString generator (str c))))
   (hs/run-server
-    (-> #'mtg-pairings-server.handler/app
+    (-> handler
+        wrap-middleware
         wrap-json-with-padding
         wrap-request-log
         (wrap-resource-304 "public")
         wrap-allow-origin)
     server-properties))
-
-(m/defstate server
-  :start (run! (:server properties))
-  :stop (server))
-
-(defn -main []
-  (m/start))

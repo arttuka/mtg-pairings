@@ -1,7 +1,9 @@
 (ns mtg-pairings-server.core
     (:require [reagent.core :as reagent :refer [atom]]
+              [mount.core :as m]
               [secretary.core :as secretary :include-macros true]
-              [accountant.core :as accountant]))
+              [accountant.core :as accountant]
+              [mtg-pairings-server.websocket]))
 
 ;; -------------------------
 ;; Views
@@ -44,3 +46,6 @@
        (secretary/locate-route path))})
   (accountant/dispatch-current!)
   (mount-root))
+
+(m/defstate core
+  :start (init!))

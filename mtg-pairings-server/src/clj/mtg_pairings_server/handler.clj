@@ -32,9 +32,9 @@
 (defroutes routes
   (GET "/" [] (loading-page))
   (GET "/chsk" request
-         (ws/ajax-get-or-ws-handshake-fn request))
+    (ws/ajax-get-or-ws-handshake-fn request))
   (POST "/chsk" request
-          (ws/ajax-post-fn request))
+    (ws/ajax-post-fn request))
 
   http-api/app
   (resources "/")

@@ -102,8 +102,8 @@
                                       [org.clojure/tools.nrepl "0.2.13"]
                                       [com.cemerick/piggieback "0.2.2"]
                                       [pjstadig/humane-test-output "0.8.2"]]}
-             :uberjar {:main         mtg-pairings-server.server
-                       :aot          [mtg-pairings-server.server]
+             :uberjar {:main         mtg-pairings-server.main
+                       :aot          [mtg-pairings-server.main]
                        :hooks        [minify-assets.plugin/hooks]
                        :source-paths ["env/prod/clj"]
                        :prep-tasks   ["compile" ["cljsbuild" "once" "min"]]

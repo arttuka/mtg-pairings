@@ -3,7 +3,9 @@
         figwheel-sidecar.repl-api
         ring.server.standalone
         [ring.middleware file-info file])
-  (:require [mount.core :as m]))
+  (:require [mount.core :as m]
+            [mtg-pairings-server.server :refer [run-server!]]
+            [mtg-pairings-server.properties :refer [properties]]))
 
 (defn get-handler []
   ;; #'app expands to (var app) so that when we reload our code,
@@ -16,15 +18,6 @@
       ; Content-Type, Content-Length, and Last Modified headers for files in body
       (wrap-file-info)))
 
-(defn start-server
-  "used for starting the server in development mode from REPL"
-  [& [port]]
-  (let [port (if port (Integer/parseInt port) 3000)]
-    (serve (get-handler)
-           {:port         port
-            :auto-reload? true
-            :join?        false})))
-
 (m/defstate server
-  :start (start-server)
+  :start (run-server! (get-handler) (:server properties))
   :stop (.stop server))
