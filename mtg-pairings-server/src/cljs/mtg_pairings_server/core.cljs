@@ -3,29 +3,21 @@
               [mount.core :as m]
               [secretary.core :as secretary :include-macros true]
               [accountant.core :as accountant]
-              [mtg-pairings-server.websocket]))
-
-;; -------------------------
-;; Views
-
-(defn home-page []
-  [:div [:h2 "Welcome to mtg-pairings-server"]
-   [:div [:a {:href "/about"} "go to about page"]]])
-
-(defn about-page []
-  [:div [:h2 "About mtg-pairings-server"]
-   [:div [:a {:href "/"} "go to the home page"]]])
+              [mtg-pairings-server.subscriptions]
+              [mtg-pairings-server.events]
+              [mtg-pairings-server.pages.main :refer [main-page]]
+              [mtg-pairings-server.websocket :as ws]))
 
 ;; -------------------------
 ;; Routes
 
-(def page (atom #'home-page))
+(def page (atom #'main-page))
 
 (defn current-page []
   [:div [@page]])
 
 (secretary/defroute "/" []
-  (reset! page #'home-page))
+  (reset! page #'main-page))
 
 (secretary/defroute "/about" []
   (reset! page #'about-page))
@@ -46,6 +38,12 @@
        (secretary/locate-route path))})
   (accountant/dispatch-current!)
   (mount-root))
+
+(defmethod ws/event-handler :chsk/state
+  [{:keys [?data]}]
+  (let [[_ new-state] ?data]
+    (when (:first-open? new-state)
+      (ws/send! [:client/connect]))))
 
 (m/defstate core
   :start (init!))

@@ -3,8 +3,10 @@
             [compojure.route :refer [not-found resources]]
             [config.core :refer [env]]
             [hiccup.page :refer [include-js include-css html5]]
+            [taoensso.timbre :as log]
             [mtg-pairings-server.api.http :as http-api]
             [mtg-pairings-server.middleware :refer [wrap-middleware]]
+            [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.websocket :as ws]))
 
 (def mount-target
@@ -19,7 +21,9 @@
    [:meta {:charset "utf-8"}]
    [:meta {:name "viewport"
            :content "width=device-width, initial-scale=1"}]
-   (include-css (if (env :dev) "/css/site.css" "/css/site.min.css"))])
+   (include-css "/css/main.css")
+   (include-css "css/bootstrap.css")
+   (include-css "css/bootstrap-theme.css")])
 
 (defn loading-page []
   (html5
@@ -41,3 +45,8 @@
   (not-found "Not Found"))
 
 (def app (wrap-middleware #'routes))
+
+(defmethod ws/event-handler :client/connect
+  [{:keys [uid]}]
+  (log/debugf "New connection from %s" uid)
+  (ws/send! uid [:server/tournaments (tournament/tournaments)]))
