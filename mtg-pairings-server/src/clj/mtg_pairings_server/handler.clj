@@ -22,8 +22,8 @@
    [:meta {:name "viewport"
            :content "width=device-width, initial-scale=1"}]
    (include-css "/css/main.css")
-   (include-css "css/bootstrap.css")
-   (include-css "css/bootstrap-theme.css")])
+   (include-css "/css/bootstrap.css")
+   (include-css "/css/bootstrap-theme.css")])
 
 (defn loading-page []
   (html5
@@ -36,7 +36,8 @@
 (defroutes routes
   (GET "/" [] (loading-page))
   (GET "/tournaments" [] (loading-page))
-  (GET "/tournaments/:id" [id] (loading-page))
+  (GET "/tournaments/:id" [] (loading-page))
+  (GET "/tournaments/:id/pairings-:round" [] (loading-page))
   (GET "/chsk" request
     (ws/ajax-get-or-ws-handshake-fn request))
   (POST "/chsk" request
@@ -52,3 +53,7 @@
   [{:keys [uid]}]
   (log/debugf "New connection from %s" uid)
   (ws/send! uid [:server/tournaments (tournament/tournaments)]))
+
+(defmethod ws/event-handler :client/pairings
+  [{uid :uid, [id round] :?data}]
+  (ws/send! uid [:server/pairings [id round (tournament/get-round id round)]]))

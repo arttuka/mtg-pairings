@@ -39,7 +39,7 @@ Function f should accept one argument."
   (time/unparse-local-date (time/formatters :year-month-day) date))
 
 (defn format-date [date]
-  (time/unparse-local-date (time/formatter "dd.MM.yyyy") date))
+  (some->> date (time/unparse-local-date (time/formatter "dd.MM.yyyy"))))
 
 (defn group-kv [keyfn valfn coll]
   (apply merge-with into (for [elem coll]
@@ -47,6 +47,9 @@ Function f should accept one argument."
 
 (defn map-by [f coll]
   (into {} (map (juxt f identity) coll)))
+
+(defn indexed [coll]
+  (map-indexed vector coll))
 
 #?(:clj
    (defn edn-response [body]

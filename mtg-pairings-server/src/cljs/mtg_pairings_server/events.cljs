@@ -1,5 +1,5 @@
 (ns mtg-pairings-server.events
-  (:require [re-frame.core :refer [dispatch reg-fx reg-event-db]]
+  (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [mtg-pairings-server.util.util :refer [map-by]]
             [mtg-pairings-server.websocket :as ws]))
 
@@ -20,6 +20,7 @@
 
 (def initial-db {:tournaments {}
                  :tournament-ids []
+                 :pairings {:sort-key :table_number}
                  :page {:page :main}})
 
 (reg-event-db :initialize
@@ -41,3 +42,17 @@
   (fn [db [_ tournaments]]
     (assoc db :tournaments (map-by :id (map format-tournament tournaments))
               :tournament-ids (map :id tournaments))))
+
+(reg-event-fx :load-pairings
+  (fn [_ [_ id round]]
+    (.log js/console "load-pairings")
+    {:ws-send [:client/pairings [id round]]}))
+
+(reg-event-db :server/pairings
+  (fn [db [_ [id round pairings]]]
+    (.log js/console "server/pairings" (type id) (type round))
+    (assoc-in db [:pairings id round] pairings)))
+
+(reg-event-db :sort-pairings
+  (fn [db [_ sort-key]]
+    (assoc-in db [:pairings :sort-key] sort-key)))
