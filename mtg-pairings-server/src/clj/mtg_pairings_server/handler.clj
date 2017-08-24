@@ -35,6 +35,8 @@
 
 (defroutes routes
   (GET "/" [] (loading-page))
+  (GET "/tournaments" [] (loading-page))
+  (GET "/tournaments/:id" [id] (loading-page))
   (GET "/chsk" request
     (ws/ajax-get-or-ws-handshake-fn request))
   (POST "/chsk" request

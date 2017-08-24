@@ -13,11 +13,16 @@
     (ws/send! event)))
 
 (def initial-db {:tournaments {}
-                 :tournament-ids []})
+                 :tournament-ids []
+                 :page {:page :main}})
 
 (reg-event-db :initialize
   (fn [db _]
     (merge db initial-db)))
+
+(reg-event-db :page
+  (fn [db [_ data]]
+    (assoc db :page data)))
 
 (defn format-tournament [tournament]
   (let [rounds (sort > (into (set (:pairings tournament)) (:standings tournament)))]
