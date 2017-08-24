@@ -45,11 +45,5 @@
   (accountant/dispatch-current!)
   (mount-root))
 
-(defmethod ws/event-handler :chsk/state
-  [{:keys [?data]}]
-  (let [[_ new-state] ?data]
-    (when (:first-open? new-state)
-      (ws/send! [:client/connect]))))
-
 (m/defstate core
   :start (init!))

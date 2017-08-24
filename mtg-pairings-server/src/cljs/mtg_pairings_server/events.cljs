@@ -10,7 +10,13 @@
 
 (reg-fx :ws-send
   (fn [event]
-    (ws/send! event)))
+    (if @ws/channel-open?
+      (ws/send! event)
+      (let [k (gensym)]
+        (add-watch ws/channel-open? k (fn [_ _ _ new-val]
+                                        (when new-val
+                                          (remove-watch ws/channel-open? k)
+                                          (ws/send! event))))))))
 
 (def initial-db {:tournaments {}
                  :tournament-ids []
