@@ -41,6 +41,26 @@
   {:class (when (not= column sort-key) "inactive")
    :on-click #(dispatch [:sort-pairings column])})
 
+(defn pairing-row [cls pairing]
+  [:tr {:class cls}
+   [:td.table (:table_number pairing)]
+   [:td.players
+    (:team1_name pairing)
+    [:br.hidden-sm.hidden-md.hidden-lg]
+    [:span.hidden-sm.hidden-md.hidden-lg
+     (:team2_name pairing)]]
+   [:td.players2.hidden-xs (:team2_name pairing)]
+   [:td.points
+    (:team1_points pairing)
+    [:span.hidden-xs " - "]
+    [:br.hidden-sm.hidden-md.hidden-lg]
+    [:span (:team2_points pairing)]]
+   [:td.result
+    (:team1_wins pairing)
+    [:span.hidden-xs " - "]
+    [:br.hidden-sm.hidden-md.hidden-lg]
+    [:span (:team2_wins pairing)]]])
+
 (defn pairings [id round]
   (let [data (subscribe [:sorted-pairings id round])
         sort-key (subscribe [:pairings-sort])]
@@ -59,23 +79,6 @@
          [:th.points "Pisteet"]
          [:th.result "Tulos"]]]
        [:tbody
-        (for [[i p] (indexed @data)]
-          ^{:key [(:team1_name p)]}
-          [:tr {:class (if (even? i) "even" "odd")}
-           [:td.table (:table_number p)]
-           [:td.players
-            (:team1_name p)
-            [:br.hidden-sm.hidden-md.hidden-lg]
-            [:span.hidden-sm.hidden-md.hidden-lg
-             (:team2_name p)]]
-           [:td.players2.hidden-xs (:team2_name p)]
-           [:td.points
-            (:team1_points p)
-            [:span.hidden-xs " - "]
-            [:br.hidden-sm.hidden-md.hidden-lg]
-            [:span (:team2_points p)]]
-           [:td.result
-            (:team1_wins p)
-            [:span.hidden-xs " - "]
-            [:br.hidden-sm.hidden-md.hidden-lg]
-            [:span (:team2_wins p)]]])]])))
+        (for [[i pairing] (indexed @data)]
+          ^{:key [(:team1_name pairing)]}
+          [pairing-row (if (even? i) "even" "odd") pairing])]])))
