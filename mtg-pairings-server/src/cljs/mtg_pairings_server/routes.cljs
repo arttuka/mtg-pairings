@@ -24,3 +24,11 @@
     (dispatch [:page {:page  :standings
                       :id    id
                       :round round}])))
+
+(secretary/defroute pods-path "/tournaments/:id/pods-:round" [id round]
+  (let [id (js/parseInt id)
+        round (js/parseInt round)]
+    (dispatch [:load-pods id round])
+    (dispatch [:page {:page  :pods
+                      :id    id
+                      :round round}])))

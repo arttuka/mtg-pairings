@@ -7,7 +7,7 @@
               [mtg-pairings-server.subscriptions]
               [mtg-pairings-server.events]
               [mtg-pairings-server.pages.main :refer [main-page]]
-              [mtg-pairings-server.pages.tournament :refer [tournament-page pairings-page standings-page]]
+              [mtg-pairings-server.pages.tournament :refer [tournament-page pairings-page standings-page pods-page]]
               [mtg-pairings-server.websocket :as ws]))
 
 (defn current-page []
@@ -18,6 +18,7 @@
               :tournament [#'tournament-page (:id @page)]
               :pairings [#'pairings-page (:id @page) (:round @page)]
               :standings [#'standings-page (:id @page) (:round @page)]
+              :pods [#'pods-page (:id @page) (:round @page)]
               nil)])))
 
 (defn mount-root []

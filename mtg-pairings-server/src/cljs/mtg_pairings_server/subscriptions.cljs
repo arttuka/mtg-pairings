@@ -35,3 +35,18 @@
 (reg-sub :standings
   (fn [db [_ id round]]
     (get-in db [:standings id round])))
+
+(reg-sub :pods
+  (fn [db [_ id round]]
+    (get-in db [:pods id round])))
+
+(reg-sub :pods-sort
+  (fn [db _]
+    (get-in db [:pods :sort-key])))
+
+(reg-sub :sorted-pods
+  (fn [[_ id round]]
+    [(subscribe [:pods id round])
+     (subscribe [:pods-sort])])
+  (fn [[pods sort-key] _]
+    (sort-by sort-key pods)))

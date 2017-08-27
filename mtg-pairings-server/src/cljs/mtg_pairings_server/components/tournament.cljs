@@ -3,7 +3,7 @@
             [goog.string :as gstring]
             [goog.string.format]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
-            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path]]))
+            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path]]))
 
 (defn tournament-header [id]
   (let [tournament (subscribe [:tournament id])]
@@ -32,6 +32,7 @@
       (for [n (:pods data)]
         ^{:key [(:id data) :pods n]}
         [:a.btn.btn-default
+         {:href (pods-path {:id (:id data), :round n})}
          (str "Pods " n)])]]))
 
 (defn tournament-list []
@@ -42,9 +43,9 @@
          ^{:key (:id t)}
          [tournament t])])))
 
-(defn sortable [column sort-key]
+(defn sortable [column sort-key dispatch-key]
   {:class    (when (not= column sort-key) "inactive")
-   :on-click #(dispatch [:sort-pairings column])})
+   :on-click #(dispatch [dispatch-key column])})
 
 (defn pairing-row [cls pairing]
   [:tr {:class cls}
@@ -73,10 +74,10 @@
       [:table.pairings-table
        [:thead
         [:tr
-         [:th.table (sortable :table_number @sort-key)
+         [:th.table (sortable :table_number @sort-key :sort-pairings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pöytä"]
-         [:th.players (sortable :team1_name @sort-key)
+         [:th.players (sortable :team1_name @sort-key :sort-pairings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           [:span.hidden-xs "Pelaaja 1"]
           [:span.hidden-sm.hidden-md.hidden-lg "Pelaajat"]]
@@ -113,3 +114,28 @@
         (for [[i standing] (indexed @data)]
           ^{:key [(:team_name standing)]}
           [standing-row (if (even? i) "even" "odd") standing])]])))
+
+(defn pod-row [cls seat]
+  [:tr {:class cls}
+   [:td.pod (:pod seat)]
+   [:td.seat (:seat seat)]
+   [:td.player (:team_name seat)]])
+
+(defn pods [id round]
+  (let [data (subscribe [:sorted-pods id round])
+        sort-key (subscribe [:pods-sort])]
+    (fn [id round]
+      [:table.pods-table
+       [:thead
+        [:tr
+         [:th.pod (sortable :pod @sort-key :sort-pods)
+          [:i.glyphicon.glyphicon-chevron-down.left]
+          "Pöytä"]
+         [:th.seat "Paikka"]
+         [:th.player (sortable :team_name @sort-key :sort-pods)
+          [:i.glyphicon.glyphicon-chevron-down.left]
+          "Pelaaja"]]]
+       [:tbody
+        (for [[i seat] (indexed @data)]
+          ^{:key [(:team_name seat)]}
+          [pod-row (if (even? i) "even" "odd") seat])]])))
