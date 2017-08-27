@@ -6,6 +6,10 @@
   (fn [db _]
     (:logged-in-user db)))
 
+(reg-sub :player-tournaments
+  (fn [db _]
+    (:player-tournaments db)))
+
 (reg-sub :page
   (fn [db _]
     (:page db)))

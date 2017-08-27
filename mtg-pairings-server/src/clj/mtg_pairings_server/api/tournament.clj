@@ -3,6 +3,7 @@
             [clj-time.coerce]
             [schema.core :as s]
             [mtg-pairings-server.service.tournament :refer :all]
+            [mtg-pairings-server.util.broadcast :refer [broadcast-tournament]]
             [mtg-pairings-server.util.schema :refer :all]
             [mtg-pairings-server.util.util :refer [response]]))
 
@@ -88,6 +89,7 @@
     :query-params [key :- String]
     (validate-request sanctionid key
       (add-pairings sanctionid round (:pairings pairings))
+      (broadcast-tournament sanctionid)
       {:status 204}))
   (PUT "/:sanctionid/round-:round/results" []
     :path-params [sanctionid :- s/Str

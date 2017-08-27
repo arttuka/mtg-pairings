@@ -84,14 +84,6 @@
           (doseq [uid (:connected-uids)]
             (send! uid event))))
 
-#?(:cljs (def channel-open? (atom false)))
-#?(:cljs (defmethod event-handler :chsk/state
-           [{:keys [?data]}]
-           (let [[_ new-state] ?data]
-             (when (:first-open? new-state)
-               (reset! channel-open? true)
-               (send! [:client/connect])))))
-
 (defn stop-router!
   []
   (when-let [stop! (:router @ws-state)]

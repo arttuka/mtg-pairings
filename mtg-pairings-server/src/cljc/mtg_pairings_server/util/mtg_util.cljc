@@ -69,7 +69,7 @@
       inc)))
 
 (defn add-check-digits [dci-number]
-  (let [digits (map #(Integer/parseInt (str %)) dci-number)
+  (let [digits (map #(#?(:clj Integer/parseInt, :cljs js/parseInt) (str %)) dci-number)
         length (count digits)]
     (cond->> digits
       (>= 6 length) (cons 0)

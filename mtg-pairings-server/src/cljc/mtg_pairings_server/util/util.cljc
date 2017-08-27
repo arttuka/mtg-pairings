@@ -2,7 +2,9 @@
   (:require [#?(:clj  clj-time.format
                 :cljs cljs-time.format)
              :as time]
-    #?(:clj [ring.util.response :as ring])))
+    #?(:clj
+            [ring.util.response :as ring])
+            [clojure.string :as str]))
 
 (defn map-values
   "Returns a map consisting of the keys of m mapped to
@@ -45,6 +47,10 @@ Function f should accept one argument."
   (apply merge-with into (for [elem coll]
                            {(keyfn elem) [(valfn elem)]})))
 
+(defn extract-list [k coll]
+  (for [[m v] (group-kv #(dissoc % k) #(get % k) coll)]
+    (assoc m k v)))
+
 (defn map-by [f coll]
   (into {} (map (juxt f identity) coll)))
 
@@ -64,3 +70,8 @@ Function f should accept one argument."
      (if body
        (ring/response body)
        (ring/not-found body))))
+
+(defn cls [class-defs]
+  (str/join " " (for [[c used?] class-defs
+                      :when used?]
+                  (name c))))

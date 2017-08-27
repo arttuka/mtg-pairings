@@ -9,31 +9,44 @@
   (let [[event data] ?data]
     (dispatch [event data])))
 
+
+(def channel-open? (atom false))
+
 (reg-fx :ws-send
   (fn [event]
-    (if @ws/channel-open?
+    (if @channel-open?
       (ws/send! event)
       (let [k (gensym)]
-        (add-watch ws/channel-open? k (fn [_ _ _ new-val]
+        (add-watch channel-open? k (fn [_ _ _ new-val]
                                         (when new-val
-                                          (remove-watch ws/channel-open? k)
+                                          (remove-watch channel-open? k)
                                           (ws/send! event))))))))
 
 (reg-fx :store
   (fn [[key obj]]
     (store key obj)))
 
-(def initial-db {:tournaments    {}
-                 :tournament-ids []
-                 :pairings       {:sort-key :table_number}
-                 :pods           {:sort-key :pod}
-                 :seatings       {:sort-key :table_number}
-                 :page           {:page :main}
-                 :logged-in-user (fetch :user)})
+(def initial-db {:tournaments        {}
+                 :tournament-ids     []
+                 :player-tournaments []
+                 :pairings           {:sort-key :table_number}
+                 :pods               {:sort-key :pod}
+                 :seatings           {:sort-key :table_number}
+                 :page               {:page :main}
+                 :logged-in-user     (fetch :user)})
 
 (reg-event-db :initialize
   (fn [db _]
     (merge db initial-db)))
+
+(defmethod ws/event-handler :chsk/state
+  [{:keys [?data]}]
+  (let [[_ new-state] ?data]
+    (when (:first-open? new-state)
+      (reset! channel-open? true)
+      (ws/send! [:client/connect])
+      (when-let [user (fetch :user)]
+        (ws/send! [:client/login (:dci user)])))))
 
 (reg-event-fx :login
   (fn [_ [_ dci-number]]
@@ -46,9 +59,9 @@
 
 (reg-event-fx :logout
   (fn [{:keys [db]} _]
-    {:dispatch [:client/logout]
-     :db       (assoc db :logged-in-user nil)
-     :store    [:user nil]}))
+    {:ws-send [:client/logout]
+     :db      (assoc db :logged-in-user nil)
+     :store   [:user nil]}))
 
 (reg-event-db :page
   (fn [db [_ data]]
@@ -109,3 +122,11 @@
 (reg-event-db :sort-seatings
   (fn [db [_ sort-key]]
     (assoc-in db [:seatings :sort-key] sort-key)))
+
+(reg-event-db :server/player-tournaments
+  (fn [db [_ tournaments]]
+    (assoc db :player-tournaments (vec tournaments))))
+
+(reg-event-db :server/player-tournament
+  (fn [db [_ tournament]]
+    (assoc-in db [:player-tournaments 0] tournament)))

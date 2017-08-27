@@ -373,6 +373,10 @@ h3 {
   min-width:600px !important;
 }
 
+.hidden {
+  display: none;
+}
+
 
 @media (max-width: 767px) {
   .pairing .table-number {
