@@ -7,6 +7,7 @@
             [mtg-pairings-server.api.http :as http-api]
             [mtg-pairings-server.middleware :refer [wrap-middleware]]
             [mtg-pairings-server.service.tournament :as tournament]
+            [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.websocket :as ws]))
 
 (def mount-target
@@ -57,6 +58,12 @@
   (log/debugf "New connection from %s" uid)
   (ws/send! uid [:server/tournaments (tournament/tournaments)]))
 
+(defmethod ws/event-handler :client/login
+  [{uid :uid, dci-number :?data}]
+  (ws/send! uid [:server/login (player/player dci-number)]))
+
+(defmethod ws/event-handler :client/logout)
+
 (defmethod ws/event-handler :client/pairings
   [{uid :uid, [id round] :?data}]
   (ws/send! uid [:server/pairings [id round (tournament/get-round id round)]]))
@@ -70,5 +77,5 @@
   (ws/send! uid [:server/pods [id round (tournament/pods id round)]]))
 
 (defmethod ws/event-handler :client/seatings
-  [{uid :uid, [id] :?data}]
+  [{uid :uid, id :?data}]
   (ws/send! uid [:server/seatings [id (tournament/seatings id)]]))

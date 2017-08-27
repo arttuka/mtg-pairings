@@ -2,6 +2,10 @@
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [mtg-pairings-server.util.mtg-util :refer [reverse-match]]))
 
+(reg-sub :logged-in-user
+  (fn [db _]
+    (:logged-in-user db)))
+
 (reg-sub :page
   (fn [db _]
     (:page db)))

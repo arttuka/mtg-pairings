@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.events
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
+            [mtg-pairings-server.util.local-storage :refer [fetch store]]
             [mtg-pairings-server.util.util :refer [map-by]]
             [mtg-pairings-server.websocket :as ws]))
 
@@ -18,16 +19,36 @@
                                           (remove-watch ws/channel-open? k)
                                           (ws/send! event))))))))
 
-(def initial-db {:tournaments {}
+(reg-fx :store
+  (fn [[key obj]]
+    (store key obj)))
+
+(def initial-db {:tournaments    {}
                  :tournament-ids []
-                 :pairings {:sort-key :table_number}
-                 :pods {:sort-key :pod}
-                 :seatings {:sort-key :table_number}
-                 :page {:page :main}})
+                 :pairings       {:sort-key :table_number}
+                 :pods           {:sort-key :pod}
+                 :seatings       {:sort-key :table_number}
+                 :page           {:page :main}
+                 :logged-in-user (fetch :user)})
 
 (reg-event-db :initialize
   (fn [db _]
     (merge db initial-db)))
+
+(reg-event-fx :login
+  (fn [_ [_ dci-number]]
+    {:ws-send [:client/login dci-number]}))
+
+(reg-event-fx :server/login
+  (fn [{:keys [db]} [_ user]]
+    {:db    (assoc db :logged-in-user user)
+     :store [:user user]}))
+
+(reg-event-fx :logout
+  (fn [{:keys [db]} _]
+    {:dispatch [:client/logout]
+     :db       (assoc db :logged-in-user nil)
+     :store    [:user nil]}))
 
 (reg-event-db :page
   (fn [db [_ data]]
@@ -78,8 +99,8 @@
     (assoc-in db [:pods :sort-key] sort-key)))
 
 (reg-event-fx :load-seatings
-  (fn [_ [_ id round]]
-    {:ws-send [:client/seatings [id round]]}))
+  (fn [_ [_ id]]
+    {:ws-send [:client/seatings id]}))
 
 (reg-event-db :server/seatings
   (fn [db [_ [id seatings]]]

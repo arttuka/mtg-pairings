@@ -5,6 +5,10 @@
 (secretary/defroute "/" []
   (dispatch [:page {:page :main}]))
 
+(secretary/defroute tournaments-path "/tournaments" []
+  (dispatch [:page {:page :tournaments
+                    :id   (js/parseInt id)}]))
+
 (secretary/defroute tournament-path "/tournaments/:id" [id]
   (dispatch [:page {:page :tournament
                     :id   (js/parseInt id)}]))
