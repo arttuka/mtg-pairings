@@ -4,7 +4,7 @@
             [mtg-pairings-server.routes :refer [tournament-path pairings-path]]))
 
 (defn tournament-header [id name day organizer]
-  [:h3 [:a {:href (tournament-path id)}
+  [:h3 [:a {:href (tournament-path {:id id})}
         (str name " " (format-date day) " — " organizer)]])
 
 (defn tournament [data]
