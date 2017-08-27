@@ -3,7 +3,7 @@
             [goog.string :as gstring]
             [goog.string.format]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
-            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path]]))
+            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path]]))
 
 (defn tournament-header [id]
   (let [tournament (subscribe [:tournament id])]
@@ -28,7 +28,9 @@
            (str "Standings " r)])])
      [:div.tournament-row
       (when (:seatings data)
-        [:a.btn.btn-default "Seatings"])
+        [:a.btn.btn-default
+         {:href (seatings-path {:id (:id data)})}
+         "Seatings"])
       (for [n (:pods data)]
         ^{:key [(:id data) :pods n]}
         [:a.btn.btn-default
@@ -139,3 +141,26 @@
         (for [[i seat] (indexed @data)]
           ^{:key [(:team_name seat)]}
           [pod-row (if (even? i) "even" "odd") seat])]])))
+
+(defn seating-row [cls seat]
+  [:tr {:class cls}
+   [:td.table (:table_number seat)]
+   [:td.players (:name seat)]])
+
+(defn seatings [id round]
+  (let [data (subscribe [:sorted-seatings id round])
+        sort-key (subscribe [:seatings-sort])]
+    (fn [id round]
+      [:table.pairings-table
+       [:thead
+        [:tr
+         [:th.table (sortable :table_number @sort-key :sort-seatings)
+          [:i.glyphicon.glyphicon-chevron-down.left]
+          "Pöytä"]
+         [:th.players (sortable :name @sort-key :sort-seatings)
+          [:i.glyphicon.glyphicon-chevron-down.left]
+          "Pelaaja"]]]
+       [:tbody
+        (for [[i seat] (indexed @data)]
+          ^{:key [(:name seat)]}
+          [seating-row (if (even? i) "even" "odd") seat])]])))

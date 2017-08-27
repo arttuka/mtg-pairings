@@ -50,3 +50,18 @@
      (subscribe [:pods-sort])])
   (fn [[pods sort-key] _]
     (sort-by sort-key pods)))
+
+(reg-sub :seatings
+  (fn [db [_ id]]
+    (get-in db [:seatings id])))
+
+(reg-sub :seatings-sort
+  (fn [db _]
+    (get-in db [:seatings :sort-key])))
+
+(reg-sub :sorted-seatings
+  (fn [[_ id]]
+    [(subscribe [:seatings id])
+     (subscribe [:seatings-sort])])
+  (fn [[pods sort-key] _]
+    (sort-by sort-key pods)))

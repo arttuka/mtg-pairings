@@ -40,6 +40,7 @@
   (GET "/tournaments/:id/pairings-:round" [] (loading-page))
   (GET "/tournaments/:id/standings-:round" [] (loading-page))
   (GET "/tournaments/:id/pods-:round" [] (loading-page))
+  (GET "/tournaments/:id/seatings" [] (loading-page))
   (GET "/chsk" request
     (ws/ajax-get-or-ws-handshake-fn request))
   (POST "/chsk" request
@@ -67,3 +68,7 @@
 (defmethod ws/event-handler :client/pods
   [{uid :uid, [id round] :?data}]
   (ws/send! uid [:server/pods [id round (tournament/pods id round)]]))
+
+(defmethod ws/event-handler :client/seatings
+  [{uid :uid, [id] :?data}]
+  (ws/send! uid [:server/seatings [id (tournament/seatings id)]]))

@@ -22,6 +22,7 @@
                  :tournament-ids []
                  :pairings {:sort-key :table_number}
                  :pods {:sort-key :pod}
+                 :seatings {:sort-key :table_number}
                  :page {:page :main}})
 
 (reg-event-db :initialize
@@ -75,3 +76,15 @@
 (reg-event-db :sort-pods
   (fn [db [_ sort-key]]
     (assoc-in db [:pods :sort-key] sort-key)))
+
+(reg-event-fx :load-seatings
+  (fn [_ [_ id round]]
+    {:ws-send [:client/seatings [id round]]}))
+
+(reg-event-db :server/seatings
+  (fn [db [_ [id seatings]]]
+    (assoc-in db [:seatings id] seatings)))
+
+(reg-event-db :sort-seatings
+  (fn [db [_ sort-key]]
+    (assoc-in db [:seatings :sort-key] sort-key)))
