@@ -1,8 +1,11 @@
 (ns mtg-pairings-server.events
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
+            [cljs.core.async :as async :refer [<! >! timeout]]
+            [cljs-time.core :as time]
             [mtg-pairings-server.util.local-storage :refer [fetch store]]
-            [mtg-pairings-server.util.util :refer [map-by]]
-            [mtg-pairings-server.websocket :as ws]))
+            [mtg-pairings-server.util.util :refer [map-by round format-time]]
+            [mtg-pairings-server.websocket :as ws])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (defmethod ws/event-handler :chsk/recv
   [{:keys [?data]}]
@@ -18,9 +21,9 @@
       (ws/send! event)
       (let [k (gensym)]
         (add-watch channel-open? k (fn [_ _ _ new-val]
-                                        (when new-val
-                                          (remove-watch channel-open? k)
-                                          (ws/send! event))))))))
+                                     (when new-val
+                                       (remove-watch channel-open? k)
+                                       (ws/send! event))))))))
 
 (reg-fx :store
   (fn [[key obj]]
@@ -130,3 +133,67 @@
 (reg-event-db :server/player-tournament
   (fn [db [_ tournament]]
     (assoc-in db [:player-tournaments 0] tournament)))
+
+(reg-event-fx :load-organizer-tournament
+  (fn [_ [_ id]]
+    {:ws-send [:client/organizer-tournament id]}))
+
+(reg-event-db :server/organizer-tournament
+  (fn [db [_ tournament]]
+    (cond-> db
+      (not= (:pairings tournament) (get-in db [:organizer :tournament :pairings]))
+      (assoc-in [:organizer :new-pairings] true)
+
+      (not= (:standings tournament) (get-in db [:organizer :tournament :standings]))
+      (assoc-in [:organizer :new-standings] true)
+
+      (not= (:pods tournament) (get-in db [:organizer :tournament :pods]))
+      (assoc-in [:organizer :new-pods] true)
+
+      :always
+      (assoc-in [:organizer :tournament] tournament))))
+
+(reg-event-db :update-clock
+  (fn [db _]
+    (if-let [start (get-in db [:organizer :clock :start])]
+      (let [now (time/now)
+            diff (/ (time/in-millis (time/interval start now)) 1000)
+            total (- (get-in db [:organizer :clock :time]) diff)]
+        (update-in db [:organizer :clock] into {:text    (format-time total)
+                                                :timeout (neg? total)
+                                                :time    total
+                                                :start   now}))
+      db)))
+
+(defonce ^:private running (atom false))
+
+(reg-fx :clock
+  (fn [action]
+    (case action
+      :start (do
+               (reset! running true)
+               (go-loop []
+                 (<! (timeout 200))
+                 (dispatch [:update-clock])
+                 (when @running (recur))))
+      :stop (reset! running false))))
+
+(reg-event-fx :organizer-mode
+  (fn [{:keys [db]} [_ action value]]
+    (let [change-mode (fn [send mode]
+                        (merge {:db (assoc-in db [:organizer :mode] mode)}
+                               (when send {:ws-send send})))]
+      (case action
+        :pairings (change-mode [:client/organizer-pairings value] :pairings)
+        :standings (change-mode [:client/organizer-standings value] :standings)
+        :seatings (change-mode [:client/organizer-seatings] :seatings)
+        :pods (change-mode [:client/organizer-pods value] :pods)
+        :clock (change-mode nil :clock)
+        :set-clock {:db (update-in db [:organizer :clock] (fnil into {}) {:time    (* value 60)
+                                                                          :text    (format-time (* value 60))
+                                                                          :timeout false})}
+        :start-clock {:clock :start
+                      :db    (update-in db [:organizer :clock] (fnil into {}) {:start   (time/now)
+                                                                               :running true})}
+        :stop-clock {:clock :stop
+                     :db    (assoc-in db [:organizer :clock :running ] false)}))))

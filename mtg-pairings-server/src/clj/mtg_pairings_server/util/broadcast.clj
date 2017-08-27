@@ -9,12 +9,12 @@
 (defonce uid->dci (atom {}))
 
 (defn login [uid dci-number]
-  (swap! dci->uid assoc dci-number uid)
+  (swap! dci->uid update dci-number (fnil conj #{}) uid)
   (swap! uid->dci assoc uid dci-number))
 
 (defn logout [uid]
   (let [dci-number (get @uid->dci uid)]
-    (swap! dci->uid dissoc dci-number)
+    (swap! dci->uid update dci-number disj uid)
     (swap! uid->dci dissoc uid)))
 
 (defn broadcast-tournament [sanctionid]
@@ -29,6 +29,6 @@
             :when (contains? @dci->uid p)
             :let [t (-> tournament
                         (dissoc :player)
-                        (format-tournament p))
-                  uid (@dci->uid p)]]
+                        (format-tournament p))]
+            uid (@dci->uid p)]
       (ws/send! uid [:server/player-tournament t]))))

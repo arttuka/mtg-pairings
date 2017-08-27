@@ -4,6 +4,9 @@
              :as time]
     #?(:clj
             [ring.util.response :as ring])
+    #?@(:cljs
+        [[goog.string :as gstring]
+         [goog.string.format]])
             [clojure.string :as str]))
 
 (defn map-values
@@ -75,3 +78,16 @@ Function f should accept one argument."
   (str/join " " (for [[c used?] class-defs
                       :when used?]
                   (name c))))
+
+#?(:cljs
+   (defn round [num]
+     (if (neg? num)
+       (Math/ceil num)
+       (Math/floor num))))
+
+#?(:cljs
+   (defn format-time [seconds]
+     (let [sign (if (neg? seconds) "-" "")
+           minutes (Math/abs (round (/ seconds 60)))
+           seconds (mod (Math/abs seconds) 60)]
+       (gstring/format "%s%02d:%02d" sign minutes seconds))))

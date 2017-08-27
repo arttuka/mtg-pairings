@@ -100,22 +100,25 @@
    [:td.ogw (gstring/format "%.3f" (:pgw standing))]
    [:td.pgw (gstring/format "%.3f" (:ogw standing))]])
 
+(defn standing-table [data]
+  [:table.standings-table
+   [:thead
+    [:tr
+     [:th.rank "Sija"]
+     [:th.players "Pelaaja"]
+     [:th.points "Pisteet"]
+     [:th.omw "OMW"]
+     [:th.ogw "PGW"]
+     [:th.pgw "OGW"]]]
+   [:tbody
+    (for [[i standing] (indexed data)]
+      ^{:key (:team_name standing)}
+      [standing-row (if (even? i) "even" "odd") standing])]])
+
 (defn standings [id round]
   (let [data (subscribe [:standings id round])]
     (fn [id round]
-      [:table.standings-table
-       [:thead
-        [:tr
-         [:th.rank "Sija"]
-         [:th.players "Pelaaja"]
-         [:th.points "Pisteet"]
-         [:th.omw "OMW"]
-         [:th.ogw "PGW"]
-         [:th.pgw "OGW"]]]
-       [:tbody
-        (for [[i standing] (indexed @data)]
-          ^{:key [(:team_name standing)]}
-          [standing-row (if (even? i) "even" "odd") standing])]])))
+      [standing-table @data])))
 
 (defn pod-row [cls seat]
   [:tr {:class cls}

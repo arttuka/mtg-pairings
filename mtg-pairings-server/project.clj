@@ -2,6 +2,7 @@
   :license {:name "MIT License"
             :url  "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/core.async "0.3.443"]
                  [ring-server "0.4.0"]
                  [reagent "0.7.0"]
                  [reagent-utils "0.2.1"]
@@ -67,6 +68,7 @@
                             :source-map    true
                             :optimizations :none
                             :pretty-print  true}}
+            #_#_
             :test
             {:source-paths ["src/cljs" "src/cljc" "test/cljs"]
              :compiler     {:main          mtg-pairings-server.doo-runner

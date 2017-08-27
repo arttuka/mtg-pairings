@@ -6,8 +6,7 @@
   (dispatch [:page {:page :main}]))
 
 (secretary/defroute tournaments-path "/tournaments" []
-  (dispatch [:page {:page :tournaments
-                    :id   (js/parseInt id)}]))
+  (dispatch [:page {:page :tournaments}]))
 
 (secretary/defroute tournament-path "/tournaments/:id" [id]
   (dispatch [:page {:page :tournament
@@ -40,5 +39,11 @@
 (secretary/defroute seatings-path "/tournaments/:id/seatings" [id]
   (let [id (js/parseInt id)]
     (dispatch [:load-seatings id])
-    (dispatch [:page {:page  :seatings
-                      :id    id}])))
+    (dispatch [:page {:page :seatings
+                      :id   id}])))
+
+(secretary/defroute organizer-path "/tournaments/:id/organizer" [id]
+  (let [id (js/parseInt id)]
+    (dispatch [:load-organizer-tournament id])
+    (dispatch [:page {:page :organizer
+                      :id   id}])))

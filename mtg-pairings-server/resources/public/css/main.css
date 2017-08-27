@@ -265,6 +265,10 @@ h3 {
 .organizer-pairings, .organizer-standings, .organizer-seatings, .organizer-pods {
   text-align: center;
 }
+.organizer-pairings h2, .organizer-standings h2, .organizer-seatings h2, .organizer-pods h2 {
+  text-align: center;
+  margin-top: 0;
+}
 
 .organizer-pairings .pairing-column, .organizer-seatings .seating-column, .organizer-pods .pod-column {
   width:500px;

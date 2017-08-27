@@ -25,7 +25,7 @@
    [tournament-header id]
    [pods id round]])
 
-(defn seatings-page [id round]
+(defn seatings-page [id]
   [:div#seatings
    [tournament-header id]
    [seatings id]])

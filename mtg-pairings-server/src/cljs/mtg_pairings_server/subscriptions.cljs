@@ -73,3 +73,11 @@
      (subscribe [:seatings-sort])])
   (fn [[pods sort-key] _]
     (sort-by sort-key pods)))
+
+(reg-sub :organizer-mode
+  (fn [db _]
+    (get-in db [:organizer :mode])))
+
+(reg-sub :organizer
+  (fn [db [& keys]]
+    (get-in db keys)))
