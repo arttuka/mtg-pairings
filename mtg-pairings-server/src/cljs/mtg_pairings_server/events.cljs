@@ -45,14 +45,20 @@
 
 (reg-event-fx :load-pairings
   (fn [_ [_ id round]]
-    (.log js/console "load-pairings")
     {:ws-send [:client/pairings [id round]]}))
 
 (reg-event-db :server/pairings
   (fn [db [_ [id round pairings]]]
-    (.log js/console "server/pairings" (type id) (type round))
     (assoc-in db [:pairings id round] pairings)))
 
 (reg-event-db :sort-pairings
   (fn [db [_ sort-key]]
     (assoc-in db [:pairings :sort-key] sort-key)))
+
+(reg-event-fx :load-standings
+  (fn [_ [_ id round]]
+    {:ws-send [:client/standings [id round]]}))
+
+(reg-event-db :server/standings
+  (fn [db [_ [id round standings]]]
+    (assoc-in db [:standings id round] standings)))

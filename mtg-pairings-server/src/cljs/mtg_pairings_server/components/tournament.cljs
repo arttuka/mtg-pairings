@@ -1,11 +1,15 @@
 (ns mtg-pairings-server.components.tournament
   (:require [re-frame.core :refer [subscribe dispatch]]
+            [goog.string :as gstring]
+            [goog.string.format]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
-            [mtg-pairings-server.routes :refer [tournament-path pairings-path]]))
+            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path]]))
 
-(defn tournament-header [id name day organizer]
-  [:h3 [:a {:href (tournament-path {:id id})}
-        (str name " " (format-date day) " — " organizer)]])
+(defn tournament-header [id]
+  (let [tournament (subscribe [:tournament id])]
+    (fn [id]
+      [:h3 [:a {:href (tournament-path {:id id})}
+            (str (:name @tournament) " " (format-date (:day @tournament)) " — " (:organizer @tournament))]])))
 
 (defn tournament [data]
   (when data
@@ -20,6 +24,7 @@
            (str "Pairings " r)])
         (when (contains? (:standings data) r)
           [:a.btn.btn-default
+           {:href (standings-path {:id (:id data), :round r})}
            (str "Standings " r)])])
      [:div.tournament-row
       (when (:seatings data)
@@ -38,7 +43,7 @@
          [tournament t])])))
 
 (defn sortable [column sort-key]
-  {:class (when (not= column sort-key) "inactive")
+  {:class    (when (not= column sort-key) "inactive")
    :on-click #(dispatch [:sort-pairings column])})
 
 (defn pairing-row [cls pairing]
@@ -82,3 +87,29 @@
         (for [[i pairing] (indexed @data)]
           ^{:key [(:team1_name pairing)]}
           [pairing-row (if (even? i) "even" "odd") pairing])]])))
+
+(defn standing-row [cls standing]
+  [:tr {:class cls}
+   [:td.rank (:rank standing)]
+   [:td.player (:team_name standing)]
+   [:td.points (:points standing)]
+   [:td.omw (gstring/format "%.3f" (:omw standing))]
+   [:td.ogw (gstring/format "%.3f" (:pgw standing))]
+   [:td.pgw (gstring/format "%.3f" (:ogw standing))]])
+
+(defn standings [id round]
+  (let [data (subscribe [:standings id round])]
+    (fn [id round]
+      [:table.standings-table
+       [:thead
+        [:tr
+         [:th.rank "Sija"]
+         [:th.players "Pelaaja"]
+         [:th.points "Pisteet"]
+         [:th.omw "OMW"]
+         [:th.ogw "PGW"]
+         [:th.pgw "OGW"]]]
+       [:tbody
+        (for [[i standing] (indexed @data)]
+          ^{:key [(:team_name standing)]}
+          [standing-row (if (even? i) "even" "odd") standing])]])))

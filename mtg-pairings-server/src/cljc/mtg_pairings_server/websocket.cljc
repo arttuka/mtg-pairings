@@ -12,7 +12,9 @@
 
 (def writers
   {#?(:clj org.joda.time.LocalDate, :cljs goog.date.Date)
-   (transit/write-handler (constantly "Date") format-iso-date)})
+   (transit/write-handler (constantly "Date") format-iso-date)
+   #?@(:clj [clojure.lang.Ratio
+             (transit/write-handler (constantly "d") double)])})
 
 (def readers
   {"Date" (transit/read-handler #(parse-date %))})

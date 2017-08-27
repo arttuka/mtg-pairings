@@ -31,3 +31,7 @@
              (= sort-key :team1_name) (concat (map reverse-match pairings))
              (= sort-key :team1_name) (remove #(= "***BYE***" (:team1_name %)))
              :always (sort-by sort-key))))
+
+(reg-sub :standings
+  (fn [db [_ id round]]
+    (get-in db [:standings id round])))
