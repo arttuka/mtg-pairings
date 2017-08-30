@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.subscriptions
   (:require [re-frame.core :refer [reg-sub subscribe]]
-            [mtg-pairings-server.util.mtg-util :refer [reverse-match]]))
+            [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]))
 
 (reg-sub :logged-in-user
   (fn [db _]
@@ -36,8 +36,7 @@
      (subscribe [:pairings-sort])])
   (fn [[pairings sort-key] _]
     (cond->> pairings
-             (= sort-key :team1_name) (concat (map reverse-match pairings))
-             (= sort-key :team1_name) (remove #(= "***BYE***" (:team1_name %)))
+             (= sort-key :team1_name) duplicate-pairings
              :always (sort-by sort-key))))
 
 (reg-sub :standings

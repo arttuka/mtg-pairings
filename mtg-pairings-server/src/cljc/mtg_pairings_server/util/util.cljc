@@ -60,6 +60,9 @@ Function f should accept one argument."
 (defn indexed [coll]
   (map-indexed vector coll))
 
+(defn assoc-in-many [m & kvs]
+  (reduce (fn [m [ks v]] (assoc-in m ks v)) m (partition 2 kvs)))
+
 #?(:clj
    (defn edn-response [body]
      (if body

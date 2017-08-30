@@ -77,3 +77,8 @@
       (>= 8 length) (cons 0)
       (>= 9 length) (#(cons (check-digit %) %))
       true (apply str))))
+
+(defn duplicate-pairings [pairings]
+  (->> pairings
+       (concat (map reverse-match pairings))
+       (remove #(= "***BYE***" (:team1_name %)))))

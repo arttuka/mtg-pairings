@@ -23,9 +23,10 @@
    [:meta {:charset "utf-8"}]
    [:meta {:name "viewport"
            :content "width=device-width, initial-scale=1"}]
-   (include-css "/css/main.css")
-   (include-css "/css/bootstrap.css")
-   (include-css "/css/bootstrap-theme.css")])
+   (include-css "https://fonts.googleapis.com/css?family=Lato:400,700"
+                "/css/main.css"
+                "/css/bootstrap.css"
+                "/css/bootstrap-theme.css")])
 
 (defn loading-page []
   (html5
@@ -54,6 +55,10 @@
   (not-found "Not Found"))
 
 (def app (wrap-middleware #'routes))
+
+(defmethod ws/event-handler :chsk/uidport-close
+  [{:keys [uid]}]
+  (broadcast/disconnect uid))
 
 (defmethod ws/event-handler :client/connect
   [{:keys [uid]}]
@@ -85,3 +90,24 @@
 (defmethod ws/event-handler :client/seatings
   [{uid :uid, id :?data}]
   (ws/send! uid [:server/seatings [id (tournament/seatings id)]]))
+
+(defmethod ws/event-handler :client/organizer-tournament
+  [{uid :uid, id :?data}]
+  (broadcast/watch uid id)
+  (ws/send! uid [:server/organizer-tournament (tournament/tournament id)]))
+
+(defmethod ws/event-handler :client/organizer-pairings
+  [{uid :uid, [id round] :?data}]
+  (ws/send! uid [:server/organizer-pairings (tournament/get-round id round)]))
+
+(defmethod ws/event-handler :client/organizer-standings
+  [{uid :uid, [id round] :?data}]
+  (ws/send! uid [:server/organizer-standings (tournament/standings id round false)]))
+
+(defmethod ws/event-handler :client/organizer-pods
+  [{uid :uid, [id number] :?data}]
+  (ws/send! uid [:server/organizer-pods (tournament/pods id number)]))
+
+(defmethod ws/event-handler :client/organizer-seatings
+  [{uid :uid, id :?data}]
+  (ws/send! uid [:server/organizer-seatings (tournament/seatings id)]))

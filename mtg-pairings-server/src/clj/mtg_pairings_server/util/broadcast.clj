@@ -7,15 +7,29 @@
 
 (defonce dci->uid (atom {}))
 (defonce uid->dci (atom {}))
+(defonce id->uid (atom {}))
+(defonce uid->id (atom {}))
 
 (defn login [uid dci-number]
   (swap! dci->uid update dci-number (fnil conj #{}) uid)
   (swap! uid->dci assoc uid dci-number))
 
 (defn logout [uid]
-  (let [dci-number (get @uid->dci uid)]
+  (when-let [dci-number (get @uid->dci uid)]
     (swap! dci->uid update dci-number disj uid)
     (swap! uid->dci dissoc uid)))
+
+(defn disconnect [uid]
+  (logout [uid])
+  (when-let [id (get @uid->id uid)]
+    (swap! id->uid update id disj uid)
+    (swap! uid->id dissoc uid)))
+
+(defn watch [uid tournament-id]
+  (when-let [old-id (get @uid->id uid)]
+    (swap! id->uid update old-id disj uid))
+  (swap! id->uid update tournament-id (fnil conj #{}) uid)
+  (swap! uid->id assoc uid tournament-id))
 
 (defn broadcast-tournament [sanctionid]
   (let [tournament (->> (sql/select db/tournament
@@ -31,4 +45,6 @@
                         (dissoc :player)
                         (format-tournament p))]
             uid (@dci->uid p)]
-      (ws/send! uid [:server/player-tournament t]))))
+      (ws/send! uid [:server/player-tournament t]))
+    (doseq [uid (get @id->uid (:id tournament))]
+      (ws/send! uid [:server/organizer-tournament t]))))

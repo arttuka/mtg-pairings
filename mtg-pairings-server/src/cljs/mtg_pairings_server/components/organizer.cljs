@@ -2,14 +2,15 @@
   (:require [reagent.core :refer [atom]]
             [re-frame.core :refer [dispatch subscribe]]
             [mtg-pairings-server.util.util :refer [cls indexed]]
-            [mtg-pairings-server.util.mtg-util :refer [reverse-match]]
+            [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]
             [mtg-pairings-server.components.tournament :refer [standing-table]]))
 
-(defn round-select [a rounds]
+(defn round-select [type a rounds]
   [:select.form-control
    {:on-change #(reset! a (-> % .-target .-value))
     :value @a}
    (for [round @rounds]
+     ^{:key (str type round)}
      [:option {:value round}
       round])])
 
@@ -21,9 +22,9 @@
         new-pods (subscribe [:organizer :new-pods])
         pods-rounds (subscribe [:organizer :tournament :pods])
         clock-running (subscribe [:organizer :clock :running])
-        pairings-round (atom "")
-        standings-round (atom "")
-        pods-round (atom "")
+        pairings-round (atom "1")
+        standings-round (atom "1")
+        pods-round (atom "1")
         minutes (atom 50)]
     (fn []
       [:div#organizer-menu
@@ -31,20 +32,20 @@
         [:a
          [:i.glyphicon.glyphicon-resize-full]]
         [:button.btn
-         {:on-click #(dispatch [:organizer-mode :pairings @pairings-round])
+         {:on-click #(dispatch [:organizer-mode :pairings (js/parseInt @pairings-round)])
           :class    (if @new-pairings "btn-success" "btn-default")}
          "Pairings"]
-        [round-select pairings-round pairings-rounds]
+        [round-select :pairings pairings-round pairings-rounds]
         [:button.btn
-         {:on-click #(dispatch [:organizer-mode :standings @standings-round])
+         {:on-click #(dispatch [:organizer-mode :standings (js/parseInt @standings-round)])
           :class    (if @new-standings "btn-success" "btn-default")}
          "Standings"]
-        [round-select standings-round standings-rounds]
+        [round-select :standings standings-round standings-rounds]
         [:button.btn
-         {:on-click #(dispatch [:organizer-mode :pods @pods-round])
+         {:on-click #(dispatch [:organizer-mode :pods (js/parseInt @pods-round)])
           :class    (if @new-pods "btn-success" "btn-default")}
          "Pods"]
-        [round-select pods-round pods-rounds]
+        [round-select :pods pods-round pods-rounds]
         [:button.btn.btn-default
          {:on-click #(dispatch [:organizer-mode :seatings])}
          "Seatings"]
@@ -65,7 +66,7 @@
          {:on-click #(dispatch [:organizer-mode :start-clock])
           :disabled (when @clock-running "disabled")}
          "Käynnistä"]
-        [:button.btn.btn-default
+        [:button.btn.btn-danger
          {:on-click #(dispatch [:organizer-mode :stop-clock])
           :disabled (when-not @clock-running "disabled")}
          "Pysäytä"]]])))
@@ -107,7 +108,7 @@
     (partition-all per-column data)))
 
 (defn split-pairings [pairings]
-  (let [duplicated (->> (concat pairings (map reverse-match pairings)))]
+  (let [duplicated (sort-by :team1_name (duplicate-pairings pairings))]
     (split-data duplicated)))
 
 (defn pairings []
@@ -116,7 +117,7 @@
         tournament (subscribe [:organizer :tournament])]
     (fn []
       [:div.organizer-pairings
-       [:h2 (str (:name @tournament) " - kierros" @pairings-round)]
+       [:h2 (str (:name @tournament) " - kierros " @pairings-round)]
        (for [[i column] (indexed (split-pairings @pairings))]
          ^{:key (str "pairing-column-" i)}
          [pairing-column column])])))

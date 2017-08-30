@@ -3,7 +3,7 @@
             [cljs.core.async :as async :refer [<! >! timeout]]
             [cljs-time.core :as time]
             [mtg-pairings-server.util.local-storage :refer [fetch store]]
-            [mtg-pairings-server.util.util :refer [map-by round format-time]]
+            [mtg-pairings-server.util.util :refer [map-by round format-time assoc-in-many]]
             [mtg-pairings-server.websocket :as ws])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
@@ -153,6 +153,22 @@
       :always
       (assoc-in [:organizer :tournament] tournament))))
 
+(reg-event-db :server/organizer-pairings
+  (fn [db [_ pairings]]
+    (assoc-in db [:organizer :pairings] pairings)))
+
+(reg-event-db :server/organizer-standings
+  (fn [db [_ standings]]
+    (assoc-in db [:organizer :standings] standings)))
+
+(reg-event-db :server/organizer-pods
+  (fn [db [_ pods]]
+    (assoc-in db [:organizer :pods] pods)))
+
+(reg-event-db :server/organizer-seatings
+  (fn [db [_ seatings]]
+    (assoc-in db [:organizer :seatings] seatings)))
+
 (reg-event-db :update-clock
   (fn [db _]
     (if-let [start (get-in db [:organizer :clock :start])]
@@ -180,15 +196,19 @@
 
 (reg-event-fx :organizer-mode
   (fn [{:keys [db]} [_ action value]]
-    (let [change-mode (fn [send mode]
-                        (merge {:db (assoc-in db [:organizer :mode] mode)}
-                               (when send {:ws-send send})))]
+    (let [id (get-in db [:page :id])]
       (case action
-        :pairings (change-mode [:client/organizer-pairings value] :pairings)
-        :standings (change-mode [:client/organizer-standings value] :standings)
-        :seatings (change-mode [:client/organizer-seatings] :seatings)
-        :pods (change-mode [:client/organizer-pods value] :pods)
-        :clock (change-mode nil :clock)
+        :pairings {:ws-send [:client/organizer-pairings [id value]]
+                   :db      (assoc-in-many db [:organizer :mode] :pairings
+                                              [:organizer :pairings-round] value)}
+        :standings {:ws-send [:client/organizer-standings [id value]]
+                    :db      (assoc-in-many db [:organizer :mode] :standings
+                                               [:organizer :standings-round] value)}
+        :seatings {:ws-send [:client/organizer-seatings id]
+                   :db      (assoc-in db [:organizer :mode] :seatings)}
+        :pods {:ws-send [:client/organizer-pods [id value]]
+               :db      (assoc-in db [:organizer :mode] :pods)}
+        :clock {:db (assoc-in db [:organizer :mode] :clock)}
         :set-clock {:db (update-in db [:organizer :clock] (fnil into {}) {:time    (* value 60)
                                                                           :text    (format-time (* value 60))
                                                                           :timeout false})}
@@ -196,4 +216,4 @@
                       :db    (update-in db [:organizer :clock] (fnil into {}) {:start   (time/now)
                                                                                :running true})}
         :stop-clock {:clock :stop
-                     :db    (assoc-in db [:organizer :clock :running ] false)}))))
+                     :db    (assoc-in db [:organizer :clock :running] false)}))))
