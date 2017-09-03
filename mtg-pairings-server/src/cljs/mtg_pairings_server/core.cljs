@@ -9,7 +9,7 @@
             [mtg-pairings-server.pages.main :refer [main-page]]
             [mtg-pairings-server.pages.tournament :refer [tournament-page pairings-page standings-page
                                                           pods-page seatings-page tournaments-page]]
-            [mtg-pairings-server.pages.organizer :refer [organizer-page]]
+            [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu]]
             [mtg-pairings-server.components.main :refer [header]]
             [mtg-pairings-server.websocket :as ws]))
 
@@ -27,6 +27,7 @@
          :pods [#'pods-page (:id @page) (:round @page)]
          :seatings [#'seatings-page (:id @page)]
          :organizer [#'organizer-page]
+         :organizer-menu [#'organizer-menu]
          nil)])))
 
 (defn mount-root []

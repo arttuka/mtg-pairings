@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.util.broadcast
   (:require [korma.core :as sql]
             [mtg-pairings-server.service.player :refer [format-tournament]]
+            [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.sql-db :as db]
             [mtg-pairings-server.util.util :refer [extract-list]]
             [mtg-pairings-server.websocket :as ws]))
@@ -33,12 +34,12 @@
 
 (defn broadcast-tournament [sanctionid]
   (let [tournament (->> (sql/select db/tournament
-                         (sql/join :inner db/team {:tournament.id :team.tournament})
-                         (sql/join :inner db/team-players {:team.id :team_players.team})
-                         (sql/fields :tournament.id :tournament.name :tournament.organizer
-                                     :tournament.day :tournament.rounds :team_players.player)
-                         (sql/where {:sanctionid sanctionid}))
-                       (extract-list :player))]
+                          (sql/join :inner db/team {:tournament.id :team.tournament})
+                          (sql/join :inner db/team-players {:team.id :team_players.team})
+                          (sql/fields :tournament.id :tournament.name :tournament.organizer
+                                      :tournament.day :tournament.rounds :team_players.player)
+                          (sql/where {:sanctionid sanctionid}))
+                        (extract-list :player))]
     (doseq [p (:player tournament)
             :when (contains? @dci->uid p)
             :let [t (-> tournament
@@ -46,5 +47,6 @@
                         (format-tournament p))]
             uid (@dci->uid p)]
       (ws/send! uid [:server/player-tournament t]))
-    (doseq [uid (get @id->uid (:id tournament))]
-      (ws/send! uid [:server/organizer-tournament t]))))
+    (let [organizer-tournament (tournament/tournament (:id tournament))]
+      (doseq [uid (get @id->uid (:id tournament))]
+        (ws/send! uid [:server/organizer-tournament organizer-tournament])))))

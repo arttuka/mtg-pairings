@@ -194,26 +194,56 @@
                  (when @running (recur))))
       :stop (reset! running false))))
 
+(defn resolve-organizer-action [db id action value]
+  (case action
+    :pairings {:ws-send [:client/organizer-pairings [id value]]
+               :db      (assoc-in-many db [:organizer :mode] :pairings
+                                          [:organizer :pairings-round] value)}
+    :standings {:ws-send [:client/organizer-standings [id value]]
+                :db      (assoc-in-many db [:organizer :mode] :standings
+                                           [:organizer :standings-round] value)}
+    :seatings {:ws-send [:client/organizer-seatings id]
+               :db      (assoc-in db [:organizer :mode] :seatings)}
+    :pods {:ws-send [:client/organizer-pods [id value]]
+           :db      (assoc-in db [:organizer :mode] :pods)}
+    :clock {:db (assoc-in db [:organizer :mode] :clock)}
+    :set-clock {:db (update-in db [:organizer :clock] (fnil into {}) {:time    (* value 60)
+                                                                      :text    (format-time (* value 60))
+                                                                      :timeout false})}
+    :start-clock {:clock :start
+                  :db    (update-in db [:organizer :clock] (fnil into {}) {:start   (time/now)
+                                                                           :running true})}
+    :stop-clock {:clock :stop
+                 :db    (assoc-in db [:organizer :clock :running] false)}))
+
+(defn send-organizer-action [db id action value]
+  (store ["organizer" id] {:action action, :value value})
+  (case action
+    :start-clock {:db (assoc-in db [:organizer :clock :running] true)}
+    :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
+    {}))
+
 (reg-event-fx :organizer-mode
   (fn [{:keys [db]} [_ action value]]
-    (let [id (get-in db [:page :id])]
-      (case action
-        :pairings {:ws-send [:client/organizer-pairings [id value]]
-                   :db      (assoc-in-many db [:organizer :mode] :pairings
-                                              [:organizer :pairings-round] value)}
-        :standings {:ws-send [:client/organizer-standings [id value]]
-                    :db      (assoc-in-many db [:organizer :mode] :standings
-                                               [:organizer :standings-round] value)}
-        :seatings {:ws-send [:client/organizer-seatings id]
-                   :db      (assoc-in db [:organizer :mode] :seatings)}
-        :pods {:ws-send [:client/organizer-pods [id value]]
-               :db      (assoc-in db [:organizer :mode] :pods)}
-        :clock {:db (assoc-in db [:organizer :mode] :clock)}
-        :set-clock {:db (update-in db [:organizer :clock] (fnil into {}) {:time    (* value 60)
-                                                                          :text    (format-time (* value 60))
-                                                                          :timeout false})}
-        :start-clock {:clock :start
-                      :db    (update-in db [:organizer :clock] (fnil into {}) {:start   (time/now)
-                                                                               :running true})}
-        :stop-clock {:clock :stop
-                     :db    (assoc-in db [:organizer :clock :running] false)}))))
+    (let [{:keys [id page]} (:page db)]
+      (case page
+        :organizer (resolve-organizer-action db id action value)
+        :organizer-menu (send-organizer-action db id action value)))))
+
+(reg-fx :popup
+  (fn [id]
+    (.open js/window (str "/tournaments/" id "/organizer/menu") (str "menu" id))))
+
+(reg-event-fx :popup-organizer-menu
+  (fn [{:keys [db]} _]
+    {:db (assoc-in db [:organizer :menu] true)
+     :popup (get-in db [:page :id])}))
+
+(reg-event-fx :local-storage-updated
+  (fn [{:keys [db]} [_ k v]]
+    (when (and (= (get-in db [:page :page]) :organizer)
+               (= k ["organizer" (get-in db [:page :id])]))
+      (resolve-organizer-action db
+                                (get-in db [:page :id])
+                                (keyword (:action v))
+                                (:value v)))))

@@ -47,3 +47,9 @@
     (dispatch [:load-organizer-tournament id])
     (dispatch [:page {:page :organizer
                       :id   id}])))
+
+(secretary/defroute organizer-menu-path "/tournaments/:id/organizer/menu" [id]
+  (let [id (js/parseInt id)]
+    (dispatch [:load-organizer-tournament id])
+    (dispatch [:page {:page :organizer-menu
+                      :id   id}])))

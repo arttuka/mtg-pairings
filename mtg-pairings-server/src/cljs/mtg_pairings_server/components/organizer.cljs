@@ -8,7 +8,7 @@
 (defn round-select [type a rounds]
   [:select.form-control
    {:on-change #(reset! a (-> % .-target .-value))
-    :value @a}
+    :value     @a}
    (for [round @rounds]
      ^{:key (str type round)}
      [:option {:value round}
@@ -29,7 +29,7 @@
     (fn []
       [:div#organizer-menu
        [:div.form-inline
-        [:a
+        [:a {:on-click #(dispatch [:popup-organizer-menu])}
          [:i.glyphicon.glyphicon-resize-full]]
         [:button.btn
          {:on-click #(dispatch [:organizer-mode :pairings (js/parseInt @pairings-round)])
@@ -53,11 +53,11 @@
          {:on-click #(dispatch [:organizer-mode :clock])}
          "Kello"]
         [:input.form-control
-         {:type "number"
+         {:type      "number"
           :on-change #(reset! minutes (-> % .-target .-value))
-          :value @minutes
-          :min 0
-          :max 99}]
+          :value     @minutes
+          :min       0
+          :max       99}]
         [:button.btn.btn-default
          {:on-click #(dispatch [:organizer-mode :set-clock @minutes])
           :disabled (when @clock-running "disabled")}
@@ -128,7 +128,7 @@
      ^{:key (:name s)}
      [:div.seating
       {:class (cls {:even (even? i)
-                    :odd (odd? i)})}
+                    :odd  (odd? i)})}
       [:span.table-number (:table_number s)]
       [:span
        [:div.name (:name s)]]])])
@@ -149,7 +149,7 @@
      ^{:key (:team_name s)}
      [:div.seat
       {:class (cls {:even (even? i)
-                    :odd (odd? i)})}
+                    :odd  (odd? i)})}
       [:span.pod-number (:pod s)]
       [:span.seat-number (:seat s)]
       [:span
