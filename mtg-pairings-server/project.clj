@@ -24,7 +24,6 @@
                  [mount "0.1.11"]
                  [org.postgresql/postgresql "42.1.4"]
                  [org.clojure/tools.logging "0.4.0"]
-                 [ch.qos.logback/logback-classic "1.1.5"]
                  [metosin/compojure-api "1.1.11"]
                  [ring.middleware.jsonp "0.1.6"]
                  [com.taoensso/sente "1.11.0" :exclusions [com.taoensso/encore]]
