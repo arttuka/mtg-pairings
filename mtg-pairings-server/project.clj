@@ -3,7 +3,6 @@
             :url  "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/core.async "0.3.443"]
-                 [ring-server "0.4.0"]
                  [reagent "0.7.0"]
                  [reagent-utils "0.2.1"]
                  [ring "1.6.2"]
@@ -23,7 +22,7 @@
                  [com.andrewmcveigh/cljs-time "0.5.0"]
                  [korma "0.4.3"]
                  [mount "0.1.11"]
-                 [org.postgresql/postgresql "9.4.1208"]
+                 [org.postgresql/postgresql "42.1.4"]
                  [org.clojure/tools.logging "0.4.0"]
                  [ch.qos.logback/logback-classic "1.1.5"]
                  [metosin/compojure-api "1.1.11"]
