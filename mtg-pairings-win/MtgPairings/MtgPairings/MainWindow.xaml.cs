@@ -140,7 +140,7 @@ namespace MtgPairings
                 }
                 if (!oldTournament.Equals(newTournament) || uploadAll)
                 {
-                    if (!oldTournament.Teams.SequenceEqual(newTournament.Teams))
+                    if (!oldTournament.Teams.SequenceEqual(newTournament.Teams) || !newTournament.Teams.IsEmpty && uploadAll)
                     {
                         UploadEvent e = new UploadEvent(() => _uploader.UploadTeams(newTournament.SanctionNumber, newTournament.Teams),
                                                         t.AutoUpload, newTournament, UploadEvent.Type.Teams, 0);
