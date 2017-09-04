@@ -1,11 +1,11 @@
 (ns mtg-pairings-server.handler
-  (:require [compojure.core :refer [GET POST defroutes]]
+  (:require [compojure.core :refer [GET POST defroutes] :as c]
             [compojure.route :refer [not-found resources]]
             [config.core :refer [env]]
             [hiccup.page :refer [include-js include-css html5]]
             [taoensso.timbre :as log]
             [mtg-pairings-server.api.http :as http-api]
-            [mtg-pairings-server.middleware :refer [wrap-middleware]]
+            [mtg-pairings-server.middleware :refer [wrap-site-middleware wrap-api-middleware]]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.util.broadcast :as broadcast]
@@ -36,7 +36,7 @@
      (include-js "/js/app.js")]))
 
 
-(defroutes routes
+(defroutes site-routes
   (GET "/" [] (loading-page))
   (GET "/tournaments" [] (loading-page))
   (GET "/tournaments/:id" [] (loading-page))
@@ -49,13 +49,14 @@
   (GET "/chsk" request
     (ws/ajax-get-or-ws-handshake-fn request))
   (POST "/chsk" request
-    (ws/ajax-post-fn request))
+    (ws/ajax-post-fn request)))
 
-  http-api/app
-  (resources "/")
-  (not-found "Not Found"))
-
-(def app (wrap-middleware #'routes))
+(defroutes app
+  (c/routes
+    (wrap-api-middleware #'http-api/app)
+    (wrap-site-middleware #'site-routes)
+    (wrap-site-middleware (resources "/"))
+    (wrap-site-middleware (not-found "Not Found"))))
 
 (defmethod ws/event-handler :chsk/uidport-close
   [{:keys [uid]}]

@@ -1,8 +1,9 @@
 (ns mtg-pairings-server.repl
-  (:use mtg-pairings-server.handler
-        figwheel-sidecar.repl-api
-        [ring.middleware file-info file])
   (:require [mount.core :as m]
+            [ring.middleware.file-info :refer :all]
+            [ring.middleware.file :refer :all]
+            [figwheel-sidecar.repl-api :refer :all]
+            [mtg-pairings-server.handler :refer [app]]
             [mtg-pairings-server.server :refer [run-server!]]
             [mtg-pairings-server.properties :refer [properties]]))
 

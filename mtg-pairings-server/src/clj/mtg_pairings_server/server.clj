@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.server
   (:require [cheshire.generate :as json-gen]
-            [clojure.tools.logging :as log]
+            [taoensso.timbre :as log]
             [clojure.string :as string]
             [mount.core :as m]
             [org.httpkit.server :as hs]
@@ -10,8 +10,7 @@
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
             [mtg-pairings-server.handler]
-            [mtg-pairings-server.properties :refer [properties]]
-            [mtg-pairings-server.middleware :refer [wrap-middleware]]))
+            [mtg-pairings-server.properties :refer [properties]]))
 
 (defn wrap-request-log
   [handler]
@@ -52,7 +51,6 @@
                           (.writeString generator (str c))))
   (hs/run-server
     (-> handler
-        wrap-middleware
         wrap-json-with-padding
         wrap-request-log
         (wrap-resource-304 "public")
