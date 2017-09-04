@@ -13,10 +13,12 @@
 
 (def mount-target
   [:div#app
-   [:h3 "ClojureScript has not been compiled!"]
-   [:p "please run "
-    [:b "lein figwheel"]
-    " in order to start the compiler"]])
+   (when (env :dev)
+     [:div
+      [:h3 "ClojureScript has not been compiled!"]
+      [:p "please run "
+       [:b "lein figwheel"]
+       " in order to start the compiler"]])])
 
 (defn head []
   [:head
