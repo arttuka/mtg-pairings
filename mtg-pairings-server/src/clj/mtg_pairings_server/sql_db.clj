@@ -122,7 +122,9 @@
   (sql/table :pod_round)
   (sql/pk :id)
   (sql/belongs-to tournament
-    {:fk :tournament}))
+    {:fk :tournament})
+  (sql/belongs-to round
+    {:fk :round}))
 
 (sql/defentity pod
   (sql/table :pod)

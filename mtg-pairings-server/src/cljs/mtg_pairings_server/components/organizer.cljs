@@ -78,11 +78,14 @@
    (when (and display-round? pairing?)
      [:h4 (str "Kierros " (:round_number data))])
    (when-not pairing?
-     [:h4 "Seating"])
-   [:span.table-number (:table_number data)]
+     [:h4 (if (:pod data)
+            "Pod"
+            "Seating")])
+   [:span.table-number (or (:table_number data) (:pod data))]
    (when-not pairing?
      [:span
-      [:div.names (:team1_name data)]])
+      [:div.names (or (:team1_name data)
+                      (str "Seat " (:seat data)))]])
    (when pairing?
      [:span
       [:div.names

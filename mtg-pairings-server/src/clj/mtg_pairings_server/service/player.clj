@@ -49,9 +49,20 @@
                          (sql/with db/team)
                          (sql/where {:tournament (:id tournament)
                                      :team players-team})
-                         (sql/fields :table_number [:team.name :team1_name])))]
+                         (sql/fields :table_number [:team.name :team1_name])))
+        pod-seats (sql/select db/seat
+                    (sql/where {:team players-team})
+                    (sql/fields :seat)
+                    (sql/with db/pod
+                      (sql/fields [:number :pod])
+                      (sql/with db/pod-round
+                        (sql/fields :id)
+                        (sql/with db/round
+                          (sql/fields [:num :round_number]))))
+                    (sql/order :pod_round.id :DESC))]
     (assoc tournament :pairings pairings
-                      :seating seating)))
+                      :seating seating
+                      :pod-seats pod-seats)))
 
 (defn ^:private add-newest-standings [tournament]
   (let [standings (first (sql/select db/standings
@@ -61,7 +72,7 @@
     (merge tournament standings)))
 
 (defn ^:private select-tournament-fields [tournament]
-  (select-keys tournament [:id :name :day :rounds :seating :pairings :max_standings_round]))
+  (select-keys tournament [:id :name :day :rounds :seating :pairings :pod-seats :max_standings_round]))
 
 (defn format-tournament [tournament dci]
   (-> tournament

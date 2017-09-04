@@ -196,8 +196,8 @@
 (defn add-teams [sanction-id teams]
   (let [tournament-id (sanctionid->id sanction-id)]
     (delete-seatings tournament-id)
-    (delete-rounds tournament-id)
     (delete-pods tournament-id)
+    (delete-rounds tournament-id)
     (delete-teams tournament-id)
     (let [teams (map fix-dci-numbers teams)]
       (add-players (mapcat :players teams))
@@ -435,8 +435,12 @@
         dci->id (teams-by-dci tournament-id)]
     (delete-pods tournament-id)
     (doseq [pod-round pods
-            :let [r (sql/insert db/pod-round
-                      (sql/values {:tournament tournament-id}))]
+            :let [round (first (sql/select db/round
+                                 (sql/where {:num (:round pod-round)
+                                             :tournament tournament-id})))
+                  r (sql/insert db/pod-round
+                      (sql/values {:tournament tournament-id
+                                   :round (:id round)}))]
             pod (:pods pod-round)
             :let [p (sql/insert db/pod
                       (sql/values {:pod_round (:id r)
@@ -449,6 +453,7 @@
 
 (defn delete-tournament [sanction-id]
   (let [tournament-id (sanctionid->id sanction-id)]
+    (delete-pods tournament-id)
     (doseq [round (doall (map :id (sql/select db/round
                                     (sql/where {:tournament tournament-id})
                                     (sql/order :num :DESC))))]
@@ -457,7 +462,6 @@
       (sql/delete db/round
         (sql/where {:id round})))
     (delete-seatings tournament-id)
-    (delete-pods tournament-id)
     (delete-teams tournament-id)
     (delete-standings tournament-id)
     (sql/delete db/tournament

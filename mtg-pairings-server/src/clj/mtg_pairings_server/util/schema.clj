@@ -86,4 +86,5 @@
 (s/defschema InputPod {:number s/Int
                        :seats [InputPodSeat]})
 
-(s/defschema InputPodRound {:pods [InputPod]})
+(s/defschema InputPodRound {:pods [InputPod]
+                            :round s/Int})

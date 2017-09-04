@@ -5,8 +5,16 @@
             [mtg-pairings-server.components.tournament :refer [tournament-list]]))
 
 (defn get-latest-pairing [player-tournaments]
-  (let [t (first player-tournaments)]
-    (assoc (or (first (:pairings t)) (:seating t))
+  (let [t (first player-tournaments)
+        pod-seat (first (:pod-seats t))
+        pairing (first (:pairings t))
+        seating (:seating t)
+        selected (if (and pod-seat
+                          (or (not pairing)
+                              (> (:round_number pod-seat) (:round_number pairing))))
+                   pod-seat
+                   (or pairing seating))]
+    (assoc selected
       :tournament (:name t)
       :day (:day t))))
 
@@ -23,6 +31,6 @@
               [:span.newest-tournament-name (:tournament latest-pairing)]
               [pairing latest-pairing true true (some? (:team2_name latest-pairing))]]))
          (for [t @player-tournaments]
-           ^{:key (:name t)}
+           ^{:key [:tournament (:id t)]}
            [own-tournament t])]
         [tournament-list]))))
