@@ -9,8 +9,11 @@ pom.xml.asc
 *.class
 *~
 .project
+*.log
+*.iml
 /.lein-*
 /.nrepl-port
 /bin
 .classpath
 .DS_Store
+resources/public/css/main.min.css

@@ -166,11 +166,13 @@ namespace MtgPairings.Data
                 r => new
                 {
                     podRoundId = Convert.ToInt32(r["PodRoundId"]),
+                    roundNumber = Convert.ToInt32(r["RoundNumber"]),
                     tableNumber = Convert.ToInt32(r["TableNumber"]),
                     seatNumber = Convert.ToInt32(r["SeatNumber"]),
                     teamId = Convert.ToInt32(r["TeamId"])
                 },
-                "SELECT PodRound.PodRoundId, Pod.TableNumber, PodSeat.SeatNumber, PodSeat.TeamId " +
+                "SELECT PodRound.PodRoundId, Pod.TableNumber, PodSeat.SeatNumber, PodSeat.TeamId, " +
+                "(SELECT TOP 1 Number FROM Round WHERE (Round.PodRoundId = PodRound.PodRoundId) ORDER BY Number ASC) AS RoundNumber " +
                 "FROM ((PodSeat INNER JOIN " +
                 "       Pod ON (PodSeat.PodId = Pod.PodId)) INNER JOIN " +
                 "      PodRound ON (Pod.PodRoundId = PodRound.PodRoundId)) " +
@@ -179,9 +181,9 @@ namespace MtgPairings.Data
 
             return (from r in results
                     orderby r.podRoundId, r.tableNumber, r.seatNumber
-                    group new Seat(r.seatNumber, teams[r.teamId]) by new { tableNumber = r.tableNumber, podRoundId = r.podRoundId } into pod
-                    group new Pod(pod.Key.tableNumber, pod.ToImmutableList()) by pod.Key.podRoundId into podRound
-                    select new PodRound(podRound.ToImmutableList())).ToImmutableList();
+                    group new Seat(r.seatNumber, teams[r.teamId]) by new { tableNumber = r.tableNumber, podRoundId = r.podRoundId, roundNumber = r.roundNumber } into pod
+                    group new Pod(pod.Key.tableNumber, pod.ToImmutableList()) by new { podRoundId = pod.Key.podRoundId, roundNumber = pod.Key.roundNumber } into podRound
+                    select new PodRound(podRound.ToImmutableList(), podRound.Key.roundNumber)).ToImmutableList();
         }
 
         private String getSanctionNumber(string sanctionNumber, int tournamentId, LocalDate date)
