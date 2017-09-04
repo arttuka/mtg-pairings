@@ -173,6 +173,7 @@ namespace MtgPairings.Service
         {
             var request = createRequest("api/tournament/{sanctionid}/pods", Method.PUT,
                 pods.Select(pr => new {
+                    round = pr.RoundNumber,
                     pods = pr.Pods.Select(p => new {
                         number = p.Number,
                         seats = p.Seats.Select(s => new {

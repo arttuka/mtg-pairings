@@ -153,12 +153,6 @@ namespace MtgPairings
                                                         t.AutoUpload, newTournament, UploadEvent.Type.Seatings, 0);
                         UploadQueue.Enqueue(e);
                     }
-                    if (!oldTournament.Pods.SequenceEqual(newTournament.Pods) || !newTournament.Pods.IsEmpty && uploadAll)
-                    {
-                        UploadEvent e = new UploadEvent(() => _uploader.UploadPods(newTournament.SanctionNumber, newTournament.Pods),
-                                                        t.AutoUpload, newTournament, UploadEvent.Type.Pods, 0);
-                        UploadQueue.Enqueue(e);
-                    }
                     if (!oldTournament.Rounds.SequenceEqual(newTournament.Rounds) || !newTournament.Rounds.IsEmpty && uploadAll)
                     {
                         foreach (var round in oldTournament.Rounds.ZipAll(newTournament.Rounds, (r1, r2) => new { OldRound = r1, NewRound = r2 }))
@@ -188,6 +182,12 @@ namespace MtgPairings
 
                             }
                         }
+                    }
+                    if (!oldTournament.Pods.SequenceEqual(newTournament.Pods) || !newTournament.Pods.IsEmpty && uploadAll)
+                    {
+                        UploadEvent e = new UploadEvent(() => _uploader.UploadPods(newTournament.SanctionNumber, newTournament.Pods),
+                                                        t.AutoUpload, newTournament, UploadEvent.Type.Pods, 0);
+                        UploadQueue.Enqueue(e);
                     }
                 }
             }

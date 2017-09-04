@@ -6,10 +6,12 @@ namespace MtgPairings.Domain
     public class PodRound
     {
         public ImmutableList<Pod> Pods { get; private set; }
+        public int RoundNumber { get; private set; }
 
-        public PodRound(ImmutableList<Pod> pods)
+        public PodRound(ImmutableList<Pod> pods, int roundNumber)
         {
             this.Pods = pods;
+            this.RoundNumber = roundNumber;
         }
 
         public override bool Equals(object obj)
@@ -29,7 +31,7 @@ namespace MtgPairings.Domain
             }
             else
             {
-                return this.Pods.SequenceEqual(other.Pods);
+                return this.RoundNumber == other.RoundNumber && this.Pods.SequenceEqual(other.Pods);
             }
         }
     }
