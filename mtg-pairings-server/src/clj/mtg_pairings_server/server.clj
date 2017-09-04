@@ -22,20 +22,6 @@
                 (:status response))
       response)))
 
-(defn wrap-remove-content-length
-  [handler]
-  (fn [request]
-    (let [response (handler request)]
-      (update-in response [:headers] dissoc "Content-Length" "content-length"))))
-
-(defn wrap-resource-304
-  [handler root]
-  (-> handler
-    (wrap-resource root)
-    wrap-content-type
-    wrap-not-modified
-    wrap-remove-content-length))
-
 (defn wrap-allow-origin
   [handler]
   (fn [request]
@@ -53,6 +39,5 @@
     (-> handler
         wrap-json-with-padding
         wrap-request-log
-        (wrap-resource-304 "public")
         wrap-allow-origin)
     server-properties))
