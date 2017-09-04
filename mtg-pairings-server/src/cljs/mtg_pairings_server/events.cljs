@@ -142,13 +142,16 @@
   (fn [db [_ tournament]]
     (cond-> db
       (not= (:pairings tournament) (get-in db [:organizer :tournament :pairings]))
-      (assoc-in [:organizer :new-pairings] true)
+      (assoc-in-many [:organizer :new-pairings] true
+                     [:organizer :selected-pairings] (str (last (:pairings tournament))))
 
       (not= (:standings tournament) (get-in db [:organizer :tournament :standings]))
-      (assoc-in [:organizer :new-standings] true)
+      (assoc-in-many [:organizer :new-standings] true
+                     [:organizer :selected-standings] (str (last (:standings tournament))))
 
       (not= (:pods tournament) (get-in db [:organizer :tournament :pods]))
-      (assoc-in [:organizer :new-pods] true)
+      (assoc-in-many [:organizer :new-pods] true
+                     [:organizer :selected-pods] (str (last (:pods tournament))))
 
       :always
       (assoc-in [:organizer :tournament] tournament))))
@@ -198,14 +201,17 @@
   (case action
     :pairings {:ws-send [:client/organizer-pairings [id value]]
                :db      (assoc-in-many db [:organizer :mode] :pairings
-                                          [:organizer :pairings-round] value)}
+                                          [:organizer :pairings-round] value
+                                          [:organizer :new-pairings] false)}
     :standings {:ws-send [:client/organizer-standings [id value]]
                 :db      (assoc-in-many db [:organizer :mode] :standings
-                                           [:organizer :standings-round] value)}
+                                           [:organizer :standings-round] value
+                                           [:organizer :new-standings] false)}
     :seatings {:ws-send [:client/organizer-seatings id]
                :db      (assoc-in db [:organizer :mode] :seatings)}
     :pods {:ws-send [:client/organizer-pods [id value]]
-           :db      (assoc-in db [:organizer :mode] :pods)}
+           :db      (assoc-in-many db [:organizer :mode] :pods
+                                      [:organizer :new-pods] false)}
     :clock {:db (assoc-in db [:organizer :mode] :clock)}
     :set-clock {:db (update-in db [:organizer :clock] (fnil into {}) {:time    (* value 60)
                                                                       :text    (format-time (* value 60))
@@ -214,7 +220,10 @@
                   :db    (update-in db [:organizer :clock] (fnil into {}) {:start   (time/now)
                                                                            :running true})}
     :stop-clock {:clock :stop
-                 :db    (assoc-in db [:organizer :clock :running] false)}))
+                 :db    (assoc-in db [:organizer :clock :running] false)}
+    :select-pairings {:db (assoc-in db [:organizer :selected-pairings] value)}
+    :select-standings {:db (assoc-in db [:organizer :selected-standings] value)}
+    :select-pods {:db (assoc-in db [:organizer :selected-pods] value)}))
 
 (defn send-organizer-action [db id action value]
   (store ["organizer" id] {:action action, :value value})

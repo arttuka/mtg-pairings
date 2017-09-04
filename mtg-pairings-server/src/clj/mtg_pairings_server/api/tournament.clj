@@ -89,7 +89,7 @@
     :query-params [key :- String]
     (validate-request sanctionid key
       (add-pairings sanctionid round (:pairings pairings))
-      (broadcast-tournament sanctionid)
+      (broadcast-tournament sanctionid true)
       {:status 204}))
   (PUT "/:sanctionid/round-:round/results" []
     :path-params [sanctionid :- s/Str
@@ -99,6 +99,7 @@
     :query-params [key :- String]
     (validate-request sanctionid key
       (add-results sanctionid round (:results results))
+      (broadcast-tournament sanctionid false)
       {:status 204}))
   (PUT "/:sanctionid/round-:round/results/publish" []
     :path-params [sanctionid :- s/Str
@@ -115,6 +116,7 @@
     :query-params [key :- String]
     (validate-request sanctionid key
       (add-seatings sanctionid (:seatings seatings))
+      (broadcast-tournament sanctionid true)
       {:status 204}))
   (PUT "/:sanctionid/teams" []
     :path-params [sanctionid :- s/Str]
@@ -146,4 +148,5 @@
     :body [pods [InputPodRound]]
     (validate-request sanctionid key
       (add-pods sanctionid pods)
+      (broadcast-tournament sanctionid true)
       {:status 204})))

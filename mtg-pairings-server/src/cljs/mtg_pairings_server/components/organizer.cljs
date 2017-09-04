@@ -7,8 +7,8 @@
 
 (defn round-select [type a rounds]
   [:select.form-control
-   {:on-change #(reset! a (-> % .-target .-value))
-    :value     @a}
+   {:on-change #(dispatch [:organizer type (-> % .-target .-value)])
+    :value     (or @a "")}
    (for [round @rounds]
      ^{:key (str type round)}
      [:option {:value round}
@@ -22,9 +22,9 @@
         new-pods (subscribe [:organizer :new-pods])
         pods-rounds (subscribe [:organizer :tournament :pods])
         clock-running (subscribe [:organizer :clock :running])
-        pairings-round (atom "1")
-        standings-round (atom "1")
-        pods-round (atom "1")
+        pairings-round (subscribe [:organizer :selected-pairings])
+        standings-round (subscribe [:organizer :selected-standings])
+        pods-round (subscribe [:organizer :selected-pods])
         minutes (atom 50)]
     (fn []
       [:div#organizer-menu
@@ -35,17 +35,17 @@
          {:on-click #(dispatch [:organizer-mode :pairings (js/parseInt @pairings-round)])
           :class    (if @new-pairings "btn-success" "btn-default")}
          "Pairings"]
-        [round-select :pairings pairings-round pairings-rounds]
+        [round-select :select-pairings pairings-round pairings-rounds]
         [:button.btn
          {:on-click #(dispatch [:organizer-mode :standings (js/parseInt @standings-round)])
           :class    (if @new-standings "btn-success" "btn-default")}
          "Standings"]
-        [round-select :standings standings-round standings-rounds]
+        [round-select :select-standings standings-round standings-rounds]
         [:button.btn
          {:on-click #(dispatch [:organizer-mode :pods (js/parseInt @pods-round)])
           :class    (if @new-pods "btn-success" "btn-default")}
          "Pods"]
-        [round-select :pods pods-round pods-rounds]
+        [round-select :select-pods pods-round pods-rounds]
         [:button.btn.btn-default
          {:on-click #(dispatch [:organizer-mode :seatings])}
          "Seatings"]
