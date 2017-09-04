@@ -13,20 +13,22 @@
 
 (def mount-target
   [:div#app
-      [:h3 "ClojureScript has not been compiled!"]
-      [:p "please run "
-       [:b "lein figwheel"]
-       " in order to start the compiler"]])
+   [:h3 "ClojureScript has not been compiled!"]
+   [:p "please run "
+    [:b "lein figwheel"]
+    " in order to start the compiler"]])
 
 (defn head []
   [:head
    [:meta {:charset "utf-8"}]
-   [:meta {:name "viewport"
+   [:meta {:name    "viewport"
            :content "width=device-width, initial-scale=1"}]
-   (include-css "https://fonts.googleapis.com/css?family=Lato:400,700"
-                "/css/main.css"
-                "/css/bootstrap.css"
-                "/css/bootstrap-theme.css")])
+   (include-css "https://fonts.googleapis.com/css?family=Lato:400,700")
+   (if (env :dev)
+     (include-css "/css/main.css"
+                  "/css/bootstrap.css"
+                  "/css/bootstrap-theme.css")
+     (include-css "/css/main.min.css"))])
 
 (defn loading-page []
   (html5

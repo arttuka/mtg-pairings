@@ -1,9 +1,9 @@
-(defproject mtg-pairings-server "1.1.0"
+(defproject mtg-pairings-server "2.0.0"
   :license {:name "MIT License"
             :url  "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/core.async "0.3.443"]
-                 [reagent "0.7.0"]
+                 [reagent "0.7.0" :exclusions [cljsjs/react]]
                  [reagent-utils "0.2.1"]
                  [ring "1.6.2"]
                  [ring/ring-defaults "0.3.1"]
@@ -32,10 +32,11 @@
                  [com.cognitect/transit-cljs "0.8.239"]
                  [re-frame "0.10.1" :exclusions [cljsjs/react]]
                  [cljsjs/react-with-addons "15.6.1-0"]]
-  :plugins [[lein-environ "1.0.2"]
-            [lein-cljsbuild "1.1.5"]
-            [lein-asset-minifier "0.2.7"
-             :exclusions [org.clojure/clojure]]]
+  :plugins [[lein-environ "1.1.0" :exclusions [org.clojure/clojure]]
+            [lein-cljsbuild "1.1.7"]
+            [lein-asset-minifier "0.3.2"]]
+
+  :uberjar-name "mtg-pairings.jar"
 
   :clean-targets ^{:protect false} [:target-path
                                     [:cljsbuild :builds :app :compiler :output-dir]
@@ -44,7 +45,10 @@
   :source-paths ["src/clj" "src/cljc"]
   :resource-paths ["resources" "target/cljsbuild"]
 
-  :minify-assets {:assets {"resources/public/css/site.min.css" "resources/public/css/site.css"}}
+  :minify-assets {:assets {"resources/public/css/main.min.css"
+                           ["resources/public/css/main.css"
+                            "resources/public/css/bootstrap.css"
+                            "resources/public/css/bootstrap-theme.css"]}}
 
   :cljsbuild
   {:builds {:min
@@ -104,7 +108,7 @@
                                       [com.cemerick/piggieback "0.2.2"]
                                       [pjstadig/humane-test-output "0.8.2"]]}
              :uberjar {:main         mtg-pairings-server.main
-                       :aot          [mtg-pairings-server.main]
+                       :aot          :all
                        :hooks        [minify-assets.plugin/hooks]
                        :source-paths ["env/prod/clj"]
                        :prep-tasks   ["compile" ["cljsbuild" "once" "min"]]
