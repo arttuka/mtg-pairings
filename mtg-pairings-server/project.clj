@@ -46,9 +46,7 @@
   :resource-paths ["resources" "target/cljsbuild"]
 
   :minify-assets {:assets {"resources/public/css/main.min.css"
-                           ["resources/public/css/main.css"
-                            "resources/public/css/bootstrap.css"
-                            "resources/public/css/bootstrap-theme.css"]}}
+                           "resources/public/css/main.css"}}
 
   :cljsbuild
   {:builds {:min

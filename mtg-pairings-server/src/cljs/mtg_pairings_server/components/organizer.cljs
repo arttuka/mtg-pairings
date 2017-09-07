@@ -7,7 +7,7 @@
 
 (defn round-select [type a rounds]
   [:select.form-control
-   {:on-change #(dispatch [:organizer type (-> % .-target .-value)])
+   {:on-change #(dispatch [:organizer-mode type (-> % .-target .-value)])
     :value     (or @a "")}
    (for [round @rounds]
      ^{:key (str type round)}

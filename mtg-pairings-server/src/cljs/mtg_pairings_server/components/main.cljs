@@ -7,7 +7,6 @@
 
 (defn header []
   (let [user (subscribe [:logged-in-user])
-        collapsed? (atom true)
         dci-number (atom nil)]
     (fn []
       (if @user
@@ -23,7 +22,7 @@
          [:div.hidden-sm.hidden-md.hidden-lg
           [:span (:name @user)]
           [:span.pull-right.menu-icon
-           {:on-click #(swap! collapsed? not)}
+           {:on-click #(dispatch [:collapse-mobile-menu])}
            [:i]]]]
         [:div#header
          [:form
@@ -43,8 +42,27 @@
            {:href (tournaments-path)}
            "KAIKKI TURNAUKSET"]
           [:span.pull-right.menu-icon.hidden-sm.hidden-md.hidden-lg
-           {:on-click #(swap! collapsed? not)}
+           {:on-click #(dispatch [:collapse-mobile-menu])}
            [:i]]]]))))
+
+(defn mobile-menu []
+  (let [collapsed? (subscribe [:mobile-menu-collapsed?])
+        user (subscribe [:logged-in-user])]
+    (fn []
+      (when-not @collapsed?
+        [:div#mobile-menu
+         [:a {:href     "/"
+              :on-click #(dispatch [:collapse-mobile-menu])}
+          "ETUSIVU"]
+         [:a {:href     "/tournaments"
+              :on-click #(dispatch [:collapse-mobile-menu])}
+          "KAIKKI TURNAUKSET"]
+         (when @user
+           [:a {:href     "/tournaments"
+                :on-click #(do
+                             (dispatch [:collapse-mobile-menu])
+                             (dispatch [:logout]))}
+            "KIRJAUDU ULOS"])]))))
 
 (defn combine-pairings-and-pods [pairings pods]
   (->> (concat pairings pods)

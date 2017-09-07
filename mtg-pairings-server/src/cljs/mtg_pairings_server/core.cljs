@@ -10,7 +10,7 @@
             [mtg-pairings-server.pages.tournament :refer [tournament-page pairings-page standings-page
                                                           pods-page seatings-page tournaments-page]]
             [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu]]
-            [mtg-pairings-server.components.main :refer [header]]
+            [mtg-pairings-server.components.main :refer [header mobile-menu]]
             [mtg-pairings-server.websocket :as ws]))
 
 (defn current-page []
@@ -18,6 +18,7 @@
     (fn []
       [:div
        [header]
+       [mobile-menu]
        (case (:page @page)
          :main [#'main-page]
          :tournaments [#'tournaments-page]

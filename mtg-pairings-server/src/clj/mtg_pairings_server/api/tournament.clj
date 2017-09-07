@@ -149,4 +149,11 @@
     (validate-request sanctionid key
       (add-pods sanctionid pods)
       (broadcast-tournament sanctionid true)
-      {:status 204})))
+      {:status 204}))
+  (POST "/:sanctionid/deck-construction-seatings/:pod-round" []
+    :summary "Generoi istumapaikat dekinrakennusta varten"
+    :query-params [key :- s/Str]
+    :path-params [sanctionid :- s/Str
+                  pod-round :- s/Int]
+    (validate-request sanctionid key
+      (generate-deck-construction-seatings sanctionid pod-round))))

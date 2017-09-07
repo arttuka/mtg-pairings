@@ -80,3 +80,7 @@
 (reg-sub :organizer
   (fn [db [& keys]]
     (get-in db keys)))
+
+(reg-sub :mobile-menu-collapsed?
+  (fn [db _]
+    (:mobile-menu-collapsed? db)))
