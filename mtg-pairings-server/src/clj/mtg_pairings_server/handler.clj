@@ -48,6 +48,7 @@
   (GET "/tournaments/:id/seatings" [] (loading-page))
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
+  (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
   (GET "/chsk" request
     (ws/ajax-get-or-ws-handshake-fn request))
   (POST "/chsk" request
@@ -115,3 +116,8 @@
 (defmethod ws/event-handler :client/organizer-seatings
   [{uid :uid, id :?data}]
   (ws/send! uid [:server/organizer-seatings (tournament/seatings id)]))
+
+(defmethod ws/event-handler :client/deck-construction
+  [{uid :uid, id :?data}]
+  (ws/send! uid [:server/organizer-seatings (tournament/seatings id)])
+  (ws/send! uid [:server/organizer-pods (tournament/latest-pods id)]))

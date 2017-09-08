@@ -232,6 +232,21 @@
       (sql/order :pod.number)
       (sql/order :seat))))
 
+(defn latest-pods [tournament-id]
+  (sql/select db/seat
+    (sql/fields :seat)
+    (sql/with db/team
+      (sql/fields [:name :team_name]))
+    (sql/with db/pod
+      (sql/fields [:number :pod])
+      (sql/where {:pod_round (sql/subselect db/pod-round
+                               (sql/fields :id)
+                               (sql/where {:tournament tournament-id})
+                               (sql/order :id :DESC)
+                               (sql/limit 1))}))
+    (sql/order :pod.number)
+    (sql/order :seat)))
+
 (defn standings [tournament-id round-num hidden?]
   (-> (sql/select db/standings
         (sql/where (and {:tournament tournament-id
@@ -514,9 +529,9 @@
       {:team         (:team s)
        :table_number (-> (* n seat)
                          (+ pod)
-                         inc
                          (/ 2)
-                         int)
+                         int
+                         inc)
        :tournament   tournament-id})))
 
 (defn generate-deck-construction-seatings [sanctionid pod-round]

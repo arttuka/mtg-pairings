@@ -262,3 +262,7 @@
   (fn [db _]
     (.log js/console "Collapse mobile menu")
     (update db :mobile-menu-collapsed? not)))
+
+(reg-event-fx :load-deck-construction
+  (fn [_ [_ id]]
+    {:ws-send [:client/deck-construction id]}))

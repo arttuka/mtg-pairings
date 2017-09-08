@@ -156,4 +156,5 @@
     :path-params [sanctionid :- s/Str
                   pod-round :- s/Int]
     (validate-request sanctionid key
-      (generate-deck-construction-seatings sanctionid pod-round))))
+      (generate-deck-construction-seatings sanctionid pod-round)
+      {:status 204})))

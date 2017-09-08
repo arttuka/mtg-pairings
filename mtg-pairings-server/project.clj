@@ -23,7 +23,6 @@
                  [korma "0.4.3"]
                  [mount "0.1.11"]
                  [org.postgresql/postgresql "42.1.4"]
-                 [org.clojure/tools.logging "0.4.0"]
                  [metosin/compojure-api "1.1.11"]
                  [ring.middleware.jsonp "0.1.6"]
                  [com.taoensso/sente "1.11.0" :exclusions [com.taoensso/encore]]
@@ -67,15 +66,6 @@
                             :output-dir    "target/cljsbuild/public/js/out"
                             :source-map    true
                             :optimizations :none
-                            :pretty-print  true}}
-            #_#_
-            :test
-            {:source-paths ["src/cljs" "src/cljc" "test/cljs"]
-             :compiler     {:main          mtg-pairings-server.doo-runner
-                            :asset-path    "/js/out"
-                            :output-to     "target/test.js"
-                            :output-dir    "target/cljstest/public/js/out"
-                            :optimizations :whitespace
                             :pretty-print  true}}}}
 
   :figwheel {:http-server-root "public"
@@ -89,8 +79,7 @@
   :profiles {:dev     {:repl-options {:init-ns          mtg-pairings-server.repl
                                       :nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                        :source-paths ["dev" "env/dev/clj"]
-                       :plugins [[lein-figwheel "0.5.13"]
-                                 [lein-doo "0.1.6"]]
+                       :plugins [[lein-figwheel "0.5.13"]]
 
                        :injections [(require 'pjstadig.humane-test-output)
                                     (pjstadig.humane-test-output/activate!)]

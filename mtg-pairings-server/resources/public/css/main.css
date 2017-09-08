@@ -410,6 +410,17 @@ h3 {
   width: 100px;
 }
 
+#deck-construction .pod {
+  display: inline-block;
+  min-width: 30%;
+  font-size: 18px;
+}
+
+#deck-construction .pod .table {
+  width: 40px;
+  display: inline-block;
+}
+
 #coverage {
 }
 
