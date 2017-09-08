@@ -30,6 +30,8 @@
     (store key obj)))
 
 (def initial-db {:tournaments            {}
+                 :tournament-count       0
+                 :tournament-page        1
                  :tournament-ids         []
                  :player-tournaments     []
                  :pairings               {:sort-key :table_number}
@@ -82,6 +84,10 @@
   (fn [db [_ tournaments]]
     (assoc db :tournaments (map-by :id (map format-tournament tournaments))
               :tournament-ids (map :id tournaments))))
+
+(reg-event-db :server/tournament-count
+  (fn [db [_ n]]
+    (assoc db :tournament-count n)))
 
 (reg-event-fx :load-pairings
   (fn [_ [_ id round]]
@@ -142,20 +148,20 @@
 (reg-event-db :server/organizer-tournament
   (fn [db [_ tournament]]
     (cond-> db
-            (not= (:pairings tournament) (get-in db [:organizer :tournament :pairings]))
-            (assoc-in-many [:organizer :new-pairings] true
-                           [:organizer :selected-pairings] (str (last (:pairings tournament))))
+      (not= (:pairings tournament) (get-in db [:organizer :tournament :pairings]))
+      (assoc-in-many [:organizer :new-pairings] true
+                     [:organizer :selected-pairings] (str (last (:pairings tournament))))
 
-            (not= (:standings tournament) (get-in db [:organizer :tournament :standings]))
-            (assoc-in-many [:organizer :new-standings] true
-                           [:organizer :selected-standings] (str (last (:standings tournament))))
+      (not= (:standings tournament) (get-in db [:organizer :tournament :standings]))
+      (assoc-in-many [:organizer :new-standings] true
+                     [:organizer :selected-standings] (str (last (:standings tournament))))
 
-            (not= (:pods tournament) (get-in db [:organizer :tournament :pods]))
-            (assoc-in-many [:organizer :new-pods] true
-                           [:organizer :selected-pods] (str (last (:pods tournament))))
+      (not= (:pods tournament) (get-in db [:organizer :tournament :pods]))
+      (assoc-in-many [:organizer :new-pods] true
+                     [:organizer :selected-pods] (str (last (:pods tournament))))
 
-            :always
-            (assoc-in [:organizer :tournament] tournament))))
+      :always
+      (assoc-in [:organizer :tournament] tournament))))
 
 (reg-event-db :server/organizer-pairings
   (fn [db [_ pairings]]
@@ -193,26 +199,26 @@
       :start (do
                (reset! running true)
                (go-loop []
-                        (<! (timeout 200))
-                        (dispatch [:update-clock])
-                        (when @running (recur))))
+                 (<! (timeout 200))
+                 (dispatch [:update-clock])
+                 (when @running (recur))))
       :stop (reset! running false))))
 
 (defn resolve-organizer-action [db id action value]
   (case action
     :pairings {:ws-send [:client/organizer-pairings [id value]]
                :db      (assoc-in-many db [:organizer :mode] :pairings
-                                       [:organizer :pairings-round] value
-                                       [:organizer :new-pairings] false)}
+                                          [:organizer :pairings-round] value
+                                          [:organizer :new-pairings] false)}
     :standings {:ws-send [:client/organizer-standings [id value]]
                 :db      (assoc-in-many db [:organizer :mode] :standings
-                                        [:organizer :standings-round] value
-                                        [:organizer :new-standings] false)}
+                                           [:organizer :standings-round] value
+                                           [:organizer :new-standings] false)}
     :seatings {:ws-send [:client/organizer-seatings id]
                :db      (assoc-in db [:organizer :mode] :seatings)}
     :pods {:ws-send [:client/organizer-pods [id value]]
            :db      (assoc-in-many db [:organizer :mode] :pods
-                                   [:organizer :new-pods] false)}
+                                      [:organizer :new-pods] false)}
     :clock {:db (assoc-in db [:organizer :mode] :clock)}
     :set-clock {:db (update-in db [:organizer :clock] (fnil into {}) {:time    (* value 60)
                                                                       :text    (format-time (* value 60))
