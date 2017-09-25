@@ -59,3 +59,9 @@
     (dispatch [:load-deck-construction id])
     (dispatch [:page {:page :organizer-deck-construction
                       :id   id}])))
+
+(secretary/defroute pod-seatings-path "/tournaments/:id/organizer/pod-seatings" [id]
+  (let [id (js/parseInt id)]
+    (dispatch [:load-deck-construction id])
+    (dispatch [:page {:page :organizer-pod-seatings
+                      :id   id}])))

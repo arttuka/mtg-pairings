@@ -27,6 +27,7 @@
 (defn deck-construction-table [pod-num seats name->seating]
   [:div.pod
    [:h3 "Pod " pod-num]
+   [:h3 "Deck construction seatings"]
    (for [seat seats]
      [:div
       [:span.table (name->seating (:team_name seat))]
@@ -43,3 +44,17 @@
           "#header { display: none; }"]
          (for [[pod-number seats] pods]
            [deck-construction-table pod-number seats name->seating])]))))
+
+(defn pod-seatings []
+  (let [pods (subscribe [:organizer :pods])]
+    (fn []
+      [:div#deck-construction
+       [:style {:type "text/css"}
+        "#header { display: none; }"]
+       (for [[num seats] (group-by :pod (sort-by :seat @pods))]
+        [:div.pod
+         [:h3 "Pod " num]
+         (for [seat seats]
+           [:div
+            [:span.table (:seat seat)]
+            [:span.name (:team_name seat)]])])])))

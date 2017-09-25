@@ -49,6 +49,7 @@
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
+  (GET "/tournaments/:id/organizer/pod-seatings" [] (loading-page))
   (GET "/chsk" request
     (ws/ajax-get-or-ws-handshake-fn request))
   (POST "/chsk" request
