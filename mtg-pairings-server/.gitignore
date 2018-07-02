@@ -13,6 +13,7 @@ pom.xml.asc
 *.iml
 /.lein-*
 /.nrepl-port
+.rebel_readline_history
 /bin
 .classpath
 .DS_Store
