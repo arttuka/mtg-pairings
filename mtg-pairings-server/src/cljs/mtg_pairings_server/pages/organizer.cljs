@@ -1,10 +1,11 @@
 (ns mtg-pairings-server.pages.organizer
   (:require [re-frame.core :refer [subscribe]]
-            [mtg-pairings-server.components.organizer :refer [menu pairings seatings pods standings clock]]))
+            [mtg-pairings-server.components.organizer :refer [menu pairings seatings pods standings clock]]
+            [mtg-pairings-server.subscriptions :as subs]))
 
 (defn organizer-page []
-  (let [organizer-mode (subscribe [:organizer-mode])
-        hide-menu? (subscribe [:organizer :menu])]
+  (let [organizer-mode (subscribe [::subs/organizer-mode])
+        hide-menu? (subscribe [::subs/organizer :menu])]
     (fn organizer-page-render []
       [:div#organizer-page
        [:style {:type "text/css"}
@@ -33,8 +34,8 @@
       [:span.name (:team_name seat)]])])
 
 (defn deck-construction-tables []
-  (let [seatings (subscribe [:organizer :seatings])
-        pods (subscribe [:organizer :pods])]
+  (let [seatings (subscribe [::subs/organizer :seatings])
+        pods (subscribe [::subs/organizer :pods])]
     (fn deck-construction-tables-render []
       (let [name->seating (into {} (map (juxt :name :table_number) @seatings))
             pods (into (sorted-map) (group-by :pod (sort-by :team_name @pods)))]

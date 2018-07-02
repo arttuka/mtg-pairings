@@ -3,12 +3,13 @@
             [goog.string :as gstring]
             [goog.string.format]
             [mtg-pairings-server.events :as events]
+            [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
             [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]))
 
 (defn tournament-header [id]
-  (let [tournament (subscribe [:tournament id])]
+  (let [tournament (subscribe [::subs/tournament id])]
     (fn tournament-header-render [id]
       [:h3 [:a {:href (tournament-path {:id id})}
             (str (:name @tournament) " " (format-date (:day @tournament)) " — " (:organizer @tournament))]])))
@@ -40,7 +41,7 @@
          (str "Pods " n)])]]))
 
 (defn tournament-list []
-  [with-paging ::events/tournaments-page [:tournaments-page] [:tournaments]
+  [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/tournaments]
    (fn tournament-list-render [tournaments]
      [:div#tournaments
       (for [t tournaments]
@@ -72,8 +73,8 @@
     [:span (:team2_wins pairing)]]])
 
 (defn pairings [id round]
-  (let [data (subscribe [:sorted-pairings id round])
-        sort-key (subscribe [:pairings-sort])]
+  (let [data (subscribe [::subs/sorted-pairings id round])
+        sort-key (subscribe [::subs/pairings-sort])]
     (fn pairings-render [id round]
       [:table.pairings-table
        [:thead
@@ -118,7 +119,7 @@
       [standing-row (if (even? i) "even" "odd") standing])]])
 
 (defn standings [id round]
-  (let [data (subscribe [:standings id round])]
+  (let [data (subscribe [::subs/standings id round])]
     (fn standings-render [id round]
       [standing-table @data])))
 
@@ -129,8 +130,8 @@
    [:td.player (:team_name seat)]])
 
 (defn pods [id round]
-  (let [data (subscribe [:sorted-pods id round])
-        sort-key (subscribe [:pods-sort])]
+  (let [data (subscribe [::subs/sorted-pods id round])
+        sort-key (subscribe [::subs/pods-sort])]
     (fn pods-render [id round]
       [:table.pods-table
        [:thead
@@ -153,8 +154,8 @@
    [:td.players (:name seat)]])
 
 (defn seatings [id round]
-  (let [data (subscribe [:sorted-seatings id round])
-        sort-key (subscribe [:seatings-sort])]
+  (let [data (subscribe [::subs/sorted-seatings id round])
+        sort-key (subscribe [::subs/seatings-sort])]
     (fn seatings-render [id round]
       [:table.pairings-table
        [:thead

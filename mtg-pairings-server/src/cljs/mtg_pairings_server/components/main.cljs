@@ -4,10 +4,11 @@
             [mtg-pairings-server.components.organizer :refer [pairing]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.routes :refer [tournaments-path standings-path]]
+            [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]))
 
 (defn header []
-  (let [user (subscribe [:logged-in-user])
+  (let [user (subscribe [::subs/logged-in-user])
         dci-number (atom nil)]
     (fn header-render []
       (if @user
@@ -47,8 +48,8 @@
            [:i]]]]))))
 
 (defn mobile-menu []
-  (let [collapsed? (subscribe [:mobile-menu-collapsed?])
-        user (subscribe [:logged-in-user])]
+  (let [collapsed? (subscribe [::subs/mobile-menu-collapsed?])
+        user (subscribe [::subs/logged-in-user])]
     (fn mobile-menu-render []
       (when-not @collapsed?
         [:div#mobile-menu

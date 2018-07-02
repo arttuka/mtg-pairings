@@ -2,6 +2,7 @@
   (:require [reagent.core :refer [atom]]
             [re-frame.core :refer [dispatch subscribe]]
             [mtg-pairings-server.events :as events]
+            [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [cls indexed]]
             [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]
             [mtg-pairings-server.components.tournament :refer [standing-table]]))
@@ -16,16 +17,16 @@
       round])])
 
 (defn menu []
-  (let [new-pairings (subscribe [:organizer :new-pairings])
-        pairings-rounds (subscribe [:organizer :tournament :pairings])
-        new-standings (subscribe [:organizer :new-standings])
-        standings-rounds (subscribe [:organizer :tournament :standings])
-        new-pods (subscribe [:organizer :new-pods])
-        pods-rounds (subscribe [:organizer :tournament :pods])
-        clock-running (subscribe [:organizer :clock :running])
-        pairings-round (subscribe [:organizer :selected-pairings])
-        standings-round (subscribe [:organizer :selected-standings])
-        pods-round (subscribe [:organizer :selected-pods])
+  (let [new-pairings (subscribe [::subs/organizer :new-pairings])
+        pairings-rounds (subscribe [::subs/organizer :tournament :pairings])
+        new-standings (subscribe [::subs/organizer :new-standings])
+        standings-rounds (subscribe [::subs/organizer :tournament :standings])
+        new-pods (subscribe [::subs/organizer :new-pods])
+        pods-rounds (subscribe [::subs/organizer :tournament :pods])
+        clock-running (subscribe [::subs/organizer :clock :running])
+        pairings-round (subscribe [::subs/organizer :selected-pairings])
+        standings-round (subscribe [::subs/organizer :selected-standings])
+        pods-round (subscribe [::subs/organizer :selected-pods])
         minutes (atom 50)]
     (fn menu-render []
       [:div#organizer-menu
@@ -116,9 +117,9 @@
     (split-data duplicated)))
 
 (defn pairings []
-  (let [pairings (subscribe [:organizer :pairings])
-        pairings-round (subscribe [:organizer :pairings-round])
-        tournament (subscribe [:organizer :tournament])]
+  (let [pairings (subscribe [::subs/organizer :pairings])
+        pairings-round (subscribe [::subs/organizer :pairings-round])
+        tournament (subscribe [::subs/organizer :tournament])]
     (fn pairings-render []
       [:div.organizer-pairings
        [:h2 (str (:name @tournament) " - kierros " @pairings-round)]
@@ -138,8 +139,8 @@
        [:div.name (:name s)]]])])
 
 (defn seatings []
-  (let [seatings (subscribe [:organizer :seatings])
-        tournament (subscribe [:organizer :tournament])]
+  (let [seatings (subscribe [::subs/organizer :seatings])
+        tournament (subscribe [::subs/organizer :tournament])]
     (fn seatings-render []
       [:div.organizer-seatings
        [:h2 (str (:name @tournament) " - seatings")]
@@ -160,8 +161,8 @@
        [:div.name (:team_name s)]]])])
 
 (defn pods []
-  (let [pods (subscribe [:organizer :pods])
-        tournament (subscribe [:organizer :tournament])]
+  (let [pods (subscribe [::subs/organizer :pods])
+        tournament (subscribe [::subs/organizer :tournament])]
     (fn pods-render []
       [:div.organizer-pods
        [:h2 (str (:name @tournament) " - pods")]
@@ -170,9 +171,9 @@
          [pod-column column])])))
 
 (defn standings []
-  (let [standings (subscribe [:organizer :standings])
-        tournament (subscribe [:organizer :tournament])
-        standings-round (subscribe [:organizer :standings-round])]
+  (let [standings (subscribe [::subs/organizer :standings])
+        tournament (subscribe [::subs/organizer :tournament])
+        standings-round (subscribe [::subs/organizer :standings-round])]
     (fn standings-render []
       [:div.organizer-standings
        [:h2 (str (:name @tournament) " - kierros " @standings-round)]
@@ -181,7 +182,7 @@
          [standing-table column])])))
 
 (defn clock []
-  (let [c (subscribe [:organizer :clock])]
+  (let [c (subscribe [::subs/organizer :clock])]
     (fn clock-render []
       [:div.organizer-clock
        {:class (when (:timeout @c) "timeout")}

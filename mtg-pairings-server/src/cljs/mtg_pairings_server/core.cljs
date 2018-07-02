@@ -4,8 +4,8 @@
             [mount.core :as m]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
-            [mtg-pairings-server.subscriptions]
-            [mtg-pairings-server.events]
+            [mtg-pairings-server.subscriptions :as subs]
+            [mtg-pairings-server.events :as events]
             [mtg-pairings-server.pages.main :refer [main-page]]
             [mtg-pairings-server.pages.tournament :refer [tournament-page pairings-page standings-page
                                                           pods-page seatings-page tournaments-page]]
@@ -14,7 +14,7 @@
             [mtg-pairings-server.websocket :as ws]))
 
 (defn current-page []
-  (let [page (subscribe [:page])]
+  (let [page (subscribe [::subs/page])]
     (fn []
       [:div
        [header]
@@ -36,7 +36,7 @@
   (reagent/render [current-page] (.getElementById js/document "app")))
 
 (defn init! []
-  (dispatch-sync [:initialize])
+  (dispatch-sync [::events/initialize])
   (accountant/configure-navigation!
     {:nav-handler
      (fn [path & more]

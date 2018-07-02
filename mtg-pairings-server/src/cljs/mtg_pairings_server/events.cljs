@@ -3,7 +3,7 @@
             [cljs.core.async :as async :refer [<! >! timeout]]
             [cljs-time.core :as time]
             [mtg-pairings-server.util.local-storage :refer [fetch store]]
-            [mtg-pairings-server.util.util :refer [map-by round format-time assoc-in-many]]
+            [mtg-pairings-server.util.util :refer [map-by format-time assoc-in-many]]
             [mtg-pairings-server.websocket :as ws])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
