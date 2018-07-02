@@ -41,7 +41,7 @@
                  :logged-in-user         (fetch :user)
                  :mobile-menu-collapsed? true})
 
-(reg-event-db :initialize
+(reg-event-db ::initialize
   (fn [db _]
     (merge db initial-db)))
 
@@ -54,7 +54,7 @@
       (when-let [user (fetch :user)]
         (ws/send! [:client/login (:dci user)])))))
 
-(reg-event-fx :login
+(reg-event-fx ::login
   (fn [_ [_ dci-number]]
     {:ws-send [:client/login dci-number]}))
 
@@ -63,17 +63,17 @@
     {:db    (assoc db :logged-in-user user)
      :store [:user user]}))
 
-(reg-event-fx :logout
+(reg-event-fx ::logout
   (fn [{:keys [db]} _]
     {:ws-send [:client/logout]
      :db      (assoc db :logged-in-user nil)
      :store   [:user nil]}))
 
-(reg-event-db :page
+(reg-event-db ::page
   (fn [db [_ data]]
     (assoc db :page data)))
 
-(reg-event-db :tournaments-page
+(reg-event-db ::tournaments-page
   (fn [db [_ page]]
     (assoc db :tournaments-page page)))
 
@@ -89,7 +89,7 @@
     (assoc db :tournaments (map-by :id (map format-tournament tournaments))
               :tournament-ids (map :id tournaments))))
 
-(reg-event-fx :load-pairings
+(reg-event-fx ::load-pairings
   (fn [_ [_ id round]]
     {:ws-send [:client/pairings [id round]]}))
 
@@ -97,11 +97,11 @@
   (fn [db [_ [id round pairings]]]
     (assoc-in db [:pairings id round] pairings)))
 
-(reg-event-db :sort-pairings
+(reg-event-db ::sort-pairings
   (fn [db [_ sort-key]]
     (assoc-in db [:pairings :sort-key] sort-key)))
 
-(reg-event-fx :load-standings
+(reg-event-fx ::load-standings
   (fn [_ [_ id round]]
     {:ws-send [:client/standings [id round]]}))
 
@@ -109,7 +109,7 @@
   (fn [db [_ [id round standings]]]
     (assoc-in db [:standings id round] standings)))
 
-(reg-event-fx :load-pods
+(reg-event-fx ::load-pods
   (fn [_ [_ id round]]
     {:ws-send [:client/pods [id round]]}))
 
@@ -117,11 +117,11 @@
   (fn [db [_ [id round pods]]]
     (assoc-in db [:pods id round] pods)))
 
-(reg-event-db :sort-pods
+(reg-event-db ::sort-pods
   (fn [db [_ sort-key]]
     (assoc-in db [:pods :sort-key] sort-key)))
 
-(reg-event-fx :load-seatings
+(reg-event-fx ::load-seatings
   (fn [_ [_ id]]
     {:ws-send [:client/seatings id]}))
 
@@ -129,7 +129,7 @@
   (fn [db [_ [id seatings]]]
     (assoc-in db [:seatings id] seatings)))
 
-(reg-event-db :sort-seatings
+(reg-event-db ::sort-seatings
   (fn [db [_ sort-key]]
     (assoc-in db [:seatings :sort-key] sort-key)))
 
@@ -141,7 +141,7 @@
   (fn [db [_ tournament]]
     (assoc-in db [:player-tournaments 0] tournament)))
 
-(reg-event-fx :load-organizer-tournament
+(reg-event-fx ::load-organizer-tournament
   (fn [_ [_ id]]
     {:ws-send [:client/organizer-tournament id]}))
 
@@ -179,7 +179,7 @@
   (fn [db [_ seatings]]
     (assoc-in db [:organizer :seatings] seatings)))
 
-(reg-event-db :update-clock
+(reg-event-db ::update-clock
   (fn [db _]
     (if-let [start (get-in db [:organizer :clock :start])]
       (let [now (time/now)
@@ -200,7 +200,7 @@
                (reset! running true)
                (go-loop []
                  (<! (timeout 200))
-                 (dispatch [:update-clock])
+                 (dispatch [::update-clock])
                  (when @running (recur))))
       :stop (reset! running false))))
 
@@ -239,7 +239,7 @@
     :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
     {}))
 
-(reg-event-fx :organizer-mode
+(reg-event-fx ::organizer-mode
   (fn [{:keys [db]} [_ action value]]
     (let [{:keys [id page]} (:page db)]
       (case page
@@ -250,12 +250,12 @@
   (fn [id]
     (.open js/window (str "/tournaments/" id "/organizer/menu") (str "menu" id))))
 
-(reg-event-fx :popup-organizer-menu
+(reg-event-fx ::popup-organizer-menu
   (fn [{:keys [db]} _]
     {:db    (assoc-in db [:organizer :menu] true)
      :popup (get-in db [:page :id])}))
 
-(reg-event-fx :local-storage-updated
+(reg-event-fx ::local-storage-updated
   (fn [{:keys [db]} [_ k v]]
     (when (and (= (get-in db [:page :page]) :organizer)
                (= k ["organizer" (get-in db [:page :id])]))
@@ -264,11 +264,11 @@
                                 (keyword (:action v))
                                 (:value v)))))
 
-(reg-event-db :collapse-mobile-menu
+(reg-event-db ::collapse-mobile-menu
   (fn [db _]
     (.log js/console "Collapse mobile menu")
     (update db :mobile-menu-collapsed? not)))
 
-(reg-event-fx :load-deck-construction
+(reg-event-fx ::load-deck-construction
   (fn [_ [_ id]]
     {:ws-send [:client/deck-construction id]}))

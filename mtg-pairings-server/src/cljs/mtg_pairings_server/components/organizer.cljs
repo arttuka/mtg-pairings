@@ -1,13 +1,14 @@
 (ns mtg-pairings-server.components.organizer
   (:require [reagent.core :refer [atom]]
             [re-frame.core :refer [dispatch subscribe]]
+            [mtg-pairings-server.events :as events]
             [mtg-pairings-server.util.util :refer [cls indexed]]
             [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]
             [mtg-pairings-server.components.tournament :refer [standing-table]]))
 
 (defn round-select [type a rounds]
   [:select.form-control
-   {:on-change #(dispatch [:organizer-mode type (-> % .-target .-value)])
+   {:on-change #(dispatch [::events/organizer-mode type (-> % .-target .-value)])
     :value     (or @a "")}
    (for [round @rounds]
      ^{:key (str type round)}
@@ -29,28 +30,28 @@
     (fn menu-render []
       [:div#organizer-menu
        [:div.form-inline
-        [:a {:on-click #(dispatch [:popup-organizer-menu])}
+        [:a {:on-click #(dispatch [::events/popup-organizer-menu])}
          [:i.glyphicon.glyphicon-resize-full]]
         [:button.btn
-         {:on-click #(dispatch [:organizer-mode :pairings (js/parseInt @pairings-round)])
+         {:on-click #(dispatch [::events/organizer-mode :pairings (js/parseInt @pairings-round)])
           :class    (if @new-pairings "btn-success" "btn-default")}
          "Pairings"]
         [round-select :select-pairings pairings-round pairings-rounds]
         [:button.btn
-         {:on-click #(dispatch [:organizer-mode :standings (js/parseInt @standings-round)])
+         {:on-click #(dispatch [::events/organizer-mode :standings (js/parseInt @standings-round)])
           :class    (if @new-standings "btn-success" "btn-default")}
          "Standings"]
         [round-select :select-standings standings-round standings-rounds]
         [:button.btn
-         {:on-click #(dispatch [:organizer-mode :pods (js/parseInt @pods-round)])
+         {:on-click #(dispatch [::events/organizer-mode :pods (js/parseInt @pods-round)])
           :class    (if @new-pods "btn-success" "btn-default")}
          "Pods"]
         [round-select :select-pods pods-round pods-rounds]
         [:button.btn.btn-default
-         {:on-click #(dispatch [:organizer-mode :seatings])}
+         {:on-click #(dispatch [::events/organizer-mode :seatings])}
          "Seatings"]
         [:button.btn.btn-default
-         {:on-click #(dispatch [:organizer-mode :clock])}
+         {:on-click #(dispatch [::events/organizer-mode :clock])}
          "Kello"]
         [:input.form-control
          {:type      "number"
@@ -59,15 +60,15 @@
           :min       0
           :max       99}]
         [:button.btn.btn-default
-         {:on-click #(dispatch [:organizer-mode :set-clock @minutes])
+         {:on-click #(dispatch [::events/organizer-mode :set-clock @minutes])
           :disabled (when @clock-running "disabled")}
          "Aseta"]
         [:button.btn.btn-success
-         {:on-click #(dispatch [:organizer-mode :start-clock])
+         {:on-click #(dispatch [::events/organizer-mode :start-clock])
           :disabled (when @clock-running "disabled")}
          "Käynnistä"]
         [:button.btn.btn-danger
-         {:on-click #(dispatch [:organizer-mode :stop-clock])
+         {:on-click #(dispatch [::events/organizer-mode :stop-clock])
           :disabled (when-not @clock-running "disabled")}
          "Pysäytä"]]])))
 

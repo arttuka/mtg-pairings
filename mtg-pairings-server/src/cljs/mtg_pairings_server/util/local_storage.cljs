@@ -33,7 +33,7 @@
 (defn start-listen []
   (.addEventListener js/window "storage"
                      (fn [event]
-                       (dispatch [:local-storage-updated
+                       (dispatch [:mtg-pairings-server.events/local-storage-updated
                                   (split-key (.-key event))
                                   (-> (.-newValue event)
                                       js/JSON.parse

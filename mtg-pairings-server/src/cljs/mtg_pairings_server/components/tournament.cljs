@@ -2,6 +2,7 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [goog.string :as gstring]
             [goog.string.format]
+            [mtg-pairings-server.events :as events]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
             [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]))
@@ -39,12 +40,12 @@
          (str "Pods " n)])]]))
 
 (defn tournament-list []
-  [with-paging :tournaments-page [:tournaments-page] [:tournaments]
+  [with-paging ::events/tournaments-page [:tournaments-page] [:tournaments]
    (fn tournament-list-render [tournaments]
-    [:div#tournaments
-     (for [t tournaments]
-       ^{:key (:id t)}
-       [tournament t])])])
+     [:div#tournaments
+      (for [t tournaments]
+        ^{:key (:id t)}
+        [tournament t])])])
 
 (defn sortable [column sort-key dispatch-key]
   {:class    (when (not= column sort-key) "inactive")
@@ -77,10 +78,10 @@
       [:table.pairings-table
        [:thead
         [:tr
-         [:th.table (sortable :table_number @sort-key :sort-pairings)
+         [:th.table (sortable :table_number @sort-key ::events/sort-pairings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pöytä"]
-         [:th.players (sortable :team1_name @sort-key :sort-pairings)
+         [:th.players (sortable :team1_name @sort-key ::events/sort-pairings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           [:span.hidden-xs "Pelaaja 1"]
           [:span.hidden-sm.hidden-md.hidden-lg "Pelaajat"]]
@@ -134,11 +135,11 @@
       [:table.pods-table
        [:thead
         [:tr
-         [:th.pod (sortable :pod @sort-key :sort-pods)
+         [:th.pod (sortable :pod @sort-key ::events/sort-pods)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pöytä"]
          [:th.seat "Paikka"]
-         [:th.player (sortable :team_name @sort-key :sort-pods)
+         [:th.player (sortable :team_name @sort-key ::events/sort-pods)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pelaaja"]]]
        [:tbody
@@ -158,10 +159,10 @@
       [:table.pairings-table
        [:thead
         [:tr
-         [:th.table (sortable :table_number @sort-key :sort-seatings)
+         [:th.table (sortable :table_number @sort-key ::events/sort-seatings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pöytä"]
-         [:th.players (sortable :name @sort-key :sort-seatings)
+         [:th.players (sortable :name @sort-key ::events/sort-seatings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pelaaja"]]]
        [:tbody
