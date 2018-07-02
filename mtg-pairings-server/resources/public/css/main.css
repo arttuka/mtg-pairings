@@ -397,6 +397,33 @@ h3 {
   color: red;
 }
 
+.pager {
+  border: 1px solid #337ab7;
+  border-radius: 5px;
+  display: inline-block;
+  margin: 10px;
+}
+
+.pager .button {
+  display: inline-block;
+  font-size: 20px;
+  line-height: 28px;
+  min-width: 28px;
+  text-align: center;
+  color: #337ab7;
+  cursor: pointer;
+}
+
+.pager .button.selected {
+  cursor: auto;
+  color: black;
+}
+
+.pager .button.disabled {
+  cursor: auto;
+  color: #424242;
+}
+
 .tournament {
   margin-left: 10px;
 }

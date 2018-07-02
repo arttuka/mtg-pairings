@@ -18,6 +18,10 @@
   (fn [db _]
     (map (:tournaments db) (:tournament-ids db))))
 
+(reg-sub :tournament-count
+  (fn [db _]
+    (count (:tournaments db))))
+
 (reg-sub :tournament
   (fn [db [_ id]]
     (get-in db [:tournaments id])))

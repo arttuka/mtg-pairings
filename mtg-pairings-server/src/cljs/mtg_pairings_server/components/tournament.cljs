@@ -3,7 +3,8 @@
             [goog.string :as gstring]
             [goog.string.format]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
-            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path]]))
+            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path]]
+            [mtg-pairings-server.components.paging :refer [with-paging]]))
 
 (defn tournament-header [id]
   (let [tournament (subscribe [:tournament id])]
@@ -38,12 +39,13 @@
          (str "Pods " n)])]]))
 
 (defn tournament-list []
-  (let [tournaments (subscribe [:tournaments])]
-    (fn []
-      [:div#tournaments
-       (for [t @tournaments]
-         ^{:key (:id t)}
-         [tournament t])])))
+  [with-paging
+   [:tournaments]
+   (fn [tournaments]
+    [:div#tournaments
+     (for [t tournaments]
+       ^{:key (:id t)}
+       [tournament t])])])
 
 (defn sortable [column sort-key dispatch-key]
   {:class    (when (not= column sort-key) "inactive")
