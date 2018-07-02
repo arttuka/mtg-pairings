@@ -84,12 +84,8 @@
                          (sql/where {:id id})
                          (sql/exec)))))
 
-(defn tournaments [start]
-  (let [tourns (->
-                 select-tournaments
-                 (sql/limit 10)
-                 (sql/offset start)
-                 (sql/exec))
+(defn tournaments []
+  (let [tourns (sql/exec select-tournaments)
         rounds (->>
                  (sql/select db/round
                    (sql/fields :tournament :num)
@@ -121,11 +117,6 @@
         (assoc t :round (get rounds id [])
                  :standings (get standings id [])
                  :pod_round (get pod-rounds id []))))))
-
-(defn tournament-count []
-  (-> (sql/select db/tournament (sql/aggregate (count :*) :count))
-    first
-    :count))
 
 (defn add-tournament [tourn]
   (if (seq (sql/select db/tournament

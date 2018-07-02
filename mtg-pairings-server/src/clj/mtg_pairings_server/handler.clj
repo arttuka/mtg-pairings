@@ -68,8 +68,7 @@
 (defmethod ws/event-handler :client/connect
   [{:keys [uid]}]
   (log/debugf "New connection from %s" uid)
-  (ws/send! uid [:server/tournaments (tournament/tournaments 0)])
-  (ws/send! uid [:server/tournament-count (tournament/tournament-count)]))
+  (ws/send! uid [:server/tournaments (tournament/tournaments)]))
 
 (defmethod ws/event-handler :client/login
   [{uid :uid, dci-number :?data}]
@@ -82,8 +81,8 @@
   (broadcast/logout uid))
 
 (defmethod ws/event-handler :client/tournaments
-  [{uid :uid, start :?data}]
-  (ws/send! uid [:server/tournaments (tournament/tournaments start)]))
+  [{:keys [uid]}]
+  (ws/send! uid [:server/tournaments (tournament/tournaments)]))
 
 (defmethod ws/event-handler :client/pairings
   [{uid :uid, [id round] :?data}]

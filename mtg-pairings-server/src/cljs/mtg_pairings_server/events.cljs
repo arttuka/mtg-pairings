@@ -85,10 +85,6 @@
     (assoc db :tournaments (map-by :id (map format-tournament tournaments))
               :tournament-ids (map :id tournaments))))
 
-(reg-event-db :server/tournament-count
-  (fn [db [_ n]]
-    (assoc db :tournament-count n)))
-
 (reg-event-fx :load-pairings
   (fn [_ [_ id round]]
     {:ws-send [:client/pairings [id round]]}))
