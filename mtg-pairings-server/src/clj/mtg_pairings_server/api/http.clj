@@ -9,7 +9,7 @@
 
 (defapi app
   (swagger-routes
-    {:ui "/api-docs"
+    {:ui   "/api-docs"
      :spec "/swagger.json"
      :data {:info {:title "WER pairings backend API"}}})
   (undocumented

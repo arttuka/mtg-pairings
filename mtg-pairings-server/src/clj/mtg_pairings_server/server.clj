@@ -22,7 +22,7 @@
       (catch Exception e
         (log/error e (pr-str request))
         {:status 500
-         :body (.getMessage e)}))))
+         :body   (.getMessage e)}))))
 
 (defn wrap-request-log
   [handler]
@@ -49,8 +49,8 @@
                           (.writeString generator (str c))))
   (hs/run-server
     (-> handler
-        wrap-json-with-padding
-        wrap-request-log
-        wrap-allow-origin
-        wrap-errors)
+      wrap-json-with-padding
+      wrap-request-log
+      wrap-allow-origin
+      wrap-errors)
     server-properties))

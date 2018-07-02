@@ -20,17 +20,18 @@
                                                    :table_number [:team1_points :team2_points] [:team2_points :team1_points]
                                                    [:team1_wins :team2_wins] [:team2_wins :team1_wins]]))]
     (if-not (:team2_name pairing)
-      (merge pairing {:team2_name "***BYE***"
+      (merge pairing {:team2_name   "***BYE***"
                       :team2_points 0})
       pairing)))
 
 (defn ^:private add-players-data [tournament dci]
-  (let [players-team (:id (first (sql/select db/team
-                        (sql/where (and {:tournament (:id tournament)}
-                                        (sql/sqlfn "exists"
-                                          (sql/subselect db/team-players
-                                            (sql/where {:team_players.player dci
-                                                        :team_players.team :team.id}))))))))
+  (let [players-team (:id (first
+                            (sql/select db/team
+                              (sql/where (and {:tournament (:id tournament)}
+                                              (sql/sqlfn "exists"
+                                                (sql/subselect db/team-players
+                                                  (sql/where {:team_players.player dci
+                                                              :team_players.team   :team.id}))))))))
         pairings (for [pairing (sql/select db/pairing
                                  (sql/with db/team1
                                    (sql/fields [:name :team1_name]))
@@ -48,7 +49,7 @@
         seating (first (sql/select db/seating
                          (sql/with db/team)
                          (sql/where {:tournament (:id tournament)
-                                     :team players-team})
+                                     :team       players-team})
                          (sql/fields :table_number [:team.name :team1_name])))
         pod-seats (sql/select db/seat
                     (sql/where {:team players-team})
@@ -68,7 +69,7 @@
   (let [standings (first (sql/select db/standings
                            (sql/aggregate (max :round) :max_standings_round)
                            (sql/where {:tournament (:id tournament)
-                                       :hidden false})))]
+                                       :hidden     false})))]
     (merge tournament standings)))
 
 (defn ^:private select-tournament-fields [tournament]
@@ -76,9 +77,9 @@
 
 (defn format-tournament [tournament dci]
   (-> tournament
-      (add-players-data dci)
-      add-newest-standings
-      select-tournament-fields))
+    (add-players-data dci)
+    add-newest-standings
+    select-tournament-fields))
 
 (defn tournaments [dci]
   (let [dci (add-check-digits dci)]
@@ -87,7 +88,7 @@
                                     (sql/subselect db/team-players
                                       (sql/join db/team (= :team.id :team_players.team))
                                       (sql/where {:team_players.player dci
-                                                  :team.tournament :tournament.id}))))
+                                                  :team.tournament     :tournament.id}))))
                        (sql/order :day :DESC)
                        (sql/order :id :DESC))]
       (format-tournament tournament dci))))
