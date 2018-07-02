@@ -5,7 +5,7 @@
 (defn organizer-page []
   (let [organizer-mode (subscribe [:organizer-mode])
         hide-menu? (subscribe [:organizer :menu])]
-    (fn []
+    (fn organizer-page-render []
       [:div#organizer-page
        [:style {:type "text/css"}
         "#header { display: none; }"]
@@ -35,7 +35,7 @@
 (defn deck-construction-tables []
   (let [seatings (subscribe [:organizer :seatings])
         pods (subscribe [:organizer :pods])]
-    (fn []
+    (fn deck-construction-tables-render []
       (let [name->seating (into {} (map (juxt :name :table_number) @seatings))
             pods (into (sorted-map) (group-by :pod (sort-by :team_name @pods)))]
         [:div#deck-construction

@@ -21,7 +21,7 @@
 (defn main-page []
   (let [user (subscribe [:logged-in-user])
         player-tournaments (subscribe [:player-tournaments])]
-    (fn []
+    (fn main-page-render []
       (if @user
         [:div
          (when (seq @player-tournaments)

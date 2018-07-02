@@ -8,7 +8,7 @@
 (defn header []
   (let [user (subscribe [:logged-in-user])
         dci-number (atom nil)]
-    (fn []
+    (fn header-render []
       (if @user
         [:div#header
          [:div.hidden-xs.logged-menu
@@ -48,7 +48,7 @@
 (defn mobile-menu []
   (let [collapsed? (subscribe [:mobile-menu-collapsed?])
         user (subscribe [:logged-in-user])]
-    (fn []
+    (fn mobile-menu-render []
       (when-not @collapsed?
         [:div#mobile-menu
          [:a {:href     "/"
@@ -71,7 +71,7 @@
 
 (defn own-tournament [t]
   (let [collapsed? (atom true)]
-    (fn [t]
+    (fn own-tournament-render [t]
       [:div.own-tournament.border-top
        [:div.own-tournament-header
         {:on-click #(swap! collapsed? not)}

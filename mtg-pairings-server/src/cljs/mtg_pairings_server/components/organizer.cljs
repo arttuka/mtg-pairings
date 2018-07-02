@@ -26,7 +26,7 @@
         standings-round (subscribe [:organizer :selected-standings])
         pods-round (subscribe [:organizer :selected-pods])
         minutes (atom 50)]
-    (fn []
+    (fn menu-render []
       [:div#organizer-menu
        [:div.form-inline
         [:a {:on-click #(dispatch [:popup-organizer-menu])}
@@ -118,7 +118,7 @@
   (let [pairings (subscribe [:organizer :pairings])
         pairings-round (subscribe [:organizer :pairings-round])
         tournament (subscribe [:organizer :tournament])]
-    (fn []
+    (fn pairings-render []
       [:div.organizer-pairings
        [:h2 (str (:name @tournament) " - kierros " @pairings-round)]
        (for [[i column] (indexed (split-pairings @pairings))]
@@ -139,7 +139,7 @@
 (defn seatings []
   (let [seatings (subscribe [:organizer :seatings])
         tournament (subscribe [:organizer :tournament])]
-    (fn []
+    (fn seatings-render []
       [:div.organizer-seatings
        [:h2 (str (:name @tournament) " - seatings")]
        (for [[i column] (indexed (split-data @seatings))]
@@ -161,7 +161,7 @@
 (defn pods []
   (let [pods (subscribe [:organizer :pods])
         tournament (subscribe [:organizer :tournament])]
-    (fn []
+    (fn pods-render []
       [:div.organizer-pods
        [:h2 (str (:name @tournament) " - pods")]
        (for [[i column] (indexed (split-data @pods))]
@@ -172,7 +172,7 @@
   (let [standings (subscribe [:organizer :standings])
         tournament (subscribe [:organizer :tournament])
         standings-round (subscribe [:organizer :standings-round])]
-    (fn []
+    (fn standings-render []
       [:div.organizer-standings
        [:h2 (str (:name @tournament) " - kierros " @standings-round)]
        (for [[i column] (indexed (split-data @standings))]
@@ -181,7 +181,7 @@
 
 (defn clock []
   (let [c (subscribe [:organizer :clock])]
-    (fn []
+    (fn clock-render []
       [:div.organizer-clock
        {:class (when (:timeout @c) "timeout")}
        (:text @c)])))

@@ -8,7 +8,7 @@
 
 (defn tournament-header [id]
   (let [tournament (subscribe [:tournament id])]
-    (fn [id]
+    (fn tournament-header-render [id]
       [:h3 [:a {:href (tournament-path {:id id})}
             (str (:name @tournament) " " (format-date (:day @tournament)) " — " (:organizer @tournament))]])))
 
@@ -40,7 +40,7 @@
 
 (defn tournament-list []
   [with-paging :tournaments-page [:tournaments-page] [:tournaments]
-   (fn [tournaments]
+   (fn tournament-list-render [tournaments]
     [:div#tournaments
      (for [t tournaments]
        ^{:key (:id t)}
@@ -73,7 +73,7 @@
 (defn pairings [id round]
   (let [data (subscribe [:sorted-pairings id round])
         sort-key (subscribe [:pairings-sort])]
-    (fn [id round]
+    (fn pairings-render [id round]
       [:table.pairings-table
        [:thead
         [:tr
@@ -118,7 +118,7 @@
 
 (defn standings [id round]
   (let [data (subscribe [:standings id round])]
-    (fn [id round]
+    (fn standings-render [id round]
       [standing-table @data])))
 
 (defn pod-row [cls seat]
@@ -130,7 +130,7 @@
 (defn pods [id round]
   (let [data (subscribe [:sorted-pods id round])
         sort-key (subscribe [:pods-sort])]
-    (fn [id round]
+    (fn pods-render [id round]
       [:table.pods-table
        [:thead
         [:tr
@@ -154,7 +154,7 @@
 (defn seatings [id round]
   (let [data (subscribe [:sorted-seatings id round])
         sort-key (subscribe [:seatings-sort])]
-    (fn [id round]
+    (fn seatings-render [id round]
       [:table.pairings-table
        [:thead
         [:tr

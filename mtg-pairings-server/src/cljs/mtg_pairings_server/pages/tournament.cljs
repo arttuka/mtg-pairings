@@ -7,7 +7,7 @@
 
 (defn tournament-page [id]
   (let [data (subscribe [:tournament id])]
-    (fn [id]
+    (fn tournament-page-render [id]
       [tournament @data])))
 
 (defn pairings-page [id round]
