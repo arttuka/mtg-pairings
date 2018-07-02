@@ -10,14 +10,14 @@
    (inc num)])
 
 (defn pager [page-atom num-pages]
-  (let [shown-pages (concat [nil]
-                            (when (pos? @page-atom) [0])
-                            (when (= @page-atom 3) [1])
-                            (when (> @page-atom 1) [(dec @page-atom)])
-                            [@page-atom]
-                            (when (< @page-atom (- num-pages 2)) [(inc @page-atom)])
-                            (when (= @page-atom (- num-pages 4)) [(- num-pages 2)])
-                            (when (< @page-atom (dec num-pages)) [(dec num-pages)]))]
+  (let [shown-pages (if (<= num-pages 7)
+                      (range 0 num-pages)
+                      (concat [0]
+                              (cond
+                                (<= @page-atom 3) (range 1 5)
+                                (<= (- num-pages @page-atom) 4) (range (- num-pages 5) (dec num-pages))
+                                :else [(dec @page-atom) @page-atom (inc @page-atom)])
+                              [(dec num-pages)]))]
     [:div.pager
      (if (pos? @page-atom)
        [:div.button.prev-page {:on-click #(swap! page-atom dec)} "<"]
@@ -26,7 +26,7 @@
                [(when (and (some? prev) (> (- cur prev) 1))
                   [:div.button.separator.disabled "···"])
                 [page-button page-atom cur]])
-             (partition 2 1 shown-pages))
+             (partition 2 1 (cons nil shown-pages)))
      (if (< @page-atom (dec num-pages))
        [:div.button.next-page {:on-click #(swap! page-atom inc)} ">"]
        [:div.button.next-page.disabled ">"])]))
