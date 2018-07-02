@@ -2,19 +2,20 @@
   (:require [reagent.core :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
             [mtg-pairings-server.components.organizer :refer [pairing]]
+            [mtg-pairings-server.events :as events]
             [mtg-pairings-server.routes :refer [tournaments-path standings-path]]
+            [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]))
 
 (defn header []
-  (let [user (subscribe [:logged-in-user])
-        collapsed? (atom true)
+  (let [user (subscribe [::subs/logged-in-user])
         dci-number (atom nil)]
-    (fn []
+    (fn header-render []
       (if @user
         [:div#header
          [:div.hidden-xs.logged-menu
           [:span (:name @user)]
-          [:button {:on-click #(dispatch [:logout])}
+          [:button {:on-click #(dispatch [::events/logout])}
            "KIRJAUDU ULOS"]
           [:a {:href (tournaments-path)}
            "KAIKKI TURNAUKSET"]
@@ -23,12 +24,12 @@
          [:div.hidden-sm.hidden-md.hidden-lg
           [:span (:name @user)]
           [:span.pull-right.menu-icon
-           {:on-click #(swap! collapsed? not)}
+           {:on-click #(dispatch [::events/collapse-mobile-menu])}
            [:i]]]]
         [:div#header
          [:form
           {:on-submit #(do
-                         (dispatch [:login @dci-number])
+                         (dispatch [::events/login @dci-number])
                          (reset! dci-number nil)
                          (.preventDefault %))}
           [:input
@@ -43,8 +44,27 @@
            {:href (tournaments-path)}
            "KAIKKI TURNAUKSET"]
           [:span.pull-right.menu-icon.hidden-sm.hidden-md.hidden-lg
-           {:on-click #(swap! collapsed? not)}
+           {:on-click #(dispatch [::events/collapse-mobile-menu])}
            [:i]]]]))))
+
+(defn mobile-menu []
+  (let [collapsed? (subscribe [::subs/mobile-menu-collapsed?])
+        user (subscribe [::subs/logged-in-user])]
+    (fn mobile-menu-render []
+      (when-not @collapsed?
+        [:div#mobile-menu
+         [:a {:href     "/"
+              :on-click #(dispatch [::events/collapse-mobile-menu])}
+          "ETUSIVU"]
+         [:a {:href     "/tournaments"
+              :on-click #(dispatch [::events/collapse-mobile-menu])}
+          "KAIKKI TURNAUKSET"]
+         (when @user
+           [:a {:href     "/tournaments"
+                :on-click #(do
+                             (dispatch [::events/collapse-mobile-menu])
+                             (dispatch [::events/logout]))}
+            "KIRJAUDU ULOS"])]))))
 
 (defn combine-pairings-and-pods [pairings pods]
   (->> (concat pairings pods)
@@ -53,7 +73,7 @@
 
 (defn own-tournament [t]
   (let [collapsed? (atom true)]
-    (fn [t]
+    (fn own-tournament-render [t]
       [:div.own-tournament.border-top
        [:div.own-tournament-header
         {:on-click #(swap! collapsed? not)}

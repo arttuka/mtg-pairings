@@ -74,7 +74,8 @@ create table seating (
 
 create table pod_round (
   id serial primary key,
-  tournament int not null references tournament(id)
+  tournament int not null references tournament(id),
+  round int references round(id)
 );
 
 create table pod (

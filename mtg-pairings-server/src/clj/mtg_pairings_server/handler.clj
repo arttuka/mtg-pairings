@@ -27,9 +27,7 @@
            :content "width=device-width, initial-scale=1"}]
    (include-css "https://fonts.googleapis.com/css?family=Lato:400,700")
    (if (env :dev)
-     (include-css "/css/main.css"
-                  "/css/bootstrap.css"
-                  "/css/bootstrap-theme.css")
+     (include-css "/css/main.css")
      (include-css "/css/main.min.css"))])
 
 (defn loading-page []
@@ -50,6 +48,7 @@
   (GET "/tournaments/:id/seatings" [] (loading-page))
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
+  (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
   (GET "/chsk" request
     (ws/ajax-get-or-ws-handshake-fn request))
   (POST "/chsk" request
@@ -80,6 +79,10 @@
 (defmethod ws/event-handler :client/logout
   [{:keys [uid]}]
   (broadcast/logout uid))
+
+(defmethod ws/event-handler :client/tournaments
+  [{:keys [uid]}]
+  (ws/send! uid [:server/tournaments (tournament/tournaments)]))
 
 (defmethod ws/event-handler :client/pairings
   [{uid :uid, [id round] :?data}]
@@ -117,3 +120,8 @@
 (defmethod ws/event-handler :client/organizer-seatings
   [{uid :uid, id :?data}]
   (ws/send! uid [:server/organizer-seatings (tournament/seatings id)]))
+
+(defmethod ws/event-handler :client/deck-construction
+  [{uid :uid, id :?data}]
+  (ws/send! uid [:server/organizer-seatings (tournament/seatings id)])
+  (ws/send! uid [:server/organizer-pods (tournament/latest-pods id)]))

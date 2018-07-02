@@ -2,12 +2,15 @@
   (:require [re-frame.core :refer [subscribe dispatch]]
             [goog.string :as gstring]
             [goog.string.format]
+            [mtg-pairings-server.events :as events]
+            [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
-            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path]]))
+            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path]]
+            [mtg-pairings-server.components.paging :refer [with-paging]]))
 
 (defn tournament-header [id]
-  (let [tournament (subscribe [:tournament id])]
-    (fn [id]
+  (let [tournament (subscribe [::subs/tournament id])]
+    (fn tournament-header-render [id]
       [:h3 [:a {:href (tournament-path {:id id})}
             (str (:name @tournament) " " (format-date (:day @tournament)) " — " (:organizer @tournament))]])))
 
@@ -38,12 +41,12 @@
          (str "Pods " n)])]]))
 
 (defn tournament-list []
-  (let [tournaments (subscribe [:tournaments])]
-    (fn []
-      [:div#tournaments
-       (for [t @tournaments]
-         ^{:key (:id t)}
-         [tournament t])])))
+  [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/tournaments]
+   (fn tournament-list-render [tournaments]
+     [:div#tournaments
+      (for [t tournaments]
+        ^{:key (:id t)}
+        [tournament t])])])
 
 (defn sortable [column sort-key dispatch-key]
   {:class    (when (not= column sort-key) "inactive")
@@ -70,16 +73,16 @@
     [:span (:team2_wins pairing)]]])
 
 (defn pairings [id round]
-  (let [data (subscribe [:sorted-pairings id round])
-        sort-key (subscribe [:pairings-sort])]
-    (fn [id round]
+  (let [data (subscribe [::subs/sorted-pairings id round])
+        sort-key (subscribe [::subs/pairings-sort])]
+    (fn pairings-render [id round]
       [:table.pairings-table
        [:thead
         [:tr
-         [:th.table (sortable :table_number @sort-key :sort-pairings)
+         [:th.table (sortable :table_number @sort-key ::events/sort-pairings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pöytä"]
-         [:th.players (sortable :team1_name @sort-key :sort-pairings)
+         [:th.players (sortable :team1_name @sort-key ::events/sort-pairings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           [:span.hidden-xs "Pelaaja 1"]
           [:span.hidden-sm.hidden-md.hidden-lg "Pelaajat"]]
@@ -116,8 +119,8 @@
       [standing-row (if (even? i) "even" "odd") standing])]])
 
 (defn standings [id round]
-  (let [data (subscribe [:standings id round])]
-    (fn [id round]
+  (let [data (subscribe [::subs/standings id round])]
+    (fn standings-render [id round]
       [standing-table @data])))
 
 (defn pod-row [cls seat]
@@ -127,17 +130,17 @@
    [:td.player (:team_name seat)]])
 
 (defn pods [id round]
-  (let [data (subscribe [:sorted-pods id round])
-        sort-key (subscribe [:pods-sort])]
-    (fn [id round]
+  (let [data (subscribe [::subs/sorted-pods id round])
+        sort-key (subscribe [::subs/pods-sort])]
+    (fn pods-render [id round]
       [:table.pods-table
        [:thead
         [:tr
-         [:th.pod (sortable :pod @sort-key :sort-pods)
+         [:th.pod (sortable :pod @sort-key ::events/sort-pods)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pöytä"]
          [:th.seat "Paikka"]
-         [:th.player (sortable :team_name @sort-key :sort-pods)
+         [:th.player (sortable :team_name @sort-key ::events/sort-pods)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pelaaja"]]]
        [:tbody
@@ -151,16 +154,16 @@
    [:td.players (:name seat)]])
 
 (defn seatings [id round]
-  (let [data (subscribe [:sorted-seatings id round])
-        sort-key (subscribe [:seatings-sort])]
-    (fn [id round]
+  (let [data (subscribe [::subs/sorted-seatings id round])
+        sort-key (subscribe [::subs/seatings-sort])]
+    (fn seatings-render [id round]
       [:table.pairings-table
        [:thead
         [:tr
-         [:th.table (sortable :table_number @sort-key :sort-seatings)
+         [:th.table (sortable :table_number @sort-key ::events/sort-seatings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pöytä"]
-         [:th.players (sortable :name @sort-key :sort-seatings)
+         [:th.players (sortable :name @sort-key ::events/sort-seatings)
           [:i.glyphicon.glyphicon-chevron-down.left]
           "Pelaaja"]]]
        [:tbody

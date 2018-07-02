@@ -2,7 +2,8 @@
   (:require [re-frame.core :refer [subscribe]]
             [mtg-pairings-server.components.main :refer [own-tournament]]
             [mtg-pairings-server.components.organizer :refer [pairing]]
-            [mtg-pairings-server.components.tournament :refer [tournament-list]]))
+            [mtg-pairings-server.components.tournament :refer [tournament-list]]
+            [mtg-pairings-server.subscriptions :as subs]))
 
 (defn get-latest-pairing [player-tournaments]
   (let [t (first player-tournaments)
@@ -19,9 +20,9 @@
       :day (:day t))))
 
 (defn main-page []
-  (let [user (subscribe [:logged-in-user])
-        player-tournaments (subscribe [:player-tournaments])]
-    (fn []
+  (let [user (subscribe [::subs/logged-in-user])
+        player-tournaments (subscribe [::subs/player-tournaments])]
+    (fn main-page-render []
       (if @user
         [:div
          (when (seq @player-tournaments)

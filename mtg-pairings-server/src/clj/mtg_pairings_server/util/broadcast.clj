@@ -52,8 +52,8 @@
       (doseq [p (:player tournament)
               :when (contains? @dci->uid p)
               :let [t (-> tournament
-                          (dissoc :player)
-                          (format-tournament p))]
+                        (dissoc :player)
+                        (format-tournament p))]
               uid (@dci->uid p)]
         (ws/send! uid [:server/player-tournament t])))
     (let [organizer-tournament (tournament/tournament (:id tournament))]

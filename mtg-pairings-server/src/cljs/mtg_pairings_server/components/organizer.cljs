@@ -1,13 +1,15 @@
 (ns mtg-pairings-server.components.organizer
   (:require [reagent.core :refer [atom]]
             [re-frame.core :refer [dispatch subscribe]]
+            [mtg-pairings-server.events :as events]
+            [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [cls indexed]]
             [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]
             [mtg-pairings-server.components.tournament :refer [standing-table]]))
 
 (defn round-select [type a rounds]
   [:select.form-control
-   {:on-change #(dispatch [:organizer type (-> % .-target .-value)])
+   {:on-change #(dispatch [::events/organizer-mode type (-> % .-target .-value)])
     :value     (or @a "")}
    (for [round @rounds]
      ^{:key (str type round)}
@@ -15,42 +17,42 @@
       round])])
 
 (defn menu []
-  (let [new-pairings (subscribe [:organizer :new-pairings])
-        pairings-rounds (subscribe [:organizer :tournament :pairings])
-        new-standings (subscribe [:organizer :new-standings])
-        standings-rounds (subscribe [:organizer :tournament :standings])
-        new-pods (subscribe [:organizer :new-pods])
-        pods-rounds (subscribe [:organizer :tournament :pods])
-        clock-running (subscribe [:organizer :clock :running])
-        pairings-round (subscribe [:organizer :selected-pairings])
-        standings-round (subscribe [:organizer :selected-standings])
-        pods-round (subscribe [:organizer :selected-pods])
+  (let [new-pairings (subscribe [::subs/organizer :new-pairings])
+        pairings-rounds (subscribe [::subs/organizer :tournament :pairings])
+        new-standings (subscribe [::subs/organizer :new-standings])
+        standings-rounds (subscribe [::subs/organizer :tournament :standings])
+        new-pods (subscribe [::subs/organizer :new-pods])
+        pods-rounds (subscribe [::subs/organizer :tournament :pods])
+        clock-running (subscribe [::subs/organizer :clock :running])
+        pairings-round (subscribe [::subs/organizer :selected-pairings])
+        standings-round (subscribe [::subs/organizer :selected-standings])
+        pods-round (subscribe [::subs/organizer :selected-pods])
         minutes (atom 50)]
-    (fn []
+    (fn menu-render []
       [:div#organizer-menu
        [:div.form-inline
-        [:a {:on-click #(dispatch [:popup-organizer-menu])}
+        [:a {:on-click #(dispatch [::events/popup-organizer-menu])}
          [:i.glyphicon.glyphicon-resize-full]]
         [:button.btn
-         {:on-click #(dispatch [:organizer-mode :pairings (js/parseInt @pairings-round)])
+         {:on-click #(dispatch [::events/organizer-mode :pairings (js/parseInt @pairings-round)])
           :class    (if @new-pairings "btn-success" "btn-default")}
          "Pairings"]
         [round-select :select-pairings pairings-round pairings-rounds]
         [:button.btn
-         {:on-click #(dispatch [:organizer-mode :standings (js/parseInt @standings-round)])
+         {:on-click #(dispatch [::events/organizer-mode :standings (js/parseInt @standings-round)])
           :class    (if @new-standings "btn-success" "btn-default")}
          "Standings"]
         [round-select :select-standings standings-round standings-rounds]
         [:button.btn
-         {:on-click #(dispatch [:organizer-mode :pods (js/parseInt @pods-round)])
+         {:on-click #(dispatch [::events/organizer-mode :pods (js/parseInt @pods-round)])
           :class    (if @new-pods "btn-success" "btn-default")}
          "Pods"]
         [round-select :select-pods pods-round pods-rounds]
         [:button.btn.btn-default
-         {:on-click #(dispatch [:organizer-mode :seatings])}
+         {:on-click #(dispatch [::events/organizer-mode :seatings])}
          "Seatings"]
         [:button.btn.btn-default
-         {:on-click #(dispatch [:organizer-mode :clock])}
+         {:on-click #(dispatch [::events/organizer-mode :clock])}
          "Kello"]
         [:input.form-control
          {:type      "number"
@@ -59,15 +61,15 @@
           :min       0
           :max       99}]
         [:button.btn.btn-default
-         {:on-click #(dispatch [:organizer-mode :set-clock @minutes])
+         {:on-click #(dispatch [::events/organizer-mode :set-clock @minutes])
           :disabled (when @clock-running "disabled")}
          "Aseta"]
         [:button.btn.btn-success
-         {:on-click #(dispatch [:organizer-mode :start-clock])
+         {:on-click #(dispatch [::events/organizer-mode :start-clock])
           :disabled (when @clock-running "disabled")}
          "Käynnistä"]
         [:button.btn.btn-danger
-         {:on-click #(dispatch [:organizer-mode :stop-clock])
+         {:on-click #(dispatch [::events/organizer-mode :stop-clock])
           :disabled (when-not @clock-running "disabled")}
          "Pysäytä"]]])))
 
@@ -115,10 +117,10 @@
     (split-data duplicated)))
 
 (defn pairings []
-  (let [pairings (subscribe [:organizer :pairings])
-        pairings-round (subscribe [:organizer :pairings-round])
-        tournament (subscribe [:organizer :tournament])]
-    (fn []
+  (let [pairings (subscribe [::subs/organizer :pairings])
+        pairings-round (subscribe [::subs/organizer :pairings-round])
+        tournament (subscribe [::subs/organizer :tournament])]
+    (fn pairings-render []
       [:div.organizer-pairings
        [:h2 (str (:name @tournament) " - kierros " @pairings-round)]
        (for [[i column] (indexed (split-pairings @pairings))]
@@ -137,9 +139,9 @@
        [:div.name (:name s)]]])])
 
 (defn seatings []
-  (let [seatings (subscribe [:organizer :seatings])
-        tournament (subscribe [:organizer :tournament])]
-    (fn []
+  (let [seatings (subscribe [::subs/organizer :seatings])
+        tournament (subscribe [::subs/organizer :tournament])]
+    (fn seatings-render []
       [:div.organizer-seatings
        [:h2 (str (:name @tournament) " - seatings")]
        (for [[i column] (indexed (split-data @seatings))]
@@ -159,9 +161,9 @@
        [:div.name (:team_name s)]]])])
 
 (defn pods []
-  (let [pods (subscribe [:organizer :pods])
-        tournament (subscribe [:organizer :tournament])]
-    (fn []
+  (let [pods (subscribe [::subs/organizer :pods])
+        tournament (subscribe [::subs/organizer :tournament])]
+    (fn pods-render []
       [:div.organizer-pods
        [:h2 (str (:name @tournament) " - pods")]
        (for [[i column] (indexed (split-data @pods))]
@@ -169,10 +171,10 @@
          [pod-column column])])))
 
 (defn standings []
-  (let [standings (subscribe [:organizer :standings])
-        tournament (subscribe [:organizer :tournament])
-        standings-round (subscribe [:organizer :standings-round])]
-    (fn []
+  (let [standings (subscribe [::subs/organizer :standings])
+        tournament (subscribe [::subs/organizer :tournament])
+        standings-round (subscribe [::subs/organizer :standings-round])]
+    (fn standings-render []
       [:div.organizer-standings
        [:h2 (str (:name @tournament) " - kierros " @standings-round)]
        (for [[i column] (indexed (split-data @standings))]
@@ -180,8 +182,8 @@
          [standing-table column])])))
 
 (defn clock []
-  (let [c (subscribe [:organizer :clock])]
-    (fn []
+  (let [c (subscribe [::subs/organizer :clock])]
+    (fn clock-render []
       [:div.organizer-clock
        {:class (when (:timeout @c) "timeout")}
        (:text @c)])))

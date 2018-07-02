@@ -2,21 +2,21 @@
   (:require [mtg-pairings-server.util.util :refer [map-values]]))
 
 (defn ^:private add-result [acc res]
-  (let [result {:match_points (cond
-                                (= (:team1_wins res) (:team2_wins res)) 1
-                                (> (:team1_wins res) (:team2_wins res)) 3
-                                :else 0)
-               :game_points (+ (* 3 (:team1_wins res))
-                               (* 1 (:draws res)))
-               :games_played (+ (:team1_wins res) (:draws res) (:team2_wins res))
-               :matches_played 1}]
+  (let [result {:match_points   (cond
+                                  (= (:team1_wins res) (:team2_wins res)) 1
+                                  (> (:team1_wins res) (:team2_wins res)) 3
+                                  :else 0)
+                :game_points    (+ (* 3 (:team1_wins res))
+                                   (* 1 (:draws res)))
+                :games_played   (+ (:team1_wins res) (:draws res) (:team2_wins res))
+                :matches_played 1}]
     (merge-with + acc result)))
 
 (defn ^:private calculate-points-pgw [matches]
   (let [reduced (reduce add-result {:match_points 0, :game_points 0, :games_played 0, :matches_played 0} matches)]
-    {:points (:match_points reduced)
-     :pmw (max 0.33 (/ (:match_points reduced) (* 3 (:matches_played reduced))))
-     :pgw (/ (:game_points reduced) (* 3 (:games_played reduced)))
+    {:points    (:match_points reduced)
+     :pmw       (max 0.33 (/ (:match_points reduced) (* 3 (:matches_played reduced))))
+     :pgw       (/ (:game_points reduced) (* 3 (:games_played reduced)))
      :opponents (keep :team2 matches)
      :team_name (:team1_name (first matches))}))
 
@@ -32,8 +32,8 @@
                             0
                             (/ (reduce + 0 (map :pgw opponents)) cnt))]
                   (assoc results
-                         :omw omw
-                         :ogw ogw)))
+                    :omw omw
+                    :ogw ogw)))
               teams-results))
 
 (defn reverse-match [match]
@@ -72,11 +72,11 @@
   (let [digits (map #(#?(:clj Integer/parseInt, :cljs js/parseInt) (str %)) dci-number)
         length (count digits)]
     (cond->> digits
-      (>= 6 length) (cons 0)
-      (>= 7 length) (#(cons (check-digit %) %))
-      (>= 8 length) (cons 0)
-      (>= 9 length) (#(cons (check-digit %) %))
-      true (apply str))))
+             (>= 6 length) (cons 0)
+             (>= 7 length) (#(cons (check-digit %) %))
+             (>= 8 length) (cons 0)
+             (>= 9 length) (#(cons (check-digit %) %))
+             true (apply str))))
 
 (defn duplicate-pairings [pairings]
   (->> pairings
