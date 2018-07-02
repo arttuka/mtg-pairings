@@ -39,8 +39,7 @@
          (str "Pods " n)])]]))
 
 (defn tournament-list []
-  [with-paging
-   [:tournaments]
+  [with-paging :tournaments-page [:tournaments-page] [:tournaments]
    (fn [tournaments]
     [:div#tournaments
      (for [t tournaments]

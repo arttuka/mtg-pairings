@@ -14,6 +14,10 @@
   (fn [db _]
     (:page db)))
 
+(reg-sub :tournaments-page
+  (fn [db _]
+    (:tournaments-page db)))
+
 (reg-sub :tournaments
   (fn [db _]
     (map (:tournaments db) (:tournament-ids db))))

@@ -31,7 +31,7 @@
 
 (def initial-db {:tournaments            {}
                  :tournament-count       0
-                 :tournament-page        1
+                 :tournaments-page       0
                  :tournament-ids         []
                  :player-tournaments     []
                  :pairings               {:sort-key :table_number}
@@ -72,6 +72,10 @@
 (reg-event-db :page
   (fn [db [_ data]]
     (assoc db :page data)))
+
+(reg-event-db :tournaments-page
+  (fn [db [_ page]]
+    (assoc db :tournaments-page page)))
 
 (defn format-tournament [tournament]
   (let [rounds (sort > (into (set (:pairings tournament)) (:standings tournament)))]
