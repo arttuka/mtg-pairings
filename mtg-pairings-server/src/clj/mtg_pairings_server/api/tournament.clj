@@ -12,36 +12,37 @@
          owner# (owner-of-tournament ~sanction-id)]
      (cond
        (nil? owner#) {:status 404
-                      :body "Virheellinen sanktiointinumero"}
+                      :body   "Virheellinen sanktiointinumero"}
        (nil? user#) {:status 400
-                     :body "Virheellinen API key"}
+                     :body   "Virheellinen API key"}
        (not= owner# user#) {:status 403
-                            :body "Eri käyttäjän tallentama turnaus"}
+                            :body   "Eri käyttäjän tallentama turnaus"}
        :else (do ~@body))))
 
 (defroutes tournament-routes
-  (POST "/" request
+  (POST "/" []
     :return {:id s/Int}
     :summary "Lisää turnaus"
     :query-params [key :- String]
     :body [tournament InputTournament {:description "Uusi turnaus"}]
     (if-let [user (user-for-apikey key)]
       (let [tournament (-> tournament
-                           (update-in [:day] clj-time.coerce/to-local-date)
-                           (assoc :owner user))]
+                         (update-in [:day] clj-time.coerce/to-local-date)
+                         (assoc :owner user))]
         (response (select-keys (add-tournament tournament) [:id])))
       {:status 400
-       :body "Virheellinen API key"}))
+       :body   "Virheellinen API key"}))
   (PUT "/:sanctionid" []
     :path-params [sanctionid :- s/Str]
     :query-params [key :- s/Str]
     :body [tournament {:name s/Str}]
-    (save-tournament sanctionid tournament)
+    (validate-request sanctionid key
+      (save-tournament sanctionid tournament))
     {:status 204})
   (GET "/" []
     :return [Tournament]
     :summary "Hae kaikki turnaukset"
-    (response (tournaments)))
+    (response (tournaments 0)))
   (GET "/:id" []
     :path-params [id :- s/Int]
     :return Tournament
