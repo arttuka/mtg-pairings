@@ -576,18 +576,17 @@
       bracket)))
 
 (defn bracket [tournament-id]
-  (let [playoff-rounds (sql/select db/round
-                         (sql/fields :id :num)
-                         (sql/where {:tournament tournament-id
-                                     :playoff    true})
-                         (sql/order :num :DESC))
-        final-standings (standings tournament-id (dec (:num (last playoff-rounds))) false)
-        team->rank (into {} (map (juxt :team :rank)) final-standings)
-        playoff-matches (map (comp (partial add-ranks team->rank)
-                                   results-of-round
-                                   :id)
-                             playoff-rounds)]
-    (when (seq playoff-matches)
+  (when-let [playoff-rounds (seq (sql/select db/round
+                                   (sql/fields :id :num)
+                                   (sql/where {:tournament tournament-id
+                                               :playoff    true})
+                                   (sql/order :num :DESC)))]
+    (let [final-standings (standings tournament-id (dec (:num (last playoff-rounds))) false)
+          team->rank (into {} (map (juxt :team :rank)) final-standings)
+          playoff-matches (map (comp (partial add-ranks team->rank)
+                                     results-of-round
+                                     :id)
+                               playoff-rounds)]
       (loop [acc (take 1 playoff-matches)
              [current-matches & rounds] (rest playoff-matches)]
         (if current-matches
