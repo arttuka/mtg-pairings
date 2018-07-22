@@ -7,10 +7,12 @@ namespace MtgPairings.Domain
     {
         public int Number { get; private set; }
         public ImmutableList<Pairing> Pairings { get; private set; }
+        public bool Playoff { get; private set; }
 
-        public Round(int number, ImmutableList<Pairing> pairings)
+        public Round(int number, bool playoff, ImmutableList<Pairing> pairings)
         {
             Number = number;
+            Playoff = playoff;
             Pairings = pairings;
         }
 
@@ -32,6 +34,7 @@ namespace MtgPairings.Domain
             else
             {
                 return this.Number == other.Number &&
+                       this.Playoff == other.Playoff &&
                        this.Pairings.SequenceEqual(other.Pairings);
             }
         }

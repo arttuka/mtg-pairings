@@ -151,8 +151,9 @@ namespace MtgPairings.Data
 
             return OleDbFetch<Round>(
                 r => new Round(Convert.ToInt32(r["Number"]), 
+                               Convert.ToBoolean(r["IsPlayoff"]),
                                pairingsByRound[Convert.ToInt32(r["RoundId"])].ToImmutableList()),
-                "SELECT Round.RoundId, Round.Number " +
+                "SELECT Round.RoundId, Round.Number, Round.IsPlayoff " +
                 "FROM   Round " +
                 "WHERE  (Round.TournamentId = ?)",
                 new object[] {tournamentId}).OrderBy(r => r.Number).ToImmutableList();
