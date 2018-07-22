@@ -46,6 +46,7 @@
   (GET "/tournaments/:id/standings-:round" [] (loading-page))
   (GET "/tournaments/:id/pods-:round" [] (loading-page))
   (GET "/tournaments/:id/seatings" [] (loading-page))
+  (GET "/tournaments/:id/bracket" [] (loading-page))
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
@@ -99,6 +100,10 @@
 (defmethod ws/event-handler :client/seatings
   [{uid :uid, id :?data}]
   (ws/send! uid [:server/seatings [id (tournament/seatings id)]]))
+
+(defmethod ws/event-handler :client/bracket
+  [{uid :uid, id :?data}]
+  (ws/send! uid [:server/bracket [id (tournament/bracket id)]]))
 
 (defmethod ws/event-handler :client/organizer-tournament
   [{uid :uid, id :?data}]

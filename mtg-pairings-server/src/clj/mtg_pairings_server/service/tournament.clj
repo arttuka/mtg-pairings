@@ -556,3 +556,31 @@
     (delete-seatings tournament-id)
     (sql/insert db/seating
                 (sql/values seatings))))
+
+(defn ^:private match-with-team [team-id matches]
+  (util/some-value #(or (= team-id (:team1 %))
+                        (= team-id (:team2 %)))
+                   matches))
+
+(defn ^:private add-empty-rounds [bracket]
+  (loop [num (/ (count (last bracket)) 2)
+         bracket (vec bracket)]
+    (if (>= num 1)
+      (recur (/ num 2) (conj bracket (repeat num {})))
+      bracket)))
+
+(defn bracket [tournament-id]
+  (let [round-ids (map :id (sql/select db/round
+                             (sql/fields :id)
+                             (sql/where {:tournament tournament-id
+                                         :playoff true})
+                             (sql/order :num :DESC)))
+        playoff-rounds (map results-of-round round-ids)]
+    (when (seq playoff-rounds)
+      (loop [acc (take 1 playoff-rounds)
+             [current-matches & rounds] (rest playoff-rounds)]
+        (if current-matches
+          (let [team-ids (mapcat (juxt :team1 :team2) (first acc))
+                round (map #(match-with-team % current-matches) team-ids)]
+            (recur (cons round acc) rounds))
+          (add-empty-rounds acc))))))
