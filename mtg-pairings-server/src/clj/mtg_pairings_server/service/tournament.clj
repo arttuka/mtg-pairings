@@ -264,14 +264,15 @@
   (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw Double])
        (standings tournament-id round-num hidden?)))
 
-(defn ^:private get-or-add-round [tournament-id round-num]
+(defn ^:private get-or-add-round [tournament-id round-num playoff?]
   (if-let [old-round (first (sql/select db/round
                               (sql/where {:tournament tournament-id
                                           :num        round-num})))]
     (:id old-round)
     (:id (sql/insert db/round
                      (sql/values {:tournament tournament-id
-                                  :num        round-num})))))
+                                  :num        round-num
+                                  :playoff    playoff?})))))
 
 (defn teams-by-dci [tournament-id]
   (let [team-players (sql/select db/team-players
@@ -313,14 +314,14 @@
                (sql/where {:tournament tournament-id
                            :round      round-num}))))
 
-(defn add-pairings [sanction-id round-num pairings]
+(defn add-pairings [sanction-id round-num playoff? pairings]
   (let [tournament-id (sanctionid->id sanction-id)
         dci->id (teams-by-dci tournament-id)
         team->points (if-let [standings (standings tournament-id (dec round-num) true)]
                        (into {} (for [row standings]
                                   [(:team row) (:points row)]))
                        (constantly 0))
-        round-id (get-or-add-round tournament-id round-num)]
+        round-id (get-or-add-round tournament-id round-num playoff?)]
     (when (seq pairings)
       (delete-results round-id)
       (delete-pairings round-id)

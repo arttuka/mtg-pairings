@@ -65,7 +65,8 @@
                            :team2        (s/maybe [String])
                            :table_number Long})
 
-(s/defschema InputPairings {:pairings [InputPairing]})
+(s/defschema InputPairings {:pairings [InputPairing]
+                            :playoff  Boolean})
 
 (s/defschema InputResult {:team1        InputTeam
                           :team2        (s/maybe InputTeam)
