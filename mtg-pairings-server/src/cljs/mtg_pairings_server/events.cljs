@@ -133,6 +133,14 @@
   (fn [db [_ sort-key]]
     (assoc-in db [:seatings :sort-key] sort-key)))
 
+(reg-event-fx ::load-bracket
+  (fn [_ [_ id]]
+    {:ws-send [:client/bracket id]}))
+
+(reg-event-db :server/bracket
+  (fn [db [_ [id bracket]]]
+    (assoc-in db [:bracket id] bracket)))
+
 (reg-event-db :server/player-tournaments
   (fn [db [_ tournaments]]
     (assoc db :player-tournaments (vec tournaments))))

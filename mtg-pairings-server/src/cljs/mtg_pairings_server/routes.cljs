@@ -43,6 +43,12 @@
     (dispatch [::events/page {:page :seatings
                               :id   id}])))
 
+(secretary/defroute bracket-path "/tournaments/:id/bracket" [id]
+  (let [id (js/parseInt id)]
+    (dispatch [::events/load-bracket id])
+    (dispatch [::events/page {:page :bracket
+                              :id   id}])))
+
 (secretary/defroute organizer-path "/tournaments/:id/organizer" [id]
   (let [id (js/parseInt id)]
     (dispatch [::events/load-organizer-tournament id])

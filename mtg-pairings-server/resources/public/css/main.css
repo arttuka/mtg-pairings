@@ -296,6 +296,63 @@ i.pull-left {
   text-align: center;
 }
 
+#bracket {
+  margin-left: 10px;
+}
+
+#bracket .bracket-round {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#bracket .bracket-match .team {
+  padding: 20px 20px 0 10px;
+  line-height: 20px;
+  min-width: 200px;
+}
+
+#bracket .bracket-match .team span {
+  vertical-align: bottom;
+}
+
+#bracket .bracket-match .team2 {
+  border-top: 1px solid #333;
+  border-right: 1px solid #333;
+  border-bottom: 1px solid #333;
+}
+
+#bracket .bracket-match .winner {
+  font-weight: bold;
+}
+
+#bracket .bracket-match .wins {
+  float: right;
+  margin-left: 10px;
+}
+
+#bracket .bracket-round.matches-4 .team {
+  height: 44px;
+  padding-top: 20px;
+}
+
+#bracket .bracket-round.matches-2 .team {
+  height: 88px;
+  padding-top: 66px;
+}
+
+#bracket .bracket-round.matches-2 .bracket-match:first-child {
+  margin-top: -22px;
+}
+
+#bracket .bracket-round.matches-1 .team {
+  height: 176px;
+  padding-top: 154px;
+}
+
+#bracket .bracket-round.matches-1 .bracket-match:first-child {
+  margin-top: -66px;
+}
+
 h3 {
   font-size:20px !important;
 }
@@ -435,6 +492,10 @@ h3 {
 .tournament-row a {
   margin-right: 10px;
   width: 100px;
+}
+
+.tournament-row a.wide {
+  width: 210px;
 }
 
 #deck-construction .pod {

@@ -70,6 +70,10 @@
   (fn [db [_ id]]
     (get-in db [:seatings id])))
 
+(reg-sub ::bracket
+  (fn [db [_ id]]
+    (get-in db [:bracket id])))
+
 (reg-sub ::seatings-sort
   (fn [db _]
     (get-in db [:seatings :sort-key])))
