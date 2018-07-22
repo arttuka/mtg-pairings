@@ -345,7 +345,7 @@ i.pull-left {
   padding-top: 66px;
 }
 
-#bracket .bracket-round.matches-2 .bracket-match:first-child {
+#bracket .bracket-round.matches-2 {
   margin-top: -22px;
 }
 
@@ -354,7 +354,7 @@ i.pull-left {
   padding-top: 154px;
 }
 
-#bracket .bracket-round.matches-1 .bracket-match:first-child {
+#bracket .bracket-round.matches-1 {
   margin-top: -66px;
 }
 
@@ -554,6 +554,25 @@ h3 {
 
   .pairing.no-round {
     height: 60px;
+  }
+
+  #bracket .bracket-round.matches-2 .team,
+  #bracket .bracket-round.matches-1 .team {
+    height: 44px;
+    padding-top: 20px;
+  }
+
+  #bracket .bracket-round.matches-2,
+  #bracket .bracket-round.matches-1 {
+    margin-top: 0;
+  }
+
+  #bracket h3 {
+    margin-bottom: 0;
+  }
+
+  #bracket {
+    padding-bottom: 20px;
   }
 }
 

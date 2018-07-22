@@ -203,6 +203,8 @@
          ^{:key k}
          [:div.bracket-round
           {:class (str "matches-" num-matches)}
+          [:h3.hidden-sm.hidden-md.hidden-lg
+           (str "Top " (* 2 num-matches))]
           (for [match round]
             ^{:key (str k "-table-" (:table_number match))}
             [bracket-match match])])])))
