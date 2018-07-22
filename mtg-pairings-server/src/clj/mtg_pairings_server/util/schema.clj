@@ -16,7 +16,8 @@
                                 :results   [Long]
                                 :standings [Long]
                                 :pods      [Long]
-                                :seatings  Boolean}))
+                                :seatings  Boolean
+                                :playoff   Boolean}))
 
 (s/defschema InputTournament (-> BaseTournament
                                (dissoc :id)
@@ -64,7 +65,8 @@
                            :team2        (s/maybe [String])
                            :table_number Long})
 
-(s/defschema InputPairings {:pairings [InputPairing]})
+(s/defschema InputPairings {:pairings [InputPairing]
+                            :playoff  Boolean})
 
 (s/defschema InputResult {:team1        InputTeam
                           :team2        (s/maybe InputTeam)

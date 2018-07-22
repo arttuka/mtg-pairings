@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.pages.tournament
   (:require [re-frame.core :refer [subscribe]]
-            [mtg-pairings-server.components.tournament :refer [tournament-list tournament tournament-header pairings standings pods seatings]]
+            [mtg-pairings-server.components.tournament :refer [tournament-list tournament tournament-header pairings standings pods seatings bracket]]
             [mtg-pairings-server.subscriptions :as subs]))
 
 (defn tournaments-page []
@@ -30,3 +30,8 @@
   [:div#seatings
    [tournament-header id]
    [seatings id]])
+
+(defn bracket-page [id]
+  [:div#bracket
+   [tournament-header id]
+   [bracket id]])

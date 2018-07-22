@@ -5,7 +5,7 @@
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
-            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path]]
+            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]))
 
 (defn tournament-header [id]
@@ -18,6 +18,11 @@
   (when data
     [:div.tournament
      [tournament-header (:id data) (:name data) (:day data) (:organizer data)]
+     (when (:playoff data)
+       [:div.tournament-row
+        [:a.btn.btn-default.wide
+         {:href (bracket-path {:id (:id data)})}
+         "Playoff bracket"]])
      (for [r (:round-nums data)]
        ^{:key [(:id data) r]}
        [:div.tournament-row
@@ -170,3 +175,36 @@
         (for [[i seat] (indexed @data)]
           ^{:key [(:name seat)]}
           [seating-row (if (even? i) "even" "odd") seat])]])))
+
+(defn bracket-match [match]
+  [:div.bracket-match
+   [:div.team.team1
+    {:class (when (> (:team1_wins match) (:team2_wins match))
+              :winner)}
+    (when (:team1_rank match)
+      [:span.rank (str \( (:team1_rank match) \))])
+    [:span.name (:team1_name match)]
+    [:span.wins (:team1_wins match)]]
+   [:div.team.team2
+    {:class (when (< (:team1_wins match) (:team2_wins match))
+              :winner)}
+    (when (:team2_rank match)
+      [:span.rank (str \( (:team2_rank match) \))])
+    [:span.name (:team2_name match)]
+    [:span.wins (:team2_wins match)]]])
+
+(defn bracket [id]
+  (let [data (subscribe [::subs/bracket id])]
+    (fn bracket-render [id]
+      [:div.bracket
+       (for [round @data
+             :let [num-matches (count round)
+                   k (str id "-bracket-" num-matches)]]
+         ^{:key k}
+         [:div.bracket-round
+          {:class (str "matches-" num-matches)}
+          [:h3.hidden-sm.hidden-md.hidden-lg
+           (str "Top " (* 2 num-matches))]
+          (for [match round]
+            ^{:key (str k "-table-" (:table_number match))}
+            [bracket-match match])])])))

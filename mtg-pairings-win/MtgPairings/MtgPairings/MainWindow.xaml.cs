@@ -167,7 +167,7 @@ namespace MtgPairings
                             {
                                 if (round.OldRound == null || round.NewRound == null || !round.OldRound.Pairings.SequenceEqual(round.NewRound.Pairings, new Pairing.PairingEqualityComparer()) || round.NewRound != null && uploadAll)
                                 {
-                                    UploadEvent e = new UploadEvent(() => _uploader.UploadPairings(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
+                                    UploadEvent e = new UploadEvent(() => _uploader.UploadPairings(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Playoff, round.NewRound.Pairings),
                                                                     t.AutoUpload, newTournament, UploadEvent.Type.Pairings, round.NewRound.Number);
                                     UploadQueue.Enqueue(e);
                                     uploadAll = true;

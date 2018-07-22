@@ -37,6 +37,7 @@ create table round(
   id serial primary key,
   num int not null,
   tournament int not null references tournament(id),
+  playoff boolean default false,
   unique (tournament, num)
 );
 

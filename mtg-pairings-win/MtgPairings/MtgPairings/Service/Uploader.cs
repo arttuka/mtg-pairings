@@ -123,7 +123,7 @@ namespace MtgPairings.Service
             Execute(request);
         }
 
-        public void UploadPairings(string sanctionid, int round, IEnumerable<Pairing> pairings)
+        public void UploadPairings(string sanctionid, int round, bool playoff, IEnumerable<Pairing> pairings)
         {
             var request = createRequest("api/tournament/{sanctionid}/round-{round}/pairings", Method.PUT,
                 new {
@@ -131,7 +131,8 @@ namespace MtgPairings.Service
                         team1 = p.Team1.Players.Select(player => player.DciNumber),
                         team2 = p.Team2.Select(t => t.Players.Select(player => player.DciNumber)).ValueOrElse(Enumerable.Empty<string>()),
                         table_number = p.Table
-                    })
+                    }),
+                    playoff = playoff
                 });
             request.AddParameter("sanctionid", sanctionid, ParameterType.UrlSegment);
             request.AddParameter("round", round, ParameterType.UrlSegment);

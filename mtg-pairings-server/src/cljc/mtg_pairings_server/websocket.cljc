@@ -56,6 +56,9 @@
    (defmethod event-handler :default [{:keys [event]}]
      (log/debugf "Unhandled event %s" event)))
 
+#?(:clj
+   (defmethod event-handler :chsk/ws-ping [_]))
+
 ;; Event router
 
 (def ^:private ws-state

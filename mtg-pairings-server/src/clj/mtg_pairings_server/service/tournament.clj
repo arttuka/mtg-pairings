@@ -41,7 +41,8 @@
   (->
     (sql/select* db/tournament)
     (sql/fields :rounds :day :name :organizer :id
-                (sql/raw "exists (select 1 from seating where \"tournament\" = \"tournament\".\"id\") as \"seatings\""))
+                (sql/raw "exists (select 1 from seating where \"tournament\" = \"tournament\".\"id\") as \"seatings\"")
+                (sql/raw "exists (select 1 from round where \"tournament\" = \"tournament\".\"id\" and playoff) as \"playoff\""))
     (sql/order :day :DESC)
     (sql/order :name :ASC)))
 
@@ -72,8 +73,9 @@
                                         :results])
                            (sql/order :num)
                            (sql/where
-                             (sql/sqlfn "exists" (sql/subselect db/pairing
-                                                   (sql/where {:round :round.id})))))
+                             (and (sql/sqlfn "exists" (sql/subselect db/pairing
+                                                        (sql/where {:round :round.id})))
+                                  (not :playoff))))
                          (sql/with db/standings
                            (sql/where {:hidden false})
                            (sql/fields [:round :num])
@@ -97,8 +99,9 @@
                                 :results])
                    (sql/order :num)
                    (sql/where
-                     (sql/sqlfn "exists" (sql/subselect db/pairing
-                                           (sql/where {:round :round.id})))))
+                     (and (sql/sqlfn "exists" (sql/subselect db/pairing
+                                                (sql/where {:round :round.id})))
+                          (not :playoff))))
                  (util/group-kv :tournament #(select-keys % [:num :results])))
         standings (->>
                     (sql/select db/standings
@@ -261,14 +264,15 @@
   (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw Double])
        (standings tournament-id round-num hidden?)))
 
-(defn ^:private get-or-add-round [tournament-id round-num]
+(defn ^:private get-or-add-round [tournament-id round-num playoff?]
   (if-let [old-round (first (sql/select db/round
                               (sql/where {:tournament tournament-id
                                           :num        round-num})))]
     (:id old-round)
     (:id (sql/insert db/round
                      (sql/values {:tournament tournament-id
-                                  :num        round-num})))))
+                                  :num        round-num
+                                  :playoff    playoff?})))))
 
 (defn teams-by-dci [tournament-id]
   (let [team-players (sql/select db/team-players
@@ -310,14 +314,14 @@
                (sql/where {:tournament tournament-id
                            :round      round-num}))))
 
-(defn add-pairings [sanction-id round-num pairings]
+(defn add-pairings [sanction-id round-num playoff? pairings]
   (let [tournament-id (sanctionid->id sanction-id)
         dci->id (teams-by-dci tournament-id)
         team->points (if-let [standings (standings tournament-id (dec round-num) true)]
                        (into {} (for [row standings]
                                   [(:team row) (:points row)]))
                        (constantly 0))
-        round-id (get-or-add-round tournament-id round-num)]
+        round-id (get-or-add-round tournament-id round-num playoff?)]
     (when (seq pairings)
       (delete-results round-id)
       (delete-pairings round-id)
@@ -397,9 +401,9 @@
 
 (defn add-results [sanction-id round-num results]
   (let [tournament-id (sanctionid->id sanction-id)
-        round-id (:id (first (sql/select db/round
-                               (sql/where {:tournament tournament-id
-                                           :num        round-num}))))]
+        {round-id :id, playoff? :playoff} (first (sql/select db/round
+                                                   (sql/where {:tournament tournament-id
+                                                               :num        round-num})))]
     (when (seq results)
       (delete-results round-id)
       (delete-standings tournament-id round-num)
@@ -410,7 +414,8 @@
                                  :team1_wins (:team1_wins res)
                                  :team2_wins (:team2_wins res)
                                  :draws      (:draws res)})))
-      (calculate-standings tournament-id round-num))))
+      (when-not playoff?
+        (calculate-standings tournament-id round-num)))))
 
 (defn publish-results [sanction-id round-num]
   (let [tournament-id (sanctionid->id sanction-id)]
@@ -552,3 +557,41 @@
     (delete-seatings tournament-id)
     (sql/insert db/seating
                 (sql/values seatings))))
+
+(defn ^:private match-with-team [team-id matches]
+  (util/some-value #(or (= team-id (:team1 %))
+                        (= team-id (:team2 %)))
+                   matches))
+
+(defn ^:private add-ranks [team->rank round]
+  (for [match round]
+    (assoc match :team1_rank (team->rank (:team1 match))
+                 :team2_rank (team->rank (:team2 match)))))
+
+(defn ^:private add-empty-rounds [bracket]
+  (loop [num (/ (count (last bracket)) 2)
+         bracket (vec bracket)]
+    (if (>= num 1)
+      (recur (/ num 2) (conj bracket (repeat num {})))
+      bracket)))
+
+(defn bracket [tournament-id]
+  (let [playoff-rounds (sql/select db/round
+                         (sql/fields :id :num)
+                         (sql/where {:tournament tournament-id
+                                     :playoff    true})
+                         (sql/order :num :DESC))
+        final-standings (standings tournament-id (dec (:num (last playoff-rounds))) false)
+        team->rank (into {} (map (juxt :team :rank)) final-standings)
+        playoff-matches (map (comp (partial add-ranks team->rank)
+                                   results-of-round
+                                   :id)
+                             playoff-rounds)]
+    (when (seq playoff-matches)
+      (loop [acc (take 1 playoff-matches)
+             [current-matches & rounds] (rest playoff-matches)]
+        (if current-matches
+          (let [team-ids (mapcat (juxt :team1 :team2) (first acc))
+                round (map #(match-with-team % current-matches) team-ids)]
+            (recur (cons round acc) rounds))
+          (add-empty-rounds acc))))))

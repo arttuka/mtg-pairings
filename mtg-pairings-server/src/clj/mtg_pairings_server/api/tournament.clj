@@ -89,7 +89,7 @@
     :summary "Lisää kierroksen pairingit"
     :query-params [key :- String]
     (validate-request sanctionid key
-      (add-pairings sanctionid round (:pairings pairings))
+      (add-pairings sanctionid round (:playoff pairings) (:pairings pairings))
       (broadcast-tournament sanctionid true)
       {:status 204}))
   (PUT "/:sanctionid/round-:round/results" []

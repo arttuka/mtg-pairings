@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.core
   (:require [reagent.core :as reagent :refer [atom]]
-            [re-frame.core :refer [dispatch dispatch-sync subscribe]]
+            [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
             [mount.core :as m]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
@@ -8,7 +8,8 @@
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.pages.main :refer [main-page]]
             [mtg-pairings-server.pages.tournament :refer [tournament-page pairings-page standings-page
-                                                          pods-page seatings-page tournaments-page]]
+                                                          pods-page seatings-page tournaments-page
+                                                          bracket-page]]
             [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu deck-construction-tables]]
             [mtg-pairings-server.components.main :refer [header mobile-menu]]
             [mtg-pairings-server.websocket :as ws]))
@@ -27,12 +28,14 @@
          :standings [#'standings-page (:id @page) (:round @page)]
          :pods [#'pods-page (:id @page) (:round @page)]
          :seatings [#'seatings-page (:id @page)]
+         :bracket [#'bracket-page (:id @page)]
          :organizer [#'organizer-page]
          :organizer-menu [#'organizer-menu]
          :organizer-deck-construction [#'deck-construction-tables]
          nil)])))
 
 (defn mount-root []
+  (clear-subscription-cache!)
   (reagent/render [current-page] (.getElementById js/document "app")))
 
 (defn init! []
