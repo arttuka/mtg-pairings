@@ -16,7 +16,8 @@
                                 :results   [Long]
                                 :standings [Long]
                                 :pods      [Long]
-                                :seatings  Boolean}))
+                                :seatings  Boolean
+                                :playoff   Boolean}))
 
 (s/defschema InputTournament (-> BaseTournament
                                (dissoc :id)

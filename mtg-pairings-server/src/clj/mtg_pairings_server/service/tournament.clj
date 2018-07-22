@@ -41,7 +41,8 @@
   (->
     (sql/select* db/tournament)
     (sql/fields :rounds :day :name :organizer :id
-                (sql/raw "exists (select 1 from seating where \"tournament\" = \"tournament\".\"id\") as \"seatings\""))
+                (sql/raw "exists (select 1 from seating where \"tournament\" = \"tournament\".\"id\") as \"seatings\"")
+                (sql/raw "exists (select 1 from round where \"tournament\" = \"tournament\".\"id\" and playoff) as \"playoff\""))
     (sql/order :day :DESC)
     (sql/order :name :ASC)))
 
@@ -72,8 +73,9 @@
                                         :results])
                            (sql/order :num)
                            (sql/where
-                             (sql/sqlfn "exists" (sql/subselect db/pairing
-                                                   (sql/where {:round :round.id})))))
+                             (and (sql/sqlfn "exists" (sql/subselect db/pairing
+                                                        (sql/where {:round :round.id})))
+                                  (not :playoff))))
                          (sql/with db/standings
                            (sql/where {:hidden false})
                            (sql/fields [:round :num])
@@ -97,8 +99,9 @@
                                 :results])
                    (sql/order :num)
                    (sql/where
-                     (sql/sqlfn "exists" (sql/subselect db/pairing
-                                           (sql/where {:round :round.id})))))
+                     (and (sql/sqlfn "exists" (sql/subselect db/pairing
+                                                (sql/where {:round :round.id})))
+                          (not :playoff))))
                  (util/group-kv :tournament #(select-keys % [:num :results])))
         standings (->>
                     (sql/select db/standings
@@ -397,9 +400,9 @@
 
 (defn add-results [sanction-id round-num results]
   (let [tournament-id (sanctionid->id sanction-id)
-        round-id (:id (first (sql/select db/round
-                               (sql/where {:tournament tournament-id
-                                           :num        round-num}))))]
+        {round-id :id, playoff? :playoff} (first (sql/select db/round
+                                                   (sql/where {:tournament tournament-id
+                                                               :num        round-num})))]
     (when (seq results)
       (delete-results round-id)
       (delete-standings tournament-id round-num)
@@ -410,7 +413,8 @@
                                  :team1_wins (:team1_wins res)
                                  :team2_wins (:team2_wins res)
                                  :draws      (:draws res)})))
-      (calculate-standings tournament-id round-num))))
+      (when-not playoff?
+        (calculate-standings tournament-id round-num)))))
 
 (defn publish-results [sanction-id round-num]
   (let [tournament-id (sanctionid->id sanction-id)]
