@@ -562,6 +562,11 @@
                         (= team-id (:team2 %)))
                    matches))
 
+(defn ^:private add-ranks [team->rank round]
+  (for [match round]
+    (assoc match :team1_rank (team->rank (:team1 match))
+                 :team2_rank (team->rank (:team2 match)))))
+
 (defn ^:private add-empty-rounds [bracket]
   (loop [num (/ (count (last bracket)) 2)
          bracket (vec bracket)]
@@ -570,15 +575,20 @@
       bracket)))
 
 (defn bracket [tournament-id]
-  (let [round-ids (map :id (sql/select db/round
-                             (sql/fields :id)
-                             (sql/where {:tournament tournament-id
-                                         :playoff true})
-                             (sql/order :num :DESC)))
-        playoff-rounds (map results-of-round round-ids)]
-    (when (seq playoff-rounds)
-      (loop [acc (take 1 playoff-rounds)
-             [current-matches & rounds] (rest playoff-rounds)]
+  (let [playoff-rounds (sql/select db/round
+                         (sql/fields :id :num)
+                         (sql/where {:tournament tournament-id
+                                     :playoff    true})
+                         (sql/order :num :DESC))
+        final-standings (standings tournament-id (dec (:num (last playoff-rounds))) false)
+        team->rank (into {} (map (juxt :team :rank)) final-standings)
+        playoff-matches (map (comp (partial add-ranks team->rank)
+                                   results-of-round
+                                   :id)
+                             playoff-rounds)]
+    (when (seq playoff-matches)
+      (loop [acc (take 1 playoff-matches)
+             [current-matches & rounds] (rest playoff-matches)]
         (if current-matches
           (let [team-ids (mapcat (juxt :team1 :team2) (first acc))
                 round (map #(match-with-team % current-matches) team-ids)]

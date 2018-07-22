@@ -181,11 +181,15 @@
    [:div.team.team1
     {:class (when (> (:team1_wins match) (:team2_wins match))
               :winner)}
+    (when (:team1_rank match)
+      [:span.rank (str \( (:team1_rank match) \))])
     [:span.name (:team1_name match)]
     [:span.wins (:team1_wins match)]]
    [:div.team.team2
     {:class (when (< (:team1_wins match) (:team2_wins match))
               :winner)}
+    (when (:team2_rank match)
+      [:span.rank (str \( (:team2_rank match) \))])
     [:span.name (:team2_name match)]
     [:span.wins (:team2_wins match)]]])
 

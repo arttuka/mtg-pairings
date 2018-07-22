@@ -325,6 +325,11 @@ i.pull-left {
   font-weight: bold;
 }
 
+#bracket .bracket-match .rank {
+  color: #999;
+  margin-right: 10px;
+}
+
 #bracket .bracket-match .wins {
   float: right;
   margin-left: 10px;
