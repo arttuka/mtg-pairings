@@ -1,4 +1,4 @@
-(defproject mtg-pairings-server "2.1.0"
+(defproject mtg-pairings-server "2.1.1"
   :license {:name "MIT License"
             :url  "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.9.0"]
