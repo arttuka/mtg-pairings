@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.api.tournament
   (:require [compojure.api.sweet :refer :all]
+            [clojure.string :as str]
             [clj-time.coerce]
             [schema.core :as s]
             [mtg-pairings-server.service.tournament :refer :all]
@@ -158,4 +159,12 @@
                   pod-round :- s/Int]
     (validate-request sanctionid key
       (generate-deck-construction-seatings sanctionid pod-round)
+      {:status 204}))
+  (POST "/:sanctionid/generate-pods" []
+    :summary "Generoi uudet podit standingsien perusteella"
+    :query-params [key :- s/Str
+                   dropped :- s/Str]
+    :path-params [sanctionid :- s/Str]
+    (validate-request sanctionid key
+      (generate-draft-pods sanctionid (set (str/split dropped #",")))
       {:status 204})))

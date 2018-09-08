@@ -2,12 +2,12 @@
   (:require [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
             [mtg-pairings-server.util.mtg-util :refer [add-check-digits]]
+            [mtg-pairings-server.util.sql :as sql-util]
             [mtg-pairings-server.util.util :refer [select-and-rename-keys]]))
 
 (defn player [dci]
-  (first
-    (sql/select db/player
-      (sql/where {:dci (add-check-digits dci)}))))
+  (sql-util/select-unique-or-nil db/player
+    (sql/where {:dci (add-check-digits dci)})))
 
 (defn players []
   (sql/select db/player))
@@ -25,13 +25,12 @@
       pairing)))
 
 (defn ^:private add-players-data [tournament dci]
-  (let [players-team (:id (first
-                            (sql/select db/team
-                              (sql/where (and {:tournament (:id tournament)}
-                                              (sql/sqlfn "exists"
-                                                (sql/subselect db/team-players
-                                                  (sql/where {:team_players.player dci
-                                                              :team_players.team   :team.id}))))))))
+  (let [players-team (:id (sql-util/select-unique-or-nil db/team
+                            (sql/where (and {:tournament (:id tournament)}
+                                            (sql/sqlfn "exists"
+                                              (sql/subselect db/team-players
+                                                (sql/where {:team_players.player dci
+                                                            :team_players.team   :team.id})))))))
         pairings (for [pairing (sql/select db/pairing
                                  (sql/with db/team1
                                    (sql/fields [:name :team1_name]))
@@ -46,11 +45,11 @@
                                                      {:team2 players-team})))
                                  (sql/order :round.num :DESC))]
                    (format-pairing pairing players-team))
-        seating (first (sql/select db/seating
-                         (sql/with db/team)
-                         (sql/where {:tournament (:id tournament)
-                                     :team       players-team})
-                         (sql/fields :table_number [:team.name :team1_name])))
+        seating (sql-util/select-unique-or-nil db/seating
+                  (sql/with db/team)
+                  (sql/where {:tournament (:id tournament)
+                              :team       players-team})
+                  (sql/fields :table_number [:team.name :team1_name]))
         pod-seats (sql/select db/seat
                     (sql/where {:team players-team})
                     (sql/fields :seat)
@@ -66,10 +65,10 @@
                       :pod-seats pod-seats)))
 
 (defn ^:private add-newest-standings [tournament]
-  (let [standings (first (sql/select db/standings
-                           (sql/aggregate (max :round) :max_standings_round)
-                           (sql/where {:tournament (:id tournament)
-                                       :hidden     false})))]
+  (let [standings (sql-util/select-unique-or-nil db/standings
+                    (sql/aggregate (max :round) :max_standings_round)
+                    (sql/where {:tournament (:id tournament)
+                                :hidden     false}))]
     (merge tournament standings)))
 
 (defn ^:private select-tournament-fields [tournament]
