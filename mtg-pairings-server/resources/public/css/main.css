@@ -506,6 +506,7 @@ h3 {
 .filters .filter {
   display: inline-block;
   margin-left: 10px;
+  vertical-align: bottom;
 }
 
 .date-picker {

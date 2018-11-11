@@ -82,7 +82,6 @@
 
 (reg-event-db ::tournament-filter
   (fn [db [_ [key value]]]
-    (.log js/console "tournament-filter" (name key) value)
     (assoc-in db [:tournament-filter key] value)))
 
 (defn format-tournament [tournament]

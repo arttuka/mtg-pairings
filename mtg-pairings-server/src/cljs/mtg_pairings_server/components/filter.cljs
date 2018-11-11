@@ -1,34 +1,71 @@
 (ns mtg-pairings-server.components.filter
   (:require [re-frame.core :refer [subscribe dispatch]]
+            [cljsjs.material-ui]
+            [cljs-react-material-ui.reagent :as ui]
+            [cljs-react-material-ui.icons :as icons]
+            [cljs-time.coerce :as coerce]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.components.date-picker :refer [date-picker]]))
+            [mtg-pairings-server.util.util :refer [to-local-date]]))
 
 (defn organizer-filter []
   (let [organizers (subscribe [::subs/organizers])
         value (subscribe [::subs/tournament-filter :organizer])]
     [:div.filter
-     [:div "Turnausjärjestäjä"]
-     [:select {:on-change #(dispatch [::events/tournament-filter [:organizer (.-value (.-target %))]])
-               :value     @value}
-      [:option {} ""]
+     [ui/select-field
+      {:on-change            (fn [_ _ new-value]
+                               (dispatch [::events/tournament-filter [:organizer new-value]]))
+       :value                @value
+       :floating-label-text  "Turnausjärjestäjä"
+       :floating-label-fixed true}
+      [ui/menu-item {:value        ""
+                     :primary-text "Kaikki järjestäjät"}]
       (for [organizer @organizers
             :when (not= organizer "")]
         ^{:key organizer}
-        [:option {:value organizer}
-         organizer])]]))
+        [ui/menu-item {:value        organizer
+                       :primary-text organizer}])]]))
+
+(defn date-picker [{:keys [hint-text on-change on-clear value]}]
+  (let [handler (fn [_ new-value]
+                  (on-change (to-local-date new-value)))
+        v (when value (js/Date. (coerce/to-long value)))]
+    [:div.date-picker
+     [ui/date-picker
+      {:hint-text        hint-text
+       :container        :inline
+       :auto-ok          true
+       :locale           "fi-FI"
+       :DateTimeFormat   (.-DateTimeFormat js/Intl)
+       :style            {:display       :inline-block
+                          :margin-bottom "2px"}
+       :text-field-style {:width "128px"}
+       :on-change        handler
+       :value            v}]
+     (when v
+       [ui/icon-button
+        {:on-click on-clear
+         :style    {:position :absolute
+                    :right    0}}
+        [icons/navigation-cancel
+         {:style {:color :grey}}]])]))
 
 (defn date-filter []
   (let [from (subscribe [::subs/tournament-filter :date-from])
         to (subscribe [::subs/tournament-filter :date-to])]
     (fn date-filter-render []
-      [:div.filter
-       [:div "Päivämäärä"]
-       [date-picker {:on-day-click #(dispatch [::events/tournament-filter [:date-from %]])
-                     :selected-day @from}]
+      [:div.filter {:style {:width "280px"}}
+       [date-picker
+        {:hint-text "Alkaen"
+         :on-change #(dispatch [::events/tournament-filter [:date-from %]])
+         :on-clear  #(dispatch [::events/tournament-filter [:date-from nil]])
+         :value     @from}]
        " – "
-       [date-picker {:on-day-click #(dispatch [::events/tournament-filter [:date-to %]])
-                     :selected-day @to}]])))
+       [date-picker
+        {:hint-text "Asti"
+         :on-change #(dispatch [::events/tournament-filter [:date-to %]])
+         :on-clear  #(dispatch [::events/tournament-filter [:date-to nil]])
+         :value     @to}]])))
 
 (defn tournament-filters []
   (let []

@@ -1,6 +1,9 @@
 (ns mtg-pairings-server.core
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
+            [cljsjs.material-ui]
+            [cljs-react-material-ui.core :refer [get-mui-theme]]
+            [cljs-react-material-ui.reagent :as ui]
             [mount.core :as m]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
@@ -17,22 +20,24 @@
 (defn current-page []
   (let [page (subscribe [::subs/page])]
     (fn []
-      [:div
-       [header]
-       [mobile-menu]
-       (case (:page @page)
-         :main [#'main-page]
-         :tournaments [#'tournaments-page]
-         :tournament [#'tournament-page (:id @page)]
-         :pairings [#'pairings-page (:id @page) (:round @page)]
-         :standings [#'standings-page (:id @page) (:round @page)]
-         :pods [#'pods-page (:id @page) (:round @page)]
-         :seatings [#'seatings-page (:id @page)]
-         :bracket [#'bracket-page (:id @page)]
-         :organizer [#'organizer-page]
-         :organizer-menu [#'organizer-menu]
-         :organizer-deck-construction [#'deck-construction-tables]
-         nil)])))
+      [ui/mui-theme-provider
+       {:mui-theme (get-mui-theme)}
+       [:div
+        [header]
+        [mobile-menu]
+        (case (:page @page)
+          :main [#'main-page]
+          :tournaments [#'tournaments-page]
+          :tournament [#'tournament-page (:id @page)]
+          :pairings [#'pairings-page (:id @page) (:round @page)]
+          :standings [#'standings-page (:id @page) (:round @page)]
+          :pods [#'pods-page (:id @page) (:round @page)]
+          :seatings [#'seatings-page (:id @page)]
+          :bracket [#'bracket-page (:id @page)]
+          :organizer [#'organizer-page]
+          :organizer-menu [#'organizer-menu]
+          :organizer-deck-construction [#'deck-construction-tables]
+          nil)]])))
 
 (defn mount-root []
   (clear-subscription-cache!)

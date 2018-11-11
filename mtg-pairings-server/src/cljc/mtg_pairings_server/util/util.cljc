@@ -5,11 +5,14 @@
             [#?(:clj  clj-time.core
                 :cljs cljs-time.core)
              :as time]
-    #?(:clj
-            [ring.util.response :as ring])
-    #?@(:cljs
-        [[goog.string :as gstring]
-         [goog.string.format]])
+            [#?(:clj  clj-time.coerce
+                :cljs cljs-time.coerce)
+             :as coerce]
+            #?(:clj
+               [ring.util.response :as ring])
+            #?@(:cljs
+                [[goog.string :as gstring]
+                 [goog.string.format]])
             [clojure.string :as str]))
 
 (defn map-values
@@ -56,6 +59,14 @@ Function f should accept one argument."
   (let [yesterday (time/minus (time/today) (time/days 1))
         tomorrow (time/plus (time/today) (time/days 1))]
     (time/within? (time/interval yesterday tomorrow) date)))
+
+(defn to-local-date [d]
+  #?(:clj  (coerce/to-local-date d)
+     :cljs (-> d
+               coerce/to-date-time
+               time/to-default-time-zone
+               time/from-utc-time-zone
+               coerce/to-local-date)))
 
 (defn group-kv [keyfn valfn coll]
   (apply merge-with into (for [elem coll]
