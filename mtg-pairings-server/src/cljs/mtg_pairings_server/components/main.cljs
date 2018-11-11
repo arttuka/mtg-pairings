@@ -1,6 +1,10 @@
 (ns mtg-pairings-server.components.main
-  (:require [reagent.core :refer [atom]]
+  (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
+            [cljsjs.material-ui]
+            [cljs-react-material-ui.reagent :as ui]
+            [cljs-react-material-ui.icons :as icons]
+            [accountant.core :as accountant]
             [mtg-pairings-server.components.organizer :refer [pairing]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.routes :refer [tournaments-path standings-path]]
@@ -9,62 +13,36 @@
 
 (defn header []
   (let [user (subscribe [::subs/logged-in-user])
-        dci-number (atom nil)]
+        dci-number (atom "")]
     (fn header-render []
-      (if @user
-        [:div#header
-         [:div.hidden-xs.logged-menu
-          [:span (:name @user)]
-          [:button {:on-click #(dispatch [::events/logout])}
-           "KIRJAUDU ULOS"]
-          [:a {:href (tournaments-path)}
-           "KAIKKI TURNAUKSET"]
-          [:a {:href "/"}
-           "ETUSIVU"]]
-         [:div.hidden-sm.hidden-md.hidden-lg
-          [:span (:name @user)]
-          [:span.pull-right.menu-icon
-           {:on-click #(dispatch [::events/collapse-mobile-menu])}
-           [:i]]]]
-        [:div#header
-         [:form
-          {:on-submit #(do
-                         (dispatch [::events/login @dci-number])
-                         (reset! dci-number nil)
-                         (.preventDefault %))}
-          [:input
-           {:type        "number"
-            :placeholder "DCI-numero"
-            :value       @dci-number
-            :on-change   #(reset! dci-number (-> % .-target .-value))}]
-          [:input.pull-left
-           {:type  "submit"
-            :value "KIRJAUDU"}]
-          [:a.hidden-xs
-           {:href (tournaments-path)}
-           "KAIKKI TURNAUKSET"]
-          [:span.pull-right.menu-icon.hidden-sm.hidden-md.hidden-lg
-           {:on-click #(dispatch [::events/collapse-mobile-menu])}
-           [:i]]]]))))
-
-(defn mobile-menu []
-  (let [collapsed? (subscribe [::subs/mobile-menu-collapsed?])
-        user (subscribe [::subs/logged-in-user])]
-    (fn mobile-menu-render []
-      (when-not @collapsed?
-        [:div#mobile-menu
-         [:a {:href     "/"
-              :on-click #(dispatch [::events/collapse-mobile-menu])}
-          "ETUSIVU"]
-         [:a {:href     "/tournaments"
-              :on-click #(dispatch [::events/collapse-mobile-menu])}
-          "KAIKKI TURNAUKSET"]
-         (when @user
-           [:a {:href     "/tournaments"
-                :on-click #(do
-                             (dispatch [::events/collapse-mobile-menu])
-                             (dispatch [::events/logout]))}
-            "KIRJAUDU ULOS"])]))))
+      [ui/app-bar
+       {:title              (when @user (:name @user))
+        :icon-element-right (when-not @user
+                              (reagent/as-element [:div
+                                                   [ui/text-field
+                                                    {:hint-text   "DCI-numero"
+                                                     :hint-style  {:color :white}
+                                                     :input-style {:color :white}
+                                                     :value       @dci-number
+                                                     :on-change   (fn [_ new-value]
+                                                                    (reset! dci-number new-value))}]
+                                                   [ui/flat-button
+                                                    {:label       "Kirjaudu"
+                                                     :label-style {:color :white}
+                                                     :on-click    #(do (dispatch [::events/login @dci-number])
+                                                                       (reset! dci-number ""))}]]))
+        :icon-element-left  (reagent/as-element
+                              [ui/icon-menu
+                               {:icon-button-element (reagent/as-element
+                                                       [ui/icon-button
+                                                        [icons/navigation-menu {:color :white}]])}
+                               [ui/menu-item {:primary-text "Etusivu"
+                                              :on-click #(accountant/navigate! "/")}]
+                               [ui/menu-item {:primary-text "Turnausarkisto"
+                                              :on-click #(accountant/navigate! (tournaments-path))}]
+                               (when @user
+                                 [ui/menu-item {:primary-text "Kirjaudu ulos"
+                                                :on-click     #(dispatch [::events/logout])}])])}])))
 
 (defn combine-pairings-and-pods [pairings pods]
   (->> (concat pairings pods)
