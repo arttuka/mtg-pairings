@@ -85,6 +85,9 @@ Function f should accept one argument."
 (defn assoc-in-many [m & kvs]
   (reduce (fn [m [ks v]] (assoc-in m ks v)) m (partition 2 kvs)))
 
+(defn round-up [n m]
+  (* m (quot (+ n m -1) m)))
+
 #?(:clj
    (defn edn-response [body]
      (if body

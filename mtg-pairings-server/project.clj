@@ -31,11 +31,11 @@
                  [com.cognitect/transit-cljs "0.8.256"]
                  [re-frame "0.10.6" :exclusions [cljsjs/react]]
                  [binaryage/oops "0.6.2"]
-                 [cljsjs/react-day-picker "5.5.3-1"]
                  [cljsjs/react "16.6.0-0"]
                  [cljsjs/react-dom "16.6.0-0"]
                  [cljsjs/react-transition-group "2.4.0-0"]
-                 [cljs-react-material-ui "0.2.50"]]
+                 [cljs-react-material-ui "0.2.50"]
+                 [cljsjs/rc-slider "8.6.1-0"]]
   :plugins [[lein-environ "1.1.0" :exclusions [org.clojure/clojure]]
             [lein-cljsbuild "1.1.7"]
             [lein-asset-minifier "0.4.5"]]
@@ -49,8 +49,7 @@
   :source-paths ["src/clj" "src/cljc"]
   :resource-paths ["resources" "target/cljsbuild"]
 
-  :minify-assets [[:css {:source ["resources/public/css/main.css"
-                                  "resources/public/css/react-day-picker.css"]
+  :minify-assets [[:css {:source ["resources/public/css/main.css"]
                          :target "resources/public/css/main.min.css"}]]
 
   :cljsbuild

@@ -3,7 +3,7 @@
             [cljs.core.async :as async :refer [<! >! timeout]]
             [cljs-time.core :as time]
             [mtg-pairings-server.util.local-storage :refer [fetch store]]
-            [mtg-pairings-server.util.util :refer [map-by format-time assoc-in-many]]
+            [mtg-pairings-server.util.util :refer [map-by format-time assoc-in-many round-up]]
             [mtg-pairings-server.websocket :as ws])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
@@ -35,7 +35,9 @@
                  :tournament-ids         []
                  :tournament-filter      {:organizer ""
                                           :date-from nil
-                                          :date-to   nil}
+                                          :date-to   nil
+                                          :players   [0 100]}
+                 :max-players            100
                  :player-tournaments     []
                  :pairings               {:sort-key :table_number}
                  :pods                   {:sort-key :pod}
@@ -95,8 +97,12 @@
 
 (reg-event-db :server/tournaments
   (fn [db [_ tournaments]]
-    (assoc db :tournaments (map-by :id (map format-tournament tournaments))
-              :tournament-ids (map :id tournaments))))
+    (let [max-players (round-up (transduce (map :players) max 0 tournaments) 10)]
+      (-> db
+          (assoc :tournaments (map-by :id (map format-tournament tournaments))
+                 :tournament-ids (map :id tournaments)
+                 :max-players max-players)
+          (assoc-in [:tournament-filter :players 1] max-players)))))
 
 (reg-event-fx ::load-pairings
   (fn [_ [_ id round]]

@@ -27,8 +27,9 @@
            :content "width=device-width, initial-scale=1"}]
    (include-css "https://fonts.googleapis.com/css?family=Lato:400,700")
    (include-css "https://fonts.googleapis.com/css?family=Roboto:300,400,500")
+   (include-css "/cljsjs/rc-slider/rc-slider.inc.css")
    (if (env :dev)
-     (include-css "/css/main.css" "/css/react-day-picker.css")
+     (include-css "/css/main.css")
      (include-css "/css/main.min.css"))])
 
 (defn loading-page []

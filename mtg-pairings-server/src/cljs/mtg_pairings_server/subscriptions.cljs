@@ -21,6 +21,10 @@
   (fn [db _]
     (:tournaments-page db)))
 
+(reg-sub ::max-players
+  (fn [db _]
+    (:max-players db)))
+
 (reg-sub ::tournament-filter
   (fn [db [_ filter-key]]
     (get-in db [:tournament-filter filter-key])))
@@ -33,21 +37,25 @@
   (filter #(or (str/blank? organizer)
                (= organizer (:organizer %)))))
 
-(defn ^:private date-filter [date before?]
-  (filter #(or (nil? date)
-               (if before?
-                 (not (time/after? date (:day %)))
-                 (not (time/before? date (:day %)))))))
+(defn ^:private date-filter [min max]
+  (filter #(and (or (nil? min)
+                    (not (time/after? min (:day %))))
+                (or (nil? max)
+                    (not (time/before? max (:day %)))))))
+
+(defn ^:private player-filter [min max]
+  (filter #(<= min (:players %) max)))
 
 (reg-sub ::filtered-tournaments
   :<- [::tournaments]
   :<- [::tournament-filter :organizer]
   :<- [::tournament-filter :date-from]
   :<- [::tournament-filter :date-to]
-  (fn [[tournaments organizer date-from date-to] _]
+  :<- [::tournament-filter :players]
+  (fn [[tournaments organizer date-from date-to [min-players max-players]] _]
     (let [filters (comp (org-filter organizer)
-                        (date-filter date-from true)
-                        (date-filter date-to false))]
+                        (date-filter date-from date-to)
+                        (player-filter min-players max-players))]
       (sequence filters tournaments))))
 
 (reg-sub ::newest-tournaments

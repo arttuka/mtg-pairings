@@ -494,8 +494,29 @@ h3 {
 
 .filters .filter {
   display: inline-block;
+  position: relative;
   margin-left: 10px;
   vertical-align: bottom;
+}
+
+.filters .date-filter {
+  width: 280px;
+  height: 60px;
+  padding-top: 8px;
+}
+
+.filters .player-filter {
+  width: 200px;
+  height: 60px;
+  padding-top: 24px;
+}
+
+.filters .filter .filter-label {
+  position: absolute;
+  top:0;
+  left:0;
+  color: rgba(0, 0, 0, 0.3);
+  font-size:12px;
 }
 
 .date-picker {

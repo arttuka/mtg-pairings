@@ -84,6 +84,10 @@
 
 (defn tournaments []
   (let [tourns (sql/exec select-tournaments)
+        teams (into {} (for [{:keys [tournament count]} (sql/select db/team
+                                                          (sql/fields :tournament)
+                                                          (sql/aggregate (count :*) :count :tournament))]
+                         [tournament count]))
         rounds (->>
                  (sql/select db/round
                    (sql/fields :tournament :num)
@@ -115,7 +119,8 @@
       (update-round-data
         (assoc t :round (get rounds id [])
                  :standings (get standings id [])
-                 :pod_round (get pod-rounds id []))))))
+                 :pod_round (get pod-rounds id [])
+                 :players (get teams id 0))))))
 
 (defn add-tournament [tourn]
   (if (seq (sql/select db/tournament
