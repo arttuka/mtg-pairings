@@ -9,6 +9,7 @@
             [ring.middleware.not-modified :refer [wrap-not-modified]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
+            [ring.middleware.cljsjs :refer [wrap-cljsjs]]
             [mtg-pairings-server.handler]
             [mtg-pairings-server.properties :refer [properties]])
   (:import (com.fasterxml.jackson.core JsonGenerator)
@@ -61,5 +62,6 @@
         wrap-json-with-padding
         wrap-request-log
         wrap-allow-origin
+        wrap-cljsjs
         wrap-errors)
     server-properties))

@@ -503,6 +503,35 @@ h3 {
   width: 210px;
 }
 
+.filters .filter {
+  display: inline-block;
+  margin-left: 10px;
+}
+
+.date-picker {
+  position: relative;
+  display: inline-block;
+}
+
+.date-picker .clear-selection {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 2;
+  height: 14px;
+  width: 14px;
+  color: grey;
+  cursor: pointer;
+}
+
+.date-picker .date-picker-container {
+  position: absolute;
+  left: 0;
+  top: 20px;
+  background-color: white;
+  border: 1px solid #337ab7;
+}
+
 #deck-construction .pod {
   display: inline-block;
   min-width: 30%;
@@ -1403,4 +1432,7 @@ fieldset[disabled] .btn-danger.active {
 }
 .glyphicon-resize-full:before {
   content: "\e096";
+}
+.glyphicon-circle-remove:before {
+  content:"\e088";
 }

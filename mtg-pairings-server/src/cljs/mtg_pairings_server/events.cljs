@@ -33,7 +33,9 @@
                  :tournament-count       0
                  :tournaments-page       0
                  :tournament-ids         []
-                 :tournament-filter      {:organizer ""}
+                 :tournament-filter      {:organizer ""
+                                          :date-from nil
+                                          :date-to   nil}
                  :player-tournaments     []
                  :pairings               {:sort-key :table_number}
                  :pods                   {:sort-key :pod}

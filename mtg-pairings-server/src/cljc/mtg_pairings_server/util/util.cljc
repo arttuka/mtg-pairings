@@ -40,11 +40,14 @@ Function f should accept one argument."
           (next keys)))
       ret)))
 
-(defn parse-date [date]
+(defn parse-iso-date [date]
   (format/parse-local-date (format/formatters :year-month-day) date))
 
 (defn format-iso-date [date]
   (format/unparse-local-date (format/formatters :year-month-day) date))
+
+(defn parse-date [date]
+  (format/parse-local-date (format/formatter "dd.MM.yyyy") date))
 
 (defn format-date [date]
   (some->> date (format/unparse-local-date (format/formatter "dd.MM.yyyy"))))

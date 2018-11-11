@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.subscriptions
   (:require [re-frame.core :refer [reg-sub subscribe]]
+            [cljs-time.core :as time]
             [clojure.string :as str]
             [mtg-pairings-server.util.util :refer [today-or-yesterday?]]
             [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]))
@@ -32,11 +33,21 @@
   (filter #(or (str/blank? organizer)
                (= organizer (:organizer %)))))
 
+(defn ^:private date-filter [date before?]
+  (filter #(or (nil? date)
+               (if before?
+                 (not (time/after? date (:day %)))
+                 (not (time/before? date (:day %)))))))
+
 (reg-sub ::filtered-tournaments
   :<- [::tournaments]
   :<- [::tournament-filter :organizer]
-  (fn [[tournaments organizer] _]
-    (let [filters (comp (org-filter organizer))]
+  :<- [::tournament-filter :date-from]
+  :<- [::tournament-filter :date-to]
+  (fn [[tournaments organizer date-from date-to] _]
+    (let [filters (comp (org-filter organizer)
+                        (date-filter date-from true)
+                        (date-filter date-to false))]
       (sequence filters tournaments))))
 
 (reg-sub ::newest-tournaments

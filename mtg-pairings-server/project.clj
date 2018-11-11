@@ -7,6 +7,7 @@
                  [reagent-utils "0.3.1"]
                  [ring "1.7.1"]
                  [ring/ring-defaults "0.3.2"]
+                 [ring-cljsjs "0.1.0"]
                  [compojure "1.6.1"]
                  [hiccup "1.0.5"]
                  [yogthos/config "1.1.1"]
@@ -29,11 +30,12 @@
                  [com.cognitect/transit-clj "0.8.313"]
                  [com.cognitect/transit-cljs "0.8.256"]
                  [re-frame "0.10.6" :exclusions [cljsjs/react]]
+                 [cljsjs/react-day-picker "5.5.3-1"]
                  [cljsjs/react "16.6.0-0"]
                  [cljsjs/react-transition-group "2.4.0-0"]]
   :plugins [[lein-environ "1.1.0" :exclusions [org.clojure/clojure]]
             [lein-cljsbuild "1.1.7"]
-            [lein-asset-minifier "0.3.2"]]
+            [lein-asset-minifier "0.4.5"]]
 
   :uberjar-name "mtg-pairings.jar"
 
@@ -44,8 +46,9 @@
   :source-paths ["src/clj" "src/cljc"]
   :resource-paths ["resources" "target/cljsbuild"]
 
-  :minify-assets {:assets {"resources/public/css/main.min.css"
-                           "resources/public/css/main.css"}}
+  :minify-assets [[:css {:source ["resources/public/css/main.css"
+                                  "resources/public/css/react-day-picker.css"]
+                         :target "resources/public/css/main.min.css"}]]
 
   :cljsbuild
   {:builds {:min
