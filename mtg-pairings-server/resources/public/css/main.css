@@ -189,6 +189,14 @@ span.menu-icon i:before {
   padding:0;
 }
 
+.mui-pairing .names {
+  display: inline-block;
+}
+
+.mui-pairing .points {
+  float: right;
+}
+
 .opponent {
   color:#848484;
 }

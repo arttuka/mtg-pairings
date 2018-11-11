@@ -1,6 +1,11 @@
 (ns mtg-pairings-server.components.organizer
-  (:require [reagent.core :refer [atom]]
+  (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [dispatch subscribe]]
+            [cljsjs.material-ui]
+            [cljs-react-material-ui.core :refer [get-mui-theme]]
+            [cljs-react-material-ui.reagent :as ui]
+            [cljs-react-material-ui.icons :as icons]
+            [oops.core :refer [oget]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [cls indexed]]
@@ -72,6 +77,33 @@
          {:on-click #(dispatch [::events/organizer-mode :stop-clock])
           :disabled (when-not @clock-running "disabled")}
          "Pysäytä"]]])))
+
+(defn mui-pairing [data pairing?]
+  [ui/list-item
+   {:class                :mui-pairing
+    :left-avatar          (reagent/as-element [ui/avatar
+                                               {:background-color (oget (get-mui-theme) "palette" "primary1Color")}
+                                               (or (:table_number data) (:pod data))])
+    :primary-text         (if pairing?
+                            (str "Kierros " (:round_number data))
+                            (if (:pod data) "Pod" "Seating"))
+    :secondary-text       (reagent/as-element
+                            (if pairing?
+                              [:div
+                               [:div.names
+                                [:span {:style {:color "rgba(0, 0, 0, 0.87)"}}
+                                 (str (:team1_name data) " (" (:team1_points data) ")")]
+                                [:span.hidden-xs " - "]
+                                [:br.hidden-sm.hidden-md.hidden-lg]
+                                [:span (str (:team2_name data) " (" (:team2_points data) ")")]]
+                               [:div.points
+                                [:span (:team1_wins data)]
+                                [:span.hidden-xs " - "]
+                                [:br.hidden-sm.hidden-md.hidden-lg]
+                                [:span (:team2_wins data)]]]
+                              [:div.names (or (:team1_name data)
+                                              (str "Seat " (:seat data)))]))
+    :secondary-text-lines 2}])
 
 (defn pairing [data even? display-round? pairing?]
   [:div.pairing {:class (cls {:even     even?

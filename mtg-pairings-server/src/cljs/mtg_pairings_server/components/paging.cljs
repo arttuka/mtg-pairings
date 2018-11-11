@@ -9,8 +9,8 @@
                                   on-click)
                      :secondary (= selected-page num)
                      :label     (inc num)
-                     :style     {:width     "40px"
-                                 :min-width "40px"}}])
+                     :style     {:width     "35px"
+                                 :min-width "35px"}}])
 
 (defn pager [id event subscription num-pages]
   (let [selected-page (subscribe subscription)]
@@ -28,15 +28,15 @@
                             :on-click (when (pos? @selected-page)
                                         #(dispatch [event (dec @selected-page)]))
                             :disabled (zero? @selected-page)
-                            :style    {:width     "40px"
-                                       :min-width "40px"}}]
+                            :style    {:width     "35px"
+                                       :min-width "35px"}}]
          (doall
            (mapcat (fn [[prev cur]]
                      [(when (and (some? prev) (> (- cur prev) 1))
                         ^{:key (str id "separator-" cur)}
                         [ui/raised-button {:label "···"
-                                           :style {:width     "40px"
-                                                   :min-width "40px"}}])
+                                           :style {:width     "35px"
+                                                   :min-width "35px"}}])
                       ^{:key (str id "button-" cur)}
                       [page-button #(dispatch [event cur]) @selected-page cur]])
                    (partition 2 1 (cons nil shown-pages))))
@@ -44,8 +44,8 @@
                             :on-click (when (< @selected-page (dec num-pages))
                                         #(dispatch [event (inc @selected-page)]))
                             :disabled (>= @selected-page (dec num-pages))
-                            :style    {:width     "40px"
-                                       :min-width "40px"}}]]))))
+                            :style    {:width     "35px"
+                                       :min-width "35px"}}]]))))
 
 (defn with-paging [page-event page-subscription data-subscription component]
   (let [page (subscribe page-subscription)
