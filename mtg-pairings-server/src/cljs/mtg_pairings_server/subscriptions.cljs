@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.subscriptions
   (:require [re-frame.core :refer [reg-sub subscribe]]
+            [clojure.string :as str]
             [mtg-pairings-server.util.util :refer [today-or-yesterday?]]
             [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]))
 
@@ -19,14 +20,34 @@
   (fn [db _]
     (:tournaments-page db)))
 
+(reg-sub ::tournament-filter
+  (fn [db [_ filter-key]]
+    (get-in db [:tournament-filter filter-key])))
+
 (reg-sub ::tournaments
   (fn [db _]
     (map (:tournaments db) (:tournament-ids db))))
+
+(defn ^:private org-filter [organizer]
+  (filter #(or (str/blank? organizer)
+               (= organizer (:organizer %)))))
+
+(reg-sub ::filtered-tournaments
+  :<- [::tournaments]
+  :<- [::tournament-filter :organizer]
+  (fn [[tournaments organizer] _]
+    (let [filters (comp (org-filter organizer))]
+      (sequence filters tournaments))))
 
 (reg-sub ::newest-tournaments
   :<- [::tournaments]
   (fn [tournaments _]
     (filter #(today-or-yesterday? (:day %)) tournaments)))
+
+(reg-sub ::organizers
+  :<- [::tournaments]
+  (fn [tournaments _]
+    (sort (distinct (map :organizer tournaments)))))
 
 (reg-sub ::tournament-count
   (fn [db _]

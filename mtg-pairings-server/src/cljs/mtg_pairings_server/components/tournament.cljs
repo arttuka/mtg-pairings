@@ -6,7 +6,8 @@
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
             [mtg-pairings-server.routes :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
-            [mtg-pairings-server.components.paging :refer [with-paging]]))
+            [mtg-pairings-server.components.paging :refer [with-paging]]
+            [mtg-pairings-server.components.filter :refer [tournament-filters]]))
 
 (defn tournament-header [id]
   (let [tournament (subscribe [::subs/tournament id])]
@@ -60,7 +61,8 @@
 (defn tournament-list []
   [:div
    [:h2 [:a {:href "/"} "Takaisin etusivulle"]]
-   [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/tournaments]
+   [tournament-filters]
+   [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/filtered-tournaments]
    (fn tournament-list-render [tournaments]
      [:div#tournaments
       (for [t tournaments]

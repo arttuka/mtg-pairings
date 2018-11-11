@@ -33,6 +33,7 @@
                  :tournament-count       0
                  :tournaments-page       0
                  :tournament-ids         []
+                 :tournament-filter      {:organizer ""}
                  :player-tournaments     []
                  :pairings               {:sort-key :table_number}
                  :pods                   {:sort-key :pod}
@@ -76,6 +77,11 @@
 (reg-event-db ::tournaments-page
   (fn [db [_ page]]
     (assoc db :tournaments-page page)))
+
+(reg-event-db ::tournament-filter
+  (fn [db [_ [key value]]]
+    (.log js/console "tournament-filter" (name key) value)
+    (assoc-in db [:tournament-filter key] value)))
 
 (defn format-tournament [tournament]
   (let [rounds (sort > (into (set (:pairings tournament)) (:standings tournament)))]
