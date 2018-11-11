@@ -351,27 +351,25 @@
     (add-team-where :team2.id team2)))
 
 (defn ^:private results-of-round [round-id]
-  (for [pairing (sql/select db/pairing
-                  (sql/fields [:team1 :team1]
-                              [:team2 :team2]
-                              [:team1_points :team1_points]
-                              [:team2_points :team2_points]
-                              :table_number)
-                  (sql/with db/team1
-                    (sql/fields [:name :team1_name]))
-                  (sql/with db/team2
-                    (sql/fields [:name :team2_name]))
-                  (sql/with db/round
-                    (sql/fields [:num :round_number]))
-                  (sql/with db/result
-                    (sql/fields :team1_wins
-                                :team2_wins
-                                :draws))
-                  (sql/where {:round round-id}))]
-    (if-not (:team2 pairing)
-      (merge pairing {:team2_name   "***BYE***"
-                      :team2_points 0})
-      pairing)))
+  (sql/select db/pairing
+    (sql/fields :team1
+                :team2
+                :team1_points
+                :team2_points
+                [(sql/sqlfn :COALESCE :team2.name "***BYE***") :team2_name]
+                :table_number)
+    (sql/with db/team1
+      (sql/fields [:name :team1_name]))
+    (sql/with db/team2
+      (sql/fields))
+    (sql/with db/round
+      (sql/fields [:num :round_number]))
+    (sql/with db/result
+      (sql/fields :team1_wins
+                  :team2_wins
+                  :draws))
+    (sql/where {:round round-id})
+    (sql/order :table_number :ASC)))
 
 (defn ^:private calculate-standings [tournament-id round]
   (let [rounds (sql/select db/round
