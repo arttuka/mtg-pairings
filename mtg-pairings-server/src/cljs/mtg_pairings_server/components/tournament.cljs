@@ -127,14 +127,17 @@
           ^{:key [(:team1_name pairing)]}
           [pairing-row (if (even? i) "even" "odd") pairing])]])))
 
+(defn percentage [n]
+  (gstring/format "%.3f" (* 100 n)))
+
 (defn standing-row [cls standing]
   [:tr {:class cls}
    [:td.rank (:rank standing)]
    [:td.player (:team_name standing)]
    [:td.points (:points standing)]
-   [:td.omw (gstring/format "%.3f" (:omw standing))]
-   [:td.ogw (gstring/format "%.3f" (:pgw standing))]
-   [:td.pgw (gstring/format "%.3f" (:ogw standing))]])
+   [:td.omw (percentage (:omw standing))]
+   [:td.ogw (percentage (:pgw standing))]
+   [:td.pgw (percentage (:ogw standing))]])
 
 (defn standing-table [data]
   [:table.standings-table

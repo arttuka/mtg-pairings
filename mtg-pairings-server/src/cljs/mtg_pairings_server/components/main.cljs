@@ -7,18 +7,45 @@
             [cljs-react-material-ui.icons :as icons]
             [oops.core :refer [oget]]
             [accountant.core :as accountant]
-            [mtg-pairings-server.components.organizer :refer [mui-pairing]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.routes :refer [tournaments-path standings-path]]
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]))
+
+(defn pairing [data pairing?]
+  [ui/list-item
+   {:class                :mui-pairing
+    :left-avatar          (reagent/as-element [ui/avatar
+                                               {:background-color (oget (get-mui-theme) "palette" "primary1Color")}
+                                               (or (:table_number data) (:pod data))])
+    :primary-text         (if pairing?
+                            (str "Kierros " (:round_number data))
+                            (if (:pod data) "Pod" "Seating"))
+    :secondary-text       (reagent/as-element
+                            (if pairing?
+                              [:div
+                               [:div.names
+                                [:span {:style {:color "rgba(0, 0, 0, 0.87)"}}
+                                 (str (:team1_name data) " (" (:team1_points data) ")")]
+                                [:span.hidden-xs " - "]
+                                [:br.hidden-sm.hidden-md.hidden-lg]
+                                [:span (str (:team2_name data) " (" (:team2_points data) ")")]]
+                               [:div.points
+                                [:span (:team1_wins data)]
+                                [:span.hidden-xs " - "]
+                                [:br.hidden-sm.hidden-md.hidden-lg]
+                                [:span (:team2_wins data)]]]
+                              [:div.names (or (:team1_name data)
+                                              (str "Seat " (:seat data)))]))
+    :secondary-text-lines 2}])
 
 (defn header []
   (let [user (subscribe [::subs/logged-in-user])
         dci-number (atom "")]
     (fn header-render []
       [ui/app-bar
-       {:title              (when @user (:name @user))
+       {:id                 :header
+        :title              (when @user (:name @user))
         :icon-element-right (when-not @user
                               (reagent/as-element [:div
                                                    [ui/text-field
@@ -72,6 +99,6 @@
            :on-click     #(accountant/navigate! (standings-path {:id (:id t), :round (:max_standings_round t)}))}]
          (for [p (combine-pairings-and-pods (:pairings t) (:pod-seats t))]
            ^{:key [(:id t) (:round_number p) (:id p)]}
-           [mui-pairing p (boolean (:team1_name p))])
+           [pairing p (boolean (:team1_name p))])
          (when (:seating t)
-           [mui-pairing (:seating t) false])]]])))
+           [pairing (:seating t) false])]]])))

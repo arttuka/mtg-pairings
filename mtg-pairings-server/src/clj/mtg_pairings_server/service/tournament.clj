@@ -58,7 +58,6 @@
 (defn tournament [id]
   (update-round-data (->
                        select-tournaments
-                       (sql/post-query sql-util/unique)
                        (sql/with db/round
                          (sql/fields :num)
                          (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
@@ -80,6 +79,7 @@
                          (sql/fields :id)
                          (sql/order :id))
                        (sql/where {:id id})
+                       (sql/post-query sql-util/unique)
                        (sql/exec))))
 
 (defn tournaments []

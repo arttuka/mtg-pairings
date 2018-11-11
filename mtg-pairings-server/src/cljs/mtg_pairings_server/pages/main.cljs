@@ -2,8 +2,7 @@
   (:require [re-frame.core :refer [subscribe]]
             [cljsjs.material-ui]
             [cljs-react-material-ui.reagent :as ui]
-            [mtg-pairings-server.components.main :refer [own-tournament]]
-            [mtg-pairings-server.components.organizer :refer [mui-pairing]]
+            [mtg-pairings-server.components.main :refer [own-tournament pairing]]
             [mtg-pairings-server.components.tournament :refer [newest-tournaments-list]]
             [mtg-pairings-server.subscriptions :as subs]))
 
@@ -36,7 +35,7 @@
                 :style    {:padding-bottom 0}}]
               [ui/card-text
                {:style {:padding-top 0}}
-               [mui-pairing latest-pairing (some? (:team2_name latest-pairing))]]]))
+               [pairing latest-pairing (some? (:team2_name latest-pairing))]]]))
          (for [t @player-tournaments]
            ^{:key [:tournament (:id t)]}
            [own-tournament t])]

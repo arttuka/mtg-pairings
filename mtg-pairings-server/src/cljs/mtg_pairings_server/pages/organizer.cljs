@@ -9,7 +9,7 @@
     (fn organizer-page-render []
       [:div#organizer-page
        [:style {:type "text/css"}
-        "#header { display: none; }"]
+        "#header { display: none !important; }"]
        (when-not @hide-menu? [menu])
        (case @organizer-mode
          :pairings [pairings]
@@ -22,7 +22,7 @@
 (defn organizer-menu []
   [:div#organizer-page
    [:style {:type "text/css"}
-    "#header { display: none; }"]
+    "#header { display: none !important; }"]
    [menu]])
 
 (defn deck-construction-table [pod-num seats name->seating]
