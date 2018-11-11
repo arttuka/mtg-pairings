@@ -547,11 +547,6 @@
     (sql/insert db/seating
       (sql/values seatings))))
 
-(defn ^:private match-with-team [team-id matches]
-  (util/some-value #(or (= team-id (:team1 %))
-                        (= team-id (:team2 %)))
-                   matches))
-
 (defn ^:private add-ranks [team->rank round]
   (for [match round]
     (assoc match :team1_rank (team->rank (:team1 match))
@@ -569,20 +564,14 @@
                                    (sql/fields :id :num)
                                    (sql/where {:tournament tournament-id
                                                :playoff    true})
-                                   (sql/order :num :DESC)))]
-    (let [final-standings (standings tournament-id (dec (:num (last playoff-rounds))) false)
+                                   (sql/order :num :ASC)))]
+    (let [final-standings (standings tournament-id (dec (:num (first playoff-rounds))) false)
           team->rank (into {} (map (juxt :team :rank)) final-standings)
           playoff-matches (map (comp (partial add-ranks team->rank)
                                      results-of-round
                                      :id)
                                playoff-rounds)]
-      (loop [acc (take 1 playoff-matches)
-             [current-matches & rounds] (rest playoff-matches)]
-        (if current-matches
-          (let [team-ids (mapcat (juxt :team1 :team2) (first acc))
-                round (map #(match-with-team % current-matches) team-ids)]
-            (recur (cons round acc) rounds))
-          (add-empty-rounds acc))))))
+      (add-empty-rounds playoff-matches))))
 
 (defn ^:private count-full-pods [n]
   (- (int (Math/ceil (/ n 8))) (mod (- n) 8)))
