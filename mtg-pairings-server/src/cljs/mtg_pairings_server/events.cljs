@@ -82,7 +82,9 @@
 
 (reg-event-db ::tournament-filter
   (fn [db [_ [key value]]]
-    (assoc-in db [:tournament-filter key] value)))
+    (-> db
+        (assoc-in [:tournament-filter key] value)
+        (assoc :tournaments-page 0))))
 
 (defn format-tournament [tournament]
   (let [rounds (sort > (into (set (:pairings tournament)) (:standings tournament)))]

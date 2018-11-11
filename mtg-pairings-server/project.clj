@@ -30,6 +30,7 @@
                  [com.cognitect/transit-clj "0.8.313"]
                  [com.cognitect/transit-cljs "0.8.256"]
                  [re-frame "0.10.6" :exclusions [cljsjs/react]]
+                 [binaryage/oops "0.6.2"]
                  [cljsjs/react-day-picker "5.5.3-1"]
                  [cljsjs/react "16.6.0-0"]
                  [cljsjs/react-dom "16.6.0-0"]

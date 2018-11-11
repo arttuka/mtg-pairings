@@ -7,6 +7,7 @@
             [mount.core :as m]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
+            mtg-pairings-server.routes
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.pages.main :refer [main-page]]
@@ -47,7 +48,7 @@
   (dispatch-sync [::events/initialize])
   (accountant/configure-navigation!
     {:nav-handler
-     (fn [path & more]
+     (fn [path]
        (secretary/dispatch! path))
      :path-exists?
      (fn [path]

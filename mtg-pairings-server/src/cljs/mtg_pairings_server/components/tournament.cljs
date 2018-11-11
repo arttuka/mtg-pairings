@@ -1,7 +1,11 @@
 (ns mtg-pairings-server.components.tournament
   (:require [re-frame.core :refer [subscribe dispatch]]
+            [cljsjs.material-ui]
+            [cljs-react-material-ui.core :refer [get-mui-theme]]
+            [cljs-react-material-ui.reagent :as ui]
             [goog.string :as gstring]
             [goog.string.format]
+            [oops.core :refer [oget]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
@@ -17,34 +21,41 @@
 
 (defn tournament [data]
   (when data
-    [:div.tournament
+    [ui/paper
+     {:style {:margin  "10px"
+              :padding "10px"}}
      [tournament-header (:id data) (:name data) (:day data) (:organizer data)]
      (when (:playoff data)
        [:div.tournament-row
-        [:a.btn.btn-default.wide
-         {:href (bracket-path {:id (:id data)})}
-         "Playoff bracket"]])
+        [ui/raised-button
+         {:label "Playoff bracket"
+          :href  (bracket-path {:id (:id data)})
+          :style {:width "260px"}}]])
      (for [r (:round-nums data)]
        ^{:key [(:id data) r]}
        [:div.tournament-row
         (when (contains? (:pairings data) r)
-          [:a.btn.btn-default
-           {:href (pairings-path {:id (:id data), :round r})}
-           (str "Pairings " r)])
+          [ui/raised-button
+           {:label (str "Pairings " r)
+            :href  (pairings-path {:id (:id data), :round r})
+            :style {:width "130px"}}])
         (when (contains? (:standings data) r)
-          [:a.btn.btn-default
-           {:href (standings-path {:id (:id data), :round r})}
-           (str "Standings " r)])])
+          [ui/raised-button
+           {:label (str "Standings " r)
+            :href  (standings-path {:id (:id data), :round r})
+            :style {:width "130px"}}])])
      [:div.tournament-row
       (when (:seatings data)
-        [:a.btn.btn-default
-         {:href (seatings-path {:id (:id data)})}
-         "Seatings"])
+        [ui/raised-button
+         {:label "Seatings"
+          :href  (seatings-path {:id (:id data)})
+          :style {:width "130px"}}])
       (for [n (:pods data)]
         ^{:key [(:id data) :pods n]}
-        [:a.btn.btn-default
-         {:href (pods-path {:id (:id data), :round n})}
-         (str "Pods " n)])]]))
+        [ui/raised-button
+         {:label (str "Pods " n)
+          :href  (pods-path {:id (:id data), :round n})
+          :style {:width "130px"}}])]]))
 
 (defn newest-tournaments-list []
   (let [tournaments (subscribe [::subs/newest-tournaments])]
@@ -60,17 +71,18 @@
 
 (defn tournament-list []
   [:div
-   [:h2 [:a {:href "/"} "Takaisin etusivulle"]]
+   [:h2 {:style {:margin-left "10px"}}
+    [:a {:href "/"} "Takaisin etusivulle"]]
    [tournament-filters]
    [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/filtered-tournaments]
-   (fn tournament-list-render [tournaments]
-     [:div#tournaments
-      (for [t tournaments]
-        ^{:key (:id t)}
-        [tournament t])])]])
+    (fn tournament-list-render [tournaments]
+      [:div#tournaments
+       (for [t tournaments]
+         ^{:key (:id t)}
+         [tournament t])])]])
 
 (defn sortable [column sort-key dispatch-key]
-  {:class    (when (not= column sort-key) "inactive")
+  {:style    (when (= column sort-key) {:color (oget (get-mui-theme) "palette" "accent1Color")})
    :on-click #(dispatch [dispatch-key column])})
 
 (defn pairing-row [cls pairing]
