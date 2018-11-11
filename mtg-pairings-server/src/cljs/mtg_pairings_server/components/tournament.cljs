@@ -5,7 +5,7 @@
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
-            [mtg-pairings-server.routes :refer [tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
+            [mtg-pairings-server.routes :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]))
 
 (defn tournament-header [id]
@@ -45,13 +45,27 @@
          {:href (pods-path {:id (:id data), :round n})}
          (str "Pods " n)])]]))
 
+(defn newest-tournaments-list []
+  (let [tournaments (subscribe [::subs/newest-tournaments])]
+    (fn newest-tournaments-list-render []
+      [:div#tournaments
+       [:h2 "Aktiiviset turnaukset | " [:a {:href (tournaments-path)}
+                                        "Turnausarkistoon"]]
+       (if-let [ts (seq @tournaments)]
+         (for [t ts]
+           ^{:key (:id t)}
+           [tournament t])
+         [:h3 "Ei aktiivisia turnauksia."])])))
+
 (defn tournament-list []
-  [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/tournaments]
+  [:div
+   [:h2 [:a {:href "/"} "Takaisin etusivulle"]]
+   [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/tournaments]
    (fn tournament-list-render [tournaments]
      [:div#tournaments
       (for [t tournaments]
         ^{:key (:id t)}
-        [tournament t])])])
+        [tournament t])])]])
 
 (defn sortable [column sort-key dispatch-key]
   {:class    (when (not= column sort-key) "inactive")

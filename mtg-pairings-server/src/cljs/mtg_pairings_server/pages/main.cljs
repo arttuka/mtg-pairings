@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe]]
             [mtg-pairings-server.components.main :refer [own-tournament]]
             [mtg-pairings-server.components.organizer :refer [pairing]]
-            [mtg-pairings-server.components.tournament :refer [tournament-list]]
+            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list]]
             [mtg-pairings-server.subscriptions :as subs]))
 
 (defn get-latest-pairing [player-tournaments]
@@ -34,4 +34,4 @@
          (for [t @player-tournaments]
            ^{:key [:tournament (:id t)]}
            [own-tournament t])]
-        [tournament-list]))))
+        [newest-tournaments-list]))))

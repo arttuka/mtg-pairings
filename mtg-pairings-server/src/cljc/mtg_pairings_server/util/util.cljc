@@ -1,6 +1,9 @@
 (ns mtg-pairings-server.util.util
   (:require [#?(:clj  clj-time.format
                 :cljs cljs-time.format)
+             :as format]
+            [#?(:clj  clj-time.core
+                :cljs cljs-time.core)
              :as time]
     #?(:clj
             [ring.util.response :as ring])
@@ -38,13 +41,18 @@ Function f should accept one argument."
       ret)))
 
 (defn parse-date [date]
-  (time/parse-local-date (time/formatters :year-month-day) date))
+  (format/parse-local-date (format/formatters :year-month-day) date))
 
 (defn format-iso-date [date]
-  (time/unparse-local-date (time/formatters :year-month-day) date))
+  (format/unparse-local-date (format/formatters :year-month-day) date))
 
 (defn format-date [date]
-  (some->> date (time/unparse-local-date (time/formatter "dd.MM.yyyy"))))
+  (some->> date (format/unparse-local-date (format/formatter "dd.MM.yyyy"))))
+
+(defn today-or-yesterday? [date]
+  (let [yesterday (time/minus (time/today) (time/days 1))
+        tomorrow (time/plus (time/today) (time/days 1))]
+    (time/within? (time/interval yesterday tomorrow) date)))
 
 (defn group-kv [keyfn valfn coll]
   (apply merge-with into (for [elem coll]

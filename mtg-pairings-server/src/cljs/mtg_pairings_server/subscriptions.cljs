@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.subscriptions
   (:require [re-frame.core :refer [reg-sub subscribe]]
+            [mtg-pairings-server.util.util :refer [today-or-yesterday?]]
             [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]))
 
 (reg-sub ::logged-in-user
@@ -21,6 +22,11 @@
 (reg-sub ::tournaments
   (fn [db _]
     (map (:tournaments db) (:tournament-ids db))))
+
+(reg-sub ::newest-tournaments
+  :<- [::tournaments]
+  (fn [tournaments _]
+    (filter #(today-or-yesterday? (:day %)) tournaments)))
 
 (reg-sub ::tournament-count
   (fn [db _]
