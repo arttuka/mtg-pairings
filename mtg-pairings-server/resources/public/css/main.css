@@ -183,7 +183,7 @@ h3 {
 }
 
 #organizer-page {
-  font-family: Lato, Helvetica, sans-serif;
+  position: relative;
 }
 
 #organizer-page h2 {
@@ -194,6 +194,18 @@ h3 {
 #organizer-page .column {
   column-width: 470px;
   column-gap: 10px;
+  column-fill: auto;
+  height: calc(100% - 48px);
+}
+
+#organizer-page .organizer-pairings, #organizer-page .organizer-standings,
+#organizer-page .organizer-seatings, #organizer-page .organizer-pods {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding-top: 80px;
+  width: 100%;
+  height: 100vh;
 }
 
 .organizer-standings .standings-table {
@@ -278,11 +290,12 @@ h3 {
   margin-top: 2px;
 }
 
-.organizer-clock {
+#organizer-page .organizer-clock {
   color: green;
   font-size: 32vw;
   font-weight: bold;
   text-align: center;
+  font-family: Lato, Helvetica, sans-serif;
 }
 
 .organizer-clock.timeout {

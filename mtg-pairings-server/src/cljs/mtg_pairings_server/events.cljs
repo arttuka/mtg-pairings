@@ -256,13 +256,15 @@
     :select-pods {:db (assoc-in db [:organizer :selected-pods] value)}))
 
 (defn send-organizer-action [db id action value]
-  (store ["organizer" id] {:action action, :value value})
-  (case action
-    :start-clock {:db (assoc-in db [:organizer :clock :running] true)}
-    :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
-    :select-pairings (resolve-organizer-action db id action value)
-    :select-standings (resolve-organizer-action db id action value)
-    :select-pods (resolve-organizer-action db id action value)))
+  (assoc
+    (case action
+      :start-clock {:db (assoc-in db [:organizer :clock :running] true)}
+      :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
+      :select-pairings (resolve-organizer-action db id action value)
+      :select-standings (resolve-organizer-action db id action value)
+      :select-pods (resolve-organizer-action db id action value)
+      {})
+    :store [["organizer" id] {:action action, :value value}]))
 
 (reg-event-fx ::organizer-mode
   (fn [{:keys [db]} [_ action value]]
