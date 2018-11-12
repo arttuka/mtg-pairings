@@ -151,19 +151,6 @@ span.menu-icon i:before {
   float:left;
 }
 
-.pairing, .seating, .organizer-pods .seat {
-  clear:left;
-  border-left: 1px solid #e6e6e6;
-  margin-left:20px;
-}
-
-.pairing h4 {
-  height: 20px;
-  line-height: 20px;
-  font-size:16px;
-  margin:0;
-}
-
 .even {
   background-color:#e6e6e6;
 }
@@ -179,16 +166,6 @@ span.menu-icon i:before {
   float:left;
 }
 
-.pairing .names, .seating .name {
-  display: inline-block;
-  float:left;
-  line-height:30px;
-  font-size:20px;
-  border:0;
-  margin:0;
-  padding:0;
-}
-
 .mui-pairing .names {
   display: inline-block;
 }
@@ -201,18 +178,8 @@ span.menu-icon i:before {
   color:#848484;
 }
 
-.pairing .points {
-  float:right;
-  margin-right:15px;
-  font-size: 20px;
-}
-
 .border-top {
   border-top: 1px solid #424242;
-}
-
-i.pull-left {
-  margin-right:15px;
 }
 
 .newest-tournament-name {
@@ -386,21 +353,22 @@ h3 {
   margin-top: 0;
 }
 
-.organizer-pairings .pairing-column, .organizer-seatings .seating-column, .organizer-pods .pod-column {
-  width:500px;
-  display: inline-block;
-  margin: 0 10px 24px;
-  vertical-align: top;
+#organizer-page .column {
+  column-width: 470px;
+  column-gap: 10px;
 }
 
 .organizer-standings .standings-table {
-  width:500px;
-  display: inline-block;
-  margin: 0 20px;
+  width: 470px;
 }
 
-.organizer-pairings .pairing.no-round, .organizer-seatings .seating, .organizer-standings td, .organizer-pods .pod {
+.organizer-standings .standings-table thead {
+  display: none;
+}
+
+.organizer-pairings .pairing, .organizer-seatings .seating, .organizer-standings td, .organizer-pods .pod {
   height: 24px;
+  width: 470px;
 }
 
 .organizer-pairings .pairing .names, .organizer-pairings .pairing .table-number, .organizer-pairings .pairing .points,
@@ -408,6 +376,10 @@ h3 {
 .organizer-pods .seat .name, .organizer-pods .seat .pod-number, .organizer-pods .seat .seat-number {
   line-height:24px;
   font-size:17px;
+}
+
+.organizer-seatings .seating .name {
+  text-align: left;
 }
 
 .organizer-pairings .pairing .table-number,
@@ -425,20 +397,28 @@ h3 {
 
 .organizer-pairings .pairing .names {
   display: block;
-  float: none;
   text-align: left;
+  width: 470px;
+  padding-left: 40px;
+  height: 24px;
 }
 
-.organizer-pairings .pairing .names .player,
-.organizer-pairings .pairing .names .opponent {
+.organizer-pairings .pairing .names .player {
   display: inline-block;
   width: 215px;
+  padding-right: 25px;
   white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  position: relative;
 }
 
-.organizer-pairings .pairing .names .hidden-xs,
-.organizer-pairings .pairing .points {
-  display: none;
+.organizer-pairings .pairing .names .points {
+  display: inline-block;
+  width: 25px;
+  position: absolute;
+  text-align: center;
+  right: 0;
 }
 
 #organizer-menu {
@@ -462,7 +442,7 @@ h3 {
 
 .organizer-clock {
   color: green;
-  font-size: 600px;
+  font-size: 32vw;
   font-weight: bold;
   text-align: center;
 }
@@ -621,22 +601,6 @@ h3 {
 @media (max-width: 767px) and (orientation: landscape) {
   #bracket .bracket-round h3 {
     display: none;
-  }
-}
-
-@media (min-width: 768px) {
-  .pairing .table-number, .seating .table-number {
-    line-height: 30px;
-    width:30px;
-    font-size: 20px;
-  }
-
-  .pairing {
-    height: 50px;
-  }
-
-  .pairing.no-round {
-    height: 30px;
   }
 }
 

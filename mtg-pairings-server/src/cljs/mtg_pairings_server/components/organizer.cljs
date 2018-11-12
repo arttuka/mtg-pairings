@@ -79,7 +79,8 @@
                       (reset! minutes new-value))
          :style     {:width        "40px"
                      :margin-left  "6px"
-                     :margin-right "6px"}}]
+                     :margin-right "6px"}
+         :id        :clock-minutes}]
        [ui/raised-button
         {:label    "Aseta"
          :on-click #(dispatch [::events/organizer-mode :set-clock @minutes])
@@ -97,48 +98,13 @@
          :secondary true
          :disabled  (not @clock-running)}]])))
 
-(defn pairing [data even? display-round? pairing?]
-  [:div.pairing {:class (cls {:even     even?
-                              :odd      (not even?)
-                              :no-round (not display-round?)})}
-   (when (and display-round? pairing?)
-     [:h4 (str "Kierros " (:round_number data))])
-   (when-not pairing?
-     [:h4 (if (:pod data)
-            "Pod"
-            "Seating")])
+(defn pairing [data even?]
+  [:div.pairing.no-round {:class (cls {:even even?
+                                       :odd  (not even?)})}
    [:span.table-number (or (:table_number data) (:pod data))]
-   (when-not pairing?
-     [:span
-      [:div.names (or (:team1_name data)
-                      (str "Seat " (:seat data)))]])
-   (when pairing?
-     [:span
-      [:div.names
-       [:span.player (str (:team1_name data) " (" (:team1_points data) ")")]
-       [:span.hidden-xs " - "]
-       [:br.hidden-sm.hidden-md.hidden-lg]
-       [:span.opponent (str (:team2_name data) " (" (:team2_points data) ")")]]
-      [:div.points
-       [:span.player (:team1_wins data)]
-       [:span.hidden-xs " - "]
-       [:br.hidden-sm.hidden-md.hidden-lg]
-       [:span.opponent (:team2_wins data)]]])])
-
-(defn pairing-column [data]
-  [:div.pairing-column
-   (for [[i p] (indexed data)]
-     ^{:key (:team1_name p)}
-     [pairing p (even? i) false true])])
-
-(defn split-data [data]
-  (let [n (count data)
-        per-column (Math/ceil (/ n (Math/ceil (/ n 40))))]
-    (partition-all per-column data)))
-
-(defn split-pairings [pairings]
-  (let [duplicated (sort-by :team1_name (duplicate-pairings pairings))]
-    (split-data duplicated)))
+   [:div.names
+    [:span.player (:team1_name data) [:span.points (:team1_points data)]]
+    [:span.player.opponent (:team2_name data) [:span.points (:team2_points data)]]]])
 
 (defn pairings []
   (let [pairings (subscribe [::subs/organizer :pairings])
@@ -147,20 +113,10 @@
     (fn pairings-render []
       [:div.organizer-pairings
        [:h2 (str (:name @tournament) " - kierros " @pairings-round)]
-       (for [[i column] (indexed (split-pairings @pairings))]
-         ^{:key (str "pairing-column-" i)}
-         [pairing-column column])])))
-
-(defn seating-column [data]
-  [:div.seating-column
-   (for [[i s] (indexed data)]
-     ^{:key (:name s)}
-     [:div.seating
-      {:class (cls {:even (even? i)
-                    :odd  (odd? i)})}
-      [:span.table-number (:table_number s)]
-      [:span
-       [:div.name (:name s)]]])])
+       [:div.column
+        (for [[i p] (indexed (sort-by :team1_name (duplicate-pairings @pairings)))]
+          ^{:key (:team1_name p)}
+          [pairing p (even? i)])]])))
 
 (defn seatings []
   (let [seatings (subscribe [::subs/organizer :seatings])
@@ -168,21 +124,15 @@
     (fn seatings-render []
       [:div.organizer-seatings
        [:h2 (str (:name @tournament) " - seatings")]
-       (for [[i column] (indexed (split-data @seatings))]
-         ^{:key (str "seating-column-" i)}
-         [seating-column column])])))
-
-(defn pod-column [data]
-  [:div.pod-column
-   (for [[i s] (indexed data)]
-     ^{:key (:team_name s)}
-     [:div.seat
-      {:class (cls {:even (even? i)
-                    :odd  (odd? i)})}
-      [:span.pod-number (:pod s)]
-      [:span.seat-number (:seat s)]
-      [:span
-       [:div.name (:team_name s)]]])])
+       [:div.column
+        (for [[i s] (indexed @seatings)]
+          ^{:key (:name s)}
+          [:div.seating
+           {:class (cls {:even (even? i)
+                         :odd  (odd? i)})}
+           [:span.table-number (:table_number s)]
+           [:span
+            [:div.name (:name s)]]])]])))
 
 (defn pods []
   (let [pods (subscribe [::subs/organizer :pods])
@@ -190,9 +140,16 @@
     (fn pods-render []
       [:div.organizer-pods
        [:h2 (str (:name @tournament) " - pods")]
-       (for [[i column] (indexed (split-data @pods))]
-         ^{:key (str "pods-column-" i)}
-         [pod-column column])])))
+       [:div.column
+        (for [[i s] (indexed @pods)]
+          ^{:key (:team_name s)}
+          [:div.seat
+           {:class (cls {:even (even? i)
+                         :odd  (odd? i)})}
+           [:span.pod-number (:pod s)]
+           [:span.seat-number (:seat s)]
+           [:span
+            [:div.name (:team_name s)]]])]])))
 
 (defn standings []
   (let [standings (subscribe [::subs/organizer :standings])
@@ -201,9 +158,7 @@
     (fn standings-render []
       [:div.organizer-standings
        [:h2 (str (:name @tournament) " - kierros " @standings-round)]
-       (for [[i column] (indexed (split-data @standings))]
-         ^{:key (str "standings-column-" i)}
-         [standing-table column])])))
+       [:div.column [standing-table @standings]]])))
 
 (defn clock []
   (let [c (subscribe [::subs/organizer :clock])]
