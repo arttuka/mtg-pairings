@@ -260,7 +260,9 @@
   (case action
     :start-clock {:db (assoc-in db [:organizer :clock :running] true)}
     :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
-    {}))
+    :select-pairings (resolve-organizer-action db id action value)
+    :select-standings (resolve-organizer-action db id action value)
+    :select-pods (resolve-organizer-action db id action value)))
 
 (reg-event-fx ::organizer-mode
   (fn [{:keys [db]} [_ action value]]
