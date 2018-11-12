@@ -41,7 +41,10 @@
 
 (defn header []
   (let [user (subscribe [::subs/logged-in-user])
-        dci-number (atom "")]
+        dci-number (atom "")
+        login! (fn []
+                 (dispatch [::events/login @dci-number])
+                 (reset! dci-number ""))]
     (fn header-render []
       [ui/app-bar
        {:id                 :header
@@ -54,12 +57,14 @@
                                                      :input-style {:color :white}
                                                      :value       @dci-number
                                                      :on-change   (fn [_ new-value]
-                                                                    (reset! dci-number new-value))}]
+                                                                    (reset! dci-number new-value))
+                                                     :on-key-down (fn [e]
+                                                                    (when (= 13 (.-keyCode e))
+                                                                      (login!)))}]
                                                    [ui/flat-button
                                                     {:label       "Kirjaudu"
                                                      :label-style {:color :white}
-                                                     :on-click    #(do (dispatch [::events/login @dci-number])
-                                                                       (reset! dci-number ""))}]]))
+                                                     :on-click    login!}]]))
         :icon-element-left  (reagent/as-element
                               [ui/icon-menu
                                {:icon-button-element (reagent/as-element
