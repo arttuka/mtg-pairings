@@ -5,7 +5,9 @@
             [korma.core :as sql]
             [korma.db]
             [mount.core :as m]
-            [mtg-pairings-server.properties :refer [properties]]))
+            [mtg-pairings-server.properties :refer [properties]])
+  (:import (java.sql Date)
+           (org.joda.time LocalDate)))
 
 (m/defstate db
   :start (korma.db/default-connection
@@ -26,10 +28,10 @@
     (time-coerce/to-local-date (time/to-time-zone dt (time/default-time-zone)))))
 
 (def sql-date->joda-date
-  (partial convert-instances-of java.sql.Date to-local-date-default-tz))
+  (partial convert-instances-of Date to-local-date-default-tz))
 
 (def joda-date->sql-date
-  (partial convert-instances-of org.joda.time.LocalDate time-coerce/to-sql-date))
+  (partial convert-instances-of LocalDate time-coerce/to-sql-date))
 
 (declare tournament player team round pairing result standings team-players seating user pod-round)
 

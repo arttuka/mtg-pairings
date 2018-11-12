@@ -28,8 +28,8 @@
     :body [tournament InputTournament {:description "Uusi turnaus"}]
     (if-let [user (user-for-apikey key)]
       (let [tournament (-> tournament
-                         (update-in [:day] clj-time.coerce/to-local-date)
-                         (assoc :owner user))]
+                           (update-in [:day] clj-time.coerce/to-local-date)
+                           (assoc :owner user))]
         (response (select-keys (add-tournament tournament) [:id])))
       {:status 400
        :body   "Virheellinen API key"}))

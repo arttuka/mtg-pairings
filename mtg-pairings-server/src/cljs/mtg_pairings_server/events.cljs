@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.events
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
-            [cljs.core.async :as async :refer [<! >! timeout]]
+            [cljs.core.async :refer [<! >! timeout]]
             [cljs-time.core :as time]
             [mtg-pairings-server.util.local-storage :refer [fetch store]]
             [mtg-pairings-server.util.util :refer [map-by format-time assoc-in-many round-up]]
@@ -29,22 +29,21 @@
   (fn [[key obj]]
     (store key obj)))
 
-(def initial-db {:tournaments            {}
-                 :tournament-count       0
-                 :tournaments-page       0
-                 :tournament-ids         []
-                 :tournament-filter      {:organizer ""
-                                          :date-from nil
-                                          :date-to   nil
-                                          :players   [0 100]}
-                 :max-players            100
-                 :player-tournaments     []
-                 :pairings               {:sort-key :table_number}
-                 :pods                   {:sort-key :pod}
-                 :seatings               {:sort-key :table_number}
-                 :page                   {:page :main}
-                 :logged-in-user         (fetch :user)
-                 :mobile-menu-collapsed? true})
+(def initial-db {:tournaments        {}
+                 :tournament-count   0
+                 :tournaments-page   0
+                 :tournament-ids     []
+                 :tournament-filter  {:organizer ""
+                                      :date-from nil
+                                      :date-to   nil
+                                      :players   [0 100]}
+                 :max-players        100
+                 :player-tournaments []
+                 :pairings           {:sort-key :table_number}
+                 :pods               {:sort-key :pod}
+                 :seatings           {:sort-key :table_number}
+                 :page               {:page :main}
+                 :logged-in-user     (fetch :user)})
 
 (reg-event-db ::initialize
   (fn [db _]
@@ -171,15 +170,15 @@
 (reg-event-db :server/organizer-tournament
   (fn [db [_ tournament]]
     (cond-> db
-      (not= (:pairings tournament) (get-in db [:organizer :tournament :pairings]))
+      (not= (seq (:pairings tournament)) (get-in db [:organizer :tournament :pairings]))
       (assoc-in-many [:organizer :new-pairings] true
                      [:organizer :selected-pairings] (str (last (:pairings tournament))))
 
-      (not= (:standings tournament) (get-in db [:organizer :tournament :standings]))
+      (not= (seq (:standings tournament)) (get-in db [:organizer :tournament :standings]))
       (assoc-in-many [:organizer :new-standings] true
                      [:organizer :selected-standings] (str (last (:standings tournament))))
 
-      (not= (:pods tournament) (get-in db [:organizer :tournament :pods]))
+      (not= (seq (:pods tournament)) (get-in db [:organizer :tournament :pods]))
       (assoc-in-many [:organizer :new-pods] true
                      [:organizer :selected-pods] (str (last (:pods tournament))))
 
@@ -290,10 +289,6 @@
                                 (get-in db [:page :id])
                                 (keyword (:action v))
                                 (:value v)))))
-
-(reg-event-db ::collapse-mobile-menu
-  (fn [db _]
-    (update db :mobile-menu-collapsed? not)))
 
 (reg-event-fx ::load-deck-construction
   (fn [_ [_ id]]

@@ -1,5 +1,5 @@
 (ns mtg-pairings-server.components.organizer
-  (:require [reagent.core :as reagent :refer [atom]]
+  (:require [reagent.core :refer [atom]]
             [re-frame.core :refer [dispatch subscribe]]
             [cljsjs.material-ui]
             [cljs-react-material-ui.core :refer [get-mui-theme]]

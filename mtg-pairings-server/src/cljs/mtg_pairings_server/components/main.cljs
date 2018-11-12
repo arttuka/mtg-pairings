@@ -79,8 +79,7 @@
        (reverse)))
 
 (defn own-tournament [t]
-  (let [collapsed? (atom true)
-        primary (oget (get-mui-theme) "palette" "primary1Color")]
+  (let [primary (oget (get-mui-theme) "palette" "primary1Color")]
     (fn own-tournament-render [t]
       [ui/card
        [ui/card-header

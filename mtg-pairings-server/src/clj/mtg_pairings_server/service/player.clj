@@ -49,7 +49,9 @@
                   (sql/with db/team)
                   (sql/where {:tournament (:id tournament)
                               :team       players-team})
-                  (sql/fields :table_number [:team.name :team1_name]))
+                  (sql/fields :table_number [:team.name :team1_name])
+                  (sql/order :table_number :ASC)
+                  (sql/limit 1))
         pod-seats (sql/select db/seat
                     (sql/where {:team players-team})
                     (sql/fields :seat)
@@ -76,9 +78,9 @@
 
 (defn format-tournament [tournament dci]
   (-> tournament
-    (add-players-data dci)
-    add-newest-standings
-    select-tournament-fields))
+      (add-players-data dci)
+      add-newest-standings
+      select-tournament-fields))
 
 (defn tournaments [dci]
   (let [dci (add-check-digits dci)]

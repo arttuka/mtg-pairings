@@ -5,8 +5,7 @@
             [cognitect.transit :as transit]
             [taoensso.sente.packers.transit :as sente-transit]
             [mtg-pairings-server.util.util :refer [parse-iso-date format-iso-date]]
-    #?(:clj
-            [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])))
+            #?(:clj [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])))
 
 ;; Transit communication
 

@@ -122,7 +122,8 @@
 
 (defmethod ws/event-handler :client/organizer-pods
   [{uid :uid, [id number] :?data}]
-  (ws/send! uid [:server/organizer-pods (tournament/pods id number)]))
+  (when-not (Double/isNaN number)
+    (ws/send! uid [:server/organizer-pods (tournament/pods id number)])))
 
 (defmethod ws/event-handler :client/organizer-seatings
   [{uid :uid, id :?data}]

@@ -5,14 +5,15 @@
             [mtg-pairings-server.sql-db :as db]
             [mtg-pairings-server.util.mtg-util :as mtg-util]
             [mtg-pairings-server.util.sql :as sql-util]
-            [mtg-pairings-server.util.util :as util]))
+            [mtg-pairings-server.util.util :as util])
+  (:import (java.util UUID)))
 
 (defn user-for-apikey [apikey]
   (try
     (:id (sql-util/select-unique-or-nil db/user
            (sql/fields :id)
-           (sql/where {:uuid (java.util.UUID/fromString apikey)})))
-    (catch IllegalArgumentException e
+           (sql/where {:uuid (UUID/fromString apikey)})))
+    (catch IllegalArgumentException _
       nil)))
 
 (defn owner-of-tournament [sanction-id]
@@ -257,8 +258,8 @@
                          :round      round-num}
                         (or hidden?
                             (not :hidden)))))
-    :standings
-    edn/read-string))
+      :standings
+      edn/read-string))
 
 (defn standings-for-api [tournament-id round-num hidden?]
   (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw Double])
@@ -525,10 +526,10 @@
                 pod (dec (:pod s))]]
       {:team         (:team s)
        :table_number (-> (* n seat)
-                       (+ pod)
-                       (/ 2)
-                       int
-                       inc)
+                         (+ pod)
+                         (/ 2)
+                         int
+                         inc)
        :tournament   tournament-id})))
 
 (defn generate-deck-construction-seatings [sanctionid pod-round]
@@ -586,8 +587,8 @@
                                    :round      (sql/subselect db/standings
                                                  (sql/aggregate (max :round) :round)
                                                  (sql/where {:tournament tournament-id}))})))
-              :standings
-              edn/read-string)
+                :standings
+                edn/read-string)
         max-round (:round (sql-util/select-unique db/round
                             (sql/aggregate (max :num) :round)
                             (sql/where {:tournament tournament-id})))
