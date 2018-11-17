@@ -1,17 +1,19 @@
 (ns mtg-pairings-server.components.tournament
-  (:require [re-frame.core :refer [subscribe dispatch]]
+  (:require [reagent.core :as reagent]
+            [re-frame.core :refer [subscribe dispatch]]
             [cljsjs.material-ui]
-            [cljs-react-material-ui.core :refer [get-mui-theme]]
+            [cljs-react-material-ui.core]
             [cljs-react-material-ui.reagent :as ui]
             [goog.string :as gstring]
             [goog.string.format]
-            [oops.core :refer [oget]]
+            [prop-types]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [format-date indexed]]
             [mtg-pairings-server.routes :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
-            [mtg-pairings-server.components.filter :refer [tournament-filters]]))
+            [mtg-pairings-server.components.filter :refer [tournament-filters]]
+            [mtg-pairings-server.material-ui.util :refer [get-theme]]))
 
 (defn tournament-header [id]
   (let [tournament (subscribe [::subs/tournament id])]
@@ -71,8 +73,6 @@
 
 (defn tournament-list []
   [:div
-   [:h2 {:style {:margin-left "10px"}}
-    [:a {:href "/"} "Takaisin etusivulle"]]
    [tournament-filters]
    [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/filtered-tournaments]
     (fn tournament-list-render [tournaments]
@@ -81,9 +81,16 @@
          ^{:key (:id t)}
          [tournament t])])]])
 
-(defn sortable [column sort-key dispatch-key]
-  {:style    (when (= column sort-key) {:color (oget (get-mui-theme) "palette" "accent1Color")})
-   :on-click #(dispatch [dispatch-key column])})
+(defn sortable-header [{:keys [class column sort-key dispatch-key]} & children]
+  (reagent/create-class
+    {:context-types  #js {:muiTheme prop-types/object.isRequired}
+     :reagent-render (fn sortable-header-render [{:keys [class column sort-key dispatch-key]} & children]
+                       (let [palette (:palette (get-theme (reagent/current-component)))]
+                         [:th {:class    class
+                               :style    (when (= column sort-key) {:color (:accent1Color palette)})
+                               :on-click #(dispatch [dispatch-key column])}
+                          [:i.glyphicon.glyphicon-chevron-down.left]
+                          children]))}))
 
 (defn pairing-row [cls pairing]
   [:tr {:class cls}
@@ -112,13 +119,17 @@
       [:table.pairings-table
        [:thead
         [:tr
-         [:th.table (sortable :table_number @sort-key ::events/sort-pairings)
-          [:i.glyphicon.glyphicon-chevron-down.left]
+         [sortable-header {:class        :table
+                           :column       :table_number
+                           :sort-key     @sort-key
+                           :dispatch-key ::events/sort-pairings}
           "Pöytä"]
-         [:th.players (sortable :team1_name @sort-key ::events/sort-pairings)
-          [:i.glyphicon.glyphicon-chevron-down.left]
-          [:span.hidden-xs "Pelaaja 1"]
-          [:span.hidden-sm.hidden-md.hidden-lg "Pelaajat"]]
+         [sortable-header {:class        :players
+                           :column       :team1_name
+                           :sort-key     @sort-key
+                           :dispatch-key ::events/sort-pairings}
+          ^{:key "player-1-heading"} [:span.hidden-xs "Pelaaja 1"]
+          ^{:key "players-heading"} [:span.hidden-sm.hidden-md.hidden-lg "Pelaajat"]]
          [:th.players2.hidden-xs "Pelaaja 2"]
          [:th.points "Pisteet"]
          [:th.result "Tulos"]]]
@@ -172,12 +183,16 @@
       [:table.pods-table
        [:thead
         [:tr
-         [:th.pod (sortable :pod @sort-key ::events/sort-pods)
-          [:i.glyphicon.glyphicon-chevron-down.left]
+         [sortable-header {:class        :pod
+                           :column       :pod
+                           :sort-key     @sort-key
+                           :dispatch-key ::events/sort-pods}
           "Pöytä"]
          [:th.seat "Paikka"]
-         [:th.player (sortable :team_name @sort-key ::events/sort-pods)
-          [:i.glyphicon.glyphicon-chevron-down.left]
+         [sortable-header {:class        :player
+                           :column       :team_name
+                           :sort-key     @sort-key
+                           :dispatch-key ::events/sort-pods}
           "Pelaaja"]]]
        [:tbody
         (for [[i seat] (indexed @data)]
@@ -196,11 +211,15 @@
       [:table.pairings-table
        [:thead
         [:tr
-         [:th.table (sortable :table_number @sort-key ::events/sort-seatings)
-          [:i.glyphicon.glyphicon-chevron-down.left]
+         [sortable-header {:class        :table
+                           :column       :table_number
+                           :sort-key     @sort-key
+                           :dispatch-key ::events/sort-seatings}
           "Pöytä"]
-         [:th.players (sortable :name @sort-key ::events/sort-seatings)
-          [:i.glyphicon.glyphicon-chevron-down.left]
+         [sortable-header {:class        :players
+                           :column       :name
+                           :sort-key     @sort-key
+                           :dispatch-key ::events/sort-seatings}
           "Pelaaja"]]]
        [:tbody
         (for [[i seat] (indexed @data)]

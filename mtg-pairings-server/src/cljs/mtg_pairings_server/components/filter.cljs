@@ -1,15 +1,18 @@
 (ns mtg-pairings-server.components.filter
-  (:require [re-frame.core :refer [subscribe dispatch]]
+  (:require [reagent.core :as reagent]
+            [re-frame.core :refer [subscribe dispatch dispatch]]
             [cljsjs.material-ui]
-            [cljs-react-material-ui.core :refer [get-mui-theme]]
+            [cljs-react-material-ui.core]
             [cljs-react-material-ui.reagent :as ui]
             [cljs-react-material-ui.icons :as icons]
             [cljs-time.coerce :as coerce]
+            [prop-types]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.slider :refer [slider]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util.util :refer [to-local-date]]))
+            [mtg-pairings-server.util.util :refer [to-local-date]]
+            [mtg-pairings-server.material-ui.util :refer [get-theme]]))
 
 (defn organizer-filter []
   (let [organizers (subscribe [::subs/organizers])
@@ -39,12 +42,13 @@
        :container        :inline
        :auto-ok          true
        :locale           "fi-FI"
-       :DateTimeFormat   (.-DateTimeFormat js/Intl)
+       :DateTimeFormat   (oget js/Intl "DateTimeFormat")
        :style            {:display       :inline-block
                           :margin-bottom "2px"}
        :text-field-style {:width "128px"}
        :on-change        handler
-       :value            v}]
+       :value            v
+       :cancel-label     "Peruuta"}]
      (when v
        [ui/icon-button
         {:on-click on-clear
@@ -74,20 +78,28 @@
 (defn player-filter []
   (let [players (subscribe [::subs/tournament-filter :players])
         max-players (subscribe [::subs/max-players])]
-    (fn player-filter-render []
-      [:div.filter.player-filter
-       [:label.filter-label "Pelaajamäärä"]
-       [slider {:min       (atom 0)
-                :max       max-players
-                :value     players
-                :step      10
-                :color     (oget (get-mui-theme) "palette" "primary1Color")
-                :on-change #(dispatch [::events/tournament-filter [:players %]])}]])))
+    (reagent/create-class
+      {:context-types  #js {:muiTheme prop-types/object.isRequired}
+       :reagent-render (fn player-filter-render []
+                         (let [palette (:palette (get-theme (reagent/current-component)))]
+                           [:div.filter.player-filter
+                            [:label.filter-label "Pelaajamäärä"]
+                            [slider {:min       (atom 0)
+                                     :max       max-players
+                                     :value     players
+                                     :step      10
+                                     :color     (:accent1Color palette)
+                                     :on-change #(dispatch [::events/tournament-filter [:players %]])}]]))})))
+
+(defn clear-filters []
+  [ui/raised-button
+   {:label      "Poista valinnat"
+    :on-click   #(dispatch [::events/reset-tournament-filter])
+    :class-name :filter-button}])
 
 (defn tournament-filters []
-  (let []
-    (fn tournament-filters-render []
-      [:div.filters
-       [organizer-filter]
-       [date-filter]
-       [player-filter]])))
+  [:div.filters
+   [organizer-filter]
+   [date-filter]
+   [player-filter]
+   [clear-filters]])

@@ -1,7 +1,8 @@
 (ns mtg-pairings-server.util.local-storage
   (:require [clojure.string :as str]
             [re-frame.core :refer [dispatch]]
-            [mount.core :as m]))
+            [mount.core :as m]
+            [oops.core :refer [oget]]))
 
 (defn stringify-key [k]
   (cond
@@ -34,8 +35,8 @@
   (.addEventListener js/window "storage"
                      (fn [event]
                        (dispatch [:mtg-pairings-server.events/local-storage-updated
-                                  (split-key (.-key event))
-                                  (-> (.-newValue event)
+                                  (split-key (oget event "key"))
+                                  (-> (oget event "newValue")
                                       js/JSON.parse
                                       (js->clj :keywordize-keys true))]))))
 

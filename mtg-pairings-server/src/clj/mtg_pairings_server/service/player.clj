@@ -91,5 +91,6 @@
                                       (sql/where {:team_players.player dci
                                                   :team.tournament     :tournament.id}))))
                        (sql/order :day :DESC)
-                       (sql/order :id :DESC))]
+                       (sql/order :id :DESC)
+                       (sql/limit 5))]
       (format-tournament tournament dci))))

@@ -90,6 +90,14 @@
         (assoc-in [:tournament-filter key] value)
         (assoc :tournaments-page 0))))
 
+(reg-event-db ::reset-tournament-filter
+  (fn [db _]
+    (assoc db :tournaments-page 0
+              :tournament-filter {:organizer ""
+                                  :date-from nil
+                                  :date-to   nil
+                                  :players   [0 (:max-players db)]})))
+
 (defn format-tournament [tournament]
   (let [rounds (sort > (into (set (:pairings tournament)) (:standings tournament)))]
     (-> tournament

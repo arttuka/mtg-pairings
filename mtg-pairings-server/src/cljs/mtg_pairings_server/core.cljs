@@ -2,7 +2,7 @@
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
             [cljsjs.material-ui]
-            [cljs-react-material-ui.core :refer [get-mui-theme]]
+            [cljs-react-material-ui.core :refer [get-mui-theme color]]
             [cljs-react-material-ui.reagent :as ui]
             [mount.core :as m]
             [secretary.core :as secretary :include-macros true]
@@ -17,11 +17,20 @@
             [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu deck-construction-tables]]
             [mtg-pairings-server.components.main :refer [header]]))
 
+(def theme (get-mui-theme
+             {:palette {:primary1-color      "#90caf9"
+                        :primary2-color      "#5d99c6"
+                        :primary3-color      "#c3fdff"
+                        :accent1-color       "#ec407a"
+                        :accent2-color       "#b4004e"
+                        :accent3-color       "#ff77a9"
+                        :picker-header-color "#5d99c6"}}))
+
 (defn current-page []
   (let [page (subscribe [::subs/page])]
     (fn []
       [ui/mui-theme-provider
-       {:mui-theme (get-mui-theme)}
+       {:mui-theme theme}
        [:div
         [header]
         (case (:page @page)

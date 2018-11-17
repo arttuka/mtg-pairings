@@ -3,8 +3,8 @@
             [oops.core :refer [oget]]))
 
 (defn slider [{:keys [min max on-change value step color]}]
-  (let [range ((.-createSliderWithTooltip js/Slider) (.-Range js/Slider))]
-    (fn slider-render []
+  (let [range ((oget js/Slider "createSliderWithTooltip") (oget js/Slider "Range"))]
+    (fn slider-render [{:keys [min max on-change value step color]}]
       (let [handler (comp on-change js->clj)]
         [:> range
          {:min         @min
