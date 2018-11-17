@@ -43,7 +43,8 @@
                  :pods               {:sort-key :pod}
                  :seatings           {:sort-key :table_number}
                  :page               {:page :main}
-                 :logged-in-user     (fetch :user)})
+                 :logged-in-user     (fetch :user)
+                 :notification       nil})
 
 (reg-event-db ::initialize
   (fn [db _]
@@ -67,7 +68,10 @@
 
 (reg-event-fx :server/login
   (fn [{:keys [db]} [_ user]]
-    {:db    (assoc db :logged-in-user user)
+    {:db    (if user
+              (assoc db :logged-in-user user)
+              (assoc db :notification "DCI-numeroa ei löydy"
+                        :logged-in-user nil))
      :store [:user user]}))
 
 (reg-event-fx ::logout
@@ -177,6 +181,10 @@
 (reg-event-fx ::load-organizer-tournament
   (fn [_ [_ id]]
     {:ws-send [:client/organizer-tournament id]}))
+
+(reg-event-db ::notification
+  (fn [db [_ notification]]
+    (assoc db :notification notification)))
 
 (reg-event-db :server/organizer-tournament
   (fn [db [_ tournament]]

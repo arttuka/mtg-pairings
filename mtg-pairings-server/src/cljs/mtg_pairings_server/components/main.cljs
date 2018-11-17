@@ -121,3 +121,11 @@
                               [pairing p (boolean (:team1_name p))])
                             (when (:seating t)
                               [pairing (:seating t) false])]]]))}))
+
+(defn notification []
+  (let [text (subscribe [::subs/notification])]
+    (fn notification-render []
+      [ui/snackbar {:open               (boolean @text)
+                    :message            (or @text "")
+                    :auto-hide-duration 5000
+                    :on-request-close   #(dispatch [::events/notification nil])}])))

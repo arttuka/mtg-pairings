@@ -138,3 +138,7 @@
 (reg-sub ::organizer
   (fn [db [_ & keys]]
     (get-in (:organizer db) keys)))
+
+(reg-sub ::notification
+  (fn [db _]
+    (:notification db)))

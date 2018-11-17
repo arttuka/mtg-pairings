@@ -74,9 +74,15 @@
 
 (defmethod ws/event-handler :client/login
   [{uid :uid, dci-number :?data}]
-  (ws/send! uid [:server/login (player/player dci-number)])
-  (ws/send! uid [:server/player-tournaments (player/tournaments dci-number)])
-  (broadcast/login uid dci-number))
+  (try
+    (if-let [player (player/player dci-number)]
+      (do
+        (ws/send! uid [:server/login player])
+        (ws/send! uid [:server/player-tournaments (player/tournaments dci-number)])
+        (broadcast/login uid dci-number))
+      (ws/send! uid [:server/login nil]))
+    (catch NumberFormatException _
+      (ws/send! uid [:server/login nil]))))
 
 (defmethod ws/event-handler :client/logout
   [{:keys [uid]}]

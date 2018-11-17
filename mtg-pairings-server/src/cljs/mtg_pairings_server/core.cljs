@@ -15,7 +15,7 @@
                                                           pods-page seatings-page tournaments-page
                                                           bracket-page]]
             [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu deck-construction-tables]]
-            [mtg-pairings-server.components.main :refer [header]]))
+            [mtg-pairings-server.components.main :refer [header notification]]))
 
 (def theme (get-mui-theme
              {:palette {:primary1-color      "#90caf9"
@@ -33,6 +33,7 @@
        {:mui-theme theme}
        [:div
         [header]
+        [notification]
         (case (:page @page)
           :main [#'main-page]
           :tournaments [#'tournaments-page]
