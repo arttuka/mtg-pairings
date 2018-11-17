@@ -91,7 +91,7 @@
 
 (defmethod ws/event-handler :client/standings
   [{uid :uid, [id round] :?data}]
-  (ws/send! uid [:server/standings [id round (tournament/standings id round true)]]))
+  (ws/send! uid [:server/standings [id round (tournament/standings id round false)]]))
 
 (defmethod ws/event-handler :client/pods
   [{uid :uid, [id round] :?data}]

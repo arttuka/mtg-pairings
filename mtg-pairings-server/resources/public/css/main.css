@@ -556,6 +556,16 @@ h3 {
     height: 60px;
   }
 
+  #bracket h3 {
+    margin-bottom: 0;
+  }
+
+  #bracket {
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 767px) and (orientation: portrait) {
   #bracket .bracket-round.matches-2 .team,
   #bracket .bracket-round.matches-1 .team {
     height: 44px;
@@ -566,13 +576,11 @@ h3 {
   #bracket .bracket-round.matches-1 {
     margin-top: 0;
   }
+}
 
-  #bracket h3 {
-    margin-bottom: 0;
-  }
-
-  #bracket {
-    padding-bottom: 20px;
+@media (max-width: 767px) and (orientation: landscape) {
+  #bracket .bracket-round h3 {
+    display: none;
   }
 }
 
