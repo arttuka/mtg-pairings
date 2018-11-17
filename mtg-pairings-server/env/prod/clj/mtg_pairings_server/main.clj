@@ -8,7 +8,7 @@
             mtg-pairings-server.handler))
 
 (def timbre-config {:level     :info
-                    :appenders {:rolling (rolling-appender {:path "./logs/pairings.log" :pattern :daily})
+                    :appenders {:rolling (rolling-appender {:path "/var/log/pairings/pairings.log" :pattern :daily})
                                 :println nil}})
 
 (m/defstate server
