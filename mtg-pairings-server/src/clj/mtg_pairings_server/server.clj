@@ -9,8 +9,7 @@
             [ring.middleware.not-modified :refer [wrap-not-modified]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
-            [mtg-pairings-server.handler]
-            [mtg-pairings-server.properties :refer [properties]])
+            [mtg-pairings-server.handler])
   (:import (com.fasterxml.jackson.core JsonGenerator)
            (org.joda.time LocalDate)))
 
@@ -51,8 +50,8 @@
         (assoc-in response [:headers "Access-Control-Allow-Origin"] "*")
         response))))
 
-(defn run-server! [handler server-properties]
-  (log/info "Starting server on port" (:port server-properties) "...")
+(defn run-server! [handler port]
+  (log/info "Starting server on port" port "...")
   (json-gen/add-encoder LocalDate
                         (fn [c ^JsonGenerator generator]
                           (.writeString generator (str c))))
@@ -62,4 +61,4 @@
         wrap-request-log
         wrap-allow-origin
         wrap-errors)
-    server-properties))
+    {:port port}))
