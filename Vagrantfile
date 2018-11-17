@@ -5,8 +5,7 @@ Vagrant.configure("2") do |config|
 
   # Kehitystyön tietokantapalvein
   config.vm.define "pairingsdb" do |db|
-    db.vm.box = "bento/debian-9.5"
-    db.vm.box_version = "201807.12.0"
+    db.vm.box = "hashicorp/precise64"
 
     db.vm.synced_folder "env", "/env"
     db.vm.provision "shell", inline: "cd /env && ./postgresql.sh"

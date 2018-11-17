@@ -24,14 +24,23 @@
         {:status 500
          :body   (.getMessage e)}))))
 
+(def ^:private log-blacklist
+  [#"^.*\.(ico|png|jpg|js|css|woff2|txt|map)$"
+   #"^/chsk$"])
+
+(defn ^:private logged? [uri]
+  (not-any? #(re-matches % uri) log-blacklist))
+
 (defn wrap-request-log
   [handler]
   (fn [request]
-    (let [response (handler request)]
-      (log/info (:remote-addr request)
-                (-> request :request-method name string/upper-case)
-                (:uri request)
-                (:status response))
+    (let [response (handler request)
+          uri (:uri request)]
+      (when (logged? uri)
+        (log/info (get-in request [:headers "x-real-ip"] (:remote-addr request))
+                  (-> request :request-method name string/upper-case)
+                  uri
+                  (:status response)))
       response)))
 
 (defn wrap-allow-origin
@@ -49,8 +58,8 @@
                           (.writeString generator (str c))))
   (hs/run-server
     (-> handler
-      wrap-json-with-padding
-      wrap-request-log
-      wrap-allow-origin
-      wrap-errors)
+        wrap-json-with-padding
+        wrap-request-log
+        wrap-allow-origin
+        wrap-errors)
     server-properties))

@@ -5,14 +5,15 @@
             [mtg-pairings-server.sql-db :as db]
             [mtg-pairings-server.util.mtg-util :as mtg-util]
             [mtg-pairings-server.util.sql :as sql-util]
-            [mtg-pairings-server.util.util :as util]))
+            [mtg-pairings-server.util.util :as util])
+  (:import (java.util UUID)))
 
 (defn user-for-apikey [apikey]
   (try
     (:id (sql-util/select-unique-or-nil db/user
            (sql/fields :id)
-           (sql/where {:uuid (java.util.UUID/fromString apikey)})))
-    (catch IllegalArgumentException e
+           (sql/where {:uuid (UUID/fromString apikey)})))
+    (catch IllegalArgumentException _
       nil)))
 
 (defn owner-of-tournament [sanction-id]
@@ -58,7 +59,6 @@
 (defn tournament [id]
   (update-round-data (->
                        select-tournaments
-                       (sql/post-query sql-util/unique)
                        (sql/with db/round
                          (sql/fields :num)
                          (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
@@ -80,10 +80,15 @@
                          (sql/fields :id)
                          (sql/order :id))
                        (sql/where {:id id})
+                       (sql/post-query sql-util/unique)
                        (sql/exec))))
 
 (defn tournaments []
   (let [tourns (sql/exec select-tournaments)
+        teams (into {} (for [{:keys [tournament count]} (sql/select db/team
+                                                          (sql/fields :tournament)
+                                                          (sql/aggregate (count :*) :count :tournament))]
+                         [tournament count]))
         rounds (->>
                  (sql/select db/round
                    (sql/fields :tournament :num)
@@ -115,7 +120,8 @@
       (update-round-data
         (assoc t :round (get rounds id [])
                  :standings (get standings id [])
-                 :pod_round (get pod-rounds id []))))))
+                 :pod_round (get pod-rounds id [])
+                 :players (get teams id 0))))))
 
 (defn add-tournament [tourn]
   (if (seq (sql/select db/tournament
@@ -252,8 +258,8 @@
                          :round      round-num}
                         (or hidden?
                             (not :hidden)))))
-    :standings
-    edn/read-string))
+      :standings
+      edn/read-string))
 
 (defn standings-for-api [tournament-id round-num hidden?]
   (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw Double])
@@ -351,27 +357,25 @@
     (add-team-where :team2.id team2)))
 
 (defn ^:private results-of-round [round-id]
-  (for [pairing (sql/select db/pairing
-                  (sql/fields [:team1 :team1]
-                              [:team2 :team2]
-                              [:team1_points :team1_points]
-                              [:team2_points :team2_points]
-                              :table_number)
-                  (sql/with db/team1
-                    (sql/fields [:name :team1_name]))
-                  (sql/with db/team2
-                    (sql/fields [:name :team2_name]))
-                  (sql/with db/round
-                    (sql/fields [:num :round_number]))
-                  (sql/with db/result
-                    (sql/fields :team1_wins
-                                :team2_wins
-                                :draws))
-                  (sql/where {:round round-id}))]
-    (if-not (:team2 pairing)
-      (merge pairing {:team2_name   "***BYE***"
-                      :team2_points 0})
-      pairing)))
+  (sql/select db/pairing
+    (sql/fields :team1
+                :team2
+                :team1_points
+                :team2_points
+                [(sql/sqlfn :COALESCE :team2.name "***BYE***") :team2_name]
+                :table_number)
+    (sql/with db/team1
+      (sql/fields [:name :team1_name]))
+    (sql/with db/team2
+      (sql/fields))
+    (sql/with db/round
+      (sql/fields [:num :round_number]))
+    (sql/with db/result
+      (sql/fields :team1_wins
+                  :team2_wins
+                  :draws))
+    (sql/where {:round round-id})
+    (sql/order :table_number :ASC)))
 
 (defn ^:private calculate-standings [tournament-id round]
   (let [rounds (sql/select db/round
@@ -522,10 +526,10 @@
                 pod (dec (:pod s))]]
       {:team         (:team s)
        :table_number (-> (* n seat)
-                       (+ pod)
-                       (/ 2)
-                       int
-                       inc)
+                         (+ pod)
+                         (/ 2)
+                         int
+                         inc)
        :tournament   tournament-id})))
 
 (defn generate-deck-construction-seatings [sanctionid pod-round]
@@ -547,11 +551,6 @@
     (sql/insert db/seating
       (sql/values seatings))))
 
-(defn ^:private match-with-team [team-id matches]
-  (util/some-value #(or (= team-id (:team1 %))
-                        (= team-id (:team2 %)))
-                   matches))
-
 (defn ^:private add-ranks [team->rank round]
   (for [match round]
     (assoc match :team1_rank (team->rank (:team1 match))
@@ -569,20 +568,14 @@
                                    (sql/fields :id :num)
                                    (sql/where {:tournament tournament-id
                                                :playoff    true})
-                                   (sql/order :num :DESC)))]
-    (let [final-standings (standings tournament-id (dec (:num (last playoff-rounds))) false)
+                                   (sql/order :num :ASC)))]
+    (let [final-standings (standings tournament-id (dec (:num (first playoff-rounds))) false)
           team->rank (into {} (map (juxt :team :rank)) final-standings)
           playoff-matches (map (comp (partial add-ranks team->rank)
                                      results-of-round
                                      :id)
                                playoff-rounds)]
-      (loop [acc (take 1 playoff-matches)
-             [current-matches & rounds] (rest playoff-matches)]
-        (if current-matches
-          (let [team-ids (mapcat (juxt :team1 :team2) (first acc))
-                round (map #(match-with-team % current-matches) team-ids)]
-            (recur (cons round acc) rounds))
-          (add-empty-rounds acc))))))
+      (add-empty-rounds playoff-matches))))
 
 (defn ^:private count-full-pods [n]
   (- (int (Math/ceil (/ n 8))) (mod (- n) 8)))
@@ -594,8 +587,8 @@
                                    :round      (sql/subselect db/standings
                                                  (sql/aggregate (max :round) :round)
                                                  (sql/where {:tournament tournament-id}))})))
-              :standings
-              edn/read-string)
+                :standings
+                edn/read-string)
         max-round (:round (sql-util/select-unique db/round
                             (sql/aggregate (max :num) :round)
                             (sql/where {:tournament tournament-id})))

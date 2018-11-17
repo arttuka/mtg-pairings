@@ -26,6 +26,7 @@
    [:meta {:name    "viewport"
            :content "width=device-width, initial-scale=1"}]
    (include-css "https://fonts.googleapis.com/css?family=Lato:400,700")
+   (include-css "https://fonts.googleapis.com/css?family=Roboto:300,400,500")
    (if (env :dev)
      (include-css "/css/main.css")
      (include-css "/css/main.min.css"))])
@@ -73,9 +74,15 @@
 
 (defmethod ws/event-handler :client/login
   [{uid :uid, dci-number :?data}]
-  (ws/send! uid [:server/login (player/player dci-number)])
-  (ws/send! uid [:server/player-tournaments (player/tournaments dci-number)])
-  (broadcast/login uid dci-number))
+  (try
+    (if-let [player (player/player dci-number)]
+      (do
+        (ws/send! uid [:server/login player])
+        (ws/send! uid [:server/player-tournaments (player/tournaments dci-number)])
+        (broadcast/login uid dci-number))
+      (ws/send! uid [:server/login nil]))
+    (catch NumberFormatException _
+      (ws/send! uid [:server/login nil]))))
 
 (defmethod ws/event-handler :client/logout
   [{:keys [uid]}]
@@ -120,7 +127,8 @@
 
 (defmethod ws/event-handler :client/organizer-pods
   [{uid :uid, [id number] :?data}]
-  (ws/send! uid [:server/organizer-pods (tournament/pods id number)]))
+  (when-not (Double/isNaN number)
+    (ws/send! uid [:server/organizer-pods (tournament/pods id number)])))
 
 (defmethod ws/event-handler :client/organizer-seatings
   [{uid :uid, id :?data}]

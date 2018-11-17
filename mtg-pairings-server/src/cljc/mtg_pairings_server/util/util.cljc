@@ -1,12 +1,18 @@
 (ns mtg-pairings-server.util.util
   (:require [#?(:clj  clj-time.format
                 :cljs cljs-time.format)
+             :as format]
+            [#?(:clj  clj-time.core
+                :cljs cljs-time.core)
              :as time]
-    #?(:clj
-            [ring.util.response :as ring])
-    #?@(:cljs
-        [[goog.string :as gstring]
-         [goog.string.format]])
+            [#?(:clj  clj-time.coerce
+                :cljs cljs-time.coerce)
+             :as coerce]
+            #?(:clj
+               [ring.util.response :as ring])
+            #?@(:cljs
+                [[goog.string :as gstring]
+                 [goog.string.format]])
             [clojure.string :as str]))
 
 (defn map-values
@@ -37,14 +43,30 @@ Function f should accept one argument."
           (next keys)))
       ret)))
 
-(defn parse-date [date]
-  (time/parse-local-date (time/formatters :year-month-day) date))
+(defn parse-iso-date [date]
+  (format/parse-local-date (format/formatters :year-month-day) date))
 
 (defn format-iso-date [date]
-  (time/unparse-local-date (time/formatters :year-month-day) date))
+  (format/unparse-local-date (format/formatters :year-month-day) date))
+
+(defn parse-date [date]
+  (format/parse-local-date (format/formatter "dd.MM.yyyy") date))
 
 (defn format-date [date]
-  (some->> date (time/unparse-local-date (time/formatter "dd.MM.yyyy"))))
+  (some->> date (format/unparse-local-date (format/formatter "dd.MM.yyyy"))))
+
+(defn today-or-yesterday? [date]
+  (let [yesterday (time/minus (time/today) (time/days 1))
+        tomorrow (time/plus (time/today) (time/days 1))]
+    (time/within? (time/interval yesterday tomorrow) date)))
+
+(defn to-local-date [d]
+  #?(:clj  (coerce/to-local-date d)
+     :cljs (-> d
+               coerce/to-date-time
+               time/to-default-time-zone
+               time/from-utc-time-zone
+               coerce/to-local-date)))
 
 (defn group-kv [keyfn valfn coll]
   (apply merge-with into (for [elem coll]
@@ -62,6 +84,9 @@ Function f should accept one argument."
 
 (defn assoc-in-many [m & kvs]
   (reduce (fn [m [ks v]] (assoc-in m ks v)) m (partition 2 kvs)))
+
+(defn round-up [n m]
+  (* m (quot (+ n m -1) m)))
 
 #?(:clj
    (defn edn-response [body]

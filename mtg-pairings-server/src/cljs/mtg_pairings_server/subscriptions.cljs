@@ -1,5 +1,8 @@
 (ns mtg-pairings-server.subscriptions
   (:require [re-frame.core :refer [reg-sub subscribe]]
+            [cljs-time.core :as time]
+            [clojure.string :as str]
+            [mtg-pairings-server.util.util :refer [today-or-yesterday?]]
             [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]))
 
 (reg-sub ::logged-in-user
@@ -18,9 +21,52 @@
   (fn [db _]
     (:tournaments-page db)))
 
+(reg-sub ::max-players
+  (fn [db _]
+    (:max-players db)))
+
+(reg-sub ::tournament-filter
+  (fn [db [_ filter-key]]
+    (get-in db [:tournament-filter filter-key])))
+
 (reg-sub ::tournaments
   (fn [db _]
     (map (:tournaments db) (:tournament-ids db))))
+
+(defn ^:private org-filter [organizer]
+  (filter #(or (str/blank? organizer)
+               (= organizer (:organizer %)))))
+
+(defn ^:private date-filter [min max]
+  (filter #(and (or (nil? min)
+                    (not (time/after? min (:day %))))
+                (or (nil? max)
+                    (not (time/before? max (:day %)))))))
+
+(defn ^:private player-filter [min max]
+  (filter #(<= min (:players %) max)))
+
+(reg-sub ::filtered-tournaments
+  :<- [::tournaments]
+  :<- [::tournament-filter :organizer]
+  :<- [::tournament-filter :date-from]
+  :<- [::tournament-filter :date-to]
+  :<- [::tournament-filter :players]
+  (fn [[tournaments organizer date-from date-to [min-players max-players]] _]
+    (let [filters (comp (org-filter organizer)
+                        (date-filter date-from date-to)
+                        (player-filter min-players max-players))]
+      (sequence filters tournaments))))
+
+(reg-sub ::newest-tournaments
+  :<- [::tournaments]
+  (fn [tournaments _]
+    (filter #(today-or-yesterday? (:day %)) tournaments)))
+
+(reg-sub ::organizers
+  :<- [::tournaments]
+  (fn [tournaments _]
+    (sort (distinct (map :organizer tournaments)))))
 
 (reg-sub ::tournament-count
   (fn [db _]
@@ -93,6 +139,6 @@
   (fn [db [_ & keys]]
     (get-in (:organizer db) keys)))
 
-(reg-sub ::mobile-menu-collapsed?
+(reg-sub ::notification
   (fn [db _]
-    (:mobile-menu-collapsed? db)))
+    (:notification db)))

@@ -4,9 +4,8 @@
             [mount.core :as m]
             [cognitect.transit :as transit]
             [taoensso.sente.packers.transit :as sente-transit]
-            [mtg-pairings-server.util.util :refer [parse-date format-iso-date]]
-    #?(:clj
-            [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])))
+            [mtg-pairings-server.util.util :refer [parse-iso-date format-iso-date]]
+            #?(:clj [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])))
 
 ;; Transit communication
 
@@ -17,7 +16,7 @@
              (transit/write-handler (constantly "d") double)])})
 
 (def readers
-  {"Date" (transit/read-handler #(parse-date %))})
+  {"Date" (transit/read-handler #(parse-iso-date %))})
 
 (def packer (sente-transit/->TransitPacker :json
                                            {:handlers writers}

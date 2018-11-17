@@ -3,12 +3,10 @@
   (:import org.joda.time.LocalDate
            java.util.Date))
 
-(s/defschema ApiKeyParams {:key String})
-
 (s/defschema BaseTournament {:id        Long
                              :name      String
                              :organizer (s/maybe String)
-                             :day       org.joda.time.LocalDate
+                             :day       LocalDate
                              :rounds    Long})
 
 (s/defschema Tournament (merge BaseTournament
@@ -20,10 +18,10 @@
                                 :playoff   Boolean}))
 
 (s/defschema InputTournament (-> BaseTournament
-                               (dissoc :id)
-                               (merge {:day        java.util.Date
-                                       :sanctionid String
-                                       :tracking   Boolean})))
+                                 (dissoc :id)
+                                 (merge {:day        Date
+                                         :sanctionid String
+                                         :tracking   Boolean})))
 
 (s/defschema Player {:dci  String
                      :name String})
@@ -76,11 +74,6 @@
                           :draws        Long})
 
 (s/defschema InputResults {:results [InputResult]})
-
-(s/defschema PlayersTournament (merge BaseTournament
-                                      {:seating             Seating
-                                       :pairings            [Pairing]
-                                       :max_standings_round Long}))
 
 (s/defschema InputPodSeat {:seat s/Int
                            :team InputTeam})
