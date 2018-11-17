@@ -39,8 +39,12 @@
           nil)]])))
 
 (defn mount-root []
-  (clear-subscription-cache!)
   (reagent/render [current-page] (.getElementById js/document "app")))
+
+(defn figwheel-reload []
+  (clear-subscription-cache!)
+  (events/connect!)
+  (mount-root))
 
 (defn init! []
   (dispatch-sync [::events/initialize])

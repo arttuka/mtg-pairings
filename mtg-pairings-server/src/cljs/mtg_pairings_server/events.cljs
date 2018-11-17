@@ -49,14 +49,17 @@
   (fn [db _]
     (merge db initial-db)))
 
+(defn connect! []
+  (ws/send! [:client/connect])
+  (when-let [user (fetch :user)]
+    (ws/send! [:client/login (:dci user)])))
+
 (defmethod ws/event-handler :chsk/state
   [{:keys [?data]}]
   (let [[_ new-state] ?data]
     (when (:first-open? new-state)
       (reset! channel-open? true)
-      (ws/send! [:client/connect])
-      (when-let [user (fetch :user)]
-        (ws/send! [:client/login (:dci user)])))))
+      (connect!))))
 
 (reg-event-fx ::login
   (fn [_ [_ dci-number]]

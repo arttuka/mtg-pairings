@@ -63,7 +63,7 @@
                             :pretty-print  false}}
             :app
             {:source-paths ["src/cljs" "src/cljc" "env/dev/cljs"]
-             :figwheel     {:on-jsload "mtg-pairings-server.core/mount-root"}
+             :figwheel     {:on-jsload "mtg-pairings-server.core/figwheel-reload"}
              :compiler
                            {:main            "mtg-pairings-server.dev"
                             :asset-path      "/js/out"
