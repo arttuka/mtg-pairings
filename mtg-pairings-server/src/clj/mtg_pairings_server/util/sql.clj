@@ -22,7 +22,7 @@
 (defmacro select-unique
   "Wraps korma.core/select, returns unique result. Throws if result is not unique."
   [entity & body]
-  `(sql/select ~entity ~@body (sql/post-query unique)))
+  `(sql/select ~entity ~@body (sql/post-query unique-or-nil)))
 
 (defmacro update-unique
   "Wraps korma.core/update, updates exactly one row. Throws if row count is not 1. Returns the number of updated rows (1)."
