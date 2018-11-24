@@ -18,19 +18,19 @@
 
 (defn owner-of-tournament [sanction-id]
   (:owner
-    (sql-util/select-unique db/tournament
+    (sql-util/select-unique-or-nil db/tournament
       (sql/fields :owner)
       (sql/where {:sanctionid sanction-id}))))
 
 (defn sanctionid->id [sanction-id]
   (:id
-    (sql-util/select-unique db/tournament
+    (sql-util/select-unique-or-nil db/tournament
       (sql/fields :id)
       (sql/where {:sanctionid sanction-id}))))
 
 (defn id->sanctionid [id]
   (:sanctionid
-    (sql-util/select-unique db/tournament
+    (sql-util/select-unique-or-nil db/tournament
       (sql/fields :sanctionid)
       (sql/where {:id id}))))
 
@@ -253,7 +253,7 @@
     (sql/order :seat)))
 
 (defn standings [tournament-id round-num hidden?]
-  (-> (sql-util/select-unique db/standings
+  (-> (sql-util/select-unique-or-nil db/standings
         (sql/where (and {:tournament tournament-id
                          :round      round-num}
                         (or hidden?
@@ -266,7 +266,7 @@
        (standings tournament-id round-num hidden?)))
 
 (defn ^:private get-or-add-round [tournament-id round-num playoff?]
-  (if-let [old-round (sql-util/select-unique db/round
+  (if-let [old-round (sql-util/select-unique-or-nil db/round
                        (sql/where {:tournament tournament-id
                                    :num        round-num}))]
     (:id old-round)
@@ -349,7 +349,7 @@
     (sql/where query {:team2 nil})))
 
 (defn ^:private find-pairing [round-id {:keys [team1 team2]}]
-  (sql-util/select-unique db/pairing
+  (sql-util/select-unique-or-nil db/pairing
     (sql/with db/team1)
     (sql/with db/team2)
     (sql/where {:round round-id})

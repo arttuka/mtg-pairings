@@ -9,19 +9,31 @@
             [ring.middleware.not-modified :refer [wrap-not-modified]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
-            [mtg-pairings-server.handler])
+            [mtg-pairings-server.handler]
+            [mtg-pairings-server.util.sql :as sql-util])
   (:import (com.fasterxml.jackson.core JsonGenerator)
-           (org.joda.time LocalDate)))
+           (org.joda.time LocalDate)
+           (clojure.lang ExceptionInfo)))
+
+(defn error-response [^Exception e]
+  {:status 500
+   :body (.getMessage e)})
 
 (defn wrap-errors
   [handler]
   (fn [request]
     (try
       (handler request)
+      (catch ExceptionInfo e
+        (let [data (ex-data e)]
+          (case (:type data)
+            ::sql-util/assertion (if-not (::sql-util/found? data)
+                                   {:status 404}
+                                   (error-response e))
+            (error-response e))))
       (catch Exception e
         (log/error e (pr-str request))
-        {:status 500
-         :body   (.getMessage e)}))))
+        (error-response e)))))
 
 (def ^:private log-blacklist
   [#"^.*\.(ico|png|jpg|js|css|woff2|txt|map)$"
