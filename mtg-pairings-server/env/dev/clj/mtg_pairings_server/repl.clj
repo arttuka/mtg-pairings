@@ -6,7 +6,7 @@
             [clojure.tools.namespace.repl :as repl]
             [mtg-pairings-server.handler :refer [app]]
             [mtg-pairings-server.server :refer [run-server!]]
-            [mtg-pairings-server.properties :refer [properties]]))
+            [mtg-pairings-server.env :refer [env]]))
 
 (defn get-handler []
   ;; #'app expands to (var app) so that when we reload our code,
@@ -28,7 +28,7 @@
   :stop (figwheel/stop-autobuild "app"))
 
 (m/defstate server
-  :start (run-server! (get-handler) (:server properties))
+  :start (run-server! (get-handler) (:server-port env))
   :stop (server))
 
 (defn cljs-repl []

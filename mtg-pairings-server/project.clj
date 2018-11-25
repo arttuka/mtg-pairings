@@ -28,6 +28,7 @@
                  [com.taoensso/timbre "4.10.0"]
                  [com.cognitect/transit-clj "0.8.313"]
                  [com.cognitect/transit-cljs "0.8.256"]
+                 [com.fzakaria/slf4j-timbre "0.3.12"]
                  [re-frame "0.10.6" :exclusions [cljsjs/react]]
                  [binaryage/oops "0.6.2"]
                  [cljsjs/react "16.6.0-0"]

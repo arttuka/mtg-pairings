@@ -2,16 +2,21 @@
   (:require [korma.core :as sql]
             [korma.db :as db]))
 
+
 (defn unique-or-nil
   [results]
   (let [[result & more] results]
-    (assert (empty? more) "Expected one result, got more")
+    (when (seq more)
+      (throw (ex-info "Expected one result, got more" {:type    ::assertion
+                                                       ::found? true})))
     result))
 
 (defn unique
   [results]
   (let [result (unique-or-nil results)]
-    (assert result "Expected one result, got zero")
+    (when-not result
+      (throw (ex-info "Expected one result, got zero" {:type    ::assertion
+                                                ::found? false})))
     result))
 
 (defmacro select-unique-or-nil

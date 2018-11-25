@@ -5,14 +5,18 @@
             [korma.core :as sql]
             [korma.db]
             [mount.core :as m]
-            [mtg-pairings-server.properties :refer [properties]])
+            [mtg-pairings-server.env :refer [env]])
   (:import (java.sql Date)
            (org.joda.time LocalDate)))
 
 (m/defstate db
   :start (korma.db/default-connection
            (korma.db/create-db
-             (korma.db/postgres (:db properties)))))
+             (korma.db/postgres {:host     (:db-host env)
+                                 :port     (:db-port env)
+                                 :user     (:db-user env)
+                                 :password (:db-password env)
+                                 :db       (:db-name env)}))))
 
 (defn ^:private convert-instances-of
   [cls f m]
