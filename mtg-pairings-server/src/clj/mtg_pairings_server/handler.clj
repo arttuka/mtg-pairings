@@ -11,32 +11,22 @@
             [mtg-pairings-server.util.broadcast :as broadcast]
             [mtg-pairings-server.websocket :as ws]))
 
-(def mount-target
-  [:div#app
-   (when (env :dev)
-     [:div
-      [:h3 "ClojureScript has not been compiled!"]
-      [:p "please run "
-       [:b "lein figwheel"]
-       " in order to start the compiler"]])])
-
-(defn head []
-  [:head
-   [:meta {:charset "utf-8"}]
-   [:meta {:name    "viewport"
-           :content "width=device-width, initial-scale=1"}]
-   (include-css "https://fonts.googleapis.com/css?family=Lato:400,700")
-   (include-css "https://fonts.googleapis.com/css?family=Roboto:300,400,500")
-   (if (env :dev)
-     (include-css "/css/main.css")
-     (include-css "/css/main.min.css"))])
-
-(defn loading-page []
-  (html5
-    (head)
-    [:body {:class "body-container"}
-     mount-target
-     (include-js "/js/app.js")]))
+(let [html (delay (html5
+                    {:lang :fi}
+                    [:head
+                     [:title "Pairings.fi"]
+                     [:meta {:charset "utf-8"}]
+                     [:meta {:name    "viewport"
+                             :content "width=device-width, initial-scale=1"}]
+                     (include-css "https://fonts.googleapis.com/css?family=Lato:400,700")
+                     (include-css "https://fonts.googleapis.com/css?family=Roboto:300,400,500")
+                     (if (env :dev)
+                       (include-css "/css/main.css")
+                       (include-css "/css/main.min.css"))]
+                    [:body {:class "body-container"}
+                     [:div#app]
+                     (include-js "/js/app.js")]))]
+  (defn loading-page [] @html))
 
 
 (defroutes site-routes

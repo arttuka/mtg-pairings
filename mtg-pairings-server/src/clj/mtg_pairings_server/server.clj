@@ -10,7 +10,8 @@
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [ring.util.response :refer [resource-response file-response]]
             [mtg-pairings-server.handler]
-            [mtg-pairings-server.util.sql :as sql-util])
+            [mtg-pairings-server.util.sql :as sql-util]
+            [config.core :refer [env]])
   (:import (com.fasterxml.jackson.core JsonGenerator)
            (org.joda.time LocalDate)
            (clojure.lang ExceptionInfo)))
@@ -48,7 +49,9 @@
     (let [response (handler request)
           uri (:uri request)]
       (when (logged? uri)
-        (log/info (get-in request [:headers "x-real-ip"] (:remote-addr request))
+        (log/info (or (get-in request [:headers "x-real-ip"])
+                      (get-in request [:headers "x-forwarded-for"])
+                      (:remote-addr request))
                   (-> request :request-method name string/upper-case)
                   uri
                   (:status response)))
@@ -74,3 +77,7 @@
         wrap-allow-origin
         wrap-errors)
     {:port port}))
+
+(m/defstate server
+  :start (run-server! mtg-pairings-server.handler/app (env :server-port))
+  :stop (server))

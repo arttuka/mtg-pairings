@@ -5,7 +5,7 @@
             [korma.core :as sql]
             [korma.db]
             [mount.core :as m]
-            [mtg-pairings-server.env :refer [env]])
+            [config.core :refer [env]])
   (:import (java.sql Date)
            (org.joda.time LocalDate)))
 
