@@ -4,6 +4,8 @@
             [clojure.tools.namespace.repl :as repl]
             mtg-pairings-server.server))
 
+(m/in-cljc-mode)
+
 (m/defstate figwheel
   :start (figwheel/start-figwheel!)
   :stop (figwheel/stop-figwheel!))

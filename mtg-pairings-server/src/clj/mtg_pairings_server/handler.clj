@@ -41,10 +41,7 @@
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
-  (GET "/chsk" request
-    (ws/ajax-get-or-ws-handshake-fn request))
-  (POST "/chsk" request
-    (ws/ajax-post-fn request)))
+  ws/routes)
 
 (defroutes app
   (c/routes
@@ -52,6 +49,10 @@
     (wrap-site-middleware #'site-routes)
     (wrap-site-middleware (resources "/"))
     (wrap-site-middleware (not-found "Not Found"))))
+
+(defmethod ws/event-handler
+  :chsk/uidport-open
+  [_])
 
 (defmethod ws/event-handler :chsk/uidport-close
   [{:keys [uid]}]

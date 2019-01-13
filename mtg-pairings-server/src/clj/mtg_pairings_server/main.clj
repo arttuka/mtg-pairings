@@ -11,4 +11,5 @@
 (defn -main []
   (timbre/merge-config! timbre-config)
   (timbre/info "Starting mtg-pairings...")
+  (m/in-cljc-mode)
   (m/start))

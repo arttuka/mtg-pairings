@@ -80,4 +80,4 @@
 
 (m/defstate server
   :start (run-server! mtg-pairings-server.handler/app (env :server-port))
-  :stop (server))
+  :stop (@server))

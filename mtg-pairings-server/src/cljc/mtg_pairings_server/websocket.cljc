@@ -5,7 +5,8 @@
             [cognitect.transit :as transit]
             [taoensso.sente.packers.transit :as sente-transit]
             [mtg-pairings-server.util.util :refer [parse-iso-date format-iso-date]]
-            #?(:clj [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])))
+            #?(:clj [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])
+            #?(:clj [compojure.core :refer [defroutes GET POST]])))
 
 ;; Transit communication
 
@@ -24,6 +25,8 @@
 
 ;; Websocket API
 
+(def path "/chsk")
+
 (defn- init-ws []
   #?(:clj
      (let [{:keys [ch-recv send-fn ajax-post-fn ajax-get-or-ws-handshake-fn connected-uids]}
@@ -35,8 +38,8 @@
         :ajax-post-fn                ajax-post-fn
         :ajax-get-or-ws-handshake-fn ajax-get-or-ws-handshake-fn})
      :cljs
-     (let [{:keys [ch-recv send-fn chsk state]} (sente/make-channel-socket! "/chsk" {:packer packer
-                                                                                     :type   :auto})]
+     (let [{:keys [ch-recv send-fn chsk state]} (sente/make-channel-socket! path {:packer packer
+                                                                                  :type   :auto})]
        {:receive ch-recv
         :send!   send-fn
         :state   state
@@ -48,7 +51,7 @@
 (defmulti event-handler :id)
 
 #?(:clj
-   (defmethod event-handler :default [{:keys [event id ring-req ?data]}]
+   (defmethod event-handler :default [{:keys [event ring-req]}]
      (log/debugf "Unhandled event %s from client %s" event (get-in ring-req [:params :client-id]))))
 
 #?(:cljs
@@ -60,51 +63,25 @@
 
 ;; Event router
 
-(def ^:private ws-state
-  (atom {:router         nil
-         :connected-uids #{}
-         :handler-fns    {:receive nil
-                          :send!   nil
-                          :state   nil
-                          :chsk    nil}}))
+(defn start-router []
+  (let [conn (init-ws)]
+    (assoc conn :router (sente/start-chsk-router! (:receive conn) event-handler))))
 
-(defn- call-ws-state-fns [fn-key & args]
-  (if-let [f (fn-key (:handler-fns @ws-state))]
-    (apply f args)
-    (log/warn (str "websocket connection not initialized for fn-key " fn-key))))
-
-; both ends have these
-(def receive (partial call-ws-state-fns :ch-recv))
-(def send! (partial call-ws-state-fns :send!))
-
-#?(:clj (def ajax-get-or-ws-handshake-fn (partial call-ws-state-fns :ajax-get-or-ws-handshake-fn)))
-#?(:clj (def ajax-post-fn (partial call-ws-state-fns :ajax-post-fn)))
-
-#?(:cljs (def chsk (partial call-ws-state-fns :chsk)))
-
-#?(:clj (defn send-all! [event]
-          (doseq [uid (:connected-uids)]
-            (send! uid event))))
-
-(defn stop-router!
-  []
-  (when-let [stop! (:router @ws-state)]
-    #?(:cljs (sente/chsk-disconnect! (:chsk (:handler-fns @ws-state))))
-    (log/info "Stopping websocket router")
-    (stop!)
-    (reset! ws-state {})))
-
-(defn start-router!
-  []
-  (stop-router!)
-  (log/info "Starting websocket router")
-  (swap! ws-state
-         (fn [& _]
-           (let [handler-fns (init-ws)]
-             {:handler-fns    (dissoc handler-fns :connected-uids)
-              :connected-uids (:connected-uids handler-fns)
-              :router         (sente/start-chsk-router! (:receive handler-fns) event-handler)}))))
+(defn stop-router [r]
+  #?(:cljs (sente/chsk-disconnect! (:chsk r)))
+  ((:router r)))
 
 (m/defstate router
-  :start (start-router!)
-  :stop (stop-router!))
+  :start (start-router)
+  :stop (stop-router @router))
+
+#?(:clj
+   (defn send! [uid event]
+     ((:send! @router) uid event))
+   :cljs
+   (defn send! [event]
+     ((:send! @router) event)))
+
+#?(:clj (defroutes routes
+          (GET path request ((:ajax-get-or-ws-handshake-fn @router) request))
+          (POST path request ((:ajax-post-fn @router) request))))
