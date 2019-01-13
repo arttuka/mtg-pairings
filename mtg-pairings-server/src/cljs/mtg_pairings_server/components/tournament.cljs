@@ -4,6 +4,7 @@
             [cljsjs.material-ui]
             [cljs-react-material-ui.core]
             [cljs-react-material-ui.reagent :as ui]
+            [cljs-react-material-ui.icons :as icons]
             [goog.string :as gstring]
             [goog.string.format]
             [prop-types]
@@ -89,7 +90,11 @@
                         [:th {:class    class
                               :style    (when (= column sort-key) {:color (:accent1Color palette)})
                               :on-click #(dispatch [dispatch-key column])}
-                         [:i.glyphicon.glyphicon-chevron-down.left]
+                         [icons/hardware-keyboard-arrow-down
+                          {:style {:vertical-align :baseline
+                                   :position       :absolute
+                                   :left           0
+                                   :color          nil}}]
                          children]))}))
 
 (defn pairing-row [cls pairing]
