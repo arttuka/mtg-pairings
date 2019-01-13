@@ -1,21 +1,19 @@
 (ns mtg-pairings-server.repl
   (:require [mount.core :as m]
-            [figwheel-sidecar.repl-api :as figwheel]
+            [figwheel.main.api :as figwheel]
+            [taoensso.timbre :as timbre]
             [clojure.tools.namespace.repl :as repl]
             mtg-pairings-server.server))
 
 (m/in-cljc-mode)
+(timbre/swap-config! (fn [config] (assoc config :ns-whitelist ["mtg-pairings-server.*"])))
 
 (m/defstate figwheel
-  :start (figwheel/start-figwheel!)
-  :stop (figwheel/stop-figwheel!))
-
-(m/defstate figwheel-autobuilder
-  :start (figwheel/start-autobuild "app")
-  :stop (figwheel/stop-autobuild "app"))
+  :start (figwheel/start {:mode :serve} "dev")
+  :stop (figwheel/stop "dev"))
 
 (defn cljs-repl []
-  (figwheel/cljs-repl))
+  (figwheel/cljs-repl "dev"))
 
 (defn restart []
   (m/stop)

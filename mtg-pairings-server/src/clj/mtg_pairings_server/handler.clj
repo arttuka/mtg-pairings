@@ -18,14 +18,16 @@
                      [:meta {:charset "utf-8"}]
                      [:meta {:name    "viewport"
                              :content "width=device-width, initial-scale=1"}]
-                     (include-css "https://fonts.googleapis.com/css?family=Lato:400,700")
-                     (include-css "https://fonts.googleapis.com/css?family=Roboto:300,400,500")
-                     (if (env :dev)
-                       (include-css "/css/main.css")
-                       (include-css "/css/main.min.css"))]
+                     (include-css "https://fonts.googleapis.com/css?family=Lato:400,700"
+                                  "https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+                                  (if (env :dev)
+                                    "/css/main.css"
+                                    "/css/main.min.css"))]
                     [:body {:class "body-container"}
                      [:div#app]
-                     (include-js "/js/app.js")]))]
+                     (include-js (if (env :dev)
+                                   "/js/dev-main.js"
+                                   "/js/prod-main.js"))]))]
   (defn loading-page [] @html))
 
 

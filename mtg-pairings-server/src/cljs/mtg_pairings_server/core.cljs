@@ -1,4 +1,4 @@
-(ns mtg-pairings-server.core
+(ns ^:figwheel-hooks mtg-pairings-server.core
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
             [cljsjs.material-ui]
@@ -51,7 +51,7 @@
 (defn mount-root []
   (reagent/render [current-page] (.getElementById js/document "app")))
 
-(defn figwheel-reload []
+(defn ^:after-load figwheel-reload []
   (clear-subscription-cache!)
   (events/connect!)
   (mount-root))

@@ -8,6 +8,7 @@ RUN lein deps
 COPY ./src ./src
 COPY ./env ./env
 COPY ./resources ./resources
+COPY prod.cljs.edn .
 RUN lein uberjar
 
 FROM openjdk:8-alpine
