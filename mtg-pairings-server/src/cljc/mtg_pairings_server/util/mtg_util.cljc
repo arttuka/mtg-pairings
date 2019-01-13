@@ -32,8 +32,8 @@
                             0
                             (/ (reduce + 0 (map :pgw opponents)) cnt))]
                   (assoc results
-                    :omw omw
-                    :ogw ogw)))
+                         :omw omw
+                         :ogw ogw)))
               teams-results))
 
 (defn reverse-match [match]
@@ -72,11 +72,11 @@
   (let [digits (map #(#?(:clj Integer/parseInt, :cljs js/parseInt) (str %)) dci-number)
         length (count digits)]
     (cond->> digits
-             (>= 6 length) (cons 0)
-             (>= 7 length) (#(cons (check-digit %) %))
-             (>= 8 length) (cons 0)
-             (>= 9 length) (#(cons (check-digit %) %))
-             true (apply str))))
+      (>= 6 length) (cons 0)
+      (>= 7 length) (#(cons (check-digit %) %))
+      (>= 8 length) (cons 0)
+      (>= 9 length) (#(cons (check-digit %) %))
+      true (apply str))))
 
 (defn duplicate-pairings [pairings]
   (->> pairings

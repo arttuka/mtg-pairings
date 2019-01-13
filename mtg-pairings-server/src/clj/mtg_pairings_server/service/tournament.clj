@@ -18,30 +18,30 @@
 
 (defn owner-of-tournament [sanction-id]
   (:owner
-    (sql-util/select-unique-or-nil db/tournament
-      (sql/fields :owner)
-      (sql/where {:sanctionid sanction-id}))))
+   (sql-util/select-unique-or-nil db/tournament
+     (sql/fields :owner)
+     (sql/where {:sanctionid sanction-id}))))
 
 (defn sanctionid->id [sanction-id]
   (:id
-    (sql-util/select-unique-or-nil db/tournament
-      (sql/fields :id)
-      (sql/where {:sanctionid sanction-id}))))
+   (sql-util/select-unique-or-nil db/tournament
+     (sql/fields :id)
+     (sql/where {:sanctionid sanction-id}))))
 
 (defn id->sanctionid [id]
   (:sanctionid
-    (sql-util/select-unique-or-nil db/tournament
-      (sql/fields :sanctionid)
-      (sql/where {:id id}))))
+   (sql-util/select-unique-or-nil db/tournament
+     (sql/fields :sanctionid)
+     (sql/where {:id id}))))
 
 (def ^:private select-tournaments
   (->
-    (sql/select* db/tournament)
-    (sql/fields :rounds :day :name :organizer :id
-                (sql/raw "exists (select 1 from seating where \"tournament\" = \"tournament\".\"id\") as \"seatings\"")
-                (sql/raw "exists (select 1 from round where \"tournament\" = \"tournament\".\"id\" and playoff) as \"playoff\""))
-    (sql/order :day :DESC)
-    (sql/order :name :ASC)))
+   (sql/select* db/tournament)
+   (sql/fields :rounds :day :name :organizer :id
+               (sql/raw "exists (select 1 from seating where \"tournament\" = \"tournament\".\"id\") as \"seatings\"")
+               (sql/raw "exists (select 1 from round where \"tournament\" = \"tournament\".\"id\" and playoff) as \"playoff\""))
+   (sql/order :day :DESC)
+   (sql/order :name :ASC)))
 
 (defn ^:private update-round-data [tournament]
   (let [rounds (:round tournament)
@@ -49,39 +49,39 @@
         results (map :num (filter :results rounds))
         pods (map inc (range (count (:pod_round tournament))))]
     (->
-      tournament
-      (assoc :pairings pairings)
-      (assoc :results results)
-      (assoc :pods pods)
-      (update-in [:standings] #(map :num %))
-      (dissoc :round :pod_round))))
+     tournament
+     (assoc :pairings pairings)
+     (assoc :results results)
+     (assoc :pods pods)
+     (update-in [:standings] #(map :num %))
+     (dissoc :round :pod_round))))
 
 (defn tournament [id]
   (update-round-data (->
-                       select-tournaments
-                       (sql/with db/round
-                         (sql/fields :num)
-                         (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
-                                                                (sql/join :left db/result
-                                                                          (= :pairing.id :result.pairing))
-                                                                (sql/where {:pairing.round  :round.id
-                                                                            :result.pairing nil})))
-                                      :results])
-                         (sql/order :num)
-                         (sql/where
-                           (and (sql/sqlfn "exists" (sql/subselect db/pairing
-                                                      (sql/where {:round :round.id})))
-                                (not :playoff))))
-                       (sql/with db/standings
-                         (sql/where {:hidden false})
-                         (sql/fields [:round :num])
-                         (sql/order :round))
-                       (sql/with db/pod-round
-                         (sql/fields :id)
-                         (sql/order :id))
-                       (sql/where {:id id})
-                       (sql/post-query sql-util/unique)
-                       (sql/exec))))
+                      select-tournaments
+                      (sql/with db/round
+                        (sql/fields :num)
+                        (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
+                                                               (sql/join :left db/result
+                                                                         (= :pairing.id :result.pairing))
+                                                               (sql/where {:pairing.round  :round.id
+                                                                           :result.pairing nil})))
+                                     :results])
+                        (sql/order :num)
+                        (sql/where
+                         (and (sql/sqlfn "exists" (sql/subselect db/pairing
+                                                    (sql/where {:round :round.id})))
+                              (not :playoff))))
+                      (sql/with db/standings
+                        (sql/where {:hidden false})
+                        (sql/fields [:round :num])
+                        (sql/order :round))
+                      (sql/with db/pod-round
+                        (sql/fields :id)
+                        (sql/order :id))
+                      (sql/where {:id id})
+                      (sql/post-query sql-util/unique)
+                      (sql/exec))))
 
 (defn tournaments []
   (let [tourns (sql/exec select-tournaments)
@@ -90,38 +90,38 @@
                                                           (sql/aggregate (count :*) :count :tournament))]
                          [tournament count]))
         rounds (->>
-                 (sql/select db/round
-                   (sql/fields :tournament :num)
-                   (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
-                                                          (sql/join :left db/result
-                                                                    (= :pairing.id :result.pairing))
-                                                          (sql/where {:pairing.round  :round.id
-                                                                      :result.pairing nil})))
-                                :results])
-                   (sql/order :num)
-                   (sql/where
-                     (and (sql/sqlfn "exists" (sql/subselect db/pairing
-                                                (sql/where {:round :round.id})))
-                          (not :playoff))))
-                 (util/group-kv :tournament #(select-keys % [:num :results])))
+                (sql/select db/round
+                  (sql/fields :tournament :num)
+                  (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
+                                                         (sql/join :left db/result
+                                                                   (= :pairing.id :result.pairing))
+                                                         (sql/where {:pairing.round  :round.id
+                                                                     :result.pairing nil})))
+                               :results])
+                  (sql/order :num)
+                  (sql/where
+                   (and (sql/sqlfn "exists" (sql/subselect db/pairing
+                                              (sql/where {:round :round.id})))
+                        (not :playoff))))
+                (util/group-kv :tournament #(select-keys % [:num :results])))
         standings (->>
-                    (sql/select db/standings
-                      (sql/where {:hidden false})
-                      (sql/fields :tournament [:round :num])
-                      (sql/order :round))
-                    (util/group-kv :tournament #(select-keys % [:num])))
+                   (sql/select db/standings
+                     (sql/where {:hidden false})
+                     (sql/fields :tournament [:round :num])
+                     (sql/order :round))
+                   (util/group-kv :tournament #(select-keys % [:num])))
         pod-rounds (->>
-                     (sql/select db/pod-round
-                       (sql/fields :tournament :id)
-                       (sql/order :id))
-                     (util/group-kv :tournament :id))]
+                    (sql/select db/pod-round
+                      (sql/fields :tournament :id)
+                      (sql/order :id))
+                    (util/group-kv :tournament :id))]
     (for [t tourns
           :let [id (:id t)]]
       (update-round-data
-        (assoc t :round (get rounds id [])
-                 :standings (get standings id [])
-                 :pod_round (get pod-rounds id [])
-                 :players (get teams id 0))))))
+       (assoc t :round (get rounds id [])
+              :standings (get standings id [])
+              :pod_round (get pod-rounds id [])
+              :players (get teams id 0))))))
 
 (defn add-tournament [tourn]
   (if (seq (sql/select db/tournament
@@ -554,7 +554,7 @@
 (defn ^:private add-ranks [team->rank round]
   (for [match round]
     (assoc match :team1_rank (team->rank (:team1 match))
-                 :team2_rank (team->rank (:team2 match)))))
+           :team2_rank (team->rank (:team2 match)))))
 
 (defn ^:private add-empty-rounds [bracket]
   (loop [num (/ (count (last bracket)) 2)

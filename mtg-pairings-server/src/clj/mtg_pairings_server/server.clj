@@ -18,7 +18,7 @@
 
 (defn error-response [^Exception e]
   {:status 500
-   :body (.getMessage e)})
+   :body   (.getMessage e)})
 
 (defn wrap-errors
   [handler]
@@ -71,12 +71,12 @@
                         (fn [c ^JsonGenerator generator]
                           (.writeString generator (str c))))
   (hs/run-server
-    (-> handler
-        wrap-json-with-padding
-        wrap-request-log
-        wrap-allow-origin
-        wrap-errors)
-    {:port port}))
+   (-> handler
+       wrap-json-with-padding
+       wrap-request-log
+       wrap-allow-origin
+       wrap-errors)
+   {:port port}))
 
 (m/defstate server
   :start (run-server! mtg-pairings-server.handler/app (env :server-port))

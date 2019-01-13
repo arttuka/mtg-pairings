@@ -79,17 +79,17 @@
   (let [players (subscribe [::subs/tournament-filter :players])
         max-players (subscribe [::subs/max-players])]
     (reagent/create-class
-      {:context-types  #js {:muiTheme prop-types/object.isRequired}
-       :reagent-render (fn player-filter-render []
-                         (let [palette (:palette (get-theme (reagent/current-component)))]
-                           [:div.filter.player-filter
-                            [:label.filter-label "Pelaajamäärä"]
-                            [slider {:min       (atom 0)
-                                     :max       max-players
-                                     :value     players
-                                     :step      10
-                                     :color     (:accent1Color palette)
-                                     :on-change #(dispatch [::events/tournament-filter [:players %]])}]]))})))
+     {:context-types  #js {:muiTheme prop-types/object.isRequired}
+      :reagent-render (fn player-filter-render []
+                        (let [palette (:palette (get-theme (reagent/current-component)))]
+                          [:div.filter.player-filter
+                           [:label.filter-label "Pelaajamäärä"]
+                           [slider {:min       (atom 0)
+                                    :max       max-players
+                                    :value     players
+                                    :step      10
+                                    :color     (:accent1Color palette)
+                                    :on-change #(dispatch [::events/tournament-filter [:players %]])}]]))})))
 
 (defn clear-filters []
   [ui/raised-button

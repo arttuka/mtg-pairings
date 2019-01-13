@@ -12,24 +12,23 @@
             [mtg-pairings-server.websocket :as ws]))
 
 (let [html (delay (html5
-                    {:lang :fi}
-                    [:head
-                     [:title "Pairings.fi"]
-                     [:meta {:charset "utf-8"}]
-                     [:meta {:name    "viewport"
-                             :content "width=device-width, initial-scale=1"}]
-                     (include-css "https://fonts.googleapis.com/css?family=Lato:400,700"
-                                  "https://fonts.googleapis.com/css?family=Roboto:300,400,500"
-                                  (if (env :dev)
-                                    "/css/main.css"
-                                    "/css/main.min.css"))]
-                    [:body {:class "body-container"}
-                     [:div#app]
-                     (include-js (if (env :dev)
-                                   "/js/dev-main.js"
-                                   "/js/prod-main.js"))]))]
+                   {:lang :fi}
+                   [:head
+                    [:title "Pairings.fi"]
+                    [:meta {:charset "utf-8"}]
+                    [:meta {:name    "viewport"
+                            :content "width=device-width, initial-scale=1"}]
+                    (include-css "https://fonts.googleapis.com/css?family=Lato:400,700"
+                                 "https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+                                 (if (env :dev)
+                                   "/css/main.css"
+                                   "/css/main.min.css"))]
+                   [:body {:class "body-container"}
+                    [:div#app]
+                    (include-js (if (env :dev)
+                                  "/js/dev-main.js"
+                                  "/js/prod-main.js"))]))]
   (defn loading-page [] @html))
-
 
 (defroutes site-routes
   (GET "/" [] (loading-page))
@@ -47,10 +46,10 @@
 
 (defroutes app
   (c/routes
-    (wrap-api-middleware #'http-api/app)
-    (wrap-site-middleware #'site-routes)
-    (wrap-site-middleware (resources "/"))
-    (wrap-site-middleware (not-found "Not Found"))))
+   (wrap-api-middleware #'http-api/app)
+   (wrap-site-middleware #'site-routes)
+   (wrap-site-middleware (resources "/"))
+   (wrap-site-middleware (not-found "Not Found"))))
 
 (defmethod ws/event-handler
   :chsk/uidport-open

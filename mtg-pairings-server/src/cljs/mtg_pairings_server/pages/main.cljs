@@ -17,8 +17,8 @@
                    pod-seat
                    (or pairing seating))]
     (assoc selected
-      :tournament (:name t)
-      :day (:day t))))
+           :tournament (:name t)
+           :day (:day t))))
 
 (defn main-page []
   (let [user (subscribe [::subs/logged-in-user])

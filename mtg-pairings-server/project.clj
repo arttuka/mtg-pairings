@@ -23,6 +23,7 @@
                  [com.cognitect/transit-clj "0.8.313" :exclusions [commons-codec]]
                  [com.fzakaria/slf4j-timbre "0.3.12"]]
   :plugins [[lein-asset-minifier "0.4.5"]
+            [lein-cljfmt "0.6.3"]
             [lein-ancient "0.6.15"]]
 
   :uberjar-name "mtg-pairings.jar"
@@ -38,6 +39,26 @@
 
   :aliases {"fig"     ["trampoline" "run" "-m" "figwheel.main"]
             "fig:min" ["run" "-m" "figwheel.main" "-bo" "prod"]}
+
+  :cljfmt {:indents {reg-sub                       [[:inner 0]]
+                     reg-fx                        [[:inner 0]]
+                     reg-event-fx                  [[:inner 0]]
+                     reg-event-db                  [[:inner 0]]
+                     sql/select                    [[:inner 0]]
+                     sql/sqlfn                     [[:inner 0]]
+                     sql/subselect                 [[:inner 0]]
+                     sql/with                      [[:inner 0]]
+                     sql/insert                    [[:inner 0]]
+                     sql/delete                    [[:inner 0]]
+                     sql/belongs-to                [[:inner 0]]
+                     sql/has-many                  [[:inner 0]]
+                     sql/has-one                   [[:inner 0]]
+                     sql/many-to-many              [[:inner 0]]
+                     sql-util/select-unique-or-nil [[:inner 0]]
+                     sql-util/select-unique        [[:inner 0]]
+                     sql-util/delete-unique        [[:inner 0]]
+                     sql-util/update-unique        [[:inner 0]]
+                     validate-request              [[:inner 0]]}}
 
   :profiles {:dev      {:repl-options   {:init-ns          mtg-pairings-server.repl
                                          :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}

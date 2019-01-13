@@ -31,15 +31,15 @@
                             :style    {:width     "35px"
                                        :min-width "35px"}}]
          (doall
-           (mapcat (fn [[prev cur]]
-                     [(when (and (some? prev) (> (- cur prev) 1))
-                        ^{:key (str id "separator-" cur)}
-                        [ui/raised-button {:label "···"
-                                           :style {:width     "35px"
-                                                   :min-width "35px"}}])
-                      ^{:key (str id "button-" cur)}
-                      [page-button #(dispatch [event cur]) @selected-page cur]])
-                   (partition 2 1 (cons nil shown-pages))))
+          (mapcat (fn [[prev cur]]
+                    [(when (and (some? prev) (> (- cur prev) 1))
+                       ^{:key (str id "separator-" cur)}
+                       [ui/raised-button {:label "···"
+                                          :style {:width     "35px"
+                                                  :min-width "35px"}}])
+                     ^{:key (str id "button-" cur)}
+                     [page-button #(dispatch [event cur]) @selected-page cur]])
+                  (partition 2 1 (cons nil shown-pages))))
          [ui/raised-button {:icon     (icons/navigation-chevron-right)
                             :on-click (when (< @selected-page (dec num-pages))
                                         #(dispatch [event (inc @selected-page)]))

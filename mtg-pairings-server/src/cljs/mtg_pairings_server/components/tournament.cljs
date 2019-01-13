@@ -83,14 +83,14 @@
 
 (defn sortable-header [{:keys [class column sort-key dispatch-key]} & children]
   (reagent/create-class
-    {:context-types  #js {:muiTheme prop-types/object.isRequired}
-     :reagent-render (fn sortable-header-render [{:keys [class column sort-key dispatch-key]} & children]
-                       (let [palette (:palette (get-theme (reagent/current-component)))]
-                         [:th {:class    class
-                               :style    (when (= column sort-key) {:color (:accent1Color palette)})
-                               :on-click #(dispatch [dispatch-key column])}
-                          [:i.glyphicon.glyphicon-chevron-down.left]
-                          children]))}))
+   {:context-types  #js {:muiTheme prop-types/object.isRequired}
+    :reagent-render (fn sortable-header-render [{:keys [class column sort-key dispatch-key]} & children]
+                      (let [palette (:palette (get-theme (reagent/current-component)))]
+                        [:th {:class    class
+                              :style    (when (= column sort-key) {:color (:accent1Color palette)})
+                              :on-click #(dispatch [dispatch-key column])}
+                         [:i.glyphicon.glyphicon-chevron-down.left]
+                         children]))}))
 
 (defn pairing-row [cls pairing]
   [:tr {:class cls}

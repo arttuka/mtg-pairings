@@ -1,16 +1,13 @@
 (ns mtg-pairings-server.api.http
   (:require [compojure.api.sweet :refer :all]
-            [ring.util.http-response :refer :all]
             mtg-pairings-server.api.tournament
-            mtg-pairings-server.api.player
-            [mtg-pairings-server.util.schema :refer :all]
-            [mtg-pairings-server.util.util :refer [edn-response]]))
+            mtg-pairings-server.api.player))
 
 (defapi app
   (swagger-routes
-    {:ui   "/api-docs"
-     :spec "/swagger.json"
-     :data {:info {:title "WER pairings backend API"}}})
+   {:ui   "/api-docs"
+    :spec "/swagger.json"
+    :data {:info {:title "WER pairings backend API"}}})
   (context "/api" []
     (context "/tournament" [] mtg-pairings-server.api.tournament/tournament-routes)
     (context "/player" [] mtg-pairings-server.api.player/player-routes)))

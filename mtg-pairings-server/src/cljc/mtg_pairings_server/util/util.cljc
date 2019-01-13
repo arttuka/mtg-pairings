@@ -37,10 +37,10 @@ Function f should accept one argument."
                         [key key])
             entry (find map from)]
         (recur
-          (if entry
-            (conj ret [to (val entry)])
-            ret)
-          (next keys)))
+         (if entry
+           (conj ret [to (val entry)])
+           ret)
+         (next keys)))
       ret)))
 
 (defn parse-iso-date [date]

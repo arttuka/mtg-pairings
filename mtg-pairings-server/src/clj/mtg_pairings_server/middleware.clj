@@ -16,10 +16,10 @@
 
 (defn wrap-api-middleware [handler]
   (cond-> (wrap-defaults handler api-defaults)
-          (env :dev) add-dev-middleware
-          (not (env :dev)) add-prod-middleware))
+    (env :dev) add-dev-middleware
+    (not (env :dev)) add-prod-middleware))
 
 (defn wrap-site-middleware [handler]
   (cond-> (wrap-defaults handler site-defaults)
-          (env :dev) add-dev-middleware
-          (not (env :dev)) add-prod-middleware))
+    (env :dev) add-dev-middleware
+    (not (env :dev)) add-prod-middleware))

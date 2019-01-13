@@ -90,8 +90,8 @@
      (subscribe [::pairings-sort])])
   (fn [[pairings sort-key] _]
     (cond->> pairings
-             (= sort-key :team1_name) duplicate-pairings
-             :always (sort-by sort-key))))
+      (= sort-key :team1_name) duplicate-pairings
+      :always (sort-by sort-key))))
 
 (reg-sub ::standings
   (fn [db [_ id round]]

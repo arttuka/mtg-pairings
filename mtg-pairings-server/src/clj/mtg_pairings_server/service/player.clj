@@ -62,9 +62,10 @@
                         (sql/with db/round
                           (sql/fields [:num :round_number]))))
                     (sql/order :pod_round.id :DESC))]
-    (assoc tournament :pairings pairings
-                      :seating seating
-                      :pod-seats pod-seats)))
+    (assoc tournament
+           :pairings pairings
+           :seating seating
+           :pod-seats pod-seats)))
 
 (defn ^:private add-newest-standings [tournament]
   (let [standings (sql-util/select-unique-or-nil db/standings

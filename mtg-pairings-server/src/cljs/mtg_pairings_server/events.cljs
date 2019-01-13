@@ -12,7 +12,6 @@
   (let [[event data] ?data]
     (dispatch [event data])))
 
-
 (def channel-open? (atom false))
 
 (reg-fx :ws-send
@@ -71,7 +70,7 @@
     {:db    (if user
               (assoc db :logged-in-user user)
               (assoc db :notification "DCI-numeroa ei löydy"
-                        :logged-in-user nil))
+                     :logged-in-user nil))
      :store [:user user]}))
 
 (reg-event-fx ::logout
@@ -97,10 +96,10 @@
 (reg-event-db ::reset-tournament-filter
   (fn [db _]
     (assoc db :tournaments-page 0
-              :tournament-filter {:organizer ""
-                                  :date-from nil
-                                  :date-to   nil
-                                  :players   [0 (:max-players db)]})))
+           :tournament-filter {:organizer ""
+                               :date-from nil
+                               :date-to   nil
+                               :players   [0 (:max-players db)]})))
 
 (defn format-tournament [tournament]
   (let [rounds (sort > (into (set (:pairings tournament)) (:standings tournament)))]
@@ -248,18 +247,21 @@
 (defn resolve-organizer-action [db id action value]
   (case action
     :pairings {:ws-send [:client/organizer-pairings [id value]]
-               :db      (assoc-in-many db [:organizer :mode] :pairings
-                                          [:organizer :pairings-round] value
-                                          [:organizer :new-pairings] false)}
+               :db      (assoc-in-many db
+                                       [:organizer :mode] :pairings
+                                       [:organizer :pairings-round] value
+                                       [:organizer :new-pairings] false)}
     :standings {:ws-send [:client/organizer-standings [id value]]
-                :db      (assoc-in-many db [:organizer :mode] :standings
-                                           [:organizer :standings-round] value
-                                           [:organizer :new-standings] false)}
+                :db      (assoc-in-many db
+                                        [:organizer :mode] :standings
+                                        [:organizer :standings-round] value
+                                        [:organizer :new-standings] false)}
     :seatings {:ws-send [:client/organizer-seatings id]
                :db      (assoc-in db [:organizer :mode] :seatings)}
     :pods {:ws-send [:client/organizer-pods [id value]]
-           :db      (assoc-in-many db [:organizer :mode] :pods
-                                      [:organizer :new-pods] false)}
+           :db      (assoc-in-many db
+                                   [:organizer :mode] :pods
+                                   [:organizer :new-pods] false)}
     :clock {:db (assoc-in db [:organizer :mode] :clock)}
     :set-clock {:db (update-in db [:organizer :clock] (fnil into {}) {:time    (* value 60)
                                                                       :text    (format-time (* value 60))
@@ -275,14 +277,14 @@
 
 (defn send-organizer-action [db id action value]
   (assoc
-    (case action
-      :start-clock {:db (assoc-in db [:organizer :clock :running] true)}
-      :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
-      :select-pairings (resolve-organizer-action db id action value)
-      :select-standings (resolve-organizer-action db id action value)
-      :select-pods (resolve-organizer-action db id action value)
-      {})
-    :store [["organizer" id] {:action action, :value value}]))
+   (case action
+     :start-clock {:db (assoc-in db [:organizer :clock :running] true)}
+     :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
+     :select-pairings (resolve-organizer-action db id action value)
+     :select-standings (resolve-organizer-action db id action value)
+     :select-pods (resolve-organizer-action db id action value)
+     {})
+   :store [["organizer" id] {:action action, :value value}]))
 
 (reg-event-fx ::organizer-mode
   (fn [{:keys [db]} [_ action value]]

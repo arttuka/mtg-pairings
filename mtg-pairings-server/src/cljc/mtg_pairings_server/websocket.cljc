@@ -45,7 +45,6 @@
         :state   state
         :chsk    chsk})))
 
-
 ;; Event handler
 
 (defmulti event-handler :id)
