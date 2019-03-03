@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.styles.table
   (:require [garden.def :refer [defstyles]]
+            [garden.selectors :refer [nth-child &]]
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.util :refer [ellipsis-overflow when-mobile when-desktop]]
             [mtg-pairings-server.styles.variables :as variables]))
@@ -114,11 +115,10 @@
      :border-collapse :collapse
      :font-size       (px 16)
      :line-height     (px 24)}]
-   [:tr
-    [:&.even
-     {:background-color (variables/color :light-grey)}]
-    [:&.odd
-     {:background-color :white}]]
+   [:tbody
+    [:tr
+    [(& (nth-child "odd"))
+     {:background-color (variables/color :light-blue)}]]]
    (when-mobile
     [:&
      {:width (percent 100)}])]

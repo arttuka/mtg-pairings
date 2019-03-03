@@ -110,9 +110,9 @@
                                    :color          nil}}]
                          children]))}))
 
-(defn pairing-row [cls pairing]
+(defn pairing-row [pairing]
   (let [bye? (= (:table_number pairing) 0)]
-    [:tr {:class cls}
+    [:tr
      [:td.table (when-not bye? (:table_number pairing))]
      [:td.players
       [:span.player1 (:team1_name pairing)]
@@ -156,15 +156,15 @@
          [:th.points "Pist."]
          [:th.result "Tulos"]]]
        [:tbody
-        (for [[i pairing] (indexed @data)]
+        (for [pairing @data]
           ^{:key [(:team1_name pairing)]}
-          [pairing-row (if (even? i) "even" "odd") pairing])]])))
+          [pairing-row pairing])]])))
 
 (defn percentage [n]
   (gstring/format "%.3f" (* 100 n)))
 
-(defn standing-row [cls standing]
-  [:tr {:class cls}
+(defn standing-row [standing]
+  [:tr
    [:td.rank (:rank standing)]
    [:td.player (:team_name standing)]
    [:td.points (:points standing)]
@@ -183,17 +183,17 @@
      [:th.ogw "PGW"]
      [:th.pgw "OGW"]]]
    [:tbody
-    (for [[i standing] (indexed data)]
+    (for [standing data]
       ^{:key (:team_name standing)}
-      [standing-row (if (even? i) "even" "odd") standing])]])
+      [standing-row standing])]])
 
 (defn standings [id round]
   (let [data (subscribe [::subs/standings id round])]
     (fn standings-render [id round]
       [standing-table @data])))
 
-(defn pod-row [cls seat]
-  [:tr {:class cls}
+(defn pod-row [seat]
+  [:tr
    [:td.pod (:pod seat)]
    [:td.seat (:seat seat)]
    [:td.player (:team_name seat)]])
@@ -217,12 +217,12 @@
                            :dispatch-key ::events/sort-pods}
           "Pelaaja"]]]
        [:tbody
-        (for [[i seat] (indexed @data)]
+        (for [seat @data]
           ^{:key [(:team_name seat)]}
-          [pod-row (if (even? i) "even" "odd") seat])]])))
+          [pod-row seat])]])))
 
-(defn seating-row [cls seat]
-  [:tr {:class cls}
+(defn seating-row [seat]
+  [:tr
    [:td.table (:table_number seat)]
    [:td.player (:name seat)]])
 
@@ -244,9 +244,9 @@
                            :dispatch-key ::events/sort-seatings}
           "Pelaaja"]]]
        [:tbody
-        (for [[i seat] (indexed @data)]
+        (for [seat @data]
           ^{:key [(:name seat)]}
-          [seating-row (if (even? i) "even" "odd") seat])]])))
+          [seating-row seat])]])))
 
 (defn bracket-match [match]
   [:div.bracket-match

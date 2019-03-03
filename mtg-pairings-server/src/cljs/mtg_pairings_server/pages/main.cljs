@@ -34,7 +34,8 @@
                 :subtitle (:tournament latest-pairing)
                 :style    {:padding-bottom 0}}]
               [ui/card-text
-               {:style {:padding-top 0}}
+               {:style {:padding-top    0
+                        :padding-bottom 0}}
                [pairing latest-pairing (some? (:team2_name latest-pairing))]]]))
          (for [t @player-tournaments]
            ^{:key [:tournament (:id t)]}

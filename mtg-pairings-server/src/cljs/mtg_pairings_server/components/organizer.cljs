@@ -100,11 +100,9 @@
          :secondary true
          :disabled  (not @clock-running)}]])))
 
-(defn pairing [data even?]
+(defn pairing [data]
   (let [bye? (= (:table_number data) 0)]
-    [:div.row.pairing.no-round {:class (cls {:even even?
-                                             :odd  (not even?)
-                                             :bye  bye?})}
+    [:div.row.pairing.no-round {:class (when bye? :bye)}
      [:span.table-number (when-not bye? (or (:table_number data) (:pod data)))]
      [:span.player (:team1_name data) [:span.points (:team1_points data)]]
      [:span.player.opponent (:team2_name data) [:span.points (when-not bye? (:team2_points data))]]]))
@@ -117,9 +115,9 @@
       [:div.organizer-pairings
        [:h2 (str (:name @tournament) " - kierros " @pairings-round)]
        [:div.column
-        (for [[i p] (indexed (sort-by :team1_name (duplicate-pairings @pairings)))]
+        (for [p (sort-by :team1_name (duplicate-pairings @pairings))]
           ^{:key (:team1_name p)}
-          [pairing p (even? i)])]])))
+          [pairing p])]])))
 
 (defn seatings []
   (let [seatings (subscribe [::subs/organizer :seatings])
@@ -128,11 +126,9 @@
       [:div.organizer-seatings
        [:h2 (str (:name @tournament) " - seatings")]
        [:div.column
-        (for [[i s] (indexed @seatings)]
+        (for [s @seatings]
           ^{:key (:name s)}
           [:div.row.seating
-           {:class (cls {:even (even? i)
-                         :odd  (odd? i)})}
            [:span.table-number (:table_number s)]
            [:span.name (:name s)]])]])))
 
@@ -143,14 +139,12 @@
       [:div.organizer-pods
        [:h2 (str (:name @tournament) " - pods")]
        [:div.column
-        (for [[i s] (indexed @pods)]
-          ^{:key (:team_name s)}
+        (for [p @pods]
+          ^{:key (:team_name p)}
           [:div.row.seat
-           {:class (cls {:even (even? i)
-                         :odd  (odd? i)})}
-           [:span.pod-number (:pod s)]
-           [:span.seat-number (:seat s)]
-           [:span.name (:team_name s)]])]])))
+           [:span.pod-number (:pod p)]
+           [:span.seat-number (:seat p)]
+           [:span.name (:team_name p)]])]])))
 
 (defn percentage [n]
   (gstring/format "%.3f" (* 100 n)))
@@ -165,8 +159,7 @@
        [:div.column
         (for [{:keys [rank team_name points omw pgw ogw]} @standings]
           ^{:key (str "standings-" rank)}
-          [:div.row.standing {:class (cls {:even (even? rank)
-                                           :odd  (odd? rank)})}
+          [:div.row.standing
            [:span.rank rank]
            [:span.player team_name]
            [:span.points points]

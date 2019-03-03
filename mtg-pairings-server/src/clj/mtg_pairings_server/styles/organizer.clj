@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.styles.organizer
   (:require [garden.def :refer [defstyles]]
+            [garden.selectors :refer [nth-child &]]
             [garden.units :refer [px vh vw percent]]
             [mtg-pairings-server.styles.util :refer [ellipsis-overflow]]
             [mtg-pairings-server.styles.variables :as variables]))
@@ -113,8 +114,9 @@
    [:&.no-menu
     [:.column
      {:height "calc(100vh - 46px)"}]]
-   [:.even
-    {:background-color (variables/color :light-grey)}]
+   [:.row
+    [(& (nth-child "even"))
+     {:background-color (variables/color :light-grey)}]]
    table
    pairings
    pods
