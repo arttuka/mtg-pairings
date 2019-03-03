@@ -43,7 +43,8 @@
                      :compiler     {:output-to     "resources/public/css/main.css"
                                     :pretty-print? true}}]}
 
-  :minify-assets [[:css {:source ["resources/public/css/main.css"]
+  :minify-assets [[:css {:source ["resources/public/css/main.css"
+                                  "resources/public/css/slider.css"]
                          :target "resources/public/css/main.min.css"}]]
 
   :aliases {"fig"     ["trampoline" "run" "-m" "figwheel.main"]
@@ -108,5 +109,6 @@
                                              "minify-assets"
                                              "fig:min"]
                         :uberjar-exclusions [#"public/js/compiled"
-                                             #"public/css/main.css"]
+                                             #"public/css/main.css"
+                                             #"public/css/slider.css"]
                         :omit-source        true}})

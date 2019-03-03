@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.styles.main
   (:require [garden.def :refer [defstyles]]
             [garden.core :as garden]
+            [garden.stylesheet :refer [at-import]]
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.bracket :as bracket]
             [mtg-pairings-server.styles.organizer :as organizer]
@@ -10,6 +11,8 @@
             [mtg-pairings-server.styles.variables :as variables]))
 
 (defstyles base
+  (at-import "https://fonts.googleapis.com/css?family=Lato:700")
+  (at-import "https://fonts.googleapis.com/css?family=Roboto:400,500,700")
   [:html
    {:-webkit-text-size-adjust "100%"
     :-ms-text-size-adjust     "100%"}]

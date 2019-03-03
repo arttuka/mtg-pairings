@@ -111,6 +111,7 @@
      :flex-direction :column
      :flex-wrap      :wrap
      :align-content  :space-around
+     :align-items    :center
      :height         "calc(100vh - 112px)"}]
    [:&.no-menu
     [:.column

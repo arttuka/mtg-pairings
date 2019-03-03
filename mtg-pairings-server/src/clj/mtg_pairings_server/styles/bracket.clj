@@ -13,21 +13,21 @@
     {:display        :inline-block
      :vertical-align :top}
     (when-desktop
-      (for [n [1 2 4]
-            :let [d (/ 4 n)
-                  height (* d bracket-height)]]
-        [(keyword (str "&.matches-" n))
-         {:margin-top (px (* bracket-height (dec d) -1/2))}
-         [:.team
-          {:height (px height)}
-          [:&.team1
-           {:padding-top (px- height line-height 1)}]
-          [:&.team2
-           {:padding-top (px- height line-height 2)}]]]))
+     (for [n [1 2 4]
+           :let [d (/ 4 n)
+                 height (* d bracket-height)]]
+       [(keyword (str "&.matches-" n))
+        {:margin-top (px (* bracket-height (dec d) -1/2))}
+        [:.team
+         {:height (px height)}
+         [:&.team1
+          {:padding-top (px- height line-height 1)}]
+         [:&.team2
+          {:padding-top (px- height line-height 2)}]]]))
     (when-mobile
-      [:&
-       {:display :block}
-       [:.team
+     [:&
+      {:display :block}
+      [:.team
        {:height (px bracket-height)}
        [:&.team1
         {:padding-top (px- bracket-height line-height 1)}]
