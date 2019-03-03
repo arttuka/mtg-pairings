@@ -24,6 +24,7 @@
        :value                @value
        :floating-label-text  "Turnausjärjestäjä"
        :floating-label-fixed true
+       :floating-label-style {:color "#b3b3b3"}
        :class-name           :organizer-filter}
       [ui/menu-item {:value        ""
                      :primary-text "Kaikki järjestäjät"}]

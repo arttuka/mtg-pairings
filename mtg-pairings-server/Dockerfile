@@ -9,7 +9,7 @@ COPY ./src ./src
 COPY ./env ./env
 COPY ./resources ./resources
 COPY prod.cljs.edn .
-RUN lein uberjar
+RUN lein do clean, uberjar
 
 FROM openjdk:8-alpine
 WORKDIR /app

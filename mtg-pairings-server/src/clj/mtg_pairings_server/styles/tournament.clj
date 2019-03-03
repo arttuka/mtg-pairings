@@ -59,7 +59,7 @@
      {:position  :absolute
       :top       0
       :left      0
-      :color     (rgba 0 0 0 0.3)
+      :color     "#b3b3b3"
       :font-size (px 12)}]
     [:&.player-filter
      {:height      (px 60)
