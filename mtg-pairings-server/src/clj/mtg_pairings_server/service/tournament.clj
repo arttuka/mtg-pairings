@@ -3,9 +3,9 @@
             [clojure.edn :as edn]
             [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
-            [mtg-pairings-server.util.mtg-util :as mtg-util]
+            [mtg-pairings-server.util.mtg :as mtg-util]
             [mtg-pairings-server.util.sql :as sql-util]
-            [mtg-pairings-server.util.util :as util])
+            [mtg-pairings-server.util :as util])
   (:import (java.util UUID)))
 
 (defn user-for-apikey [apikey]
@@ -53,7 +53,7 @@
      (assoc :pairings pairings)
      (assoc :results results)
      (assoc :pods pods)
-     (update-in [:standings] #(map :num %))
+     (update :standings #(map :num %))
      (dissoc :round :pod_round))))
 
 (defn tournament [id]
@@ -160,10 +160,10 @@
     (:id t)))
 
 (defn ^:private fix-dci-number [player]
-  (update-in player [:dci] mtg-util/add-check-digits))
+  (update player :dci mtg-util/add-check-digits))
 
 (defn ^:private fix-dci-numbers [team]
-  (update-in team [:players] #(map fix-dci-number %)))
+  (update team :players #(map fix-dci-number %)))
 
 (defn ^:private delete-pods [tournament-id]
   (sql/exec-raw ["DELETE FROM pod_seat USING pod JOIN pod_round ON pod.pod_round = pod_round.id WHERE pod_round.tournament = ? AND pod = pod.id" [tournament-id]])

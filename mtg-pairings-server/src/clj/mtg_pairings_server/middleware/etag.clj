@@ -1,6 +1,5 @@
 (ns mtg-pairings-server.middleware.etag
   (:require [clojure.string :as str]
-            [ring.middleware.not-modified :refer [wrap-not-modified]]
             [clj-time.format :as f]
             [clj-time.coerce :as c])
   (:import (java.security MessageDigest)

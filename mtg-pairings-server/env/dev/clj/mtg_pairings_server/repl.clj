@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.repl
-  (:require [mount.core :as m]
+  (:require [mount.core :as m :refer [defstate]]
+            [cheshire.generate :as json-gen]
             [figwheel.main.api :as figwheel]
             [taoensso.timbre :as timbre]
             [clojure.tools.namespace.repl :as repl]
@@ -7,10 +8,15 @@
             [clojure.string :as str]
             [hawk.core :as hawk]
             [mtg-pairings-server.styles.main :as main-css]
-            mtg-pairings-server.server))
+            mtg-pairings-server.server)
+  (:import (com.fasterxml.jackson.core JsonGenerator)
+           (org.joda.time LocalDate)))
 
 (m/in-cljc-mode)
 (timbre/swap-config! (fn [config] (assoc config :ns-whitelist ["mtg-pairings-server.*"])))
+(json-gen/add-encoder LocalDate
+                      (fn [c ^JsonGenerator generator]
+                        (.writeString generator (str c))))
 
 (defn compile-garden-css! []
   (require 'mtg-pairings-server.styles.main :reload-all)
@@ -19,7 +25,7 @@
     (io/make-parents f)
     (spit f main-css/css)))
 
-(m/defstate garden-watcher
+(defstate garden-watcher
   :start (do
            (compile-garden-css!)
            (hawk/watch! [{:paths   ["src/clj/mtg_pairings_server/styles"]
@@ -30,7 +36,7 @@
                                      ctx)}]))
   :stop (hawk/stop! @garden-watcher))
 
-(m/defstate figwheel
+(defstate figwheel
   :start (figwheel/start {:mode :serve} "dev")
   :stop (figwheel/stop "dev"))
 

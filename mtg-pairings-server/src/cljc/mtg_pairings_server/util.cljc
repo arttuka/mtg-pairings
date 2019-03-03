@@ -1,4 +1,4 @@
-(ns mtg-pairings-server.util.util
+(ns mtg-pairings-server.util
   (:require [#?(:clj  clj-time.format
                 :cljs cljs-time.format)
              :as format]
@@ -75,6 +75,11 @@
 
 (defn assoc-in-many [m & kvs]
   (reduce (fn [m [ks v]] (assoc-in m ks v)) m (partition 2 kvs)))
+
+(defn dissoc-in [m [k & ks]]
+  (if ks
+    (update m k dissoc-in ks)
+    (dissoc m k)))
 
 (defn round-up [n m]
   (* m (quot (+ n m -1) m)))

@@ -11,8 +11,8 @@
             [mtg-pairings-server.components.slider :refer [slider]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util.util :refer [to-local-date]]
-            [mtg-pairings-server.material-ui.util :refer [get-theme]]))
+            [mtg-pairings-server.util :refer [to-local-date]]
+            [mtg-pairings-server.util.material-ui :refer [get-theme]]))
 
 (defn organizer-filter []
   (let [organizers (subscribe [::subs/organizers])

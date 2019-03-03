@@ -3,7 +3,7 @@
             [schema.core :as s]
             [mtg-pairings-server.service.player :refer :all]
             [mtg-pairings-server.util.schema :refer :all]
-            [mtg-pairings-server.util.util :refer [response]]))
+            [mtg-pairings-server.util :refer [response]]))
 
 (defroutes player-routes
   (GET "/" []

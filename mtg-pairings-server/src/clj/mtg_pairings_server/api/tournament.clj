@@ -6,7 +6,7 @@
             [mtg-pairings-server.service.tournament :refer :all]
             [mtg-pairings-server.util.broadcast :refer [broadcast-tournament]]
             [mtg-pairings-server.util.schema :refer :all]
-            [mtg-pairings-server.util.util :refer [response]]))
+            [mtg-pairings-server.util :refer [response]]))
 
 (defmacro validate-request [sanction-id apikey & body]
   `(let [user# (user-for-apikey ~apikey)
@@ -28,7 +28,7 @@
     :body [tournament InputTournament {:description "Uusi turnaus"}]
     (if-let [user (user-for-apikey key)]
       (let [tournament (-> tournament
-                           (update-in [:day] clj-time.coerce/to-local-date)
+                           (update :day clj-time.coerce/to-local-date)
                            (assoc :owner user))]
         (response (select-keys (add-tournament tournament) [:id])))
       {:status 400

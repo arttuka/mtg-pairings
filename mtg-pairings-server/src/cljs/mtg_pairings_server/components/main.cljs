@@ -12,8 +12,8 @@
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.routes :refer [tournaments-path standings-path]]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util.util :refer [format-date indexed]]
-            [mtg-pairings-server.material-ui.util :refer [get-theme]]))
+            [mtg-pairings-server.util :refer [format-date indexed]]
+            [mtg-pairings-server.util.material-ui :refer [get-theme]]))
 
 (defn pairing [data pairing?]
   (reagent/create-class

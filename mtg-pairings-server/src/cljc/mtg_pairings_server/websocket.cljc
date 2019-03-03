@@ -1,10 +1,11 @@
 (ns mtg-pairings-server.websocket
   (:require [taoensso.sente :as sente]
             [taoensso.timbre :as log]
-            [mount.core :as m]
+            #?(:clj  [mount.core :refer [defstate]]
+               :cljs [mount.core :refer-macros [defstate]])
             [cognitect.transit :as transit]
             [taoensso.sente.packers.transit :as sente-transit]
-            [mtg-pairings-server.util.util :refer [parse-iso-date format-iso-date]]
+            [mtg-pairings-server.util :refer [parse-iso-date format-iso-date]]
             #?(:clj [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])
             #?(:clj [compojure.core :refer [defroutes GET POST]])))
 
@@ -70,7 +71,7 @@
   #?(:cljs (sente/chsk-disconnect! (:chsk r)))
   ((:router r)))
 
-(m/defstate router
+(defstate router
   :start (start-router)
   :stop (stop-router @router))
 

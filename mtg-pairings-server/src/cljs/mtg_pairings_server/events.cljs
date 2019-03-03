@@ -1,12 +1,11 @@
 (ns mtg-pairings-server.events
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
-            [cljs.core.async :refer [<! >! timeout]]
+            [cljs.core.async :refer [<! timeout] :refer-macros [go-loop]]
             [cljs-time.core :as time]
-            [mtg-pairings-server.util.local-storage :refer [fetch store]]
+            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many round-up]]
+            [mtg-pairings-server.util.local-storage :as local-storage]
             [mtg-pairings-server.util.mobile :refer [mobile?]]
-            [mtg-pairings-server.util.util :refer [map-by format-time assoc-in-many round-up]]
-            [mtg-pairings-server.websocket :as ws])
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
+            [mtg-pairings-server.websocket :as ws]))
 
 (defmethod ws/event-handler :chsk/recv
   [{:keys [?data]}]
@@ -27,7 +26,7 @@
 
 (reg-fx :store
   (fn [[key obj]]
-    (store key obj)))
+    (local-storage/store key obj)))
 
 (def initial-db {:tournaments        {}
                  :tournament-count   0
@@ -44,7 +43,7 @@
                  :pods               {:sort-key :pod}
                  :seatings           {:sort-key :table_number}
                  :page               {:page :main}
-                 :logged-in-user     (fetch :user)
+                 :logged-in-user     (local-storage/fetch :user)
                  :notification       nil
                  :mobile?            (mobile?)})
 
@@ -61,7 +60,7 @@
 
 (defn connect! []
   (ws/send! [:client/connect])
-  (when-let [user (fetch :user)]
+  (when-let [user (local-storage/fetch :user)]
     (ws/send! [:client/login (:dci user)])))
 
 (defmethod ws/event-handler :chsk/state

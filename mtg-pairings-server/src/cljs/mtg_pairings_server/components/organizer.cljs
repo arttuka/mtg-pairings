@@ -8,8 +8,8 @@
             [goog.string :as gstring]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util.util :refer [cls indexed]]
-            [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]
+            [mtg-pairings-server.util :refer [cls indexed]]
+            [mtg-pairings-server.util.mtg :refer [duplicate-pairings]]
             [mtg-pairings-server.components.tournament :refer [standing-table]]))
 
 (defn round-select [type a rounds]

@@ -4,7 +4,7 @@
             [cljsjs.material-ui]
             [cljs-react-material-ui.core :refer [get-mui-theme]]
             [cljs-react-material-ui.reagent :as ui]
-            [mount.core :as m]
+            [mount.core :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
             mtg-pairings-server.routes
@@ -68,5 +68,5 @@
   (accountant/dispatch-current!)
   (mount-root))
 
-(m/defstate core
+(defstate core
   :start (init!))

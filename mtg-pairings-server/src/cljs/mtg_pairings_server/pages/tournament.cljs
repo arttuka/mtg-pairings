@@ -6,7 +6,7 @@
             [mtg-pairings-server.components.tournament :refer [tournament-list tournament-card-header tournament pairings standings pods seatings bracket]]
             [mtg-pairings-server.routes :refer [tournament-path]]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util.util :refer [format-date]]))
+            [mtg-pairings-server.util :refer [format-date]]))
 
 (defn tournaments-page []
   [tournament-list])

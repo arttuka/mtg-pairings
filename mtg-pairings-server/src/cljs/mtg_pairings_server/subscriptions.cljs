@@ -2,8 +2,8 @@
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [cljs-time.core :as time]
             [clojure.string :as str]
-            [mtg-pairings-server.util.util :refer [today-or-yesterday?]]
-            [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]))
+            [mtg-pairings-server.util :refer [today-or-yesterday?]]
+            [mtg-pairings-server.util.mtg :refer [duplicate-pairings]]))
 
 (reg-sub ::mobile?
   (fn [db _]

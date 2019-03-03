@@ -4,8 +4,12 @@
             [config.core :refer [env]]
             [hiccup.page :refer [include-js include-css html5]]
             [taoensso.timbre :as log]
+            [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [mtg-pairings-server.api.http :as http-api]
             [mtg-pairings-server.middleware :refer [wrap-site-middleware wrap-api-middleware]]
+            [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
+            [mtg-pairings-server.middleware.error :refer [wrap-errors]]
+            [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.util.broadcast :as broadcast]
@@ -44,12 +48,18 @@
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
   ws/routes)
 
-(defroutes app
+(defroutes app-routes
   (c/routes
-   (wrap-api-middleware #'http-api/app)
-   (wrap-site-middleware #'site-routes)
+   (wrap-api-middleware http-api/app)
+   (wrap-site-middleware site-routes)
    (wrap-site-middleware (resources "/"))
    (wrap-site-middleware (not-found "Not Found"))))
+
+(def app (-> app-routes
+             wrap-json-with-padding
+             wrap-request-log
+             wrap-allow-origin
+             wrap-errors))
 
 (defmethod ws/event-handler
   :chsk/uidport-open

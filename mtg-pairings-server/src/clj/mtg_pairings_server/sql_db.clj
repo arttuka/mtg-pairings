@@ -4,12 +4,12 @@
             [clj-time.coerce :as time-coerce]
             [korma.core :as sql]
             [korma.db]
-            [mount.core :as m]
+            [mount.core :refer [defstate]]
             [config.core :refer [env]])
   (:import (java.sql Date)
            (org.joda.time LocalDate)))
 
-(m/defstate db
+(defstate db
   :start (korma.db/default-connection (korma.db/create-db
                                        (korma.db/postgres {:host     (:db-host env)
                                                            :port     (:db-port env)

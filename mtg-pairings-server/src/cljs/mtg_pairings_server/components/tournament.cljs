@@ -10,11 +10,11 @@
             [prop-types]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util.util :refer [format-date indexed]]
             [mtg-pairings-server.routes :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
             [mtg-pairings-server.components.filter :refer [filters]]
-            [mtg-pairings-server.material-ui.util :refer [get-theme]]))
+            [mtg-pairings-server.util :refer [format-date indexed]]
+            [mtg-pairings-server.util.material-ui :refer [get-theme]]))
 
 (defn tournament-card-header
   ([data]
