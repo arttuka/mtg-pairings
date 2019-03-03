@@ -9,7 +9,7 @@
                  [hiccup "1.0.5"]
                  [yogthos/config "1.1.1"]
                  [org.clojure/core.cache "0.7.2"]
-                 [http-kit "2.4.0-alpha2"]
+                 [aleph "0.4.6"]
                  [org.clojure/tools.reader "1.3.2"]
                  [clj-time "0.15.1"]
                  [korma "0.4.3"]
