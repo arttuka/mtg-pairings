@@ -2,23 +2,25 @@
   (:require [compojure.api.sweet :refer :all]
             [clojure.string :as str]
             [clj-time.coerce]
+            [korma.db :as db]
             [schema.core :as s]
             [mtg-pairings-server.service.tournament :refer :all]
             [mtg-pairings-server.util.broadcast :refer [broadcast-tournament]]
             [mtg-pairings-server.util.schema :refer :all]
-            [mtg-pairings-server.util.util :refer [response]]))
+            [mtg-pairings-server.util :refer [response]]))
 
 (defmacro validate-request [sanction-id apikey & body]
-  `(let [user# (user-for-apikey ~apikey)
-         owner# (owner-of-tournament ~sanction-id)]
-     (cond
-       (nil? owner#) {:status 404
-                      :body   "Virheellinen sanktiointinumero"}
-       (nil? user#) {:status 400
-                     :body   "Virheellinen API key"}
-       (not= owner# user#) {:status 403
-                            :body   "Eri käyttäjän tallentama turnaus"}
-       :else (do ~@body))))
+  `(db/transaction
+    (let [user# (user-for-apikey ~apikey)
+          owner# (owner-of-tournament ~sanction-id)]
+      (cond
+        (nil? owner#) {:status 404
+                       :body   "Virheellinen sanktiointinumero"}
+        (nil? user#) {:status 400
+                      :body   "Virheellinen API key"}
+        (not= owner# user#) {:status 403
+                             :body   "Eri käyttäjän tallentama turnaus"}
+        :else (do ~@body)))))
 
 (defroutes tournament-routes
   (POST "/" []
@@ -26,13 +28,14 @@
     :summary "Lisää turnaus"
     :query-params [key :- String]
     :body [tournament InputTournament {:description "Uusi turnaus"}]
-    (if-let [user (user-for-apikey key)]
-      (let [tournament (-> tournament
-                           (update-in [:day] clj-time.coerce/to-local-date)
-                           (assoc :owner user))]
-        (response (select-keys (add-tournament tournament) [:id])))
-      {:status 400
-       :body   "Virheellinen API key"}))
+    (db/transaction
+     (if-let [user (user-for-apikey key)]
+       (let [tournament (-> tournament
+                            (update :day clj-time.coerce/to-local-date)
+                            (assoc :owner user))]
+         (response (select-keys (add-tournament tournament) [:id])))
+       {:status 400
+        :body   "Virheellinen API key"})))
   (PUT "/:sanctionid" []
     :path-params [sanctionid :- s/Str]
     :query-params [key :- s/Str]

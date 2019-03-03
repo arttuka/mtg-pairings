@@ -1,17 +1,16 @@
 (ns mtg-pairings-server.events
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
-            [cljs.core.async :refer [<! >! timeout]]
+            [cljs.core.async :refer [<! timeout] :refer-macros [go-loop]]
             [cljs-time.core :as time]
-            [mtg-pairings-server.util.local-storage :refer [fetch store]]
-            [mtg-pairings-server.util.util :refer [map-by format-time assoc-in-many round-up]]
-            [mtg-pairings-server.websocket :as ws])
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
+            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many round-up]]
+            [mtg-pairings-server.util.local-storage :as local-storage]
+            [mtg-pairings-server.util.mobile :refer [mobile?]]
+            [mtg-pairings-server.websocket :as ws]))
 
 (defmethod ws/event-handler :chsk/recv
   [{:keys [?data]}]
   (let [[event data] ?data]
     (dispatch [event data])))
-
 
 (def channel-open? (atom false))
 
@@ -27,7 +26,7 @@
 
 (reg-fx :store
   (fn [[key obj]]
-    (store key obj)))
+    (local-storage/store key obj)))
 
 (def initial-db {:tournaments        {}
                  :tournament-count   0
@@ -37,14 +36,23 @@
                                       :date-from nil
                                       :date-to   nil
                                       :players   [0 100]}
+                 :filters-active     false
                  :max-players        100
                  :player-tournaments []
                  :pairings           {:sort-key :table_number}
                  :pods               {:sort-key :pod}
                  :seatings           {:sort-key :table_number}
                  :page               {:page :main}
-                 :logged-in-user     (fetch :user)
-                 :notification       nil})
+                 :logged-in-user     (local-storage/fetch :user)
+                 :notification       nil
+                 :mobile?            (mobile?)})
+
+(defn update-filters-active [db]
+  (assoc db :filters-active (not= {:organizer ""
+                                   :date-from nil
+                                   :date-to   nil
+                                   :players   [0 (:max-players db)]}
+                                  (:tournament-filter db))))
 
 (reg-event-db ::initialize
   (fn [db _]
@@ -52,7 +60,7 @@
 
 (defn connect! []
   (ws/send! [:client/connect])
-  (when-let [user (fetch :user)]
+  (when-let [user (local-storage/fetch :user)]
     (ws/send! [:client/login (:dci user)])))
 
 (defmethod ws/event-handler :chsk/state
@@ -61,6 +69,10 @@
     (when (:first-open? new-state)
       (reset! channel-open? true)
       (connect!))))
+
+(reg-event-db ::window-resized
+  (fn [db _]
+    (assoc db :mobile? (mobile?))))
 
 (reg-event-fx ::login
   (fn [_ [_ dci-number]]
@@ -71,7 +83,7 @@
     {:db    (if user
               (assoc db :logged-in-user user)
               (assoc db :notification "DCI-numeroa ei löydy"
-                        :logged-in-user nil))
+                     :logged-in-user nil))
      :store [:user user]}))
 
 (reg-event-fx ::logout
@@ -92,15 +104,18 @@
   (fn [db [_ [key value]]]
     (-> db
         (assoc-in [:tournament-filter key] value)
-        (assoc :tournaments-page 0))))
+        (assoc :tournaments-page 0)
+        (update-filters-active))))
 
 (reg-event-db ::reset-tournament-filter
   (fn [db _]
-    (assoc db :tournaments-page 0
-              :tournament-filter {:organizer ""
-                                  :date-from nil
-                                  :date-to   nil
-                                  :players   [0 (:max-players db)]})))
+    (assoc db
+           :tournaments-page 0
+           :tournament-filter {:organizer ""
+                               :date-from nil
+                               :date-to   nil
+                               :players   [0 (:max-players db)]}
+           :filters-active false)))
 
 (defn format-tournament [tournament]
   (let [rounds (sort > (into (set (:pairings tournament)) (:standings tournament)))]
@@ -117,6 +132,14 @@
                  :tournament-ids (map :id tournaments)
                  :max-players max-players)
           (assoc-in [:tournament-filter :players 1] max-players)))))
+
+(reg-event-db :server/tournament
+  (fn [db [_ tournament]]
+    (assoc-in db [:tournaments (:id tournament)] (format-tournament tournament))))
+
+(reg-event-fx ::load-tournament
+  (fn [_ [_ id]]
+    {:ws-send [:client/tournament id]}))
 
 (reg-event-fx ::load-pairings
   (fn [_ [_ id round]]
@@ -201,6 +224,9 @@
       (assoc-in-many [:organizer :new-pods] true
                      [:organizer :selected-pods] (str (last (:pods tournament))))
 
+      (not= (:seatings tournament) (boolean (get-in db [:organizer :tournament :seatings])))
+      (assoc-in [:organizer :new-seatings] true)
+
       :always
       (assoc-in [:organizer :tournament] tournament))))
 
@@ -248,18 +274,23 @@
 (defn resolve-organizer-action [db id action value]
   (case action
     :pairings {:ws-send [:client/organizer-pairings [id value]]
-               :db      (assoc-in-many db [:organizer :mode] :pairings
-                                          [:organizer :pairings-round] value
-                                          [:organizer :new-pairings] false)}
+               :db      (assoc-in-many db
+                                       [:organizer :mode] :pairings
+                                       [:organizer :pairings-round] value
+                                       [:organizer :new-pairings] false)}
     :standings {:ws-send [:client/organizer-standings [id value]]
-                :db      (assoc-in-many db [:organizer :mode] :standings
-                                           [:organizer :standings-round] value
-                                           [:organizer :new-standings] false)}
+                :db      (assoc-in-many db
+                                        [:organizer :mode] :standings
+                                        [:organizer :standings-round] value
+                                        [:organizer :new-standings] false)}
     :seatings {:ws-send [:client/organizer-seatings id]
-               :db      (assoc-in db [:organizer :mode] :seatings)}
+               :db      (assoc-in-many db
+                                       [:organizer :mode] :seatings
+                                       [:organizer :new-seatings] false)}
     :pods {:ws-send [:client/organizer-pods [id value]]
-           :db      (assoc-in-many db [:organizer :mode] :pods
-                                      [:organizer :new-pods] false)}
+           :db      (assoc-in-many db
+                                   [:organizer :mode] :pods
+                                   [:organizer :new-pods] false)}
     :clock {:db (assoc-in db [:organizer :mode] :clock)}
     :set-clock {:db (update-in db [:organizer :clock] (fnil into {}) {:time    (* value 60)
                                                                       :text    (format-time (* value 60))
@@ -271,18 +302,19 @@
                  :db    (assoc-in db [:organizer :clock :running] false)}
     :select-pairings {:db (assoc-in db [:organizer :selected-pairings] value)}
     :select-standings {:db (assoc-in db [:organizer :selected-standings] value)}
-    :select-pods {:db (assoc-in db [:organizer :selected-pods] value)}))
+    :select-pods {:db (assoc-in db [:organizer :selected-pods] value)}
+    :close-popup {:db (assoc-in db [:organizer :menu] false)}))
 
 (defn send-organizer-action [db id action value]
   (assoc
-    (case action
-      :start-clock {:db (assoc-in db [:organizer :clock :running] true)}
-      :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
-      :select-pairings (resolve-organizer-action db id action value)
-      :select-standings (resolve-organizer-action db id action value)
-      :select-pods (resolve-organizer-action db id action value)
-      {})
-    :store [["organizer" id] {:action action, :value value}]))
+   (case action
+     :start-clock {:db (assoc-in db [:organizer :clock :running] true)}
+     :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
+     :select-pairings (resolve-organizer-action db id action value)
+     :select-standings (resolve-organizer-action db id action value)
+     :select-pods (resolve-organizer-action db id action value)
+     {})
+   :store [["organizer" id] {:action action, :value value}]))
 
 (reg-event-fx ::organizer-mode
   (fn [{:keys [db]} [_ action value]]
@@ -295,10 +327,18 @@
   (fn [id]
     (.open js/window (str "/tournaments/" id "/organizer/menu") (str "menu" id))))
 
+(reg-fx :close-popup
+  (fn []
+    (js/setTimeout #(.close js/window) 100)))
+
 (reg-event-fx ::popup-organizer-menu
   (fn [{:keys [db]} _]
-    {:db    (assoc-in db [:organizer :menu] true)
-     :popup (get-in db [:page :id])}))
+    (let [{:keys [id page]} (:page db)]
+      (case page
+        :organizer {:db    (assoc-in db [:organizer :menu] true)
+                    :popup (get-in db [:page :id])}
+        :organizer-menu {:store       [["organizer" id] {:action :close-popup}]
+                         :close-popup nil}))))
 
 (reg-event-fx ::local-storage-updated
   (fn [{:keys [db]} [_ k v]]

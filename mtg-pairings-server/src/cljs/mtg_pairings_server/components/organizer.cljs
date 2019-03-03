@@ -5,10 +5,11 @@
             [cljs-react-material-ui.core]
             [cljs-react-material-ui.reagent :as ui]
             [cljs-react-material-ui.icons :as icons]
+            [goog.string :as gstring]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util.util :refer [cls indexed]]
-            [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]
+            [mtg-pairings-server.util :refer [cls indexed]]
+            [mtg-pairings-server.util.mtg :refer [duplicate-pairings]]
             [mtg-pairings-server.components.tournament :refer [standing-table]]))
 
 (defn round-select [type a rounds]
@@ -18,8 +19,8 @@
     :value     @a
     :style     {:vertical-align :bottom
                 :width          "60px"
-                :margin-left    "6px"
-                :margin-right   "6px"}}
+                :margin-left    "10px"
+                :margin-right   "10px"}}
    (for [round @rounds]
      ^{:key (str type round)}
      [ui/menu-item
@@ -33,6 +34,7 @@
         standings-rounds (subscribe [::subs/organizer :tournament :standings])
         new-pods (subscribe [::subs/organizer :new-pods])
         pods-rounds (subscribe [::subs/organizer :tournament :pods])
+        new-seatings (subscribe [::subs/organizer :new-seatings])
         clock-running (subscribe [::subs/organizer :clock :running])
         pairings-round (subscribe [::subs/organizer :selected-pairings])
         standings-round (subscribe [::subs/organizer :selected-standings])
@@ -63,12 +65,13 @@
        [round-select :select-pods pods-round pods-rounds]
        [ui/raised-button
         {:label    "Seatings"
-         :on-click #(dispatch [::events/organizer-mode :seatings])}]
+         :on-click #(dispatch [::events/organizer-mode :seatings])
+         :primary  @new-seatings}]
        [ui/raised-button
         {:label    "Kello"
          :on-click #(dispatch [::events/organizer-mode :clock])
-         :style    {:margin-left  "6px"
-                    :margin-right "6px"}}]
+         :style    {:margin-left  "10px"
+                    :margin-right "10px"}}]
        [ui/text-field
         {:type      :number
          :value     @minutes
@@ -77,8 +80,8 @@
          :on-change (fn [_ new-value]
                       (reset! minutes new-value))
          :style     {:width        "40px"
-                     :margin-left  "6px"
-                     :margin-right "6px"}
+                     :margin-left  "10px"
+                     :margin-right "10px"}
          :id        :clock-minutes}]
        [ui/raised-button
         {:label    "Aseta"
@@ -89,21 +92,20 @@
          :on-click #(dispatch [::events/organizer-mode :start-clock])
          :primary  true
          :disabled @clock-running
-         :style    {:margin-left  "6px"
-                    :margin-right "6px"}}]
+         :style    {:margin-left  "10px"
+                    :margin-right "10px"}}]
        [ui/raised-button
         {:label     "Pysäytä"
          :on-click  #(dispatch [::events/organizer-mode :stop-clock])
          :secondary true
          :disabled  (not @clock-running)}]])))
 
-(defn pairing [data even?]
-  [:div.pairing.no-round {:class (cls {:even even?
-                                       :odd  (not even?)})}
-   [:span.table-number (or (:table_number data) (:pod data))]
-   [:div.names
-    [:span.player (:team1_name data) [:span.points (:team1_points data)]]
-    [:span.player.opponent (:team2_name data) [:span.points (:team2_points data)]]]])
+(defn pairing [data]
+  (let [bye? (= (:table_number data) 0)]
+    [:div.row.pairing.no-round {:class (when bye? :bye)}
+     [:span.table-number (when-not bye? (or (:table_number data) (:pod data)))]
+     [:span.player (:team1_name data) [:span.points (:team1_points data)]]
+     [:span.player.opponent (:team2_name data) [:span.points (when-not bye? (:team2_points data))]]]))
 
 (defn pairings []
   (let [pairings (subscribe [::subs/organizer :pairings])
@@ -113,9 +115,9 @@
       [:div.organizer-pairings
        [:h2 (str (:name @tournament) " - kierros " @pairings-round)]
        [:div.column
-        (for [[i p] (indexed (sort-by :team1_name (duplicate-pairings @pairings)))]
+        (for [p (sort-by :team1_name (duplicate-pairings @pairings))]
           ^{:key (:team1_name p)}
-          [pairing p (even? i)])]])))
+          [pairing p])]])))
 
 (defn seatings []
   (let [seatings (subscribe [::subs/organizer :seatings])
@@ -124,14 +126,11 @@
       [:div.organizer-seatings
        [:h2 (str (:name @tournament) " - seatings")]
        [:div.column
-        (for [[i s] (indexed @seatings)]
+        (for [s @seatings]
           ^{:key (:name s)}
-          [:div.seating
-           {:class (cls {:even (even? i)
-                         :odd  (odd? i)})}
+          [:div.row.seating
            [:span.table-number (:table_number s)]
-           [:span
-            [:div.name (:name s)]]])]])))
+           [:span.name (:name s)]])]])))
 
 (defn pods []
   (let [pods (subscribe [::subs/organizer :pods])
@@ -140,15 +139,15 @@
       [:div.organizer-pods
        [:h2 (str (:name @tournament) " - pods")]
        [:div.column
-        (for [[i s] (indexed @pods)]
-          ^{:key (:team_name s)}
-          [:div.seat
-           {:class (cls {:even (even? i)
-                         :odd  (odd? i)})}
-           [:span.pod-number (:pod s)]
-           [:span.seat-number (:seat s)]
-           [:span
-            [:div.name (:team_name s)]]])]])))
+        (for [p @pods]
+          ^{:key (:team_name p)}
+          [:div.row.seat
+           [:span.pod-number (:pod p)]
+           [:span.seat-number (:seat p)]
+           [:span.name (:team_name p)]])]])))
+
+(defn percentage [n]
+  (gstring/format "%.3f" (* 100 n)))
 
 (defn standings []
   (let [standings (subscribe [::subs/organizer :standings])
@@ -157,7 +156,16 @@
     (fn standings-render []
       [:div.organizer-standings
        [:h2 (str (:name @tournament) " - kierros " @standings-round)]
-       [:div.column [standing-table @standings]]])))
+       [:div.column
+        (for [{:keys [rank team_name points omw pgw ogw]} @standings]
+          ^{:key (str "standings-" rank)}
+          [:div.row.standing
+           [:span.rank rank]
+           [:span.player team_name]
+           [:span.points points]
+           [:span.omw (percentage omw)]
+           [:span.pgw (percentage pgw)]
+           [:span.ogw (percentage ogw)]])]])))
 
 (defn clock []
   (let [c (subscribe [::subs/organizer :clock])]

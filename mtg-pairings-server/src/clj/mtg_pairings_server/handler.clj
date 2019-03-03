@@ -4,40 +4,40 @@
             [config.core :refer [env]]
             [hiccup.page :refer [include-js include-css html5]]
             [taoensso.timbre :as log]
+            [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
+            [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [mtg-pairings-server.api.http :as http-api]
             [mtg-pairings-server.middleware :refer [wrap-site-middleware wrap-api-middleware]]
+            [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
+            [mtg-pairings-server.middleware.error :refer [wrap-errors]]
+            [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.util.broadcast :as broadcast]
             [mtg-pairings-server.websocket :as ws]))
 
-(def mount-target
-  [:div#app
-   (when (env :dev)
-     [:div
-      [:h3 "ClojureScript has not been compiled!"]
-      [:p "please run "
-       [:b "lein figwheel"]
-       " in order to start the compiler"]])])
-
-(defn head []
-  [:head
-   [:meta {:charset "utf-8"}]
-   [:meta {:name    "viewport"
-           :content "width=device-width, initial-scale=1"}]
-   (include-css "https://fonts.googleapis.com/css?family=Lato:400,700")
-   (include-css "https://fonts.googleapis.com/css?family=Roboto:300,400,500")
-   (if (env :dev)
-     (include-css "/css/main.css")
-     (include-css "/css/main.min.css"))])
-
 (defn loading-page []
-  (html5
-    (head)
-    [:body {:class "body-container"}
-     mount-target
-     (include-js "/js/app.js")]))
-
+  (let [html (html5
+              {:lang :fi}
+              [:head
+               [:title "Pairings.fi"]
+               [:meta {:charset "utf-8"}]
+               [:meta {:name    "viewport"
+                       :content "width=device-width, initial-scale=1"}]
+               (include-css (if (env :dev)
+                              "/css/main.css"
+                              "/css/main.min.css"))
+               (when (env :dev)
+                 (include-css "/css/slider.css"))]
+              [:body {:class "body-container"}
+               [:div#app]
+               [:script (str "var csrf_token = '" *anti-forgery-token* "';")]
+               (include-js (if (env :dev)
+                             "/js/dev-main.js"
+                             "/js/prod-main.js"))])]
+    {:status  200
+     :body    html
+     :headers {"Content-Type" "text/html"}}))
 
 (defroutes site-routes
   (GET "/" [] (loading-page))
@@ -51,17 +51,24 @@
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
-  (GET "/chsk" request
-    (ws/ajax-get-or-ws-handshake-fn request))
-  (POST "/chsk" request
-    (ws/ajax-post-fn request)))
+  ws/routes)
 
-(defroutes app
+(defroutes app-routes
   (c/routes
-    (wrap-api-middleware #'http-api/app)
-    (wrap-site-middleware #'site-routes)
-    (wrap-site-middleware (resources "/"))
-    (wrap-site-middleware (not-found "Not Found"))))
+   (wrap-api-middleware http-api/app)
+   (wrap-site-middleware site-routes)
+   (wrap-site-middleware (resources "/"))
+   (wrap-site-middleware (not-found "Not Found"))))
+
+(def app (-> app-routes
+             wrap-json-with-padding
+             wrap-request-log
+             wrap-allow-origin
+             wrap-errors))
+
+(defmethod ws/event-handler
+  :chsk/uidport-open
+  [_])
 
 (defmethod ws/event-handler :chsk/uidport-close
   [{:keys [uid]}]
@@ -91,6 +98,10 @@
 (defmethod ws/event-handler :client/tournaments
   [{:keys [uid]}]
   (ws/send! uid [:server/tournaments (tournament/tournaments)]))
+
+(defmethod ws/event-handler :client/tournament
+  [{uid :uid, id :?data}]
+  (ws/send! uid [:server/tournament (tournament/tournament id)]))
 
 (defmethod ws/event-handler :client/pairings
   [{uid :uid, [id round] :?data}]

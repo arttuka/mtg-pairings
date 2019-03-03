@@ -2,8 +2,12 @@
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [cljs-time.core :as time]
             [clojure.string :as str]
-            [mtg-pairings-server.util.util :refer [today-or-yesterday?]]
-            [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]))
+            [mtg-pairings-server.util :refer [today-or-yesterday?]]
+            [mtg-pairings-server.util.mtg :refer [duplicate-pairings]]))
+
+(reg-sub ::mobile?
+  (fn [db _]
+    (:mobile? db)))
 
 (reg-sub ::logged-in-user
   (fn [db _]
@@ -58,6 +62,10 @@
                         (player-filter min-players max-players))]
       (sequence filters tournaments))))
 
+(reg-sub ::filters-active
+  (fn [db _]
+    (:filters-active db)))
+
 (reg-sub ::newest-tournaments
   :<- [::tournaments]
   (fn [tournaments _]
@@ -90,8 +98,8 @@
      (subscribe [::pairings-sort])])
   (fn [[pairings sort-key] _]
     (cond->> pairings
-             (= sort-key :team1_name) duplicate-pairings
-             :always (sort-by sort-key))))
+      (= sort-key :team1_name) duplicate-pairings
+      :always (sort-by sort-key))))
 
 (reg-sub ::standings
   (fn [db [_ id round]]

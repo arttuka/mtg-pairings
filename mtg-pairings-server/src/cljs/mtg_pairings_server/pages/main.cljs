@@ -17,15 +17,15 @@
                    pod-seat
                    (or pairing seating))]
     (assoc selected
-      :tournament (:name t)
-      :day (:day t))))
+           :tournament (:name t)
+           :day (:day t))))
 
 (defn main-page []
   (let [user (subscribe [::subs/logged-in-user])
         player-tournaments (subscribe [::subs/player-tournaments])]
     (fn main-page-render []
       (if @user
-        [:div
+        [:div#own-tournaments
          (when (seq @player-tournaments)
            (let [latest-pairing (get-latest-pairing @player-tournaments)]
              [ui/card
@@ -34,7 +34,8 @@
                 :subtitle (:tournament latest-pairing)
                 :style    {:padding-bottom 0}}]
               [ui/card-text
-               {:style {:padding-top 0}}
+               {:style {:padding-top    0
+                        :padding-bottom 0}}
                [pairing latest-pairing (some? (:team2_name latest-pairing))]]]))
          (for [t @player-tournaments]
            ^{:key [:tournament (:id t)]}

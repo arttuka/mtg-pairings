@@ -2,7 +2,6 @@
   (:require [korma.core :as sql]
             [korma.db :as db]))
 
-
 (defn unique-or-nil
   [results]
   (let [[result & more] results]
@@ -16,7 +15,7 @@
   (let [result (unique-or-nil results)]
     (when-not result
       (throw (ex-info "Expected one result, got zero" {:type    ::assertion
-                                                ::found? false})))
+                                                       ::found? false})))
     result))
 
 (defmacro select-unique-or-nil
@@ -33,20 +32,20 @@
   "Wraps korma.core/update, updates exactly one row. Throws if row count is not 1. Returns the number of updated rows (1)."
   [entity & body]
   `(db/transaction
-     (let [count# (-> (sql/update* ~entity)
-                      ~@body
-                      (dissoc :results)
-                      sql/exec)]
-       (assert (= count# 1) (str "Expected one updated row, got " count#))
-       count#)))
+    (let [count# (-> (sql/update* ~entity)
+                     ~@body
+                     (dissoc :results)
+                     sql/exec)]
+      (assert (= count# 1) (str "Expected one updated row, got " count#))
+      count#)))
 
 (defmacro delete-unique
   "Wraps korma.core/delete, deletes exactly one row. Throws if row count is not 1. Returns the number of deleted rows (1)."
   [entity & body]
   `(db/transaction
-     (let [count# (-> (sql/delete* ~entity)
-                      ~@body
-                      (dissoc :results)
-                      sql/exec)]
-       (assert (= count# 1) (str "Expected one deleted row, got " count#))
-       count#)))
+    (let [count# (-> (sql/delete* ~entity)
+                     ~@body
+                     (dissoc :results)
+                     sql/exec)]
+      (assert (= count# 1) (str "Expected one deleted row, got " count#))
+      count#)))

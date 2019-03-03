@@ -4,76 +4,91 @@
             [cljsjs.material-ui]
             [cljs-react-material-ui.core]
             [cljs-react-material-ui.reagent :as ui]
+            [cljs-react-material-ui.icons :as icons]
             [goog.string :as gstring]
             [goog.string.format]
             [prop-types]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util.util :refer [format-date indexed]]
             [mtg-pairings-server.routes :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
-            [mtg-pairings-server.components.filter :refer [tournament-filters]]
-            [mtg-pairings-server.material-ui.util :refer [get-theme]]))
+            [mtg-pairings-server.components.filter :refer [filters]]
+            [mtg-pairings-server.util :refer [format-date indexed]]
+            [mtg-pairings-server.util.material-ui :refer [get-theme]]))
 
-(defn tournament-header [id]
-  (let [tournament (subscribe [::subs/tournament id])]
-    (fn tournament-header-render [id]
-      [:h3 [:a {:href (tournament-path {:id id})}
-            (str (:name @tournament) " " (format-date (:day @tournament)) " — " (:organizer @tournament))]])))
+(defn tournament-card-header
+  ([data]
+   (tournament-card-header data {}))
+  ([data opts]
+   [ui/card-header
+    (merge
+     {:title    (reagent/as-element [:a {:href  (tournament-path {:id (:id data)})
+                                         :style {:font-size "20px"}}
+                                     (:name data)])
+      :subtitle (str (format-date (:day data)) " — " (:organizer data))}
+     opts)]))
 
 (defn tournament [data]
   (when data
-    [ui/paper
-     {:style {:margin  "10px"
-              :padding "10px"}}
-     [tournament-header (:id data) (:name data) (:day data) (:organizer data)]
-     (when (:playoff data)
-       [:div.tournament-row
-        [ui/raised-button
-         {:label "Playoff bracket"
-          :href  (bracket-path {:id (:id data)})
-          :style {:width "260px"}}]])
-     (for [r (:round-nums data)]
-       ^{:key [(:id data) r]}
-       [:div.tournament-row
-        (when (contains? (:pairings data) r)
-          [ui/raised-button
-           {:label (str "Pairings " r)
-            :href  (pairings-path {:id (:id data), :round r})
-            :style {:width "130px"}}])
-        (when (contains? (:standings data) r)
-          [ui/raised-button
-           {:label (str "Standings " r)
-            :href  (standings-path {:id (:id data), :round r})
-            :style {:width "130px"}}])])
-     [:div.tournament-row
-      (when (:seatings data)
-        [ui/raised-button
-         {:label "Seatings"
-          :href  (seatings-path {:id (:id data)})
-          :style {:width "130px"}}])
-      (for [n (:pods data)]
-        ^{:key [(:id data) :pods n]}
-        [ui/raised-button
-         {:label (str "Pods " n)
-          :href  (pods-path {:id (:id data), :round n})
-          :style {:width "130px"}}])]]))
+    [ui/card
+     {:class "tournament"}
+     [tournament-card-header data]
+     [ui/card-text
+      {:style {:padding-top 0}}
+      (when (:playoff data)
+        [:div.tournament-row
+         [ui/raised-button
+          {:label      "Playoff bracket"
+           :href       (bracket-path {:id (:id data)})
+           :class-name :tournament-button-wide
+           :style      {:width "260px"}}]])
+      (for [r (:round-nums data)]
+        ^{:key [(:id data) r]}
+        [:div.tournament-row
+         (when (contains? (:pairings data) r)
+           [ui/raised-button
+            {:label      (str "Pairings " r)
+             :href       (pairings-path {:id (:id data), :round r})
+             :class-name :tournament-button
+             :style      {:width "130px"}}])
+         (when (contains? (:standings data) r)
+           [ui/raised-button
+            {:label      (str "Standings " r)
+             :href       (standings-path {:id (:id data), :round r})
+             :class-name :tournament-button
+             :style      {:width "130px"}}])])
+      [:div.tournament-row
+       (when (:seatings data)
+         [ui/raised-button
+          {:label      "Seatings"
+           :href       (seatings-path {:id (:id data)})
+           :class-name :tournament-button
+           :style      {:width "130px"}}])
+       (for [n (:pods data)]
+         ^{:key [(:id data) :pods n]}
+         [ui/raised-button
+          {:label      (str "Pods " n)
+           :href       (pods-path {:id (:id data), :round n})
+           :class-name :tournament-button
+           :style      {:width "130px"}}])]]]))
 
 (defn newest-tournaments-list []
   (let [tournaments (subscribe [::subs/newest-tournaments])]
     (fn newest-tournaments-list-render []
       [:div#tournaments
-       [:h2 "Aktiiviset turnaukset | " [:a {:href (tournaments-path)}
-                                        "Turnausarkistoon"]]
+       [:h2.newest-header
+        "Aktiiviset turnaukset | "
+        [:a {:href (tournaments-path)}
+         "Turnausarkistoon"]]
        (if-let [ts (seq @tournaments)]
          (for [t ts]
            ^{:key (:id t)}
            [tournament t])
-         [:h3 "Ei aktiivisia turnauksia."])])))
+         [:h3.no-active "Ei aktiivisia turnauksia."])])))
 
 (defn tournament-list []
   [:div
-   [tournament-filters]
+   [filters]
    [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/filtered-tournaments]
     (fn tournament-list-render [tournaments]
       [:div#tournaments
@@ -83,40 +98,48 @@
 
 (defn sortable-header [{:keys [class column sort-key dispatch-key]} & children]
   (reagent/create-class
-    {:context-types  #js {:muiTheme prop-types/object.isRequired}
-     :reagent-render (fn sortable-header-render [{:keys [class column sort-key dispatch-key]} & children]
-                       (let [palette (:palette (get-theme (reagent/current-component)))]
-                         [:th {:class    class
-                               :style    (when (= column sort-key) {:color (:accent1Color palette)})
-                               :on-click #(dispatch [dispatch-key column])}
-                          [:i.glyphicon.glyphicon-chevron-down.left]
-                          children]))}))
+   {:context-types  #js {:muiTheme prop-types/object.isRequired}
+    :reagent-render (fn sortable-header-render [{:keys [class column sort-key dispatch-key]} & children]
+                      (let [palette (:palette (get-theme (reagent/current-component)))]
+                        [:th {:class    class
+                              :style    (when (= column sort-key) {:color (:accent1Color palette)})
+                              :on-click #(dispatch [dispatch-key column])}
+                         [icons/hardware-keyboard-arrow-down
+                          {:style {:vertical-align :baseline
+                                   :position       :absolute
+                                   :left           0
+                                   :color          nil}}]
+                         children]))}))
 
-(defn pairing-row [cls pairing]
-  [:tr {:class cls}
-   [:td.table (:table_number pairing)]
-   [:td.players
-    (:team1_name pairing)
-    [:br.hidden-sm.hidden-md.hidden-lg]
-    [:span.hidden-sm.hidden-md.hidden-lg
-     (:team2_name pairing)]]
-   [:td.players2.hidden-xs (:team2_name pairing)]
-   [:td.points
-    (:team1_points pairing)
-    [:span.hidden-xs " - "]
-    [:br.hidden-sm.hidden-md.hidden-lg]
-    [:span (:team2_points pairing)]]
-   [:td.result
-    (:team1_wins pairing)
-    [:span.hidden-xs " - "]
-    [:br.hidden-sm.hidden-md.hidden-lg]
-    [:span (:team2_wins pairing)]]])
+(defn pairing-row [pairing]
+  (let [bye? (= (:table_number pairing) 0)]
+    [:tr
+     [:td.table (when-not bye? (:table_number pairing))]
+     [:td.players
+      [:span.player1 (:team1_name pairing)]
+      [:span.player2.hidden-desktop
+       (:team2_name pairing)]]
+     [:td.players2.hidden-mobile (:team2_name pairing)]
+     (if bye?
+       [:td.points
+        [:span.team1-points (:team1_points pairing)]]
+       [:td.points
+        [:span.team1-points (:team1_points pairing)]
+        [:span.hidden-mobile " - "]
+        [:span.team2-points (:team2_points pairing)]])
+     (if bye?
+       [:td.result]
+       [:td.result
+        [:span.team1-wins (:team1_wins pairing)]
+        [:span.hidden-mobile " - "]
+        [:span.team2-wins (:team2_wins pairing)]])]))
 
 (defn pairings [id round]
   (let [data (subscribe [::subs/sorted-pairings id round])
         sort-key (subscribe [::subs/pairings-sort])]
     (fn pairings-render [id round]
       [:table.pairings-table
+       {:class (when (= @sort-key :team1_name) :player-sorted)}
        [:thead
         [:tr
          [sortable-header {:class        :table
@@ -128,21 +151,21 @@
                            :column       :team1_name
                            :sort-key     @sort-key
                            :dispatch-key ::events/sort-pairings}
-          ^{:key "player-1-heading"} [:span.hidden-xs "Pelaaja 1"]
-          ^{:key "players-heading"} [:span.hidden-sm.hidden-md.hidden-lg "Pelaajat"]]
-         [:th.players2.hidden-xs "Pelaaja 2"]
-         [:th.points "Pisteet"]
+          ^{:key "player-1-heading"} [:span.hidden-mobile "Pelaaja 1"]
+          ^{:key "players-heading"} [:span.hidden-desktop "Pelaajat"]]
+         [:th.players2.hidden-mobile "Pelaaja 2"]
+         [:th.points "Pist."]
          [:th.result "Tulos"]]]
        [:tbody
-        (for [[i pairing] (indexed @data)]
+        (for [pairing @data]
           ^{:key [(:team1_name pairing)]}
-          [pairing-row (if (even? i) "even" "odd") pairing])]])))
+          [pairing-row pairing])]])))
 
 (defn percentage [n]
   (gstring/format "%.3f" (* 100 n)))
 
-(defn standing-row [cls standing]
-  [:tr {:class cls}
+(defn standing-row [standing]
+  [:tr
    [:td.rank (:rank standing)]
    [:td.player (:team_name standing)]
    [:td.points (:points standing)]
@@ -154,24 +177,24 @@
   [:table.standings-table
    [:thead
     [:tr
-     [:th.rank "Sija"]
+     [:th.rank]
      [:th.players "Pelaaja"]
-     [:th.points "Pisteet"]
+     [:th.points "Pist."]
      [:th.omw "OMW"]
      [:th.ogw "PGW"]
      [:th.pgw "OGW"]]]
    [:tbody
-    (for [[i standing] (indexed data)]
+    (for [standing data]
       ^{:key (:team_name standing)}
-      [standing-row (if (even? i) "even" "odd") standing])]])
+      [standing-row standing])]])
 
 (defn standings [id round]
   (let [data (subscribe [::subs/standings id round])]
     (fn standings-render [id round]
       [standing-table @data])))
 
-(defn pod-row [cls seat]
-  [:tr {:class cls}
+(defn pod-row [seat]
+  [:tr
    [:td.pod (:pod seat)]
    [:td.seat (:seat seat)]
    [:td.player (:team_name seat)]])
@@ -195,20 +218,20 @@
                            :dispatch-key ::events/sort-pods}
           "Pelaaja"]]]
        [:tbody
-        (for [[i seat] (indexed @data)]
+        (for [seat @data]
           ^{:key [(:team_name seat)]}
-          [pod-row (if (even? i) "even" "odd") seat])]])))
+          [pod-row seat])]])))
 
-(defn seating-row [cls seat]
-  [:tr {:class cls}
+(defn seating-row [seat]
+  [:tr
    [:td.table (:table_number seat)]
-   [:td.players (:name seat)]])
+   [:td.player (:name seat)]])
 
 (defn seatings [id round]
   (let [data (subscribe [::subs/sorted-seatings id round])
         sort-key (subscribe [::subs/seatings-sort])]
     (fn seatings-render [id round]
-      [:table.pairings-table
+      [:table.seatings-table
        [:thead
         [:tr
          [sortable-header {:class        :table
@@ -216,15 +239,15 @@
                            :sort-key     @sort-key
                            :dispatch-key ::events/sort-seatings}
           "Pöytä"]
-         [sortable-header {:class        :players
+         [sortable-header {:class        :player
                            :column       :name
                            :sort-key     @sort-key
                            :dispatch-key ::events/sort-seatings}
           "Pelaaja"]]]
        [:tbody
-        (for [[i seat] (indexed @data)]
+        (for [seat @data]
           ^{:key [(:name seat)]}
-          [seating-row (if (even? i) "even" "odd") seat])]])))
+          [seating-row seat])]])))
 
 (defn bracket-match [match]
   [:div.bracket-match
@@ -253,7 +276,7 @@
          ^{:key k}
          [:div.bracket-round
           {:class (str "matches-" num-matches)}
-          [:h3.hidden-sm.hidden-md.hidden-lg
+          [:h3.hidden-desktop
            (str "Top " (* 2 num-matches))]
           (for [match round]
             ^{:key (str k "-table-" (:table_number match))}

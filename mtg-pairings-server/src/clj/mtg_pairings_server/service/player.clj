@@ -1,9 +1,9 @@
 (ns mtg-pairings-server.service.player
   (:require [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
-            [mtg-pairings-server.util.mtg-util :refer [add-check-digits]]
+            [mtg-pairings-server.util.mtg :refer [add-check-digits]]
             [mtg-pairings-server.util.sql :as sql-util]
-            [mtg-pairings-server.util.util :refer [select-and-rename-keys]]))
+            [mtg-pairings-server.util :refer [select-and-rename-keys]]))
 
 (defn player [dci]
   (sql-util/select-unique-or-nil db/player
@@ -62,9 +62,10 @@
                         (sql/with db/round
                           (sql/fields [:num :round_number]))))
                     (sql/order :pod_round.id :DESC))]
-    (assoc tournament :pairings pairings
-                      :seating seating
-                      :pod-seats pod-seats)))
+    (assoc tournament
+           :pairings pairings
+           :seating seating
+           :pod-seats pod-seats)))
 
 (defn ^:private add-newest-standings [tournament]
   (let [standings (sql-util/select-unique-or-nil db/standings
@@ -74,7 +75,7 @@
     (merge tournament standings)))
 
 (defn ^:private select-tournament-fields [tournament]
-  (select-keys tournament [:id :name :day :rounds :seating :pairings :pod-seats :max_standings_round]))
+  (select-keys tournament [:id :name :day :organizer :rounds :seating :pairings :pod-seats :max_standings_round]))
 
 (defn format-tournament [tournament dci]
   (-> tournament

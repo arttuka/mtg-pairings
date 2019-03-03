@@ -1,4 +1,4 @@
-(ns mtg-pairings-server.util.util
+(ns mtg-pairings-server.util
   (:require [#?(:clj  clj-time.format
                 :cljs cljs-time.format)
              :as format]
@@ -16,41 +16,31 @@
             [clojure.string :as str]))
 
 (defn map-values
-  "Returns a map consisting of the keys of m mapped to
-the result of applying f to the value of that key in m.
-Function f should accept one argument."
-  [f m]
-  (into {}
-        (for [[k v] m]
-          [k (f v)])))
-
-(defn some-value [pred coll]
-  (first (filter pred coll)))
+  [m f]
+  (persistent!
+   (reduce-kv (fn [acc k v]
+               (assoc! acc k (f v)))
+              (transient {})
+              m)))
 
 (defn select-and-rename-keys
   [map keys]
-  (loop [ret {} keys (seq keys)]
-    (if keys
-      (let [key (first keys)
-            [from to] (if (coll? key)
-                        key
-                        [key key])
-            entry (find map from)]
-        (recur
-          (if entry
-            (conj ret [to (val entry)])
-            ret)
-          (next keys)))
-      ret)))
+  (persistent!
+   (reduce (fn [acc k]
+            (let [[from to] (if (coll? k)
+                              k
+                              [k k])]
+              (if-let [entry (find map from)]
+                (assoc! acc to (val entry))
+                acc)))
+           (transient {})
+           keys)))
 
 (defn parse-iso-date [date]
-  (format/parse-local-date (format/formatters :year-month-day) date))
+  (some->> date (format/parse-local-date (format/formatters :year-month-day))))
 
 (defn format-iso-date [date]
-  (format/unparse-local-date (format/formatters :year-month-day) date))
-
-(defn parse-date [date]
-  (format/parse-local-date (format/formatter "dd.MM.yyyy") date))
+  (some->> date (format/unparse-local-date (format/formatters :year-month-day))))
 
 (defn format-date [date]
   (some->> date (format/unparse-local-date (format/formatter "dd.MM.yyyy"))))
@@ -69,15 +59,20 @@ Function f should accept one argument."
                coerce/to-local-date)))
 
 (defn group-kv [keyfn valfn coll]
-  (apply merge-with into (for [elem coll]
-                           {(keyfn elem) [(valfn elem)]})))
+  (persistent!
+   (reduce (fn [acc x]
+             (let [k (keyfn x)
+                   v (valfn x)]
+               (assoc! acc k (conj (get acc k []) v))))
+           (transient {})
+           coll)))
 
 (defn extract-list [k coll]
   (for [[m v] (group-kv #(dissoc % k) #(get % k) coll)]
     (assoc m k v)))
 
 (defn map-by [f coll]
-  (into {} (map (juxt f identity) coll)))
+  (into {} (map (juxt f identity)) coll))
 
 (defn indexed [coll]
   (map-indexed vector coll))
@@ -85,16 +80,13 @@ Function f should accept one argument."
 (defn assoc-in-many [m & kvs]
   (reduce (fn [m [ks v]] (assoc-in m ks v)) m (partition 2 kvs)))
 
+(defn dissoc-in [m [k & ks]]
+  (if ks
+    (update m k dissoc-in ks)
+    (dissoc m k)))
+
 (defn round-up [n m]
   (* m (quot (+ n m -1) m)))
-
-#?(:clj
-   (defn edn-response [body]
-     (if body
-       {:status  200
-        :headers {"Content-Type" "application/edn"}
-        :body    (pr-str body)}
-       (ring/not-found body))))
 
 #?(:clj
    (defn response [body]
@@ -116,6 +108,7 @@ Function f should accept one argument."
 #?(:cljs
    (defn format-time [seconds]
      (let [sign (if (neg? seconds) "-" "")
+           seconds (Math/floor seconds)
            minutes (Math/abs (round (/ seconds 60)))
            seconds (mod (Math/abs seconds) 60)]
        (gstring/format "%s%02d:%02d" sign minutes seconds))))
