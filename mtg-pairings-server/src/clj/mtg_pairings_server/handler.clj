@@ -4,6 +4,7 @@
             [config.core :refer [env]]
             [hiccup.page :refer [include-js include-css html5]]
             [taoensso.timbre :as log]
+            [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [mtg-pairings-server.api.http :as http-api]
             [mtg-pairings-server.middleware :refer [wrap-site-middleware wrap-api-middleware]]
@@ -15,24 +16,28 @@
             [mtg-pairings-server.util.broadcast :as broadcast]
             [mtg-pairings-server.websocket :as ws]))
 
-(let [html (delay (html5
-                   {:lang :fi}
-                   [:head
-                    [:title "Pairings.fi"]
-                    [:meta {:charset "utf-8"}]
-                    [:meta {:name    "viewport"
-                            :content "width=device-width, initial-scale=1"}]
-                    (include-css (if (env :dev)
-                                   "/css/main.css"
-                                   "/css/main.min.css"))
-                    (when (env :dev)
-                      (include-css "/css/slider.css"))]
-                   [:body {:class "body-container"}
-                    [:div#app]
-                    (include-js (if (env :dev)
-                                  "/js/dev-main.js"
-                                  "/js/prod-main.js"))]))]
-  (defn loading-page [] @html))
+(defn loading-page []
+  (let [html (html5
+              {:lang :fi}
+              [:head
+               [:title "Pairings.fi"]
+               [:meta {:charset "utf-8"}]
+               [:meta {:name    "viewport"
+                       :content "width=device-width, initial-scale=1"}]
+               (include-css (if (env :dev)
+                              "/css/main.css"
+                              "/css/main.min.css"))
+               (when (env :dev)
+                 (include-css "/css/slider.css"))]
+              [:body {:class "body-container"}
+               [:div#app]
+               [:script (str "var csrf_token = '" *anti-forgery-token* "';")]
+               (include-js (if (env :dev)
+                             "/js/dev-main.js"
+                             "/js/prod-main.js"))])]
+    {:status  200
+     :body    html
+     :headers {"Content-Type" "text/html"}}))
 
 (defroutes site-routes
   (GET "/" [] (loading-page))

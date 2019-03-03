@@ -7,7 +7,8 @@
             [taoensso.sente.packers.transit :as sente-transit]
             [mtg-pairings-server.util :refer [parse-iso-date format-iso-date]]
             #?(:clj [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]])
-            #?(:clj [compojure.core :refer [defroutes GET POST]])))
+            #?(:clj [compojure.core :refer [defroutes GET POST]])
+            #?(:cljs [oops.core :refer [oget]])))
 
 ;; Transit communication
 
@@ -31,15 +32,16 @@
 (defn- init-ws []
   #?(:clj
      (let [{:keys [ch-recv send-fn ajax-post-fn ajax-get-or-ws-handshake-fn connected-uids]}
-           (sente/make-channel-socket! (get-sch-adapter) {:packer     packer
-                                                          :user-id-fn (fn [ring-req] (:client-id ring-req))})]
+           (sente/make-channel-socket-server! (get-sch-adapter) {:packer     packer
+                                                                 :user-id-fn (fn [ring-req] (:client-id ring-req))})]
        {:receive                     ch-recv
         :send!                       send-fn
         :connected-uids              connected-uids
         :ajax-post-fn                ajax-post-fn
         :ajax-get-or-ws-handshake-fn ajax-get-or-ws-handshake-fn})
      :cljs
-     (let [{:keys [ch-recv send-fn chsk state]} (sente/make-channel-socket! path {:packer packer
+     (let [{:keys [ch-recv send-fn chsk state]}
+           (sente/make-channel-socket-client! path (oget js/window "csrf_token") {:packer packer
                                                                                   :type   :auto})]
        {:receive ch-recv
         :send!   send-fn
