@@ -2,6 +2,8 @@
   :license {:name "MIT License"
             :url  "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.10.0"]
+                 [org.clojure/clojurescript "1.10.516" :exclusions [com.google.errorprone/error_prone_annotations
+                                                                    com.google.code.findbugs/jsr305]]
                  [org.clojure/core.async "0.4.490"]
                  [org.clojure/tools.logging "0.4.1"]
                  [ring/ring-core "1.7.1"]
@@ -13,9 +15,9 @@
                  [org.clojure/tools.reader "1.3.2"]
                  [clj-time "0.15.1"]
                  [korma "0.4.3"]
-                 [mount "0.1.15"]
+                 [mount "0.1.16"]
                  [org.postgresql/postgresql "42.2.5"]
-                 [metosin/compojure-api "1.1.12"]
+                 [metosin/compojure-api "1.1.12" :exclusions [com.google.code.findbugs/jsr305]]
                  [cheshire "5.8.1"]
                  [ring.middleware.jsonp "0.1.6"]
                  [com.taoensso/sente "1.13.1" :exclusions [com.taoensso/encore]]
@@ -23,7 +25,7 @@
                  [com.cognitect/transit-clj "0.8.313" :exclusions [commons-codec]]
                  [com.fzakaria/slf4j-timbre "0.3.12"]]
   :plugins [[lein-asset-minifier "0.4.5"]
-            [lein-cljfmt "0.6.3"]
+            [lein-cljfmt "0.6.4"]
             [lein-ancient "0.6.15"]
             [lein-garden "0.3.0" :exclusions [org.apache.commons/commons-compress]]]
 
@@ -76,16 +78,15 @@
                         :resource-paths ["target"]
                         :dependencies   [[org.clojure/tools.namespace "0.2.11"]
                                          [binaryage/devtools "0.9.10"]
-                                         [com.bhauman/rebel-readline-cljs "0.1.4" :exclusions [org.clojure/clojurescript]]
+                                         [com.bhauman/rebel-readline-cljs "0.1.4" :exclusions [args4j]]
                                          [ring/ring-mock "0.3.2" :exclusions [cheshire ring/ring-codec]]
                                          [ring/ring-devel "1.7.1"]
                                          [prone "1.6.1"]
                                          [hawk "0.2.11"]
                                          [cider/piggieback "0.3.10" :exclusions [org.clojure/clojurescript]]
-                                         [re-frisk "0.5.4" :exclusions [args4j]]]}
+                                         [re-frisk "0.5.4" :exclusions [org.clojure/clojurescript]]]}
              :prod     {:source-paths ["env/prod/cljs"]}
              :provided {:dependencies [[reagent "0.8.1" :exclusions [cljsjs/react]]
-                                       [org.clojure/clojurescript "1.10.439"]
                                        [com.google.errorprone/error_prone_annotations "2.3.2"]
                                        [com.google.code.findbugs/jsr305 "3.0.2"]
                                        [com.bhauman/figwheel-main "0.2.0" :exclusions [org.clojure/clojurescript]]
@@ -95,8 +96,8 @@
                                        [com.andrewmcveigh/cljs-time "0.5.2"]
                                        [re-frame "0.10.6" :exclusions [cljsjs/react args4j]]
                                        [binaryage/oops "0.6.4"]
-                                       [cljsjs/react "16.6.0-0"]
-                                       [cljsjs/react-dom "16.6.0-0"]
+                                       [cljsjs/react "16.8.1-0"]
+                                       [cljsjs/react-dom "16.8.1-0"]
                                        [cljs-react-material-ui "0.2.50" :exclusions [args4j]]
                                        [cljsjs/prop-types "15.6.2-0"]
                                        [cljsjs/rc-slider "8.6.1-0"]
