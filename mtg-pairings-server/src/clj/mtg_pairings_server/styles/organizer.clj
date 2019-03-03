@@ -6,9 +6,6 @@
 
 (defstyles pairings
   [:.organizer-pairings
-   [:table-number
-    {:display        :block
-     :vertical-align :top}]
    [:.player
     (merge
      {:display       :inline-block

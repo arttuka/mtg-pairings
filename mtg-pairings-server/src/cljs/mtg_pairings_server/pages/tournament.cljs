@@ -1,6 +1,5 @@
 (ns mtg-pairings-server.pages.tournament
-  (:require [reagent.core :as reagent]
-            [re-frame.core :refer [subscribe]]
+  (:require [re-frame.core :refer [subscribe]]
             [cljsjs.material-ui]
             [cljs-react-material-ui.core]
             [cljs-react-material-ui.reagent :as ui]

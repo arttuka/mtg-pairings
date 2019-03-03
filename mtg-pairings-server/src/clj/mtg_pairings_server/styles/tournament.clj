@@ -2,8 +2,7 @@
   (:require [garden.def :refer [defstyles]]
             [garden.color :refer [rgba]]
             [garden.units :refer [px percent]]
-            [mtg-pairings-server.styles.util :refer [when-desktop when-mobile]]
-            [mtg-pairings-server.styles.variables :as variables]))
+            [mtg-pairings-server.styles.util :refer [when-desktop when-mobile]]))
 
 (defstyles filters
   [:.mobile-filters

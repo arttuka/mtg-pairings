@@ -16,16 +16,10 @@
             [clojure.string :as str]))
 
 (defn map-values
-  "Returns a map consisting of the keys of m mapped to
-the result of applying f to the value of that key in m.
-Function f should accept one argument."
   [f m]
   (into {}
         (for [[k v] m]
           [k (f v)])))
-
-(defn some-value [pred coll]
-  (first (filter pred coll)))
 
 (defn select-and-rename-keys
   [map keys]
@@ -48,9 +42,6 @@ Function f should accept one argument."
 
 (defn format-iso-date [date]
   (format/unparse-local-date (format/formatters :year-month-day) date))
-
-(defn parse-date [date]
-  (format/parse-local-date (format/formatter "dd.MM.yyyy") date))
 
 (defn format-date [date]
   (some->> date (format/unparse-local-date (format/formatter "dd.MM.yyyy"))))
@@ -87,14 +78,6 @@ Function f should accept one argument."
 
 (defn round-up [n m]
   (* m (quot (+ n m -1) m)))
-
-#?(:clj
-   (defn edn-response [body]
-     (if body
-       {:status  200
-        :headers {"Content-Type" "application/edn"}
-        :body    (pr-str body)}
-       (ring/not-found body))))
 
 #?(:clj
    (defn response [body]
