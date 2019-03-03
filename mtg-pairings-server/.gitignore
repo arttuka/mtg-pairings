@@ -17,4 +17,6 @@ pom.xml.asc
 /bin
 .classpath
 .DS_Store
-resources/public/css/main.min.css
+/resources/public/js
+/resources/public/css/main.css
+/resources/public/css/main.min.css

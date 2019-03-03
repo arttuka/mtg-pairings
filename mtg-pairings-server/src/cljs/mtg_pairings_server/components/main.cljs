@@ -31,19 +31,19 @@
                           :secondary-text       (reagent/as-element
                                                  (if pairing?
                                                    [:div
-                                                    [:div.names
+                                                    [:span.names
                                                      [:span {:style {:color "rgba(0, 0, 0, 0.87)"}}
                                                       (str (:team1_name data) " (" (:team1_points data) ")")]
-                                                     [:span.hidden-xs " - "]
-                                                     [:br.hidden-sm.hidden-md.hidden-lg]
+                                                     [:span.hidden-mobile " - "]
+                                                     [:br.hidden-desktop]
                                                      [:span (str (:team2_name data) " (" (:team2_points data) ")")]]
-                                                    [:div.points
+                                                    [:span.points
                                                      [:span (:team1_wins data)]
-                                                     [:span.hidden-xs " - "]
-                                                     [:br.hidden-sm.hidden-md.hidden-lg]
+                                                     [:span.hidden-mobile " - "]
+                                                     [:br.hidden-desktop]
                                                      [:span (:team2_wins data)]]]
-                                                   [:div.names (or (:team1_name data)
-                                                                   (str "Seat " (:seat data)))]))
+                                                   [:span.names (or (:team1_name data)
+                                                                    (str "Seat " (:seat data)))]))
                           :secondary-text-lines 2}]))}))
 
 (defn header []

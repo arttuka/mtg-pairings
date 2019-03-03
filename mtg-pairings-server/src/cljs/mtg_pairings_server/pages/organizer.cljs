@@ -4,13 +4,11 @@
             [mtg-pairings-server.subscriptions :as subs]))
 
 (defn organizer-page []
-  (let [organizer-mode (subscribe [::subs/organizer-mode])
-        hide-menu? (subscribe [::subs/organizer :menu])]
+  (let [organizer-mode (subscribe [::subs/organizer-mode])]
     (fn organizer-page-render []
       [:div#organizer-page
        [:style {:type "text/css"}
         "#header { display: none !important; }"]
-       (when-not @hide-menu? [menu])
        (case @organizer-mode
          :pairings [pairings]
          :seatings [seatings]
@@ -29,7 +27,7 @@
   [:div.pod
    [:h3 "Pod " pod-num]
    (for [seat seats]
-     [:div
+     [:div.player
       [:span.table (name->seating (:team_name seat))]
       [:span.name (:team_name seat)]])])
 
@@ -41,6 +39,6 @@
             pods (into (sorted-map) (group-by :pod (sort-by :team_name @pods)))]
         [:div#deck-construction
          [:style {:type "text/css"}
-          "#header { display: none; }"]
+          "#header { display: none !important; }"]
          (for [[pod-number seats] pods]
            [deck-construction-table pod-number seats name->seating])]))))

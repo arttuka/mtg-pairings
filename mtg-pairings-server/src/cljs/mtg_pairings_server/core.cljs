@@ -15,6 +15,7 @@
                                                           pods-page seatings-page tournaments-page
                                                           bracket-page]]
             [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu deck-construction-tables]]
+            [mtg-pairings-server.components.organizer :as organizer]
             [mtg-pairings-server.components.main :refer [header notification]]))
 
 (def theme (get-mui-theme
@@ -27,26 +28,30 @@
                        :picker-header-color "#5d99c6"}}))
 
 (defn current-page []
-  (let [page (subscribe [::subs/page])]
+  (let [page (subscribe [::subs/page])
+        hide-organizer-menu? (subscribe [::subs/organizer :menu])]
     (fn []
       [ui/mui-theme-provider
        {:mui-theme theme}
        [:div
-        [header]
+        (if (= :organizer (:page @page))
+          (when-not @hide-organizer-menu? [organizer/menu])
+          [header])
         [notification]
-        (case (:page @page)
-          :main [#'main-page]
-          :tournaments [#'tournaments-page]
-          :tournament [#'tournament-page (:id @page)]
-          :pairings [#'pairings-page (:id @page) (:round @page)]
-          :standings [#'standings-page (:id @page) (:round @page)]
-          :pods [#'pods-page (:id @page) (:round @page)]
-          :seatings [#'seatings-page (:id @page)]
-          :bracket [#'bracket-page (:id @page)]
-          :organizer [#'organizer-page]
-          :organizer-menu [#'organizer-menu]
-          :organizer-deck-construction [#'deck-construction-tables]
-          nil)]])))
+        [:div#main-container
+         (case (:page @page)
+           :main [#'main-page]
+           :tournaments [#'tournaments-page]
+           :tournament [#'tournament-page (:id @page)]
+           :pairings [#'pairings-page (:id @page) (:round @page)]
+           :standings [#'standings-page (:id @page) (:round @page)]
+           :pods [#'pods-page (:id @page) (:round @page)]
+           :seatings [#'seatings-page (:id @page)]
+           :bracket [#'bracket-page (:id @page)]
+           :organizer [#'organizer-page]
+           :organizer-menu [#'organizer-menu]
+           :organizer-deck-construction [#'deck-construction-tables]
+           nil)]]])))
 
 (defn mount-root []
   (reagent/render [current-page] (.getElementById js/document "app")))

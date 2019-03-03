@@ -18,8 +18,8 @@
     :value     @a
     :style     {:vertical-align :bottom
                 :width          "60px"
-                :margin-left    "6px"
-                :margin-right   "6px"}}
+                :margin-left    "10px"
+                :margin-right   "10px"}}
    (for [round @rounds]
      ^{:key (str type round)}
      [ui/menu-item
@@ -67,8 +67,8 @@
        [ui/raised-button
         {:label    "Kello"
          :on-click #(dispatch [::events/organizer-mode :clock])
-         :style    {:margin-left  "6px"
-                    :margin-right "6px"}}]
+         :style    {:margin-left  "10px"
+                    :margin-right "10px"}}]
        [ui/text-field
         {:type      :number
          :value     @minutes
@@ -77,8 +77,8 @@
          :on-change (fn [_ new-value]
                       (reset! minutes new-value))
          :style     {:width        "40px"
-                     :margin-left  "6px"
-                     :margin-right "6px"}
+                     :margin-left  "10px"
+                     :margin-right "10px"}
          :id        :clock-minutes}]
        [ui/raised-button
         {:label    "Aseta"
@@ -89,8 +89,8 @@
          :on-click #(dispatch [::events/organizer-mode :start-clock])
          :primary  true
          :disabled @clock-running
-         :style    {:margin-left  "6px"
-                    :margin-right "6px"}}]
+         :style    {:margin-left  "10px"
+                    :margin-right "10px"}}]
        [ui/raised-button
         {:label     "Pysäytä"
          :on-click  #(dispatch [::events/organizer-mode :stop-clock])
@@ -98,12 +98,11 @@
          :disabled  (not @clock-running)}]])))
 
 (defn pairing [data even?]
-  [:div.pairing.no-round {:class (cls {:even even?
+  [:div.row.pairing.no-round {:class (cls {:even even?
                                        :odd  (not even?)})}
    [:span.table-number (or (:table_number data) (:pod data))]
-   [:div.names
-    [:span.player (:team1_name data) [:span.points (:team1_points data)]]
-    [:span.player.opponent (:team2_name data) [:span.points (:team2_points data)]]]])
+   [:span.player (:team1_name data) [:span.points (:team1_points data)]]
+   [:span.player.opponent (:team2_name data) [:span.points (:team2_points data)]]])
 
 (defn pairings []
   (let [pairings (subscribe [::subs/organizer :pairings])
@@ -126,12 +125,11 @@
        [:div.column
         (for [[i s] (indexed @seatings)]
           ^{:key (:name s)}
-          [:div.seating
+          [:div.row.seating
            {:class (cls {:even (even? i)
                          :odd  (odd? i)})}
            [:span.table-number (:table_number s)]
-           [:span
-            [:div.name (:name s)]]])]])))
+           [:span.name (:name s)]])]])))
 
 (defn pods []
   (let [pods (subscribe [::subs/organizer :pods])
@@ -142,13 +140,12 @@
        [:div.column
         (for [[i s] (indexed @pods)]
           ^{:key (:team_name s)}
-          [:div.seat
+          [:div.row.seat
            {:class (cls {:even (even? i)
                          :odd  (odd? i)})}
            [:span.pod-number (:pod s)]
            [:span.seat-number (:seat s)]
-           [:span
-            [:div.name (:team_name s)]]])]])))
+           [:span.name (:team_name s)]])]])))
 
 (defn standings []
   (let [standings (subscribe [::subs/organizer :standings])

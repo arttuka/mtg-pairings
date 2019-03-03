@@ -24,15 +24,24 @@
                  [com.fzakaria/slf4j-timbre "0.3.12"]]
   :plugins [[lein-asset-minifier "0.4.5"]
             [lein-cljfmt "0.6.3"]
-            [lein-ancient "0.6.15"]]
+            [lein-ancient "0.6.15"]
+            [lein-garden "0.3.0" :exclusions [org.apache.commons/commons-compress]]]
 
   :uberjar-name "mtg-pairings.jar"
 
   :clean-targets ^{:protect false} ["resources/public/js"
+                                    "resources/public/css/main.css"
+                                    "resources/public/css/main.min.css"
                                     "target"]
 
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
   :resource-paths ["resources"]
+
+  :garden {:builds [{:id           "main"
+                     :source-paths ["src/clj"]
+                     :stylesheet   mtg-pairings-server.styles.main/main
+                     :compiler     {:output-to     "resources/public/css/main.css"
+                                    :pretty-print? true}}]}
 
   :minify-assets [[:css {:source ["resources/public/css/main.css"]
                          :target "resources/public/css/main.min.css"}]]
@@ -70,6 +79,7 @@
                                          [ring/ring-mock "0.3.2" :exclusions [cheshire ring/ring-codec]]
                                          [ring/ring-devel "1.7.1"]
                                          [prone "1.6.1"]
+                                         [hawk "0.2.11"]
                                          [cider/piggieback "0.3.10" :exclusions [org.clojure/clojurescript]]
                                          [re-frisk "0.5.4" :exclusions [args4j]]]}
              :prod     {:source-paths ["env/prod/cljs"]}
@@ -88,11 +98,13 @@
                                        [cljsjs/react-dom "16.6.0-0"]
                                        [cljs-react-material-ui "0.2.50" :exclusions [args4j]]
                                        [cljsjs/prop-types "15.6.2-0"]
-                                       [cljsjs/rc-slider "8.6.1-0"]]}
+                                       [cljsjs/rc-slider "8.6.1-0"]
+                                       [garden "1.3.6"]]}
              :uberjar  {:source-paths       ["env/prod/cljs"]
                         :main               mtg-pairings-server.main
                         :aot                :all
                         :prep-tasks         ["compile"
+                                             ["garden" "once"]
                                              "minify-assets"
                                              "fig:min"]
                         :uberjar-exclusions [#"public/js/compiled"

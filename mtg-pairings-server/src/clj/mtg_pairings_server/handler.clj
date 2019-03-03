@@ -18,11 +18,13 @@
                     [:meta {:charset "utf-8"}]
                     [:meta {:name    "viewport"
                             :content "width=device-width, initial-scale=1"}]
-                    (include-css "https://fonts.googleapis.com/css?family=Lato:400,700"
-                                 "https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+                    (include-css "https://fonts.googleapis.com/css?family=Lato:700"
+                                 "https://fonts.googleapis.com/css?family=Roboto:400,500,700"
                                  (if (env :dev)
                                    "/css/main.css"
-                                   "/css/main.min.css"))]
+                                   "/css/main.min.css")
+                                 (when (env :dev)
+                                   "/css/slider.css"))]
                    [:body {:class "body-container"}
                     [:div#app]
                     (include-js (if (env :dev)

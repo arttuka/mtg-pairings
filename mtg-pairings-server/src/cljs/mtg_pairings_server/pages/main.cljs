@@ -25,7 +25,7 @@
         player-tournaments (subscribe [::subs/player-tournaments])]
     (fn main-page-render []
       (if @user
-        [:div
+        [:div#own-tournaments
          (when (seq @player-tournaments)
            (let [latest-pairing (get-latest-pairing @player-tournaments)]
              [ui/card

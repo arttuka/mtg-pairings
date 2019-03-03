@@ -25,7 +25,8 @@
 (defn tournament [data]
   (when data
     [ui/paper
-     {:style {:margin  "10px"
+     {:class "tournament"
+      :style {:margin  "10px"
               :padding "10px"}}
      [tournament-header (:id data) (:name data) (:day data) (:organizer data)]
      (when (:playoff data)
@@ -102,19 +103,19 @@
    [:td.table (:table_number pairing)]
    [:td.players
     (:team1_name pairing)
-    [:br.hidden-sm.hidden-md.hidden-lg]
-    [:span.hidden-sm.hidden-md.hidden-lg
+    [:br.hidden-desktop]
+    [:span.hidden-desktop
      (:team2_name pairing)]]
-   [:td.players2.hidden-xs (:team2_name pairing)]
+   [:td.players2.hidden-mobile (:team2_name pairing)]
    [:td.points
     (:team1_points pairing)
-    [:span.hidden-xs " - "]
-    [:br.hidden-sm.hidden-md.hidden-lg]
+    [:span.hidden-mobile " - "]
+    [:br.hidden-desktop]
     [:span (:team2_points pairing)]]
    [:td.result
     (:team1_wins pairing)
-    [:span.hidden-xs " - "]
-    [:br.hidden-sm.hidden-md.hidden-lg]
+    [:span.hidden-mobile " - "]
+    [:br.hidden-desktop]
     [:span (:team2_wins pairing)]]])
 
 (defn pairings [id round]
@@ -133,9 +134,9 @@
                            :column       :team1_name
                            :sort-key     @sort-key
                            :dispatch-key ::events/sort-pairings}
-          ^{:key "player-1-heading"} [:span.hidden-xs "Pelaaja 1"]
-          ^{:key "players-heading"} [:span.hidden-sm.hidden-md.hidden-lg "Pelaajat"]]
-         [:th.players2.hidden-xs "Pelaaja 2"]
+          ^{:key "player-1-heading"} [:span.hidden-mobile "Pelaaja 1"]
+          ^{:key "players-heading"} [:span.hidden-desktop "Pelaajat"]]
+         [:th.players2.hidden-mobile "Pelaaja 2"]
          [:th.points "Pisteet"]
          [:th.result "Tulos"]]]
        [:tbody
@@ -258,7 +259,7 @@
          ^{:key k}
          [:div.bracket-round
           {:class (str "matches-" num-matches)}
-          [:h3.hidden-sm.hidden-md.hidden-lg
+          [:h3.hidden-desktop
            (str "Top " (* 2 num-matches))]
           (for [match round]
             ^{:key (str k "-table-" (:table_number match))}
