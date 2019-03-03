@@ -4,9 +4,11 @@
             [mtg-pairings-server.subscriptions :as subs]))
 
 (defn organizer-page []
-  (let [organizer-mode (subscribe [::subs/organizer-mode])]
+  (let [organizer-mode (subscribe [::subs/organizer-mode])
+        hide-organizer-menu? (subscribe [::subs/organizer :menu])]
     (fn organizer-page-render []
       [:div#organizer-page
+       {:class (when @hide-organizer-menu? :no-menu)}
        [:style {:type "text/css"}
         "#header { display: none !important; }"]
        (case @organizer-mode

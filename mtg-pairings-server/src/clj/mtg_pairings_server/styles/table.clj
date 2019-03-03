@@ -1,7 +1,7 @@
 (ns mtg-pairings-server.styles.table
   (:require [garden.def :refer [defstyles]]
             [garden.units :refer [px percent]]
-            [mtg-pairings-server.styles.util :refer [when-mobile when-desktop]]
+            [mtg-pairings-server.styles.util :refer [ellipsis-overflow when-mobile when-desktop]]
             [mtg-pairings-server.styles.variables :as variables]))
 
 (defstyles pairings-table
@@ -27,11 +27,10 @@
     [:.players
      {:max-width "calc(100vw - 197px)"}]
     [:.player1 :.player2 :.team1-points :.team2-points :.team1-wins :.team2-wins
-     {:display       :block
-      :width         (percent 100)
-      :overflow      :hidden
-      :white-space   :nowrap
-      :text-overflow :ellipsis}])])
+     (merge
+      {:display :block
+       :width   (percent 100)}
+      ellipsis-overflow)])])
 
 (defstyles standings-table
   [:table.standings-table
@@ -52,10 +51,9 @@
     [:.points :.rank
      {:width (px 40)}]
     [:.player
-     {:max-width "calc(100vw - 262px)"
-      :overflow      :hidden
-      :white-space   :nowrap
-      :text-overflow :ellipsis}]
+     (merge
+      {:max-width "calc(100vw - 262px)"}
+      ellipsis-overflow)]
     [:.omw :.pgw :.ogw
      {:width     (px 50)
       :font-size (px 14)}])])
@@ -77,10 +75,9 @@
     [:.table
      {:width (px 65)}]
     [:.player
-     {:max-width     "calc(100vw - 97px)"
-      :overflow      :hidden
-      :white-space   :nowrap
-      :text-overflow :ellipsis}])])
+     (merge
+      {:max-width "calc(100vw - 97px)"}
+      ellipsis-overflow)])])
 
 (defstyles pods-table
   [:table.pods-table
@@ -99,10 +96,9 @@
     [:th.pod
      {:text-align :right}]
     [:.player
-     {:max-width     "calc(100vw - 162px)"
-      :overflow      :hidden
-      :white-space   :nowrap
-      :text-overflow :ellipsis}])])
+     (merge
+      {:max-width "calc(100vw - 162px)"}
+      ellipsis-overflow)])])
 
 (defstyles styles
   [:table

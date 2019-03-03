@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.styles.organizer
   (:require [garden.def :refer [defstyles]]
             [garden.units :refer [px vh vw percent]]
+            [mtg-pairings-server.styles.util :refer [ellipsis-overflow]]
             [mtg-pairings-server.styles.variables :as variables]))
 
 (defstyles pairings
@@ -9,14 +10,12 @@
     {:display        :block
      :vertical-align :top}]
    [:.player
-    {:display        :inline-block
-     :position       :relative
-     :width          (px 214)
-     :padding-right  (px 25)
-     :white-space    :nowrap
-     :text-overflow  :ellipsis
-     :overflow       :hidden
-     :vertical-align :bottom}
+    (merge
+     {:display       :inline-block
+      :position      :relative
+      :width         (px 214)
+      :padding-right (px 25)}
+     ellipsis-overflow)
     [:&.opponent
      {:color (variables/color :grey)}]]
    [:.points
@@ -31,16 +30,36 @@
 (defstyles pods
   [:.organizer-pods
    [:.seat
-    {:white-space   :nowrap
-     :text-overflow :ellipsis
-     :overflow      :hidden}]])
+    ellipsis-overflow]])
 
 (defstyles seatings
   [:.organizer-seatings
    [:.seating
-    {:white-space   :nowrap
-     :text-overflow :ellipsis
-     :overflow      :hidden}]])
+    ellipsis-overflow]])
+
+(defstyles standings
+  [:.organizer-standings
+   [:.row
+    {:overflow :hidden}
+    [:.rank :.player :.points :.omw :.pgw :.ogw
+     {:display :inline-block}]
+    [:.points :.omw :.pgw :.ogw
+     {:text-align :center}]
+    [:.rank
+     {:text-align  :center
+      :font-weight 700
+      :color       (variables/color :dark-grey)}]
+    [:.points :.rank
+     {:width (px 40)}]
+    [:.player
+     (merge
+      {:width (px 198)}
+      ellipsis-overflow)]
+    [:.omw
+     {:width (px 70)}]
+    [:.pgw :.ogw
+     {:width     (px 60)
+      :font-size (px 14)}]]])
 
 (defstyles table
   [:.row
@@ -88,15 +107,20 @@
     {:text-align :center
      :margin-top 0}]
    [:.column
-    {:column {:width (px 470)
-              :gap   (px 10)
-              :fill  :auto}
-     :height "calc(100% - 48px)"}]
+    {:display        :flex
+     :flex-direction :column
+     :flex-wrap      :wrap
+     :align-content  :space-around
+     :height         "calc(100vh - 112px)"}]
+   [:&.no-menu
+    [:.column
+     {:height "calc(100vh - 46px)"}]]
    [:.even
     {:background-color (variables/color :light-grey)}]
    table
    pairings
    pods
    seatings
+   standings
    clock]
   deck-construction)

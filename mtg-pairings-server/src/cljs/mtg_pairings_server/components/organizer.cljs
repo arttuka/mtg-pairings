@@ -5,6 +5,7 @@
             [cljs-react-material-ui.core]
             [cljs-react-material-ui.reagent :as ui]
             [cljs-react-material-ui.icons :as icons]
+            [goog.string :as gstring]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util.util :refer [cls indexed]]
@@ -149,6 +150,9 @@
            [:span.seat-number (:seat s)]
            [:span.name (:team_name s)]])]])))
 
+(defn percentage [n]
+  (gstring/format "%.3f" (* 100 n)))
+
 (defn standings []
   (let [standings (subscribe [::subs/organizer :standings])
         tournament (subscribe [::subs/organizer :tournament])
@@ -156,7 +160,17 @@
     (fn standings-render []
       [:div.organizer-standings
        [:h2 (str (:name @tournament) " - kierros " @standings-round)]
-       [:div.column [standing-table @standings]]])))
+       [:div.column
+        (for [{:keys [rank team_name points omw pgw ogw]} @standings]
+          ^{:key (str "standings-" rank)}
+          [:div.row.standing {:class (cls {:even (even? rank)
+                                           :odd  (odd? rank)})}
+           [:span.rank rank]
+           [:span.player team_name]
+           [:span.points points]
+           [:span.omw (percentage omw)]
+           [:span.pgw (percentage pgw)]
+           [:span.ogw (percentage ogw)]])]])))
 
 (defn clock []
   (let [c (subscribe [::subs/organizer :clock])]

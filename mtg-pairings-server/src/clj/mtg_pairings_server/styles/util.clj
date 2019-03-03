@@ -8,3 +8,8 @@
 
 (defn when-desktop [& styles]
   (apply at-media {:min-width (px (inc variables/mobile-max-width))} styles))
+
+(def ellipsis-overflow {:white-space    :nowrap
+                        :text-overflow  :ellipsis
+                        :overflow       :hidden
+                        :vertical-align :bottom})
