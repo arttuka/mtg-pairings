@@ -84,6 +84,10 @@
   [{:keys [uid]}]
   (ws/send! uid [:server/tournaments (tournament/tournaments)]))
 
+(defmethod ws/event-handler :client/tournament
+  [{uid :uid, id :?data}]
+  (ws/send! uid [:server/tournament (tournament/tournament id)]))
+
 (defmethod ws/event-handler :client/pairings
   [{uid :uid, [id round] :?data}]
   (ws/send! uid [:server/pairings [id round (tournament/get-round id round)]]))

@@ -9,7 +9,7 @@
         wrap-reload (ns-resolve 'ring.middleware.reload 'wrap-reload)]
     (-> handler
         wrap-exceptions
-        wrap-reload)))
+        (wrap-reload {:dirs ["src/clj" "src/cljc"]}))))
 
 (defn add-prod-middleware [handler]
   (wrap-etag handler {:paths [#".*\.(css|js|eot|svg|ttf|woff|woff2)$"]}))

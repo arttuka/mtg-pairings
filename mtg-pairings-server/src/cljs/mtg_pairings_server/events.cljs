@@ -128,6 +128,14 @@
                  :max-players max-players)
           (assoc-in [:tournament-filter :players 1] max-players)))))
 
+(reg-event-db :server/tournament
+  (fn [db [_ tournament]]
+    (assoc-in db [:tournaments (:id tournament)] (format-tournament tournament))))
+
+(reg-event-fx ::load-tournament
+  (fn [_ [_ id]]
+    {:ws-send [:client/tournament id]}))
+
 (reg-event-fx ::load-pairings
   (fn [_ [_ id round]]
     {:ws-send [:client/pairings [id round]]}))
