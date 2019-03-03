@@ -16,32 +16,31 @@
             [clojure.string :as str]))
 
 (defn map-values
-  [f m]
-  (into {}
-        (for [[k v] m]
-          [k (f v)])))
+  [m f]
+  (persistent!
+   (reduce-kv (fn [acc k v]
+               (assoc! acc k (f v)))
+              (transient {})
+              m)))
 
 (defn select-and-rename-keys
   [map keys]
-  (loop [ret {} keys (seq keys)]
-    (if keys
-      (let [key (first keys)
-            [from to] (if (coll? key)
-                        key
-                        [key key])
-            entry (find map from)]
-        (recur
-         (if entry
-           (conj ret [to (val entry)])
-           ret)
-         (next keys)))
-      ret)))
+  (persistent!
+   (reduce (fn [acc k]
+            (let [[from to] (if (coll? k)
+                              k
+                              [k k])]
+              (if-let [entry (find map from)]
+                (assoc! acc to (val entry))
+                acc)))
+           (transient {})
+           keys)))
 
 (defn parse-iso-date [date]
-  (format/parse-local-date (format/formatters :year-month-day) date))
+  (some->> date (format/parse-local-date (format/formatters :year-month-day))))
 
 (defn format-iso-date [date]
-  (format/unparse-local-date (format/formatters :year-month-day) date))
+  (some->> date (format/unparse-local-date (format/formatters :year-month-day))))
 
 (defn format-date [date]
   (some->> date (format/unparse-local-date (format/formatter "dd.MM.yyyy"))))
@@ -60,15 +59,20 @@
                coerce/to-local-date)))
 
 (defn group-kv [keyfn valfn coll]
-  (apply merge-with into (for [elem coll]
-                           {(keyfn elem) [(valfn elem)]})))
+  (persistent!
+   (reduce (fn [acc x]
+             (let [k (keyfn x)
+                   v (valfn x)]
+               (assoc! acc k (conj (get acc k []) v))))
+           (transient {})
+           coll)))
 
 (defn extract-list [k coll]
   (for [[m v] (group-kv #(dissoc % k) #(get % k) coll)]
     (assoc m k v)))
 
 (defn map-by [f coll]
-  (into {} (map (juxt f identity) coll)))
+  (into {} (map (juxt f identity)) coll))
 
 (defn indexed [coll]
   (map-indexed vector coll))
