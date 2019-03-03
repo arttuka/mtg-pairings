@@ -15,7 +15,7 @@
 (defn compile-garden-css! []
   (require 'mtg-pairings-server.styles.main :reload-all)
   (timbre/debug "Compiling CSS")
-  (let [f (io/file "./resources/public/css/main.css")]
+  (let [f (io/file "./target/public/css/main.css")]
     (io/make-parents f)
     (spit f main-css/css)))
 
