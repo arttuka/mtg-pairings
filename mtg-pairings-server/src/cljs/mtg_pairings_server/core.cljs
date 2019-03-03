@@ -11,9 +11,7 @@
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.pages.main :refer [main-page]]
-            [mtg-pairings-server.pages.tournament :refer [tournament-page pairings-page standings-page
-                                                          pods-page seatings-page tournaments-page
-                                                          bracket-page]]
+            [mtg-pairings-server.pages.tournament :refer [tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu deck-construction-tables]]
             [mtg-pairings-server.components.organizer :as organizer]
             [mtg-pairings-server.components.main :refer [header notification]]))
@@ -43,11 +41,7 @@
            :main [#'main-page]
            :tournaments [#'tournaments-page]
            :tournament [#'tournament-page (:id @page)]
-           :pairings [#'pairings-page (:id @page) (:round @page)]
-           :standings [#'standings-page (:id @page) (:round @page)]
-           :pods [#'pods-page (:id @page) (:round @page)]
-           :seatings [#'seatings-page (:id @page)]
-           :bracket [#'bracket-page (:id @page)]
+           (:pairings :standings :pods :seatings :bracket) [#'tournament-subpage (:id @page) (:page @page) (:round @page)]
            :organizer [#'organizer-page]
            :organizer-menu [#'organizer-menu]
            :organizer-deck-construction [#'deck-construction-tables]

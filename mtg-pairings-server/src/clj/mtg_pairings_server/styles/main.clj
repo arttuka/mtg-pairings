@@ -1,12 +1,12 @@
 (ns mtg-pairings-server.styles.main
   (:require [garden.def :refer [defstyles]]
             [garden.core :as garden]
-            [garden.stylesheet :refer [at-media]]
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.bracket :as bracket]
             [mtg-pairings-server.styles.organizer :as organizer]
             [mtg-pairings-server.styles.table :as table]
             [mtg-pairings-server.styles.tournament :as tournament]
+            [mtg-pairings-server.styles.util :refer [when-desktop when-mobile]]
             [mtg-pairings-server.styles.variables :as variables]))
 
 (defstyles base
@@ -32,12 +32,12 @@
    {:margin-bottom (px 10)}])
 
 (defstyles mobile
-  (at-media {:max-width (px variables/mobile-max-width)}
-    [:.hidden-mobile
-     {:display "none !important"}])
-  (at-media {:min-width (px (inc variables/mobile-max-width))}
-    [:.hidden-desktop
-     {:display "none !important"}]))
+  (when-mobile
+   [:.hidden-mobile
+    {:display "none !important"}])
+  (when-desktop
+   [:.hidden-desktop
+    {:display "none !important"}]))
 
 (defstyles own-tournaments
   [:#own-tournaments

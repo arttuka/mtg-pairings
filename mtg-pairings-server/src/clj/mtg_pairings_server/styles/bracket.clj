@@ -1,18 +1,18 @@
 (ns mtg-pairings-server.styles.bracket
   (:require [garden.def :refer [defstyles]]
-            [garden.stylesheet :refer [at-media]]
             [garden.units :refer [px px-]]
+            [mtg-pairings-server.styles.util :refer [when-desktop when-mobile]]
             [mtg-pairings-server.styles.variables :as variables]))
 
 (def line-height 20)
 (def bracket-height 50)
 
 (defstyles styles
-  [:#bracket
+  [:.bracket
    [:.bracket-round
     {:display        :inline-block
      :vertical-align :top}
-    (at-media {:min-width (px (inc variables/mobile-max-width))}
+    (when-desktop
       (for [n [1 2 4]
             :let [d (/ 4 n)
                   height (* d bracket-height)]]
@@ -24,7 +24,7 @@
            {:padding-top (px- height line-height 1)}]
           [:&.team2
            {:padding-top (px- height line-height 2)}]]]))
-    (at-media {:max-width (px variables/mobile-max-width)}
+    (when-mobile
       [:&
        {:display :block}
        [:.team

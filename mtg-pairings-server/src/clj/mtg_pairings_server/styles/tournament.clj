@@ -1,21 +1,21 @@
 (ns mtg-pairings-server.styles.tournament
   (:require [garden.def :refer [defstyles]]
             [garden.color :refer [rgba]]
-            [garden.stylesheet :refer [at-media]]
             [garden.units :refer [px percent]]
+            [mtg-pairings-server.styles.util :refer [when-desktop when-mobile]]
             [mtg-pairings-server.styles.variables :as variables]))
 
 (defstyles filters
   [:.filters
    {:margin {:left  (px 10)
              :right (px 10)}}
-   (at-media {:max-width (px variables/mobile-max-width)}
-     [:.filter
-      {:width (percent 100)}])
-   (at-media {:min-width (px (inc variables/mobile-max-width))}
-     [:.filter
-      {:display      :inline-block
-       :margin-right (px 10)}])
+   (when-mobile
+    [:.filter
+     {:width (percent 100)}])
+   (when-desktop
+    [:.filter
+     {:display      :inline-block
+      :margin-right (px 10)}])
    [:.filter-button
     {:position       :relative
      :vertical-align :bottom

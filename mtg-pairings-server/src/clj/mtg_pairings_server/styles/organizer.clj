@@ -3,13 +3,6 @@
             [garden.units :refer [px vh vw percent]]
             [mtg-pairings-server.styles.variables :as variables]))
 
-#_{:position    :absolute
-   :top         0
-   :left        0
-   :padding-top (px 80)
-   :height      (vh 100)
-   :width       (percent 100)}
-
 (defstyles pairings
   [:.organizer-pairings
    [:table-number

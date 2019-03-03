@@ -108,7 +108,8 @@
                            :act-as-expander        true
                            :show-expandable-button true}]
                          [ui/card-text
-                          {:expandable true}
+                          {:expandable true
+                           :style      {:padding-top 0}}
                           [ui/list
                            [ui/list-item
                             {:primary-text (str "Standings, kierros " (:max_standings_round t))

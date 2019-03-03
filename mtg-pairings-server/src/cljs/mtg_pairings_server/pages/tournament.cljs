@@ -1,5 +1,8 @@
 (ns mtg-pairings-server.pages.tournament
   (:require [re-frame.core :refer [subscribe]]
+            [cljsjs.material-ui]
+            [cljs-react-material-ui.core]
+            [cljs-react-material-ui.reagent :as ui]
             [mtg-pairings-server.components.tournament :refer [tournament-list tournament tournament-header pairings standings pods seatings bracket]]
             [mtg-pairings-server.subscriptions :as subs]))
 
@@ -11,27 +14,14 @@
     (fn tournament-page-render [id]
       [tournament @data])))
 
-(defn pairings-page [id round]
-  [:div#pairings
+(defn tournament-subpage [id type round]
+  [ui/paper
+   {:style {:margin  "10px"
+            :padding "10px"}}
    [tournament-header id]
-   [pairings id round]])
-
-(defn standings-page [id round]
-  [:div#standings
-   [tournament-header id]
-   [standings id round]])
-
-(defn pods-page [id round]
-  [:div#pods
-   [tournament-header id]
-   [pods id round]])
-
-(defn seatings-page [id]
-  [:div#seatings
-   [tournament-header id]
-   [seatings id]])
-
-(defn bracket-page [id]
-  [:div#bracket
-   [tournament-header id]
-   [bracket id]])
+   (case type
+     :pairings [pairings id round]
+     :standings [standings id round]
+     :pods [pods id round]
+     :seatings [seatings id]
+     :bracket [bracket id])])

@@ -102,21 +102,18 @@
   [:tr {:class cls}
    [:td.table (:table_number pairing)]
    [:td.players
-    (:team1_name pairing)
-    [:br.hidden-desktop]
-    [:span.hidden-desktop
+    [:span.player1 (:team1_name pairing)]
+    [:span.player2.hidden-desktop
      (:team2_name pairing)]]
    [:td.players2.hidden-mobile (:team2_name pairing)]
    [:td.points
-    (:team1_points pairing)
+    [:span.team1-points (:team1_points pairing)]
     [:span.hidden-mobile " - "]
-    [:br.hidden-desktop]
-    [:span (:team2_points pairing)]]
+    [:span.team2-points (:team2_points pairing)]]
    [:td.result
-    (:team1_wins pairing)
+    [:span.team1-wins (:team1_wins pairing)]
     [:span.hidden-mobile " - "]
-    [:br.hidden-desktop]
-    [:span (:team2_wins pairing)]]])
+    [:span.team2-wins (:team2_wins pairing)]]])
 
 (defn pairings [id round]
   (let [data (subscribe [::subs/sorted-pairings id round])
@@ -137,7 +134,7 @@
           ^{:key "player-1-heading"} [:span.hidden-mobile "Pelaaja 1"]
           ^{:key "players-heading"} [:span.hidden-desktop "Pelaajat"]]
          [:th.players2.hidden-mobile "Pelaaja 2"]
-         [:th.points "Pisteet"]
+         [:th.points "Pist."]
          [:th.result "Tulos"]]]
        [:tbody
         (for [[i pairing] (indexed @data)]
@@ -160,9 +157,9 @@
   [:table.standings-table
    [:thead
     [:tr
-     [:th.rank "Sija"]
+     [:th.rank]
      [:th.players "Pelaaja"]
-     [:th.points "Pisteet"]
+     [:th.points "Pist."]
      [:th.omw "OMW"]
      [:th.ogw "PGW"]
      [:th.pgw "OGW"]]]
@@ -208,13 +205,13 @@
 (defn seating-row [cls seat]
   [:tr {:class cls}
    [:td.table (:table_number seat)]
-   [:td.players (:name seat)]])
+   [:td.player (:name seat)]])
 
 (defn seatings [id round]
   (let [data (subscribe [::subs/sorted-seatings id round])
         sort-key (subscribe [::subs/seatings-sort])]
     (fn seatings-render [id round]
-      [:table.pairings-table
+      [:table.seatings-table
        [:thead
         [:tr
          [sortable-header {:class        :table
@@ -222,7 +219,7 @@
                            :sort-key     @sort-key
                            :dispatch-key ::events/sort-seatings}
           "Pöytä"]
-         [sortable-header {:class        :players
+         [sortable-header {:class        :player
                            :column       :name
                            :sort-key     @sort-key
                            :dispatch-key ::events/sort-seatings}
