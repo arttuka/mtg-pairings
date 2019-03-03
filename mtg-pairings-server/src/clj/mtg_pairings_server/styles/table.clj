@@ -30,7 +30,10 @@
      (merge
       {:display :block
        :width   (percent 100)}
-      ellipsis-overflow)])])
+      ellipsis-overflow)]
+    [:&.player-sorted
+     [:.player2 :.team2-points :.team2-wins
+      {:color (variables/color :grey)}]])])
 
 (defstyles standings-table
   [:table.standings-table

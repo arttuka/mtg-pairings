@@ -27,6 +27,9 @@
     (when-mobile
      [:&
       {:display :block}
+      [:h3
+       {:margin {:bottom 0
+                 :top    "24px"}}]
       [:.team
        {:height (px bracket-height)}
        [:&.team1

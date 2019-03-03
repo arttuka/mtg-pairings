@@ -58,6 +58,10 @@
                         (player-filter min-players max-players))]
       (sequence filters tournaments))))
 
+(reg-sub ::filters-active
+  (fn [db _]
+    (:filters-active db)))
+
 (reg-sub ::newest-tournaments
   :<- [::tournaments]
   (fn [tournaments _]

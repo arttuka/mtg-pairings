@@ -36,6 +36,7 @@
                                       :date-from nil
                                       :date-to   nil
                                       :players   [0 100]}
+                 :filters-active     false
                  :max-players        100
                  :player-tournaments []
                  :pairings           {:sort-key :table_number}
@@ -44,6 +45,13 @@
                  :page               {:page :main}
                  :logged-in-user     (fetch :user)
                  :notification       nil})
+
+(defn update-filters-active [db]
+  (assoc db :filters-active (not= {:organizer ""
+                                   :date-from nil
+                                   :date-to   nil
+                                   :players   [0 (:max-players db)]}
+                                  (:tournament-filter db))))
 
 (reg-event-db ::initialize
   (fn [db _]
@@ -91,15 +99,18 @@
   (fn [db [_ [key value]]]
     (-> db
         (assoc-in [:tournament-filter key] value)
-        (assoc :tournaments-page 0))))
+        (assoc :tournaments-page 0)
+        (update-filters-active))))
 
 (reg-event-db ::reset-tournament-filter
   (fn [db _]
-    (assoc db :tournaments-page 0
+    (assoc db
+           :tournaments-page 0
            :tournament-filter {:organizer ""
                                :date-from nil
                                :date-to   nil
-                               :players   [0 (:max-players db)]})))
+                               :players   [0 (:max-players db)]}
+           :filters-active false)))
 
 (defn format-tournament [tournament]
   (let [rounds (sort > (into (set (:pairings tournament)) (:standings tournament)))]

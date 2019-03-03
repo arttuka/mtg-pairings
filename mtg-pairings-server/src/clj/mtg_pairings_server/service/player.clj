@@ -75,7 +75,7 @@
     (merge tournament standings)))
 
 (defn ^:private select-tournament-fields [tournament]
-  (select-keys tournament [:id :name :day :rounds :seating :pairings :pod-seats :max_standings_round]))
+  (select-keys tournament [:id :name :day :organizer :rounds :seating :pairings :pod-seats :max_standings_round]))
 
 (defn format-tournament [tournament dci]
   (-> tournament

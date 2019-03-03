@@ -8,6 +8,7 @@
             [prop-types]
             [oops.core :refer [oget]]
             [accountant.core :as accountant]
+            [mtg-pairings-server.components.tournament :refer [tournament-card-header]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.routes :refer [tournaments-path standings-path]]
             [mtg-pairings-server.subscriptions :as subs]
@@ -112,10 +113,8 @@
     :reagent-render (fn own-tournament-render [t]
                       (let [palette (:palette (get-theme (reagent/current-component)))]
                         [ui/card
-                         [ui/card-header
-                          {:title                  (str (format-date (:day t)) " - " (:name t))
-                           :act-as-expander        true
-                           :show-expandable-button true}]
+                         (tournament-card-header t {:act-as-expander        true
+                                                    :show-expandable-button true})
                          [ui/card-text
                           {:expandable true
                            :style      {:padding-top 0}}

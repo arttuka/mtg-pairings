@@ -13,50 +13,64 @@
             [mtg-pairings-server.util.util :refer [format-date indexed]]
             [mtg-pairings-server.routes :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
-            [mtg-pairings-server.components.filter :refer [tournament-filters]]
+            [mtg-pairings-server.components.filter :refer [desktop-filters mobile-filters]]
             [mtg-pairings-server.material-ui.util :refer [get-theme]]))
+
+(defn tournament-card-header
+  ([data]
+   (tournament-card-header data {}))
+  ([data opts]
+   [ui/card-header
+    (merge
+     {:title    (reagent/as-element [:a {:href  (tournament-path {:id (:id data)})
+                                         :style {:font-size "20px"}}
+                                     (:name data)])
+      :subtitle (str (format-date (:day data)) " — " (:organizer data))}
+     opts)]))
 
 (defn tournament [data]
   (when data
     [ui/card
      {:class "tournament"}
-     [ui/card-header
-      {:title (reagent/as-element [:a {:href  (tournament-path {:id (:id data)})
-                                       :style {:font-size "20px"}}
-                                   (str (:name data) " " (format-date (:day data)) " — " (:organizer data))])}]
+     [tournament-card-header data]
      [ui/card-text
       {:style {:padding-top 0}}
       (when (:playoff data)
         [:div.tournament-row
          [ui/raised-button
-          {:label "Playoff bracket"
-           :href  (bracket-path {:id (:id data)})
-           :style {:width "260px"}}]])
+          {:label      "Playoff bracket"
+           :href       (bracket-path {:id (:id data)})
+           :class-name :tournament-button-wide
+           :style      {:width "260px"}}]])
       (for [r (:round-nums data)]
         ^{:key [(:id data) r]}
         [:div.tournament-row
          (when (contains? (:pairings data) r)
            [ui/raised-button
-            {:label (str "Pairings " r)
-             :href  (pairings-path {:id (:id data), :round r})
-             :style {:width "130px"}}])
+            {:label      (str "Pairings " r)
+             :href       (pairings-path {:id (:id data), :round r})
+             :class-name :tournament-button
+             :style      {:width "130px"}}])
          (when (contains? (:standings data) r)
            [ui/raised-button
-            {:label (str "Standings " r)
-             :href  (standings-path {:id (:id data), :round r})
-             :style {:width "130px"}}])])
+            {:label      (str "Standings " r)
+             :href       (standings-path {:id (:id data), :round r})
+             :class-name :tournament-button
+             :style      {:width "130px"}}])])
       [:div.tournament-row
        (when (:seatings data)
          [ui/raised-button
-          {:label "Seatings"
-           :href  (seatings-path {:id (:id data)})
-           :style {:width "130px"}}])
+          {:label      "Seatings"
+           :href       (seatings-path {:id (:id data)})
+           :class-name :tournament-button
+           :style      {:width "130px"}}])
        (for [n (:pods data)]
          ^{:key [(:id data) :pods n]}
          [ui/raised-button
-          {:label (str "Pods " n)
-           :href  (pods-path {:id (:id data), :round n})
-           :style {:width "130px"}}])]]]))
+          {:label      (str "Pods " n)
+           :href       (pods-path {:id (:id data), :round n})
+           :class-name :tournament-button
+           :style      {:width "130px"}}])]]]))
 
 (defn newest-tournaments-list []
   (let [tournaments (subscribe [::subs/newest-tournaments])]
@@ -72,7 +86,8 @@
 
 (defn tournament-list []
   [:div
-   [tournament-filters]
+   [desktop-filters]
+   [mobile-filters]
    [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/filtered-tournaments]
     (fn tournament-list-render [tournaments]
       [:div#tournaments
@@ -123,6 +138,7 @@
         sort-key (subscribe [::subs/pairings-sort])]
     (fn pairings-render [id round]
       [:table.pairings-table
+       {:class (when (= @sort-key :team1_name) :player-sorted)}
        [:thead
         [:tr
          [sortable-header {:class        :table

@@ -23,7 +23,8 @@
                                (dispatch [::events/tournament-filter [:organizer new-value]]))
        :value                @value
        :floating-label-text  "Turnausjärjestäjä"
-       :floating-label-fixed true}
+       :floating-label-fixed true
+       :class-name           :organizer-filter}
       [ui/menu-item {:value        ""
                      :primary-text "Kaikki järjestäjät"}]
       (for [organizer @organizers
@@ -43,8 +44,7 @@
        :auto-ok          true
        :locale           "fi-FI"
        :DateTimeFormat   (oget js/Intl "DateTimeFormat")
-       :style            {:display       :inline-block
-                          :margin-bottom "2px"}
+       :style            {:display :inline-block}
        :text-field-style {:width "128px"}
        :on-change        handler
        :value            v
@@ -68,7 +68,7 @@
          :on-change #(dispatch [::events/tournament-filter [:date-from %]])
          :on-clear  #(dispatch [::events/tournament-filter [:date-from nil]])
          :value     @from}]
-       " – "
+       [:span.separator "–"]
        [date-picker
         {:hint-text "Asti"
          :on-change #(dispatch [::events/tournament-filter [:date-to %]])
@@ -92,14 +92,46 @@
                                     :on-change #(dispatch [::events/tournament-filter [:players %]])}]]))})))
 
 (defn clear-filters []
-  [ui/raised-button
-   {:label      "Poista valinnat"
-    :on-click   #(dispatch [::events/reset-tournament-filter])
-    :class-name :filter-button}])
+  (let [filters-active? (subscribe [::subs/filters-active])]
+    (fn clear-filters-render []
+      [ui/raised-button
+       {:label      "Poista valinnat"
+        :on-click   #(dispatch [::events/reset-tournament-filter])
+        :disabled   (not @filters-active?)
+        :secondary  true
+        :class-name :filter-button}])))
 
-(defn tournament-filters []
-  [:div.filters
+(defn desktop-filters []
+  [:div.filters.desktop-filters.hidden-mobile
    [organizer-filter]
    [date-filter]
    [player-filter]
    [clear-filters]])
+
+(defn mobile-filters []
+  (let [filters-active? (subscribe [::subs/filters-active])]
+    (reagent/create-class
+     {:context-types  #js {:muiTheme prop-types/object.isRequired}
+      :reagent-render (fn mobile-filters-render []
+                        (let [palette (:palette (get-theme (reagent/current-component)))]
+                          [ui/card
+                           {:class-name "filters mobile-filters hidden-desktop"}
+                           [ui/card-header
+                            {:title                  "Hakutyökalut"
+                             :title-style            {:line-height "24px"}
+                             :act-as-expander        true
+                             :show-expandable-button true
+                             :avatar                 (reagent/as-element
+                                                      [ui/avatar
+                                                       {:icon             (icons/content-filter-list)
+                                                        :size             24
+                                                        :background-color (if @filters-active?
+                                                                            (:accent1Color palette)
+                                                                            (:primary1Color palette))}])}]
+                           [ui/card-text
+                            {:expandable true
+                             :style      {:padding-top 0}}
+                            [organizer-filter]
+                            [date-filter]
+                            [player-filter]
+                            [clear-filters]]]))})))
