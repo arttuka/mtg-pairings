@@ -116,6 +116,7 @@ Function f should accept one argument."
 #?(:cljs
    (defn format-time [seconds]
      (let [sign (if (neg? seconds) "-" "")
+           seconds (Math/floor seconds)
            minutes (Math/abs (round (/ seconds 60)))
            seconds (mod (Math/abs seconds) 60)]
        (gstring/format "%s%02d:%02d" sign minutes seconds))))

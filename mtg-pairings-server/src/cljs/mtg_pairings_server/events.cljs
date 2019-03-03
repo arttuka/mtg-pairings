@@ -200,6 +200,9 @@
       (assoc-in-many [:organizer :new-pods] true
                      [:organizer :selected-pods] (str (last (:pods tournament))))
 
+      (not= (:seatings tournament) (boolean (get-in db [:organizer :tournament :seatings])))
+      (assoc-in [:organizer :new-seatings] true)
+
       :always
       (assoc-in [:organizer :tournament] tournament))))
 
@@ -257,7 +260,9 @@
                                         [:organizer :standings-round] value
                                         [:organizer :new-standings] false)}
     :seatings {:ws-send [:client/organizer-seatings id]
-               :db      (assoc-in db [:organizer :mode] :seatings)}
+               :db      (assoc-in-many db
+                                       [:organizer :mode] :seatings
+                                       [:organizer :new-seatings] false)}
     :pods {:ws-send [:client/organizer-pods [id value]]
            :db      (assoc-in-many db
                                    [:organizer :mode] :pods
@@ -273,7 +278,8 @@
                  :db    (assoc-in db [:organizer :clock :running] false)}
     :select-pairings {:db (assoc-in db [:organizer :selected-pairings] value)}
     :select-standings {:db (assoc-in db [:organizer :selected-standings] value)}
-    :select-pods {:db (assoc-in db [:organizer :selected-pods] value)}))
+    :select-pods {:db (assoc-in db [:organizer :selected-pods] value)}
+    :close-popup {:db (assoc-in db [:organizer :menu] false)}))
 
 (defn send-organizer-action [db id action value]
   (assoc
@@ -297,10 +303,18 @@
   (fn [id]
     (.open js/window (str "/tournaments/" id "/organizer/menu") (str "menu" id))))
 
+(reg-fx :close-popup
+  (fn []
+    (js/setTimeout #(.close js/window) 100)))
+
 (reg-event-fx ::popup-organizer-menu
   (fn [{:keys [db]} _]
-    {:db    (assoc-in db [:organizer :menu] true)
-     :popup (get-in db [:page :id])}))
+    (let [{:keys [id page]} (:page db)]
+      (case page
+        :organizer {:db    (assoc-in db [:organizer :menu] true)
+                    :popup (get-in db [:page :id])}
+        :organizer-menu {:store       [["organizer" id] {:action :close-popup}]
+                         :close-popup nil}))))
 
 (reg-event-fx ::local-storage-updated
   (fn [{:keys [db]} [_ k v]]

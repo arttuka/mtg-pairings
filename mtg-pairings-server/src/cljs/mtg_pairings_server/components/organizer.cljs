@@ -34,6 +34,7 @@
         standings-rounds (subscribe [::subs/organizer :tournament :standings])
         new-pods (subscribe [::subs/organizer :new-pods])
         pods-rounds (subscribe [::subs/organizer :tournament :pods])
+        new-seatings (subscribe [::subs/organizer :new-seatings])
         clock-running (subscribe [::subs/organizer :clock :running])
         pairings-round (subscribe [::subs/organizer :selected-pairings])
         standings-round (subscribe [::subs/organizer :selected-standings])
@@ -64,7 +65,8 @@
        [round-select :select-pods pods-round pods-rounds]
        [ui/raised-button
         {:label    "Seatings"
-         :on-click #(dispatch [::events/organizer-mode :seatings])}]
+         :on-click #(dispatch [::events/organizer-mode :seatings])
+         :primary  @new-seatings}]
        [ui/raised-button
         {:label    "Kello"
          :on-click #(dispatch [::events/organizer-mode :clock])
