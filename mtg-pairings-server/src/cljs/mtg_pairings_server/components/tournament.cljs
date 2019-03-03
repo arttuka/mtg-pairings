@@ -16,50 +16,47 @@
             [mtg-pairings-server.components.filter :refer [tournament-filters]]
             [mtg-pairings-server.material-ui.util :refer [get-theme]]))
 
-(defn tournament-header [id]
-  (let [tournament (subscribe [::subs/tournament id])]
-    (fn tournament-header-render [id]
-      [:h3 [:a {:href (tournament-path {:id id})}
-            (str (:name @tournament) " " (format-date (:day @tournament)) " — " (:organizer @tournament))]])))
-
 (defn tournament [data]
   (when data
-    [ui/paper
-     {:class "tournament"
-      :style {:margin  "10px"
-              :padding "10px"}}
-     [tournament-header (:id data) (:name data) (:day data) (:organizer data)]
-     (when (:playoff data)
-       [:div.tournament-row
-        [ui/raised-button
-         {:label "Playoff bracket"
-          :href  (bracket-path {:id (:id data)})
-          :style {:width "260px"}}]])
-     (for [r (:round-nums data)]
-       ^{:key [(:id data) r]}
-       [:div.tournament-row
-        (when (contains? (:pairings data) r)
-          [ui/raised-button
-           {:label (str "Pairings " r)
-            :href  (pairings-path {:id (:id data), :round r})
-            :style {:width "130px"}}])
-        (when (contains? (:standings data) r)
-          [ui/raised-button
-           {:label (str "Standings " r)
-            :href  (standings-path {:id (:id data), :round r})
-            :style {:width "130px"}}])])
-     [:div.tournament-row
-      (when (:seatings data)
-        [ui/raised-button
-         {:label "Seatings"
-          :href  (seatings-path {:id (:id data)})
-          :style {:width "130px"}}])
-      (for [n (:pods data)]
-        ^{:key [(:id data) :pods n]}
-        [ui/raised-button
-         {:label (str "Pods " n)
-          :href  (pods-path {:id (:id data), :round n})
-          :style {:width "130px"}}])]]))
+    [ui/card
+     {:class "tournament"}
+     [ui/card-header
+      {:title (reagent/as-element [:a {:href  (tournament-path {:id (:id data)})
+                                       :style {:font-size "20px"}}
+                                   (str (:name data) " " (format-date (:day data)) " — " (:organizer data))])}]
+     [ui/card-text
+      {:style {:padding-top 0}}
+      (when (:playoff data)
+        [:div.tournament-row
+         [ui/raised-button
+          {:label "Playoff bracket"
+           :href  (bracket-path {:id (:id data)})
+           :style {:width "260px"}}]])
+      (for [r (:round-nums data)]
+        ^{:key [(:id data) r]}
+        [:div.tournament-row
+         (when (contains? (:pairings data) r)
+           [ui/raised-button
+            {:label (str "Pairings " r)
+             :href  (pairings-path {:id (:id data), :round r})
+             :style {:width "130px"}}])
+         (when (contains? (:standings data) r)
+           [ui/raised-button
+            {:label (str "Standings " r)
+             :href  (standings-path {:id (:id data), :round r})
+             :style {:width "130px"}}])])
+      [:div.tournament-row
+       (when (:seatings data)
+         [ui/raised-button
+          {:label "Seatings"
+           :href  (seatings-path {:id (:id data)})
+           :style {:width "130px"}}])
+       (for [n (:pods data)]
+         ^{:key [(:id data) :pods n]}
+         [ui/raised-button
+          {:label (str "Pods " n)
+           :href  (pods-path {:id (:id data), :round n})
+           :style {:width "130px"}}])]]]))
 
 (defn newest-tournaments-list []
   (let [tournaments (subscribe [::subs/newest-tournaments])]
@@ -100,7 +97,9 @@
 
 (defn pairing-row [cls pairing]
   [:tr {:class cls}
-   [:td.table (:table_number pairing)]
+   [:td.table (let [table (:table_number pairing)]
+                (when (not= table 0)
+                  table))]
    [:td.players
     [:span.player1 (:team1_name pairing)]
     [:span.player2.hidden-desktop

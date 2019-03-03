@@ -48,6 +48,5 @@
     [:.tournament-row
      {:margin-bottom (px 10)}]]
    [:.pager
-    {:margin {:left  (px 10)
-              :right (px 10)}}]]
+    {:margin (px 10)}]]
   filters)

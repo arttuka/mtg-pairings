@@ -25,7 +25,7 @@
     [:.points :.result
      {:width (px 50)}]
     [:.players
-     {:max-width "calc(100vw - 205px)"}]
+     {:max-width "calc(100vw - 197px)"}]
     [:.player1 :.player2 :.team1-points :.team2-points :.team1-wins :.team2-wins
      {:display       :block
       :width         (percent 100)
@@ -51,6 +51,11 @@
    (when-mobile
     [:.points :.rank
      {:width (px 40)}]
+    [:.player
+     {:max-width "calc(100vw - 262px)"
+      :overflow      :hidden
+      :white-space   :nowrap
+      :text-overflow :ellipsis}]
     [:.omw :.pgw :.ogw
      {:width     (px 50)
       :font-size (px 14)}])])
@@ -72,7 +77,7 @@
     [:.table
      {:width (px 65)}]
     [:.player
-     {:max-width     "calc(100vw - 105px)"
+     {:max-width     "calc(100vw - 97px)"
       :overflow      :hidden
       :white-space   :nowrap
       :text-overflow :ellipsis}])])
@@ -94,7 +99,7 @@
     [:th.pod
      {:text-align :right}]
     [:.player
-     {:max-width     "calc(100vw - 170px)"
+     {:max-width     "calc(100vw - 162px)"
       :overflow      :hidden
       :white-space   :nowrap
       :text-overflow :ellipsis}])])
