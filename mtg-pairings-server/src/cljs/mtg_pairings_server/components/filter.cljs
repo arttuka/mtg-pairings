@@ -39,16 +39,17 @@
         v (when value (js/Date. (coerce/to-long value)))]
     [:div.date-picker
      [ui/date-picker
-      {:hint-text        hint-text
-       :container        :inline
-       :auto-ok          true
-       :locale           "fi-FI"
-       :DateTimeFormat   (oget js/Intl "DateTimeFormat")
-       :style            {:display :inline-block}
-       :text-field-style {:width "128px"}
-       :on-change        handler
-       :value            v
-       :cancel-label     "Peruuta"}]
+      {:hint-text              hint-text
+       :container              :inline
+       :dialog-container-style {:left "-9999px"}
+       :auto-ok                true
+       :locale                 "fi-FI"
+       :DateTimeFormat         (oget js/Intl "DateTimeFormat")
+       :style                  {:display :inline-block}
+       :text-field-style       {:width "128px"}
+       :on-change              handler
+       :value                  v
+       :cancel-label           "Peruuta"}]
      (when v
        [ui/icon-button
         {:on-click on-clear
