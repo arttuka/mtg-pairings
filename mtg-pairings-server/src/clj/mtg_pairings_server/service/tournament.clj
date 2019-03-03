@@ -47,41 +47,42 @@
   (let [rounds (:round tournament)
         pairings (map :num rounds)
         results (map :num (filter :results rounds))
-        pods (map inc (range (count (:pod_round tournament))))]
+        pods (range 1 (inc (count (:pod_round tournament))))]
     (->
      tournament
-     (assoc :pairings pairings)
-     (assoc :results results)
-     (assoc :pods pods)
+     (assoc :pairings pairings
+            :results results
+            :pods pods)
      (update :standings #(map :num %))
      (dissoc :round :pod_round))))
 
 (defn tournament [id]
-  (update-round-data (->
-                      select-tournaments
-                      (sql/with db/round
-                        (sql/fields :num)
-                        (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
-                                                               (sql/join :left db/result
-                                                                         (= :pairing.id :result.pairing))
-                                                               (sql/where {:pairing.round  :round.id
-                                                                           :result.pairing nil})))
-                                     :results])
-                        (sql/order :num)
-                        (sql/where
-                         (and (sql/sqlfn "exists" (sql/subselect db/pairing
-                                                    (sql/where {:round :round.id})))
-                              (not :playoff))))
-                      (sql/with db/standings
-                        (sql/where {:hidden false})
-                        (sql/fields [:round :num])
-                        (sql/order :round))
-                      (sql/with db/pod-round
-                        (sql/fields :id)
-                        (sql/order :id))
-                      (sql/where {:id id})
-                      (sql/post-query sql-util/unique)
-                      (sql/exec))))
+  (->
+   select-tournaments
+   (sql/with db/round
+     (sql/fields :num)
+     (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
+                                            (sql/join :left db/result
+                                                      (= :pairing.id :result.pairing))
+                                            (sql/where {:pairing.round  :round.id
+                                                        :result.pairing nil})))
+                  :results])
+     (sql/order :num)
+     (sql/where
+      (and (sql/sqlfn "exists" (sql/subselect db/pairing
+                                 (sql/where {:round :round.id})))
+           (not :playoff))))
+   (sql/with db/standings
+     (sql/where {:hidden false})
+     (sql/fields [:round :num])
+     (sql/order :round))
+   (sql/with db/pod-round
+     (sql/fields :id)
+     (sql/order :id))
+   (sql/where {:id id})
+   (sql/post-query sql-util/unique)
+   (sql/exec)
+   update-round-data))
 
 (defn tournaments []
   (let [tourns (sql/exec select-tournaments)
@@ -118,7 +119,8 @@
     (for [t tourns
           :let [id (:id t)]]
       (update-round-data
-       (assoc t :round (get rounds id [])
+       (assoc t
+              :round (get rounds id [])
               :standings (get standings id [])
               :pod_round (get pod-rounds id [])
               :players (get teams id 0))))))
@@ -154,10 +156,9 @@
         (sql/values new-players)))))
 
 (defn ^:private add-team [name tournament-id]
-  (let [t (sql/insert db/team
-            (sql/values {:name       name
-                         :tournament tournament-id}))]
-    (:id t)))
+  (:id (sql/insert db/team
+         (sql/values {:name       name
+                      :tournament tournament-id}))))
 
 (defn ^:private fix-dci-number [player]
   (update player :dci mtg-util/add-check-digits))
@@ -262,7 +263,7 @@
       edn/read-string))
 
 (defn standings-for-api [tournament-id round-num hidden?]
-  (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw Double])
+  (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw])
        (standings tournament-id round-num hidden?)))
 
 (defn ^:private get-or-add-round [tournament-id round-num playoff?]
