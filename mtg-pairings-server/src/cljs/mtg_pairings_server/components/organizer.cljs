@@ -98,11 +98,13 @@
          :disabled  (not @clock-running)}]])))
 
 (defn pairing [data even?]
-  [:div.row.pairing.no-round {:class (cls {:even even?
-                                       :odd  (not even?)})}
-   [:span.table-number (or (:table_number data) (:pod data))]
-   [:span.player (:team1_name data) [:span.points (:team1_points data)]]
-   [:span.player.opponent (:team2_name data) [:span.points (:team2_points data)]]])
+  (let [bye? (= (:table_number data) 0)]
+    [:div.row.pairing.no-round {:class (cls {:even even?
+                                             :odd  (not even?)
+                                             :bye  bye?})}
+     [:span.table-number (when-not bye? (or (:table_number data) (:pod data)))]
+     [:span.player (:team1_name data) [:span.points (:team1_points data)]]
+     [:span.player.opponent (:team2_name data) [:span.points (when-not bye? (:team2_points data))]]]))
 
 (defn pairings []
   (let [pairings (subscribe [::subs/organizer :pairings])

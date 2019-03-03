@@ -18,16 +18,22 @@
   (reagent/create-class
    {:context-types  #js {:muiTheme prop-types/object.isRequired}
     :reagent-render (fn [data pairing?]
-                      (let [palette (:palette (get-theme (reagent/current-component)))]
+                      (let [palette (:palette (get-theme (reagent/current-component)))
+                            bye? (= (:table_number data) 0)]
                         [ui/list-item
                          {:class                :mui-pairing
                           :left-avatar          (reagent/as-element [ui/avatar
-                                                                     {:background-color (:primary1Color palette)
+                                                                     {:background-color (if bye?
+                                                                                          (:accent3Color palette)
+                                                                                          (:primary1Color palette))
                                                                       :color            (:textColor palette)}
-                                                                     (or (:table_number data) (:pod data))])
+                                                                     (when-not bye?
+                                                                       (or (:table_number data) (:pod data)))])
                           :primary-text         (if pairing?
                                                   (str "Kierros " (:round_number data))
-                                                  (if (:pod data) "Pod" "Seating"))
+                                                  (if (:pod data)
+                                                    (str "Pod " (:pod data))
+                                                    "Seating"))
                           :secondary-text       (reagent/as-element
                                                  (if pairing?
                                                    [:div
@@ -36,12 +42,15 @@
                                                       (str (:team1_name data) " (" (:team1_points data) ")")]
                                                      [:span.hidden-mobile " - "]
                                                      [:br.hidden-desktop]
-                                                     [:span (str (:team2_name data) " (" (:team2_points data) ")")]]
-                                                    [:span.points
-                                                     [:span (:team1_wins data)]
-                                                     [:span.hidden-mobile " - "]
-                                                     [:br.hidden-desktop]
-                                                     [:span (:team2_wins data)]]]
+                                                     [:span (if bye?
+                                                              (:team2_name data)
+                                                              (str (:team2_name data) " (" (:team2_points data) ")"))]]
+                                                    (when-not bye?
+                                                      [:span.points
+                                                       [:span (:team1_wins data)]
+                                                       [:span.hidden-mobile " - "]
+                                                       [:br.hidden-desktop]
+                                                       [:span (:team2_wins data)]])]
                                                    [:span.names (or (:team1_name data)
                                                                     (str "Seat " (:seat data)))]))
                           :secondary-text-lines 2}]))}))

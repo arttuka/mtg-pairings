@@ -24,7 +24,9 @@
      :width      (px 25)
      :text-align :center
      :position   :absolute
-     :right      0}]])
+     :right      0}]
+   [:.bye
+    {:background-color (variables/color :light-green)}]])
 
 (defstyles pods
   [:.organizer-pods

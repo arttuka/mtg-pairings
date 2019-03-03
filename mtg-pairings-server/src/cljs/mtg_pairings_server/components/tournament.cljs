@@ -96,23 +96,27 @@
                          children]))}))
 
 (defn pairing-row [cls pairing]
-  [:tr {:class cls}
-   [:td.table (let [table (:table_number pairing)]
-                (when (not= table 0)
-                  table))]
-   [:td.players
-    [:span.player1 (:team1_name pairing)]
-    [:span.player2.hidden-desktop
-     (:team2_name pairing)]]
-   [:td.players2.hidden-mobile (:team2_name pairing)]
-   [:td.points
-    [:span.team1-points (:team1_points pairing)]
-    [:span.hidden-mobile " - "]
-    [:span.team2-points (:team2_points pairing)]]
-   [:td.result
-    [:span.team1-wins (:team1_wins pairing)]
-    [:span.hidden-mobile " - "]
-    [:span.team2-wins (:team2_wins pairing)]]])
+  (let [bye? (= (:table_number pairing) 0)]
+    [:tr {:class cls}
+     [:td.table (when-not bye? (:table_number pairing))]
+     [:td.players
+      [:span.player1 (:team1_name pairing)]
+      [:span.player2.hidden-desktop
+       (:team2_name pairing)]]
+     [:td.players2.hidden-mobile (:team2_name pairing)]
+     (if bye?
+       [:td.points
+        [:span.team1-points (:team1_points pairing)]]
+       [:td.points
+        [:span.team1-points (:team1_points pairing)]
+        [:span.hidden-mobile " - "]
+        [:span.team2-points (:team2_points pairing)]])
+     (if bye?
+       [:td.result]
+       [:td.result
+        [:span.team1-wins (:team1_wins pairing)]
+        [:span.hidden-mobile " - "]
+        [:span.team2-wins (:team2_wins pairing)]])]))
 
 (defn pairings [id round]
   (let [data (subscribe [::subs/sorted-pairings id round])
