@@ -2,8 +2,8 @@
   (:require [garden.def :refer [defstyles]]
             [garden.selectors :refer [nth-child &]]
             [garden.units :refer [px percent]]
-            [mtg-pairings-server.styles.util :refer [ellipsis-overflow when-mobile when-desktop]]
-            [mtg-pairings-server.styles.variables :as variables]))
+            [mtg-pairings-server.styles.common :refer [ellipsis-overflow color]]
+            [mtg-pairings-server.util.mobile :refer [when-mobile when-desktop]]))
 
 (defstyles pairings-table
   [:table.pairings-table
@@ -34,7 +34,7 @@
       ellipsis-overflow)]
     [:&.player-sorted
      [:.player2 :.team2-points :.team2-wins
-      {:color (variables/color :grey)}]])])
+      {:color (color :grey)}]])])
 
 (defstyles standings-table
   [:table.standings-table
@@ -43,7 +43,7 @@
    [:.rank
     {:text-align  :center
      :font-weight 700
-     :color       (variables/color :dark-grey)}]
+     :color       (color :dark-grey)}]
    (when-desktop
     [:.player
      {:min-width (px 300)}]
@@ -117,8 +117,8 @@
      :line-height     (px 24)}]
    [:tbody
     [:tr
-    [(& (nth-child "odd"))
-     {:background-color (variables/color :light-blue)}]]]
+     [(& (nth-child "odd"))
+      {:background-color (color :light-blue)}]]]
    (when-mobile
     [:&
      {:width (percent 100)}])]

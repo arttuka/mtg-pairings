@@ -1,8 +1,8 @@
 (ns mtg-pairings-server.styles.bracket
   (:require [garden.def :refer [defstyles]]
             [garden.units :refer [px px-]]
-            [mtg-pairings-server.styles.util :refer [when-desktop when-mobile]]
-            [mtg-pairings-server.styles.variables :as variables]))
+            [mtg-pairings-server.styles.common :refer [color]]
+            [mtg-pairings-server.util.mobile :refer [when-desktop when-mobile]]))
 
 (def line-height 20)
 (def bracket-height 50)
@@ -49,14 +49,14 @@
       [:&.team1
        {:padding {:bottom (px 1)}}]
       [:&.team2
-       {:border {:color (variables/color :dark-grey)
+       {:border {:color (color :dark-grey)
                  :style :solid
                  :width (px 1)
                  :left  0}}]
       [:&.winner
        {:font-weight 500}]
       [:.rank
-       {:color        (variables/color :grey)
+       {:color        (color :grey)
         :margin-right (px 10)}]
       [:.wins
        {:float       :right

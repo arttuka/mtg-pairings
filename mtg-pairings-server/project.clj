@@ -39,7 +39,7 @@
   :resource-paths ["resources"]
 
   :garden {:builds [{:id           "main"
-                     :source-paths ["src/clj"]
+                     :source-paths ["src/clj" "src/cljc"]
                      :stylesheet   mtg-pairings-server.styles.main/main
                      :compiler     {:output-to     "target/public/css/main.css"
                                     :pretty-print? true}}]}

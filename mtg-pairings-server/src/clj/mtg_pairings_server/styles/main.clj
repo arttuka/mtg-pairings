@@ -1,14 +1,14 @@
 (ns mtg-pairings-server.styles.main
-  (:require [garden.def :refer [defstyles]]
-            [garden.core :as garden]
+  (:require [garden.core :as garden]
+            [garden.def :refer [defstyles]]
             [garden.stylesheet :refer [at-import]]
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.bracket :as bracket]
+            [mtg-pairings-server.styles.common :refer [color]]
             [mtg-pairings-server.styles.organizer :as organizer]
             [mtg-pairings-server.styles.table :as table]
             [mtg-pairings-server.styles.tournament :as tournament]
-            [mtg-pairings-server.styles.util :refer [when-desktop when-mobile]]
-            [mtg-pairings-server.styles.variables :as variables]))
+            [mtg-pairings-server.util.mobile :refer [when-desktop when-mobile]]))
 
 (defstyles base
   (at-import "https://fonts.googleapis.com/css?family=Lato:700")
@@ -30,7 +30,7 @@
     :line-height 1.1}]
   [:a
    {:text-decoration :none
-    :color           (variables/color :turquoise)}]
+    :color           (color :turquoise)}]
   [:#main-container
    {:margin-bottom (px 10)}])
 

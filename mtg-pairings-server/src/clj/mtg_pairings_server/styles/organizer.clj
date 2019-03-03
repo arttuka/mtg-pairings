@@ -2,8 +2,7 @@
   (:require [garden.def :refer [defstyles]]
             [garden.selectors :refer [nth-child &]]
             [garden.units :refer [px vh vw percent]]
-            [mtg-pairings-server.styles.util :refer [ellipsis-overflow]]
-            [mtg-pairings-server.styles.variables :as variables]))
+            [mtg-pairings-server.styles.common :refer [color ellipsis-overflow]]))
 
 (defstyles pairings
   [:.organizer-pairings
@@ -15,7 +14,7 @@
       :padding-right (px 25)}
      ellipsis-overflow)
     [:&.opponent
-     {:color (variables/color :grey)}]]
+     {:color (color :grey)}]]
    [:.points
     {:display    :inline-block
      :width      (px 25)
@@ -23,7 +22,7 @@
      :position   :absolute
      :right      0}]
    [:.bye
-    {:background-color (variables/color :light-green)}]])
+    {:background-color (color :light-green)}]])
 
 (defstyles pods
   [:.organizer-pods
@@ -46,7 +45,7 @@
     [:.rank
      {:text-align  :center
       :font-weight 700
-      :color       (variables/color :dark-grey)}]
+      :color       (color :dark-grey)}]
     [:.points :.rank
      {:width (px 40)}]
     [:.player
@@ -66,7 +65,7 @@
     :width       (px 470)
     :font-size   (px 17)
     :border      {:style :solid
-                  :color (variables/color :light-grey)
+                  :color (color :light-grey)
                   :width (px 1)}}]
   [:.table-number :.pod-number :.seat-number
    {:display     :inline-block
@@ -74,7 +73,7 @@
     :font-size   (px 20)
     :font-weight 700
     :text-align  :center
-    :color       (variables/color :dark-grey)}])
+    :color       (color :dark-grey)}])
 
 (defstyles clock
   [:.organizer-clock
@@ -116,7 +115,7 @@
      {:height "calc(100vh - 46px)"}]]
    [:.row
     [(& (nth-child "even"))
-     {:background-color (variables/color :light-grey)}]]
+     {:background-color (color :light-grey)}]]
    table
    pairings
    pods

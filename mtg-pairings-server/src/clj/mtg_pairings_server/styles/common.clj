@@ -1,7 +1,10 @@
-(ns mtg-pairings-server.styles.variables
+(ns mtg-pairings-server.styles.common
   (:require [garden.color :refer [hex->rgb]]))
 
-(def mobile-max-width 767)
+(def ellipsis-overflow {:white-space    :nowrap
+                        :text-overflow  :ellipsis
+                        :overflow       :hidden
+                        :vertical-align :bottom})
 
 (def color {:turquoise   (hex->rgb "337ab7")
             :light-blue  (hex->rgb "d0e9fc")
