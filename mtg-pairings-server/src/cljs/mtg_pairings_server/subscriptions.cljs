@@ -5,6 +5,10 @@
             [mtg-pairings-server.util.util :refer [today-or-yesterday?]]
             [mtg-pairings-server.util.mtg-util :refer [duplicate-pairings]]))
 
+(reg-sub ::mobile?
+  (fn [db _]
+    (:mobile? db)))
+
 (reg-sub ::logged-in-user
   (fn [db _]
     (:logged-in-user db)))

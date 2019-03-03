@@ -1,13 +1,14 @@
 (ns ^:figwheel-hooks mtg-pairings-server.core
   (:require [reagent.core :as reagent :refer [atom]]
-            [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
+            [re-frame.core :refer [dispatch-sync subscribe clear-subscription-cache!]]
             [cljsjs.material-ui]
-            [cljs-react-material-ui.core :refer [get-mui-theme color]]
+            [cljs-react-material-ui.core :refer [get-mui-theme]]
             [cljs-react-material-ui.reagent :as ui]
             [mount.core :as m]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
             mtg-pairings-server.routes
+            mtg-pairings-server.util.event-listener
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.pages.main :refer [main-page]]

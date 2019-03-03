@@ -3,6 +3,7 @@
             [cljs.core.async :refer [<! >! timeout]]
             [cljs-time.core :as time]
             [mtg-pairings-server.util.local-storage :refer [fetch store]]
+            [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.util.util :refer [map-by format-time assoc-in-many round-up]]
             [mtg-pairings-server.websocket :as ws])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
@@ -44,7 +45,8 @@
                  :seatings           {:sort-key :table_number}
                  :page               {:page :main}
                  :logged-in-user     (fetch :user)
-                 :notification       nil})
+                 :notification       nil
+                 :mobile?            (mobile?)})
 
 (defn update-filters-active [db]
   (assoc db :filters-active (not= {:organizer ""
@@ -68,6 +70,10 @@
     (when (:first-open? new-state)
       (reset! channel-open? true)
       (connect!))))
+
+(reg-event-db ::window-resized
+  (fn [db _]
+    (assoc db :mobile? (mobile?))))
 
 (reg-event-fx ::login
   (fn [_ [_ dci-number]]

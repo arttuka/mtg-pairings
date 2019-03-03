@@ -137,3 +137,10 @@
                             [date-filter]
                             [player-filter]
                             [clear-filters]]]))})))
+
+(defn filters []
+  (let [mobile? (subscribe [::subs/mobile?])]
+    (fn filters-render []
+      (if @mobile?
+        [mobile-filters]
+        [desktop-filters]))))

@@ -13,7 +13,7 @@
             [mtg-pairings-server.util.util :refer [format-date indexed]]
             [mtg-pairings-server.routes :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
-            [mtg-pairings-server.components.filter :refer [desktop-filters mobile-filters]]
+            [mtg-pairings-server.components.filter :refer [filters]]
             [mtg-pairings-server.material-ui.util :refer [get-theme]]))
 
 (defn tournament-card-header
@@ -76,18 +76,19 @@
   (let [tournaments (subscribe [::subs/newest-tournaments])]
     (fn newest-tournaments-list-render []
       [:div#tournaments
-       [:h2 "Aktiiviset turnaukset | " [:a {:href (tournaments-path)}
-                                        "Turnausarkistoon"]]
+       [:h2.newest-header
+        "Aktiiviset turnaukset | "
+        [:a {:href (tournaments-path)}
+         "Turnausarkistoon"]]
        (if-let [ts (seq @tournaments)]
          (for [t ts]
            ^{:key (:id t)}
            [tournament t])
-         [:h3 "Ei aktiivisia turnauksia."])])))
+         [:h3.no-active "Ei aktiivisia turnauksia."])])))
 
 (defn tournament-list []
   [:div
-   [desktop-filters]
-   [mobile-filters]
+   [filters]
    [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/filtered-tournaments]
     (fn tournament-list-render [tournaments]
       [:div#tournaments
