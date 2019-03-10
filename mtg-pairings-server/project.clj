@@ -15,6 +15,7 @@
                  [korma "0.4.3"]
                  [mount "0.1.16"]
                  [org.postgresql/postgresql "42.2.5"]
+                 [hikari-cp "2.7.0"]
                  [metosin/compojure-api "1.1.12"]
                  [org.flatland/ordered "1.5.7"]
                  [cheshire "5.8.1"]

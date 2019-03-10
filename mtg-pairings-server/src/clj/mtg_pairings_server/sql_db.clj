@@ -4,18 +4,26 @@
             [clj-time.coerce :as time-coerce]
             [korma.core :as sql]
             [korma.db]
+            [hikari-cp.core :as hikari]
             [mount.core :refer [defstate]]
             [config.core :refer [env]])
   (:import (java.sql Date)
            (org.joda.time LocalDate)))
 
+(def datasource-options {:adapter       "postgresql"
+                         :username      (env :db-user)
+                         :password      (env :db-password)
+                         :database-name (env :db-name)
+                         :server-name   (env :db-host)
+                         :port-number   (env :db-port)})
+
 (defstate db
   :start (korma.db/default-connection (korma.db/create-db
-                                       (korma.db/postgres {:host     (:db-host env)
-                                                           :port     (:db-port env)
-                                                           :user     (:db-user env)
-                                                           :password (:db-password env)
-                                                           :db       (:db-name env)}))))
+                                       {:make-pool? false
+                                        :datasource (hikari/make-datasource datasource-options)}))
+  :stop (do
+          (korma.db/default-connection nil)
+          (hikari/close-datasource (get-in @db [:pool :datasource]))))
 
 (defn ^:private convert-instances-of
   [cls f m]
