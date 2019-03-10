@@ -37,6 +37,7 @@
 
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
   :resource-paths ["resources"]
+  :test-paths []
 
   :garden {:builds [{:id           "main"
                      :source-paths ["src/clj" "src/cljc"]
@@ -75,6 +76,7 @@
                                          :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
                         :source-paths   ["dev" "env/dev/clj" "env/dev/cljs"]
                         :resource-paths ["target"]
+                        :test-paths     ["test/clj"]
                         :dependencies   [[org.clojure/tools.namespace "0.2.11"]
                                          [binaryage/devtools "0.9.10"]
                                          [com.bhauman/rebel-readline-cljs "0.1.4" :exclusions [org.clojure/clojurescript]]
@@ -84,6 +86,8 @@
                                          [hawk "0.2.11"]
                                          [cider/piggieback "0.4.0" :exclusions [org.clojure/clojurescript]]
                                          [re-frisk "0.5.4" :exclusions [org.clojure/clojurescript]]]}
+             :test     {:source-paths   ^:replace ["src/clj" "src/cljc" "src/cljs"]
+                        :resource-paths ["test-resources"]}
              :prod     {:source-paths ["env/prod/cljs"]}
              :provided {:dependencies [[org.clojure/clojurescript "1.10.520"]
                                        [reagent "0.8.1"]

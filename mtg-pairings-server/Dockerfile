@@ -8,7 +8,10 @@ RUN lein deps
 COPY ./src ./src
 COPY ./env ./env
 COPY ./resources ./resources
+COPY ./test ./test
+COPY ./test-resources ./test-resources
 COPY prod.cljs.edn .
+RUN lein test
 RUN lein do clean, uberjar
 
 FROM openjdk:11-jre-slim

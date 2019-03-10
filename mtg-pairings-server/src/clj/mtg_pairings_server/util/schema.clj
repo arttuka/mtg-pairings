@@ -19,16 +19,16 @@
 
 (s/defschema InputTournament (-> BaseTournament
                                  (dissoc :id)
-                                 (merge {:day        Date
-                                         :sanctionid String
-                                         :tracking   Boolean})))
+                                 (merge {:day                       Date
+                                         :sanctionid                String
+                                         (s/optional-key :tracking) Boolean})))
 
 (s/defschema Player {:dci  String
                      :name String})
 
-(s/defschema Team {:id      Long
-                   :name    String
-                   :players [Player]})
+(s/defschema Team {(s/optional-key :id) Long
+                   :name                String
+                   :players             [Player]})
 
 (s/defschema InputTeam [String])
 
