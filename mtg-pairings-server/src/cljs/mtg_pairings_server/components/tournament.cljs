@@ -138,28 +138,29 @@
   (let [data (subscribe [::subs/sorted-pairings id round])
         sort-key (subscribe [::subs/pairings-sort])]
     (fn pairings-render [id round]
-      [:table.pairings-table
-       {:class (when (= @sort-key :team1_name) :player-sorted)}
-       [:thead
-        [:tr
-         [sortable-header {:class        :table
-                           :column       :table_number
-                           :sort-key     @sort-key
-                           :dispatch-key ::events/sort-pairings}
-          "Pöytä"]
-         [sortable-header {:class        :players
-                           :column       :team1_name
-                           :sort-key     @sort-key
-                           :dispatch-key ::events/sort-pairings}
-          ^{:key "player-1-heading"} [:span.hidden-mobile "Pelaaja 1"]
-          ^{:key "players-heading"} [:span.hidden-desktop "Pelaajat"]]
-         [:th.players2.hidden-mobile "Pelaaja 2"]
-         [:th.points "Pist."]
-         [:th.result "Tulos"]]]
-       [:tbody
-        (for [pairing @data]
-          ^{:key [(:team1_name pairing)]}
-          [pairing-row pairing])]])))
+      (when (seq @data)
+        [:table.pairings-table
+         {:class (when (= @sort-key :team1_name) :player-sorted)}
+         [:thead
+          [:tr
+           [sortable-header {:class        :table
+                             :column       :table_number
+                             :sort-key     @sort-key
+                             :dispatch-key ::events/sort-pairings}
+            "Pöytä"]
+           [sortable-header {:class        :players
+                             :column       :team1_name
+                             :sort-key     @sort-key
+                             :dispatch-key ::events/sort-pairings}
+            ^{:key "player-1-heading"} [:span.hidden-mobile "Pelaaja 1"]
+            ^{:key "players-heading"} [:span.hidden-desktop "Pelaajat"]]
+           [:th.players2.hidden-mobile "Pelaaja 2"]
+           [:th.points "Pist."]
+           [:th.result "Tulos"]]]
+         [:tbody
+          (for [pairing @data]
+            ^{:key [(:team1_name pairing)]}
+            [pairing-row pairing])]]))))
 
 (defn percentage [n]
   (gstring/format "%.3f" (* 100 n)))
@@ -174,19 +175,20 @@
    [:td.pgw (percentage (:ogw standing))]])
 
 (defn standing-table [data]
-  [:table.standings-table
-   [:thead
-    [:tr
-     [:th.rank]
-     [:th.players "Pelaaja"]
-     [:th.points "Pist."]
-     [:th.omw "OMW"]
-     [:th.ogw "PGW"]
-     [:th.pgw "OGW"]]]
-   [:tbody
-    (for [standing data]
-      ^{:key (:team_name standing)}
-      [standing-row standing])]])
+  (when (seq data)
+    [:table.standings-table
+     [:thead
+      [:tr
+       [:th.rank]
+       [:th.players "Pelaaja"]
+       [:th.points "Pist."]
+       [:th.omw "OMW"]
+       [:th.ogw "PGW"]
+       [:th.pgw "OGW"]]]
+     [:tbody
+      (for [standing data]
+        ^{:key (:team_name standing)}
+        [standing-row standing])]]))
 
 (defn standings [id round]
   (let [data (subscribe [::subs/standings id round])]
@@ -203,24 +205,25 @@
   (let [data (subscribe [::subs/sorted-pods id round])
         sort-key (subscribe [::subs/pods-sort])]
     (fn pods-render [id round]
-      [:table.pods-table
-       [:thead
-        [:tr
-         [sortable-header {:class        :pod
-                           :column       :pod
-                           :sort-key     @sort-key
-                           :dispatch-key ::events/sort-pods}
-          "Pöytä"]
-         [:th.seat "Paikka"]
-         [sortable-header {:class        :player
-                           :column       :team_name
-                           :sort-key     @sort-key
-                           :dispatch-key ::events/sort-pods}
-          "Pelaaja"]]]
-       [:tbody
-        (for [seat @data]
-          ^{:key [(:team_name seat)]}
-          [pod-row seat])]])))
+      (when (seq @data)
+        [:table.pods-table
+         [:thead
+          [:tr
+           [sortable-header {:class        :pod
+                             :column       :pod
+                             :sort-key     @sort-key
+                             :dispatch-key ::events/sort-pods}
+            "Pöytä"]
+           [:th.seat "Paikka"]
+           [sortable-header {:class        :player
+                             :column       :team_name
+                             :sort-key     @sort-key
+                             :dispatch-key ::events/sort-pods}
+            "Pelaaja"]]]
+         [:tbody
+          (for [seat @data]
+            ^{:key [(:team_name seat)]}
+            [pod-row seat])]]))))
 
 (defn seating-row [seat]
   [:tr
@@ -231,23 +234,24 @@
   (let [data (subscribe [::subs/sorted-seatings id round])
         sort-key (subscribe [::subs/seatings-sort])]
     (fn seatings-render [id round]
-      [:table.seatings-table
-       [:thead
-        [:tr
-         [sortable-header {:class        :table
-                           :column       :table_number
-                           :sort-key     @sort-key
-                           :dispatch-key ::events/sort-seatings}
-          "Pöytä"]
-         [sortable-header {:class        :player
-                           :column       :name
-                           :sort-key     @sort-key
-                           :dispatch-key ::events/sort-seatings}
-          "Pelaaja"]]]
-       [:tbody
-        (for [seat @data]
-          ^{:key [(:name seat)]}
-          [seating-row seat])]])))
+      (when (seq @data)
+        [:table.seatings-table
+         [:thead
+          [:tr
+           [sortable-header {:class        :table
+                             :column       :table_number
+                             :sort-key     @sort-key
+                             :dispatch-key ::events/sort-seatings}
+            "Pöytä"]
+           [sortable-header {:class        :player
+                             :column       :name
+                             :sort-key     @sort-key
+                             :dispatch-key ::events/sort-seatings}
+            "Pelaaja"]]]
+         [:tbody
+          (for [seat @data]
+            ^{:key [(:name seat)]}
+            [seating-row seat])]]))))
 
 (defn bracket-match [match]
   [:div.bracket-match
