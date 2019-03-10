@@ -232,28 +232,29 @@
                          :player (:dci player)})))))))
 
 (defn seatings [tournament-id]
-  (sql/select db/seating
-    (sql/fields :table_number)
-    (sql/with db/team
-      (sql/fields :name))
-    (sql/where {:tournament tournament-id})
-    (sql/order :team.name :ASC)))
+  (seq
+   (sql/select db/seating
+     (sql/fields :table_number)
+     (sql/with db/team
+       (sql/fields :name))
+     (sql/where {:tournament tournament-id})
+     (sql/order :team.name :ASC))))
 
 (defn pods [tournament-id number]
   (let [pod-rounds (map :id (sql/select db/pod-round
                               (sql/fields :id)
                               (sql/where {:tournament tournament-id})
-                              (sql/order :id)))
-        round-id (nth pod-rounds (dec number))]
-    (sql/select db/seat
-      (sql/fields :seat)
-      (sql/with db/team
-        (sql/fields [:name :team_name]))
-      (sql/with db/pod
-        (sql/fields [:number :pod])
-        (sql/where {:pod_round round-id}))
-      (sql/order :pod.number)
-      (sql/order :seat))))
+                              (sql/order :id)))]
+    (when (<= number (count pod-rounds))
+      (sql/select db/seat
+        (sql/fields :seat)
+        (sql/with db/team
+          (sql/fields [:name :team_name]))
+        (sql/with db/pod
+          (sql/fields [:number :pod])
+          (sql/where {:pod_round (nth pod-rounds (dec number))}))
+        (sql/order :pod.number)
+        (sql/order :seat)))))
 
 (defn latest-pods [tournament-id]
   (sql/select db/seat
@@ -280,8 +281,9 @@
       edn/read-string))
 
 (defn standings-for-api [tournament-id round-num hidden?]
-  (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw])
-       (standings tournament-id round-num hidden?)))
+  (seq
+   (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw])
+        (standings tournament-id round-num hidden?))))
 
 (defn ^:private get-or-add-round [tournament-id round-num playoff?]
   (if-let [old-round (sql-util/select-unique-or-nil db/round
