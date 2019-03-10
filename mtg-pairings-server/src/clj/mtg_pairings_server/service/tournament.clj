@@ -1,5 +1,5 @@
 (ns mtg-pairings-server.service.tournament
-  (:require [clojure.set :refer [rename-keys]]
+  (:require [clojure.set :refer [rename-keys union]]
             [clojure.edn :as edn]
             [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
@@ -56,6 +56,15 @@
      (update :standings #(map :num %))
      (dissoc :round :pod_round))))
 
+(defn format-client-tournament [tournament]
+  (let [pairings (set (:pairings tournament))
+        standings (set (:standings tournament))
+        round-nums (sort > (union pairings standings))]
+    (assoc tournament
+           :pairings pairings
+           :standings standings
+           :round-nums round-nums)))
+
 (defn tournament [id]
   (->
    select-tournaments
@@ -79,10 +88,15 @@
    (sql/with db/pod-round
      (sql/fields :id)
      (sql/order :id))
+   (sql/join db/team)
+   (sql/aggregate (count :*) :players :id)
    (sql/where {:id id})
    (sql/post-query sql-util/unique)
    (sql/exec)
    update-round-data))
+
+(defn client-tournament [id]
+  (format-client-tournament (tournament id)))
 
 (defn tournaments []
   (let [tourns (sql/exec select-tournaments)
@@ -124,6 +138,9 @@
               :standings (get standings id [])
               :pod_round (get pod-rounds id [])
               :players (get teams id 0))))))
+
+(defn client-tournaments []
+  (map format-client-tournament (tournaments)))
 
 (defn add-tournament [tourn]
   (if (seq (sql/select db/tournament

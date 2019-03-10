@@ -117,25 +117,18 @@
                                :players   [0 (:max-players db)]}
            :filters-active false)))
 
-(defn format-tournament [tournament]
-  (let [rounds (sort > (into (set (:pairings tournament)) (:standings tournament)))]
-    (-> tournament
-        (update :pairings set)
-        (update :standings set)
-        (assoc :round-nums rounds))))
-
 (reg-event-db :server/tournaments
   (fn [db [_ tournaments]]
     (let [max-players (round-up (transduce (map :players) max 0 tournaments) 10)]
       (-> db
-          (assoc :tournaments (map-by :id (map format-tournament tournaments))
+          (assoc :tournaments (map-by :id tournaments)
                  :tournament-ids (map :id tournaments)
                  :max-players max-players)
           (assoc-in [:tournament-filter :players 1] max-players)))))
 
 (reg-event-db :server/tournament
   (fn [db [_ tournament]]
-    (assoc-in db [:tournaments (:id tournament)] (format-tournament tournament))))
+    (assoc-in db [:tournaments (:id tournament)] tournament)))
 
 (reg-event-fx ::load-tournament
   (fn [_ [_ id]]
