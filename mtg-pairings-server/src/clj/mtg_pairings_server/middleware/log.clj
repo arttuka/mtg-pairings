@@ -15,9 +15,7 @@
     (let [response (handler request)
           uri (:uri request)]
       (when (logged? uri)
-        (log/info (or (get-in request [:headers "x-real-ip"])
-                      (get-in request [:headers "x-forwarded-for"])
-                      (:remote-addr request))
+        (log/info (get-in request [:headers "x-forwarded-for"] (:remote-addr request))
                   (-> request :request-method name str/upper-case)
                   uri
                   (:status response)))

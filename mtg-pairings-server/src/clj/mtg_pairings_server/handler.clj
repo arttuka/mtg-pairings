@@ -7,9 +7,8 @@
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [mtg-pairings-server.api.http :as http-api]
-            [mtg-pairings-server.middleware :refer [wrap-site-middleware wrap-api-middleware]]
+            [mtg-pairings-server.middleware :refer [wrap-site-middleware]]
             [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
-            [mtg-pairings-server.middleware.error :refer [wrap-errors]]
             [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.service.player :as player]
@@ -55,16 +54,17 @@
 
 (defroutes app-routes
   (c/routes
-   (wrap-api-middleware http-api/app)
-   (wrap-site-middleware site-routes)
-   (wrap-site-middleware (resources "/"))
-   (wrap-site-middleware (not-found "Not Found"))))
+   http-api/app
+   (wrap-site-middleware
+    (c/routes
+     site-routes
+     (resources "/")
+     (not-found "Not Found")))))
 
 (def app (-> app-routes
              wrap-json-with-padding
              wrap-request-log
-             wrap-allow-origin
-             wrap-errors))
+             wrap-allow-origin))
 
 (defmethod ws/event-handler
   :chsk/uidport-open
