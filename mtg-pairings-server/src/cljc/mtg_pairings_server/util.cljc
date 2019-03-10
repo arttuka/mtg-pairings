@@ -88,6 +88,13 @@
 (defn round-up [n m]
   (* m (quot (+ n m -1) m)))
 
+(defn deep-merge
+  ([m1 m2]
+   (merge-with #(if (map? %1)
+                  (deep-merge %1 %2)
+                  %2)
+               m1 m2)))
+
 #?(:clj
    (defn response [body]
      (if body

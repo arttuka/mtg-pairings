@@ -2,7 +2,9 @@
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [cljs.core.async :refer [<! timeout] :refer-macros [go-loop]]
             [cljs-time.core :as time]
-            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many round-up]]
+            [oops.core :refer [oget]]
+            [mtg-pairings-server.transit :as transit]
+            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up]]
             [mtg-pairings-server.util.local-storage :as local-storage]
             [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
@@ -28,24 +30,28 @@
   (fn [[key obj]]
     (local-storage/store key obj)))
 
-(def initial-db {:tournaments        {}
-                 :tournament-count   0
-                 :tournaments-page   0
-                 :tournament-ids     []
-                 :tournament-filter  {:organizer ""
-                                      :date-from nil
-                                      :date-to   nil
-                                      :players   [0 100]}
-                 :filters-active     false
-                 :max-players        100
-                 :player-tournaments []
-                 :pairings           {:sort-key :table_number}
-                 :pods               {:sort-key :pod}
-                 :seatings           {:sort-key :table_number}
-                 :page               {:page :main}
-                 :logged-in-user     (local-storage/fetch :user)
-                 :notification       nil
-                 :mobile?            (mobile?)})
+(defn initial-db []
+  (deep-merge {:tournaments        {}
+               :tournament-count   0
+               :tournaments-page   0
+               :tournament-ids     []
+               :tournament-filter  {:organizer ""
+                                    :date-from nil
+                                    :date-to   nil
+                                    :players   [0 100]}
+               :filters-active     false
+               :max-players        100
+               :player-tournaments []
+               :pairings           {:sort-key :table_number}
+               :pods               {:sort-key :pod}
+               :seatings           {:sort-key :table_number}
+               :page               {:page  :main
+                                    :id    nil
+                                    :round nil}
+               :logged-in-user     (local-storage/fetch :user)
+               :notification       nil
+               :mobile?            (mobile?)}
+              (transit/read (oget js/window "initial_db"))))
 
 (defn update-filters-active [db]
   (assoc db :filters-active (not= {:organizer ""
@@ -56,7 +62,7 @@
 
 (reg-event-db ::initialize
   (fn [db _]
-    (merge db initial-db)))
+    (merge db (initial-db))))
 
 (defn connect! []
   (ws/send! [:client/connect])
