@@ -26,7 +26,7 @@
     (fn main-page-render []
       (if @user
         [:div#own-tournaments
-         (when (seq @player-tournaments)
+         (if (seq @player-tournaments)
            (let [latest-pairing (get-latest-pairing @player-tournaments)]
              [ui/card
               [ui/card-header
@@ -36,7 +36,11 @@
               [ui/card-text
                {:style {:padding-top    0
                         :padding-bottom 0}}
-               [pairing latest-pairing (some? (:team2_name latest-pairing))]]]))
+               [pairing latest-pairing (some? (:team2_name latest-pairing))]]])
+           [ui/circular-progress {:style     {:margin  "48px auto 0"
+                                              :display :block}
+                                  :size      100
+                                  :thickness 5}])
          (for [t @player-tournaments]
            ^{:key [:tournament (:id t)]}
            [own-tournament t])]

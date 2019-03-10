@@ -56,9 +56,14 @@
         data (subscribe data-subscription)]
     (fn with-paging-render [page-event page-subsription data-subscription component]
       (let [num-pages (Math/ceil (/ (count @data) items-per-page))]
-        [:div
-         [pager (str page-event "-1-") page-event page-subscription num-pages]
-         [component (->> @data
-                         (drop (* @page items-per-page))
-                         (take items-per-page))]
-         [pager (str page-event "-2-") page-event page-subscription num-pages]]))))
+        (if (seq @data)
+          [:div
+           [pager (str page-event "-1-") page-event page-subscription num-pages]
+           [component (->> @data
+                           (drop (* @page items-per-page))
+                           (take items-per-page))]
+           [pager (str page-event "-2-") page-event page-subscription num-pages]]
+          [ui/circular-progress {:style     {:margin  "48px auto 0"
+                                             :display :block}
+                                 :size      100
+                                 :thickness 5}])))))
