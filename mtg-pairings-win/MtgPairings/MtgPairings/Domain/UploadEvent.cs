@@ -4,7 +4,7 @@ namespace MtgPairings.Domain
 {
     public class UploadEvent
     {
-        public enum Type {Tournament, DeleteTournament, Name, Teams, Seatings, Pairings, Results, Pods, Round};
+        public enum Type {Tournament, DeleteTournament, ResetTournament, Name, Teams, Seatings, Pairings, Results, Pods, Round};
 
         public Action UploadAction { get; private set; }
         public Boolean Upload { get; set; }

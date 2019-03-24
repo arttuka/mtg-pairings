@@ -22,9 +22,10 @@
                 <ColumnDefinition Width="130" />
                 <ColumnDefinition Width="320" />
                 <ColumnDefinition Width="110" />
+                <ColumnDefinition Width="120" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <CheckBox x:Name="ActiveCheckBox" Content="Vain aktiiviset" IsChecked="{Binding ActiveOnly}" Height="20" FontSize="13.333" Margin="10" Grid.ColumnSpan="4"/>
+            <CheckBox x:Name="ActiveCheckBox" Content="Vain aktiiviset" IsChecked="{Binding ActiveOnly}" Height="20" FontSize="13.333" Margin="10" Grid.ColumnSpan="5"/>
             <ListBox x:Name="TournamentList" ItemsSource="{Binding Mode=OneWay, Source={StaticResource FilteredTournaments}}" Grid.Row="1" Grid.ColumnSpan="2">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
@@ -37,7 +38,7 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
-            <ListBox x:Name="EventList" ItemsSource="{Binding Events}" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2">
+            <ListBox x:Name="EventList" ItemsSource="{Binding Events}" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="3">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
@@ -50,9 +51,10 @@
             <Label x:Name="label" Content="Valittu turnaus" Margin="10,0,0,0" VerticalAlignment="Center" Height="30" FontSize="13.333" HorizontalAlignment="Left" Grid.Row="2"/>
             <TextBox x:Name="textBox" Height="30" TextWrapping="Wrap" Text="{Binding SelectedItem.Name, ElementName=TournamentList}" VerticalAlignment="Center" Width="320" Grid.Column="1" FontSize="13.333" VerticalContentAlignment="Center" Grid.Row="2"/>
             <Button x:Name="tallenna_button" Content="Tallenna nimi" Margin="0" VerticalAlignment="Center" Width="90" Height="30" Click="Tallenna_Click" Grid.Column="2" FontSize="13.333" Grid.Row="2"/>
-            <Button x:Name="poista_button" Content="Poista turnaus palvelimelta" HorizontalAlignment="Left" VerticalAlignment="Center" Height="30" Click="Poista_Click" Grid.Column="3" FontSize="13.333" Padding="5,1" Grid.Row="2"/>
+            <Button x:Name="reset_button" Content="Resetoi turnaus" VerticalAlignment="Center" Height="30" Click="Reset_Click" Grid.Column="3" FontSize="13.333" Padding="5,1" Grid.Row="2" Margin="0,0,10,0"/>
+            <Button x:Name="poista_button" Content="Poista turnaus palvelimelta" HorizontalAlignment="Left" VerticalAlignment="Center" Height="30" Click="Poista_Click" Grid.Column="4" FontSize="13.333" Padding="5,1" Grid.Row="2"/>
             <Label x:Name="label1" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top"
-                       Visibility="{Binding Path=SelectedItem.ServerId, ElementName=TournamentList, TargetNullValue=Collapsed }" Grid.Row="3" Grid.ColumnSpan="4" FontSize="13.333">
+                       Visibility="{Binding Path=SelectedItem.ServerId, ElementName=TournamentList, TargetNullValue=Collapsed }" Grid.Row="3" Grid.ColumnSpan="5" FontSize="13.333">
                 <Hyperlink NavigateUri="{Binding SelectedItem.OrganizerURL, ElementName=TournamentList}"
                                RequestNavigate="Hyperlink_RequestNavigate">
                     <Run Text="{Binding SelectedItem.OrganizerURL, ElementName=TournamentList, Mode=OneWay}"/>

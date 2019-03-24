@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using MtgPairings.Domain;
-using System.Collections.Concurrent;
 
 namespace MtgPairings.Service
 {
@@ -11,6 +13,7 @@ namespace MtgPairings.Service
         public Boolean Running { get { return _running; } set { _running = value; } }
         private ConcurrentQueue<UploadEvent> _events;
         private Action<LogItem> _addEvent;
+        private HashSet<int> _failedTournaments = new HashSet<int>();
         
         public UploadWorker(ConcurrentQueue<UploadEvent> events, Action<LogItem> addEvent) {
             this._events = events;
@@ -26,6 +29,8 @@ namespace MtgPairings.Service
                     return new LogItem("Turnaus " + e.Tournament.Name + " lähetetty.");
                 case UploadEvent.Type.DeleteTournament:
                     return new LogItem("Turnaus " + e.Tournament.Name + " poistettu.");
+                case UploadEvent.Type.ResetTournament:
+                    return new LogItem("Turnaus " + e.Tournament.Name + " resetoitu.");
                 case UploadEvent.Type.Teams:
                     return new LogItem("Turnauksen " + e.Tournament.Name + " tiimit lähetetty.");
                 case UploadEvent.Type.Seatings:
@@ -50,14 +55,28 @@ namespace MtgPairings.Service
                 {
                     try
                     {
-                        e.UploadAction();
-                        _addEvent(SuccessEvent(e));
+                        if((!_failedTournaments.Contains(e.Tournament.TournamentId) ||
+                            e.UploadType == UploadEvent.Type.DeleteTournament ||
+                            e.UploadType == UploadEvent.Type.ResetTournament))
+                        {
+                            e.UploadAction();
+                            _addEvent(SuccessEvent(e));
+                            _failedTournaments.Remove(e.Tournament.TournamentId);
+                        }
                         _events.TryDequeue(out e);
                     }
                     catch (UploadFailedException ex)
                     {
-                        _addEvent(new LogItem(ex.Message));
-                        Thread.Sleep(10000);
+                        if(ex.Status == HttpStatusCode.InternalServerError || ex.Status == HttpStatusCode.BadRequest)
+                        {
+                            _addEvent(new LogItem("Virhe turnauksen " + e.Tournament.Name + " tietojen lähettämisessä. Kokeile resetoida turnaus."));
+                            _failedTournaments.Add(e.Tournament.TournamentId);
+                        }
+                        else
+                        {
+                            _addEvent(new LogItem(ex.Message));
+                            Thread.Sleep(10000);
+                        }
                     }
                     catch (System.Net.WebException)
                     {

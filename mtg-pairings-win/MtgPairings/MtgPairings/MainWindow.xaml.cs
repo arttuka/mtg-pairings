@@ -239,5 +239,27 @@ namespace MtgPairings
                 tournament.TournamentUploaded = false;
             }
         }
+
+        private void Reset_Click(object sender, RoutedEventArgs e)
+        {
+            var tournament = (TrackableTournament)TournamentList.SelectedItem;
+            var confirm = CustomMessageBox.ShowYesNo(
+                "Haluatko varmasti resetoida turnauksen " + tournament.Tournament.SanctionNumber + " " + tournament.Name + "?",
+                "Oletko varma?",
+                "Resetoi",
+                "Peruuta");
+            if (confirm == MessageBoxResult.Yes)
+            {
+                Action resetAction = () =>
+                {
+                    _uploader.ResetTournament(tournament.Tournament.SanctionNumber);
+                    tournament.Tracking = true;
+                };
+                UploadEvent ev = new UploadEvent(resetAction, tournament.AutoUpload, tournament.Tournament, UploadEvent.Type.ResetTournament, 0);
+                UploadQueue.Enqueue(ev);
+                tournament.Tracking = false;
+                tournament.TournamentUploaded = false;
+            }
+        }
     }
 }
