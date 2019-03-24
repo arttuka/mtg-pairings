@@ -232,11 +232,11 @@ namespace MtgPairings
                 "Peruuta");
             if(confirm == MessageBoxResult.Yes)
             {
+                tournament.Tracking = false;
+                tournament.TournamentUploaded = false;
                 UploadEvent ev = new UploadEvent(() => _uploader.DeleteTournament(tournament.Tournament.SanctionNumber),
                                                  tournament.Tournament, UploadEvent.Type.DeleteTournament, 0);
                 UploadQueue.Enqueue(ev);
-                tournament.Tracking = false;
-                tournament.TournamentUploaded = false;
             }
         }
 
@@ -250,6 +250,8 @@ namespace MtgPairings
                 "Peruuta");
             if (confirm == MessageBoxResult.Yes)
             {
+                tournament.Tracking = false;
+                tournament.TournamentUploaded = false;
                 Action resetAction = () =>
                 {
                     _uploader.ResetTournament(tournament.Tournament.SanctionNumber);
@@ -257,8 +259,6 @@ namespace MtgPairings
                 };
                 UploadEvent ev = new UploadEvent(resetAction, tournament.Tournament, UploadEvent.Type.ResetTournament, 0);
                 UploadQueue.Enqueue(ev);
-                tournament.Tracking = false;
-                tournament.TournamentUploaded = false;
             }
         }
     }

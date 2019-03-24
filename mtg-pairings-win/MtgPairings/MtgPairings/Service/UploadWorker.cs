@@ -26,23 +26,23 @@ namespace MtgPairings.Service
             switch (e.UploadType)
             {
                 case UploadEvent.Type.Tournament:
-                    return new LogItem("Turnaus " + e.Tournament.Name + " lähetetty.");
+                    return new LogItem(e.Tournament.SanctionNumber + " " + e.Tournament.Name + " lähetetty.");
                 case UploadEvent.Type.DeleteTournament:
-                    return new LogItem("Turnaus " + e.Tournament.Name + " poistettu.");
+                    return new LogItem(e.Tournament.SanctionNumber + " " + e.Tournament.Name + " poistettu.");
                 case UploadEvent.Type.ResetTournament:
-                    return new LogItem("Turnaus " + e.Tournament.Name + " resetoitu.");
+                    return new LogItem(e.Tournament.SanctionNumber + " " + e.Tournament.Name + " resetoitu.");
                 case UploadEvent.Type.Teams:
-                    return new LogItem("Turnauksen " + e.Tournament.Name + " tiimit lähetetty.");
+                    return new LogItem(e.Tournament.SanctionNumber + " " + e.Tournament.Name + " tiimit lähetetty.");
                 case UploadEvent.Type.Seatings:
-                    return new LogItem("Turnauksen " + e.Tournament.Name + " seatingit lähetetty.");
+                    return new LogItem(e.Tournament.SanctionNumber + " " + e.Tournament.Name + " seatingit lähetetty.");
                 case UploadEvent.Type.Pairings:
-                    return new LogItem("Turnauksen " + e.Tournament.Name + " pairingit " + e.Round + " lähetetty.");
+                    return new LogItem(e.Tournament.SanctionNumber + " " + e.Tournament.Name + " pairingit " + e.Round + " lähetetty.");
                 case UploadEvent.Type.Results:
-                    return new LogItem("Turnauksen " + e.Tournament.Name + " tulokset " + e.Round + " lähetetty.");
+                    return new LogItem(e.Tournament.SanctionNumber + " " + e.Tournament.Name + " tulokset " + e.Round + " lähetetty.");
                 case UploadEvent.Type.Pods:
-                    return new LogItem("Turnauksen " + e.Tournament.Name + " podit lähetetty");
+                    return new LogItem(e.Tournament.SanctionNumber + " " + e.Tournament.Name + " podit lähetetty");
                 case UploadEvent.Type.Round:
-                    return new LogItem("Turnauksen " + e.Tournament.Name + " kierros " + e.Round + " poistettu.");
+                    return new LogItem(e.Tournament.SanctionNumber + " " + e.Tournament.Name + " kierros " + e.Round + " poistettu.");
                 default:
                     return new LogItem("");
             }
@@ -69,7 +69,7 @@ namespace MtgPairings.Service
                     {
                         if(ex.Status == HttpStatusCode.InternalServerError || ex.Status == HttpStatusCode.BadRequest)
                         {
-                            _addEvent(new LogItem("Virhe turnauksen " + e.Tournament.Name + " tietojen lähettämisessä. Kokeile resetoida turnaus."));
+                            _addEvent(new LogItem("Virhe " + e.Tournament.SanctionNumber + " " + e.Tournament.Name + " lähettämisessä. Kokeile resetoida turnaus."));
                             _failedTournaments.Add(e.Tournament.TournamentId);
                         }
                         else
