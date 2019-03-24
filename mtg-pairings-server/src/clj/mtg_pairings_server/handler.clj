@@ -49,6 +49,11 @@
       :headers {"Content-Type"  "text/html"
                 "Cache-Control" "no-cache"}})))
 
+(def robots-txt
+  {:status  200
+   :body    "User-agent: *\nDisallow: /\n"
+   :headers {"Content-Type" "text/plain"}})
+
 (defroutes site-routes
   (GET "/" [] (loading-page))
   (GET "/tournaments" []
@@ -88,6 +93,7 @@
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
+  (GET "/robots.txt" [] robots-txt)
   ws/routes)
 
 (defroutes app-routes
