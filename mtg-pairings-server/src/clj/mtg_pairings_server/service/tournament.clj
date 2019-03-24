@@ -484,19 +484,25 @@
                      :seat (:seat seat)
                      :team (dci->id (:team seat))})))))
 
+(defn ^:private delete-tournament-data [tournament-id]
+  (delete-pods tournament-id)
+  (doseq [round (doall (map :id (sql/select db/round
+                                  (sql/where {:tournament tournament-id})
+                                  (sql/order :num :DESC))))]
+    (delete-results round)
+    (delete-pairings round)
+    (sql-util/delete-unique db/round
+      (sql/where {:id round})))
+  (delete-seatings tournament-id)
+  (delete-teams tournament-id)
+  (delete-standings tournament-id))
+
+(defn reset-tournament [sanction-id]
+  (delete-tournament-data (sanctionid->id sanction-id)))
+
 (defn delete-tournament [sanction-id]
   (let [tournament-id (sanctionid->id sanction-id)]
-    (delete-pods tournament-id)
-    (doseq [round (doall (map :id (sql/select db/round
-                                    (sql/where {:tournament tournament-id})
-                                    (sql/order :num :DESC))))]
-      (delete-results round)
-      (delete-pairings round)
-      (sql-util/delete-unique db/round
-        (sql/where {:id round})))
-    (delete-seatings tournament-id)
-    (delete-teams tournament-id)
-    (delete-standings tournament-id)
+    (delete-tournament-data tournament-id)
     (sql-util/delete-unique db/tournament
       (sql/where {:id tournament-id}))))
 
