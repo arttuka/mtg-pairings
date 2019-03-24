@@ -10,7 +10,6 @@ namespace MtgPairings.Domain
     public class TrackableTournament : INotifyPropertyChanged
     {
         public Boolean Tracking { get; set; }
-        public Boolean AutoUpload { get; set; }
         public Tournament Tournament { get; set; }
         public Boolean TournamentUploaded { get; set; }
         private int? _serverId;
@@ -49,7 +48,6 @@ namespace MtgPairings.Domain
         public TrackableTournament(Tournament t)
         {
             Tracking = false;
-            AutoUpload = true;
             Tournament = t;
             TournamentUploaded = false;
             Name = t.Name;
