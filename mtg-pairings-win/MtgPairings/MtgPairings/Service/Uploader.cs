@@ -73,8 +73,7 @@ namespace MtgPairings.Service
                     organizer = t.Tournament.Organizer,
                     day = t.Tournament.Date.ToString("yyyy-MM-dd", null),
                     rounds = t.Tournament.RoundCount,
-                    sanctionid = t.Tournament.SanctionNumber,
-                    tracking = true
+                    sanctionid = t.Tournament.SanctionNumber
                 });
             var response = Execute<TournamentId>(request);
             t.ServerId = response.Data.Id;

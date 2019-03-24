@@ -30,7 +30,7 @@ namespace MtgPairings.Domain
             {
                 if (ServerId.HasValue)
                 {
-                    return "https://pairings.fi/#tournaments/" + (int)ServerId + "/organizer";
+                    return "https://pairings.fi/tournaments/" + (int)ServerId + "/organizer";
                 }
                 else { return ""; }
             }
