@@ -4,14 +4,15 @@
             [cheshire.core :as json]
             [schema.utils :as su]
             [taoensso.timbre :as log]
-            [mtg-pairings-server.util.sql :as sql-util]))
+            [mtg-pairings-server.util.sql :as sql-util])
+  (:import (clojure.lang ExceptionInfo)))
 
 (defn error-response [^Exception e]
-  {:status 500
-   :body   (cond-> {:message (.getMessage e)
-                    :type    (.getName (class e))}
-             (env :dev) (assoc :data (ex-data e))
-             true (json/generate-string))
+  {:status  500
+   :body    (cond-> {:message (.getMessage e)
+                     :type    (.getName (class e))}
+              (env :dev) (assoc :data (ex-data e))
+              true (json/generate-string))
    :headers {:content-type "application/json"}})
 
 (defn request-validation-error-handler [e data req]
@@ -26,11 +27,21 @@
       (log/error e "SQL assertion error")
       (error-response e))))
 
+(defn handle-error [e]
+  (log/error e "Unhandled exception")
+  (error-response e))
+
 (defn wrap-errors
   [handler]
   (fn [request]
     (try
       (handler request)
+      (catch ExceptionInfo e
+        (let [{:keys [type sql-util/found?]} (ex-data e)]
+          (if (and (= type ::sql-util/assertion)
+                   (not found?))
+            {:status 404
+             :body   "Not found"}
+            (handle-error e))))
       (catch Exception e
-        (log/error e "Unhandled exception")
-        (error-response e)))))
+        (handle-error e)))))
