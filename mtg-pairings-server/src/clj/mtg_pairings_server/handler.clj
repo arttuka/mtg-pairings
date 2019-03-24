@@ -34,7 +34,7 @@
                         :content "width=device-width, initial-scale=1"}]
                 (include-css (if (env :dev)
                                "/css/main.css"
-                               "/css/main.min.css"))
+                               (env :main-css)))
                 (when (env :dev)
                   (include-css "/css/slider.css"))]
                [:body {:class "body-container"}
@@ -43,10 +43,11 @@
                               "var initial_db = '" (escape-quotes (transit/write initial-db)) "'; ")]
                 (include-js (if (env :dev)
                               "/js/dev-main.js"
-                              "/js/prod-main.js"))])]
+                              (env :main-js)))])]
      {:status  200
       :body    html
-      :headers {"Content-Type" "text/html"}})))
+      :headers {"Content-Type"  "text/html"
+                "Cache-Control" "no-cache"}})))
 
 (defroutes site-routes
   (GET "/" [] (loading-page))

@@ -5,6 +5,7 @@ RUN curl -Lo /usr/bin/lein https://raw.githubusercontent.com/technomancy/leining
 WORKDIR /app
 COPY project.clj .
 RUN lein deps
+COPY ./scripts ./scripts
 COPY ./src ./src
 COPY ./env ./env
 COPY ./resources ./resources
@@ -12,7 +13,9 @@ COPY ./test ./test
 COPY ./test-resources ./test-resources
 COPY prod.cljs.edn .
 RUN lein test
-RUN lein do clean, uberjar
+RUN lein with-profile provided,prod do clean, garden once, minify-assets, fig:min
+RUN ./scripts/tag-assets.sh
+RUN lein uberjar
 
 FROM openjdk:11-jre-slim
 WORKDIR /app

@@ -31,9 +31,7 @@
 
   :uberjar-name "mtg-pairings.jar"
 
-  :clean-targets ^{:protect false} ["resources/public/js"
-                                    "resources/public/css/main.min.css"
-                                    "target"]
+  :clean-targets ^{:protect false} ["target"]
 
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
   :resource-paths ["resources"]
@@ -47,7 +45,7 @@
 
   :minify-assets [[:css {:source ["target/public/css/main.css"
                                   "resources/public/css/slider.css"]
-                         :target "resources/public/css/main.min.css"}]]
+                         :target "target/public/css/main.min.css"}]]
 
   :aliases {"fig"     ["trampoline" "run" "-m" "figwheel.main"]
             "fig:min" ["run" "-m" "figwheel.main" "-bo" "prod"]}
@@ -110,10 +108,5 @@
              :uberjar  {:source-paths       ["env/prod/cljs"]
                         :main               mtg-pairings-server.main
                         :aot                :all
-                        :prep-tasks         ["compile"
-                                             ["garden" "once"]
-                                             "minify-assets"
-                                             "fig:min"]
-                        :uberjar-exclusions [#"public/js/compiled"
-                                             #"public/css/slider.css"]
+                        :uberjar-exclusions [#"public/css/slider.css"]
                         :omit-source        true}})
