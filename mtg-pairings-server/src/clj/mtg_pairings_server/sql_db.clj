@@ -17,7 +17,7 @@
                          :server-name   (env :db-host)
                          :port-number   (env :db-port)})
 
-(defstate db
+(defstate ^{:on-reload :noop} db
   :start (korma.db/default-connection (korma.db/create-db
                                        {:make-pool? false
                                         :datasource (hikari/make-datasource datasource-options)}))

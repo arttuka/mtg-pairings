@@ -5,7 +5,7 @@
             [mtg-pairings-server.handler]
             [config.core :refer [env]]))
 
-(defstate server
+(defstate ^{:on-reload :noop} server
   :start (let [port (env :server-port)]
            (log/info "Starting server on port" port "...")
            (http/start-server #'mtg-pairings-server.handler/app {:port port}))
