@@ -10,9 +10,8 @@
                  [yogthos/config "1.1.1"]
                  [org.clojure/core.cache "0.7.2"]
                  [aleph "0.4.6"]
-                 [org.clojure/tools.reader "1.3.2"]
                  [clj-time "0.15.1"]
-                 [korma "0.4.3"]
+                 [korma "0.4.3" :exclusions [com.mchange/c3p0]]
                  [mount "0.1.16"]
                  [org.postgresql/postgresql "42.2.5"]
                  [hikari-cp "2.7.1"]
@@ -83,7 +82,7 @@
                                          [prone "1.6.1"]
                                          [hawk "0.2.11"]
                                          [cider/piggieback "0.4.0" :exclusions [org.clojure/clojurescript]]
-                                         [re-frisk "0.5.4" :exclusions [org.clojure/clojurescript]]]}
+                                         [re-frisk "0.5.4.1" :exclusions [org.clojure/clojurescript]]]}
              :test     {:source-paths   ^:replace ["src/clj" "src/cljc" "src/cljs"]
                         :resource-paths ["test-resources"]}
              :prod     {:source-paths ["env/prod/cljs"]}
