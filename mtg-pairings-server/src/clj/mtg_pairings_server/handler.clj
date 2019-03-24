@@ -1,70 +1,113 @@
 (ns mtg-pairings-server.handler
-  (:require [compojure.core :refer [GET POST defroutes] :as c]
+  (:require [compojure.api.sweet :refer :all]
             [compojure.route :refer [not-found resources]]
+            [clojure.string :as str]
             [config.core :refer [env]]
             [hiccup.page :refer [include-js include-css html5]]
+            [schema.core :as s]
             [taoensso.timbre :as log]
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [mtg-pairings-server.api.http :as http-api]
-            [mtg-pairings-server.middleware :refer [wrap-site-middleware wrap-api-middleware]]
+            [mtg-pairings-server.middleware :refer [wrap-site-middleware]]
             [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
-            [mtg-pairings-server.middleware.error :refer [wrap-errors]]
             [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.service.player :as player]
+            [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util.broadcast :as broadcast]
             [mtg-pairings-server.websocket :as ws]))
 
-(defn loading-page []
-  (let [html (html5
-              {:lang :fi}
-              [:head
-               [:title "Pairings.fi"]
-               [:meta {:charset "utf-8"}]
-               [:meta {:name    "viewport"
-                       :content "width=device-width, initial-scale=1"}]
-               (include-css (if (env :dev)
-                              "/css/main.css"
-                              "/css/main.min.css"))
-               (when (env :dev)
-                 (include-css "/css/slider.css"))]
-              [:body {:class "body-container"}
-               [:div#app]
-               [:script (str "var csrf_token = '" *anti-forgery-token* "';")]
-               (include-js (if (env :dev)
-                             "/js/dev-main.js"
-                             "/js/prod-main.js"))])]
-    {:status  200
-     :body    html
-     :headers {"Content-Type" "text/html"}}))
+(defn escape-quotes [s]
+  (str/escape s {\' "\\'"}))
+
+(defn loading-page
+  ([]
+   (loading-page {}))
+  ([initial-db]
+   (let [html (html5
+               {:lang :fi}
+               [:head
+                [:title "Pairings.fi"]
+                [:meta {:charset "utf-8"}]
+                [:meta {:name    "viewport"
+                        :content "width=device-width, initial-scale=1"}]
+                (include-css (if (env :dev)
+                               "/css/main.css"
+                               (env :main-css)))
+                (when (env :dev)
+                  (include-css "/css/slider.css"))]
+               [:body {:class "body-container"}
+                [:div#app]
+                [:script (str "var csrf_token = '" *anti-forgery-token* "'; "
+                              "var initial_db = '" (escape-quotes (transit/write initial-db)) "'; ")]
+                (include-js (if (env :dev)
+                              "/js/dev-main.js"
+                              (env :main-js)))])]
+     {:status  200
+      :body    html
+      :headers {"Content-Type"  "text/html"
+                "Cache-Control" "no-cache"}})))
+
+(def robots-txt
+  {:status  200
+   :body    "User-agent: *\nDisallow: /\n"
+   :headers {"Content-Type" "text/plain"}})
 
 (defroutes site-routes
   (GET "/" [] (loading-page))
-  (GET "/tournaments" [] (loading-page))
-  (GET "/tournaments/:id" [] (loading-page))
-  (GET "/tournaments/:id/pairings-:round" [] (loading-page))
-  (GET "/tournaments/:id/standings-:round" [] (loading-page))
-  (GET "/tournaments/:id/pods-:round" [] (loading-page))
-  (GET "/tournaments/:id/seatings" [] (loading-page))
-  (GET "/tournaments/:id/bracket" [] (loading-page))
+  (GET "/tournaments" []
+    (loading-page {:page {:page :tournaments}}))
+  (GET "/tournaments/:id" []
+    :path-params [id :- s/Int]
+    (loading-page {:page        {:page :tournament, :id id}
+                   :tournaments {id (tournament/client-tournament id)}}))
+  (GET "/tournaments/:id/pairings-:round" []
+    :path-params [id :- s/Int
+                  round :- s/Int]
+    (loading-page {:page        {:page :pairings, :id id, :round round}
+                   :tournaments {id (tournament/client-tournament id)}
+                   :pairings    {id {round (tournament/get-round id round)}}}))
+  (GET "/tournaments/:id/standings-:round" []
+    :path-params [id :- s/Int
+                  round :- s/Int]
+    (loading-page {:page        {:page :standings, :id id, :round round}
+                   :tournaments {id (tournament/client-tournament id)}
+                   :standings   {id {round (tournament/standings id round false)}}}))
+  (GET "/tournaments/:id/pods-:round" []
+    :path-params [id :- s/Int
+                  round :- s/Int]
+    (loading-page {:page        {:page :pods, :id id, :round round}
+                   :tournaments {id (tournament/client-tournament id)}
+                   :pods        {id {round (tournament/pods id round)}}}))
+  (GET "/tournaments/:id/seatings" []
+    :path-params [id :- s/Int]
+    (loading-page {:page        {:page :seatings, :id id}
+                   :tournaments {id (tournament/client-tournament id)}
+                   :seatings    {id (tournament/seatings id)}}))
+  (GET "/tournaments/:id/bracket" []
+    :path-params [id :- s/Int]
+    (loading-page {:page        {:page :bracket, :id id}
+                   :tournaments {id (tournament/client-tournament id)}
+                   :bracket     {id (tournament/bracket id)}}))
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
+  (GET "/robots.txt" [] robots-txt)
   ws/routes)
 
 (defroutes app-routes
-  (c/routes
-   (wrap-api-middleware http-api/app)
-   (wrap-site-middleware site-routes)
-   (wrap-site-middleware (resources "/"))
-   (wrap-site-middleware (not-found "Not Found"))))
+  http-api/app
+  (wrap-site-middleware
+   (routes
+    site-routes
+    (resources "/")
+    (not-found "Not Found"))))
 
 (def app (-> app-routes
              wrap-json-with-padding
              wrap-request-log
-             wrap-allow-origin
-             wrap-errors))
+             wrap-allow-origin))
 
 (defmethod ws/event-handler
   :chsk/uidport-open
@@ -77,7 +120,7 @@
 (defmethod ws/event-handler :client/connect
   [{:keys [uid]}]
   (log/debugf "New connection from %s" uid)
-  (ws/send! uid [:server/tournaments (tournament/tournaments)]))
+  (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
 
 (defmethod ws/event-handler :client/login
   [{uid :uid, dci-number :?data}]
@@ -97,11 +140,11 @@
 
 (defmethod ws/event-handler :client/tournaments
   [{:keys [uid]}]
-  (ws/send! uid [:server/tournaments (tournament/tournaments)]))
+  (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
 
 (defmethod ws/event-handler :client/tournament
   [{uid :uid, id :?data}]
-  (ws/send! uid [:server/tournament (tournament/tournament id)]))
+  (ws/send! uid [:server/tournament (tournament/client-tournament id)]))
 
 (defmethod ws/event-handler :client/pairings
   [{uid :uid, [id round] :?data}]

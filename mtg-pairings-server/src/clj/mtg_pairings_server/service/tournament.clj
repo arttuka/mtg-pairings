@@ -1,5 +1,5 @@
 (ns mtg-pairings-server.service.tournament
-  (:require [clojure.set :refer [rename-keys]]
+  (:require [clojure.set :refer [rename-keys union]]
             [clojure.edn :as edn]
             [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
@@ -56,6 +56,15 @@
      (update :standings #(map :num %))
      (dissoc :round :pod_round))))
 
+(defn format-client-tournament [tournament]
+  (let [pairings (set (:pairings tournament))
+        standings (set (:standings tournament))
+        round-nums (sort > (union pairings standings))]
+    (assoc tournament
+           :pairings pairings
+           :standings standings
+           :round-nums round-nums)))
+
 (defn tournament [id]
   (->
    select-tournaments
@@ -79,10 +88,15 @@
    (sql/with db/pod-round
      (sql/fields :id)
      (sql/order :id))
+   (sql/join db/team)
+   (sql/aggregate (count :*) :players :id)
    (sql/where {:id id})
    (sql/post-query sql-util/unique)
    (sql/exec)
    update-round-data))
+
+(defn client-tournament [id]
+  (format-client-tournament (tournament id)))
 
 (defn tournaments []
   (let [tourns (sql/exec select-tournaments)
@@ -124,6 +138,9 @@
               :standings (get standings id [])
               :pod_round (get pod-rounds id [])
               :players (get teams id 0))))))
+
+(defn client-tournaments []
+  (map format-client-tournament (tournaments)))
 
 (defn add-tournament [tourn]
   (if (seq (sql/select db/tournament
@@ -215,28 +232,29 @@
                          :player (:dci player)})))))))
 
 (defn seatings [tournament-id]
-  (sql/select db/seating
-    (sql/fields :table_number)
-    (sql/with db/team
-      (sql/fields :name))
-    (sql/where {:tournament tournament-id})
-    (sql/order :team.name :ASC)))
+  (seq
+   (sql/select db/seating
+     (sql/fields :table_number)
+     (sql/with db/team
+       (sql/fields :name))
+     (sql/where {:tournament tournament-id})
+     (sql/order :team.name :ASC))))
 
 (defn pods [tournament-id number]
   (let [pod-rounds (map :id (sql/select db/pod-round
                               (sql/fields :id)
                               (sql/where {:tournament tournament-id})
-                              (sql/order :id)))
-        round-id (nth pod-rounds (dec number))]
-    (sql/select db/seat
-      (sql/fields :seat)
-      (sql/with db/team
-        (sql/fields [:name :team_name]))
-      (sql/with db/pod
-        (sql/fields [:number :pod])
-        (sql/where {:pod_round round-id}))
-      (sql/order :pod.number)
-      (sql/order :seat))))
+                              (sql/order :id)))]
+    (when (<= number (count pod-rounds))
+      (sql/select db/seat
+        (sql/fields :seat)
+        (sql/with db/team
+          (sql/fields [:name :team_name]))
+        (sql/with db/pod
+          (sql/fields [:number :pod])
+          (sql/where {:pod_round (nth pod-rounds (dec number))}))
+        (sql/order :pod.number)
+        (sql/order :seat)))))
 
 (defn latest-pods [tournament-id]
   (sql/select db/seat
@@ -263,8 +281,9 @@
       edn/read-string))
 
 (defn standings-for-api [tournament-id round-num hidden?]
-  (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw])
-       (standings tournament-id round-num hidden?)))
+  (seq
+   (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw])
+        (standings tournament-id round-num hidden?))))
 
 (defn ^:private get-or-add-round [tournament-id round-num playoff?]
   (if-let [old-round (sql-util/select-unique-or-nil db/round
@@ -465,19 +484,25 @@
                      :seat (:seat seat)
                      :team (dci->id (:team seat))})))))
 
+(defn ^:private delete-tournament-data [tournament-id]
+  (delete-pods tournament-id)
+  (doseq [round (doall (map :id (sql/select db/round
+                                  (sql/where {:tournament tournament-id})
+                                  (sql/order :num :DESC))))]
+    (delete-results round)
+    (delete-pairings round)
+    (sql-util/delete-unique db/round
+      (sql/where {:id round})))
+  (delete-seatings tournament-id)
+  (delete-teams tournament-id)
+  (delete-standings tournament-id))
+
+(defn reset-tournament [sanction-id]
+  (delete-tournament-data (sanctionid->id sanction-id)))
+
 (defn delete-tournament [sanction-id]
   (let [tournament-id (sanctionid->id sanction-id)]
-    (delete-pods tournament-id)
-    (doseq [round (doall (map :id (sql/select db/round
-                                    (sql/where {:tournament tournament-id})
-                                    (sql/order :num :DESC))))]
-      (delete-results round)
-      (delete-pairings round)
-      (sql-util/delete-unique db/round
-        (sql/where {:id round})))
-    (delete-seatings tournament-id)
-    (delete-teams tournament-id)
-    (delete-standings tournament-id)
+    (delete-tournament-data tournament-id)
     (sql-util/delete-unique db/tournament
       (sql/where {:id tournament-id}))))
 

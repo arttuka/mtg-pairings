@@ -5,12 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MtgPairings"
         mc:Ignorable="d"
-        Title="Syötä API key" Height="120" Width="380"
+        Title="Syötä API key"
+        FontSize="16"
+        Height="160"
+        Width="520"
         ResizeMode="NoResize">
     <Grid>
-        <Label x:Name="label" Content="Syötä API key. Löydät sen osoitteesta http://mtgsuomi.fi/apikey." HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,0,0,0"/>
-        <TextBox x:Name="ApiKeyTextbox" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="347" Margin="10,26,0,0"/>
-        <Button x:Name="OkButton" Content="OK" HorizontalAlignment="Left" Margin="282,54,0,0" VerticalAlignment="Top" Width="75" Click="OkButton_Click"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+            <RowDefinition Height="40" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="100" />
+        </Grid.ColumnDefinitions>
+        <Label x:Name="label" VerticalAlignment="Top" Margin="10,5" Grid.ColumnSpan="2" Height="30">
+            <TextBlock FontSize="16">
+                Syötä API key. Löydät sen osoitteesta
+                <Hyperlink NavigateUri="https://mtgsuomi.fi/apikey" RequestNavigate="Hyperlink_RequestNavigate">
+                    https://mtgsuomi.fi/apikey
+                </Hyperlink>.
+            </TextBlock>
+        </Label>
+        <TextBox FontSize="16" x:Name="ApiKeyTextbox" TextWrapping="Wrap" Text="" Margin="10,5" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Button FontSize="16" x:Name="OkButton" Content="OK" Width="75" Click="OkButton_Click" Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,5,0,10"/>
 
     </Grid>
 </Window>

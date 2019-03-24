@@ -19,7 +19,7 @@
   [m f]
   (persistent!
    (reduce-kv (fn [acc k v]
-               (assoc! acc k (f v)))
+                (assoc! acc k (f v)))
               (transient {})
               m)))
 
@@ -27,12 +27,12 @@
   [map keys]
   (persistent!
    (reduce (fn [acc k]
-            (let [[from to] (if (coll? k)
-                              k
-                              [k k])]
-              (if-let [entry (find map from)]
-                (assoc! acc to (val entry))
-                acc)))
+             (let [[from to] (if (coll? k)
+                               k
+                               [k k])]
+               (if-let [entry (find map from)]
+                 (assoc! acc to (val entry))
+                 acc)))
            (transient {})
            keys)))
 
@@ -87,6 +87,13 @@
 
 (defn round-up [n m]
   (* m (quot (+ n m -1) m)))
+
+(defn deep-merge
+  ([m1 m2]
+   (merge-with #(if (map? %1)
+                  (deep-merge %1 %2)
+                  %2)
+               m1 m2)))
 
 #?(:clj
    (defn response [body]

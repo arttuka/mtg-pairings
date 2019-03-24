@@ -18,4 +18,9 @@
   (timbre/merge-config! timbre-config)
   (timbre/info "Starting mtg-pairings...")
   (m/in-cljc-mode)
-  (m/start))
+  (try
+    (m/start)
+    (catch Throwable t
+      (timbre/error t "Error while starting server")
+      (m/stop)
+      (System/exit 1))))

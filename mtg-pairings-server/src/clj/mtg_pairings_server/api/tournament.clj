@@ -131,6 +131,13 @@
     (validate-request sanctionid key
       (add-teams sanctionid (:teams teams))
       {:status 204}))
+  (POST "/:sanctionid/reset" []
+    :path-params [sanctionid :- s/Str]
+    :summary "Poistaa kaikki turnauksen tiedot lukuunottamatta itse turnausta"
+    :query-params [key :- String]
+    (validate-request sanctionid key
+      (reset-tournament sanctionid)
+      {:status 204}))
   (DELETE "/:sanctionid" []
     :path-params [sanctionid :- s/Str]
     :summary "Poistaa kaikki turnauksen tiedot"

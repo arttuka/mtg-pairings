@@ -1,7 +1,8 @@
 (ns mtg-pairings-server.middleware
   (:require [ring.middleware.defaults :refer [site-defaults api-defaults wrap-defaults]]
             [config.core :refer [env]]
-            [mtg-pairings-server.middleware.etag :refer [wrap-etag]]))
+            [mtg-pairings-server.middleware.cache-control :refer [wrap-cache-control]]
+            [mtg-pairings-server.middleware.error :refer [wrap-errors]]))
 
 (defn add-dev-middleware [handler]
   (require 'prone.middleware 'ring.middleware.reload)
@@ -12,14 +13,11 @@
         (wrap-reload {:dirs ["src/clj" "src/cljc"]}))))
 
 (defn add-prod-middleware [handler]
-  (wrap-etag handler {:paths [#".*\.(css|js|eot|svg|ttf|woff|woff2)$"]}))
-
-(defn wrap-api-middleware [handler]
-  (cond-> (wrap-defaults handler api-defaults)
-    (env :dev) add-dev-middleware
-    (not (env :dev)) add-prod-middleware))
+  (-> handler
+      (wrap-cache-control {#"\.(css|js|txt)$" "max-age=31536000"})
+      wrap-errors))
 
 (defn wrap-site-middleware [handler]
-  (cond-> (wrap-defaults handler site-defaults)
+  (cond-> (wrap-defaults handler (update site-defaults :security dissoc :frame-options :content-type-options))
     (env :dev) add-dev-middleware
     (not (env :dev)) add-prod-middleware))

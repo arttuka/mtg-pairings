@@ -13,7 +13,7 @@
            (org.joda.time LocalDate)))
 
 (m/in-cljc-mode)
-(timbre/swap-config! (fn [config] (assoc config :ns-whitelist ["mtg-pairings-server.*"])))
+(timbre/swap-config! (fn [config] (assoc config :ns-blacklist ["org.eclipse.jetty.*" "io.netty.*" "com.zaxxer.hikari.*"])))
 (json-gen/add-encoder LocalDate
                       (fn [c ^JsonGenerator generator]
                         (.writeString generator (str c))))

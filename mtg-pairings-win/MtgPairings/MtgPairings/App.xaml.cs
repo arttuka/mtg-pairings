@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Forms;
-using MtgPairings.Service;
-using MtgPairings.Properties;
-
 using MtgPairings.Data;
-using MtgPairings.Domain;
+using MtgPairings.Properties;
+using MtgPairings.Service;
 
 namespace MtgPairings
 {
@@ -24,6 +16,13 @@ namespace MtgPairings
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            if(VersionChecker.IsNewVersionAvailable())
+            {
+                VersionDialog dialog = new VersionDialog();
+                dialog.ShowDialog();
+                Current.Shutdown();
+                return;
+            }
             if(Settings.Default.Apikey == "")
             {
                 ApiKeyDialog dialog = new ApiKeyDialog();

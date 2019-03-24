@@ -3,23 +3,14 @@
             [taoensso.timbre :as log]
             #?(:clj  [mount.core :refer [defstate]]
                :cljs [mount.core :refer-macros [defstate]])
-            [cognitect.transit :as transit]
             [taoensso.sente.packers.transit :as sente-transit]
+            [mtg-pairings-server.transit :refer [writers readers]]
             [mtg-pairings-server.util :refer [parse-iso-date format-iso-date]]
             #?(:clj [taoensso.sente.server-adapters.aleph :refer [get-sch-adapter]])
             #?(:clj [compojure.core :refer [defroutes GET POST]])
             #?(:cljs [oops.core :refer [oget]])))
 
 ;; Transit communication
-
-(def writers
-  {#?(:clj org.joda.time.LocalDate, :cljs goog.date.Date)
-   (transit/write-handler (constantly "Date") format-iso-date)
-   #?@(:clj [clojure.lang.Ratio
-             (transit/write-handler (constantly "d") double)])})
-
-(def readers
-  {"Date" (transit/read-handler #(parse-iso-date %))})
 
 (def packer (sente-transit/->TransitPacker :json
                                            {:handlers writers}

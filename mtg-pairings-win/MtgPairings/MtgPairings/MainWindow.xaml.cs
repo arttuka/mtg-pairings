@@ -133,7 +133,7 @@ namespace MtgPairings
                 Boolean uploadAll = false;
                 if (!t.TournamentUploaded)
                 {
-                    UploadEvent e = new UploadEvent(() => _uploader.UploadTournament(t), t.AutoUpload, newTournament, UploadEvent.Type.Tournament, 0);
+                    UploadEvent e = new UploadEvent(() => _uploader.UploadTournament(t), newTournament, UploadEvent.Type.Tournament, 0);
                     UploadQueue.Enqueue(e);
                     t.TournamentUploaded = true;
                     uploadAll = true;
@@ -143,14 +143,14 @@ namespace MtgPairings
                     if (!oldTournament.Teams.SequenceEqual(newTournament.Teams) || !newTournament.Teams.IsEmpty && uploadAll)
                     {
                         UploadEvent e = new UploadEvent(() => _uploader.UploadTeams(newTournament.SanctionNumber, newTournament.Teams),
-                                                        t.AutoUpload, newTournament, UploadEvent.Type.Teams, 0);
+                                                        newTournament, UploadEvent.Type.Teams, 0);
                         UploadQueue.Enqueue(e);
                         uploadAll = true;
                     }
                     if (!oldTournament.Seatings.SequenceEqual(newTournament.Seatings) || !newTournament.Seatings.IsEmpty && uploadAll)
                     {
                         UploadEvent e = new UploadEvent(() => _uploader.UploadSeatings(newTournament.SanctionNumber, newTournament.Seatings),
-                                                        t.AutoUpload, newTournament, UploadEvent.Type.Seatings, 0);
+                                                        newTournament, UploadEvent.Type.Seatings, 0);
                         UploadQueue.Enqueue(e);
                     }
                     if (!oldTournament.Rounds.SequenceEqual(newTournament.Rounds) || !newTournament.Rounds.IsEmpty && uploadAll)
@@ -160,7 +160,7 @@ namespace MtgPairings
                             if ( round.NewRound == null)
                             {
                                 UploadEvent e = new UploadEvent(() => _uploader.DeleteRound(newTournament.SanctionNumber, round.OldRound.Number),
-                                                                t.AutoUpload, newTournament, UploadEvent.Type.Round, round.OldRound.Number);
+                                                                newTournament, UploadEvent.Type.Round, round.OldRound.Number);
                                 UploadQueue.Enqueue(e);
                             }
                             else
@@ -168,14 +168,14 @@ namespace MtgPairings
                                 if (round.OldRound == null || round.NewRound == null || !round.OldRound.Pairings.SequenceEqual(round.NewRound.Pairings, new Pairing.PairingEqualityComparer()) || round.NewRound != null && uploadAll)
                                 {
                                     UploadEvent e = new UploadEvent(() => _uploader.UploadPairings(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Playoff, round.NewRound.Pairings),
-                                                                    t.AutoUpload, newTournament, UploadEvent.Type.Pairings, round.NewRound.Number);
+                                                                    newTournament, UploadEvent.Type.Pairings, round.NewRound.Number);
                                     UploadQueue.Enqueue(e);
                                     uploadAll = true;
                                 }
                                 if (round.OldRound == null || !round.OldRound.Pairings.Select(p => p.Result).SequenceEqual(round.NewRound.Pairings.Select(p => p.Result)) || round.NewRound != null && uploadAll)
                                 {
                                     UploadEvent e = new UploadEvent(() => _uploader.UploadResults(newTournament.SanctionNumber, round.NewRound.Number, round.NewRound.Pairings),
-                                                                    t.AutoUpload, newTournament, UploadEvent.Type.Results, round.NewRound.Number);
+                                                                    newTournament, UploadEvent.Type.Results, round.NewRound.Number);
                                     UploadQueue.Enqueue(e);
                                     uploadAll = true;
                                 }
@@ -186,7 +186,7 @@ namespace MtgPairings
                     if (!oldTournament.Pods.SequenceEqual(newTournament.Pods) || !newTournament.Pods.IsEmpty && uploadAll)
                     {
                         UploadEvent e = new UploadEvent(() => _uploader.UploadPods(newTournament.SanctionNumber, newTournament.Pods),
-                                                        t.AutoUpload, newTournament, UploadEvent.Type.Pods, 0);
+                                                        newTournament, UploadEvent.Type.Pods, 0);
                         UploadQueue.Enqueue(e);
                     }
                 }
@@ -210,7 +210,7 @@ namespace MtgPairings
             if (tournament.Tracking && tournament.Name != tournament.Tournament.Name)
             {
                 UploadEvent ev = new UploadEvent(() => _uploader.UploadName(tournament.Tournament.SanctionNumber, tournament.Name),
-                                                 tournament.AutoUpload, tournament.Tournament.WithName(tournament.Name), UploadEvent.Type.Name, 0);
+                                                 tournament.Tournament.WithName(tournament.Name), UploadEvent.Type.Name, 0);
                 UploadQueue.Enqueue(ev);
                 tournament.Tournament = tournament.Tournament.WithName(tournament.Name);
             }
@@ -232,11 +232,33 @@ namespace MtgPairings
                 "Peruuta");
             if(confirm == MessageBoxResult.Yes)
             {
-                UploadEvent ev = new UploadEvent(() => _uploader.DeleteTournament(tournament.Tournament.SanctionNumber),
-                                                 tournament.AutoUpload, tournament.Tournament, UploadEvent.Type.DeleteTournament, 0);
-                UploadQueue.Enqueue(ev);
                 tournament.Tracking = false;
                 tournament.TournamentUploaded = false;
+                UploadEvent ev = new UploadEvent(() => _uploader.DeleteTournament(tournament.Tournament.SanctionNumber),
+                                                 tournament.Tournament, UploadEvent.Type.DeleteTournament, 0);
+                UploadQueue.Enqueue(ev);
+            }
+        }
+
+        private void Reset_Click(object sender, RoutedEventArgs e)
+        {
+            var tournament = (TrackableTournament)TournamentList.SelectedItem;
+            var confirm = CustomMessageBox.ShowYesNo(
+                "Haluatko varmasti resetoida turnauksen " + tournament.Tournament.SanctionNumber + " " + tournament.Name + "?",
+                "Oletko varma?",
+                "Resetoi",
+                "Peruuta");
+            if (confirm == MessageBoxResult.Yes)
+            {
+                tournament.Tracking = false;
+                tournament.TournamentUploaded = false;
+                Action resetAction = () =>
+                {
+                    _uploader.ResetTournament(tournament.Tournament.SanctionNumber);
+                    tournament.Tracking = true;
+                };
+                UploadEvent ev = new UploadEvent(resetAction, tournament.Tournament, UploadEvent.Type.ResetTournament, 0);
+                UploadQueue.Enqueue(ev);
             }
         }
     }
