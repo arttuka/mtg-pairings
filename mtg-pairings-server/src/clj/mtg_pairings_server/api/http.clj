@@ -15,11 +15,10 @@
    {:ui   "/api-docs"
     :spec "/swagger.json"
     :data {:info {:title "WER pairings backend API"}}})
-  (context "/api" []
-    (context "/card" [] card-routes)
-    (context "/tournament" [] tournament-routes)
-    (context "/player" [] player-routes)
-    (GET "/client-version" []
-      :no-doc true
-      {:status 200
-       :body {:version (env :client-version)}})))
+  (context "/card" [] card-routes)
+  (context "/tournament" [] tournament-routes)
+  (context "/player" [] player-routes)
+  (GET "/client-version" []
+    :no-doc true
+    {:status 200
+     :body   {:version (env :client-version)}}))

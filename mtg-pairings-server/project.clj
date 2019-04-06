@@ -6,6 +6,7 @@
                  [org.clojure/tools.logging "0.4.1"]
                  [ring/ring-core "1.7.1"]
                  [ring/ring-defaults "0.3.2"]
+                 [buddy/buddy-auth "2.1.0"]
                  [hiccup "1.0.5"]
                  [yogthos/config "1.1.1"]
                  [org.clojure/core.cache "0.7.2"]

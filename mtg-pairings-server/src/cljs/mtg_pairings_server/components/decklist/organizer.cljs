@@ -267,3 +267,24 @@
                                (doall (for [decklist @decklists]
                                         ^{:key (:id decklist)}
                                         [render-decklist decklist @tournament]))])})))
+
+(defn ^:private no-op [])
+
+(defn login []
+  [:div#decklist-organizer-login
+   [:p "Kirjaudu sisään MtgSuomi-tunnuksillasi."]
+   [:form {:action (str "/login?next=" (oget js/window "location" "pathname"))
+           :method :post}
+    [:input {:type  :hidden
+             :name  :__anti-forgery-token
+             :value (oget js/window "csrf_token")}]
+    [text-field {:name                :username
+                 :floating-label-text "Käyttäjätunnus"
+                 :on-change           no-op}]
+    [text-field {:name                :password
+                 :type                :password
+                 :floating-label-text "Salasana"
+                 :on-change           no-op}]
+    [ui/raised-button {:type    :submit
+                       :label   "Kirjaudu"
+                       :primary true}]]])

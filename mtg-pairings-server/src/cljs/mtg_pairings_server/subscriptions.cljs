@@ -178,3 +178,7 @@
 (reg-sub ::decklist-organizer-tournament
   (fn [db _]
     (get-in db [:decklist-editor :organizer-tournament])))
+
+(reg-sub ::decklist-organizer-user
+  (fn [db _]
+    (get-in db [:decklist-editor :user])))

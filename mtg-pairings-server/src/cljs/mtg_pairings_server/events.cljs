@@ -408,3 +408,7 @@
 (reg-event-db :server/organizer-tournament-decklists
   (fn [db [_ decklists]]
     (assoc-in db [:decklist-editor :decklists] decklists)))
+
+(reg-event-db :server/organizer-login
+  (fn [db [_ username]]
+    (assoc-in db [:decklist-editor :user] username)))

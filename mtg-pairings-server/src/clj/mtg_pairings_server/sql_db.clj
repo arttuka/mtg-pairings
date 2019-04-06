@@ -188,3 +188,7 @@
     {:fk :decklist})
   (sql/belongs-to card
     {:fk :card}))
+
+(sql/defentity smf-user
+  (sql/table :smf_members)
+  (sql/pk :id_member))

@@ -4,7 +4,8 @@
 
 (def ^:private log-blacklist
   [#"^.*\.(ico|png|jpg|js|css|woff2|txt|map)$"
-   #"^/chsk$"])
+   #"^/chsk$"
+   #"^/api/card"])
 
 (defn ^:private logged? [uri]
   (not-any? #(re-matches % uri) log-blacklist))

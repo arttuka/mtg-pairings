@@ -9,6 +9,7 @@
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
             [mtg-pairings-server.api.http :as http-api]
+            [mtg-pairings-server.auth :refer [auth-routes]]
             [mtg-pairings-server.middleware :refer [wrap-site-middleware]]
             [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
             [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
@@ -120,10 +121,12 @@
                      :decklist-editor {:tournament (decklist/get-tournament (:tournament decklist))
                                        :decklist   decklist}})))
   (GET "/robots.txt" [] robots-txt)
+  auth-routes
   ws/routes)
 
 (defroutes app-routes
-  http-api/app
+  (context "/api" []
+    http-api/app)
   (wrap-site-middleware
    (routes
     site-routes
@@ -144,9 +147,11 @@
   (broadcast/disconnect uid))
 
 (defmethod ws/event-handler :client/connect
-  [{:keys [uid]}]
+  [{:keys [uid ring-req]}]
   (log/debugf "New connection from %s" uid)
-  (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
+  (ws/send! uid [:server/tournaments (tournament/client-tournaments)])
+  (when-let [user (get-in ring-req [:session :identity])]
+    (ws/send! uid [:server/organizer-login (:username user)])))
 
 (defmethod ws/event-handler :client/login
   [{uid :uid, dci-number :?data}]

@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.middleware
   (:require [ring.middleware.defaults :refer [site-defaults api-defaults wrap-defaults]]
             [config.core :refer [env]]
+            [mtg-pairings-server.auth :refer [wrap-auth]]
             [mtg-pairings-server.middleware.cache-control :refer [wrap-cache-control]]
             [mtg-pairings-server.middleware.error :refer [wrap-errors]]))
 
@@ -18,6 +19,8 @@
       wrap-errors))
 
 (defn wrap-site-middleware [handler]
-  (cond-> (wrap-defaults handler (update site-defaults :security dissoc :frame-options :content-type-options))
-    (env :dev) add-dev-middleware
-    (not (env :dev)) add-prod-middleware))
+  (cond-> handler
+    true (wrap-auth)
+    true (wrap-defaults (update site-defaults :security dissoc :frame-options :content-type-options))
+    (env :dev) (add-dev-middleware)
+    (not (env :dev)) (add-prod-middleware)))
