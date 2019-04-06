@@ -10,7 +10,7 @@
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util :refer [indexed format-date]]
+            [mtg-pairings-server.util :refer [dissoc-index format-date index-where]]
             [mtg-pairings-server.util.material-ui :refer [get-theme text-field]]))
 
 (def basic? #{"Plains" "Island" "Swamp" "Mountain" "Forest" "Wastes"
@@ -73,11 +73,20 @@
         (update board conj {:name card, :quantity 1})
         (update-in [:count board] inc))))
 
-(defn set-quantity [decklist board index quantity]
-  (let [orig-quantity (get-in decklist [board index :quantity])]
+(defn set-quantity [decklist board name quantity]
+  (let [index (index-where #(= name (:name %)) (get decklist board))
+        orig-quantity (get-in decklist [board index :quantity])]
     (-> decklist
         (assoc-in [board index :quantity] quantity)
         (update-in [:count board] + (- quantity orig-quantity)))))
+
+(defn remove-card [decklist board name]
+  (let [cards (get decklist board)
+        index (index-where #(= name (:name %)) cards)
+        n (get-in decklist [board index :quantity])]
+    (-> decklist
+        (assoc board (dissoc-index cards index))
+        (update-in [:count board] - n))))
 
 (defn error-icon []
   (reagent/create-class
@@ -87,10 +96,12 @@
                         [icons/alert-warning {:color (:accent3Color palette)
                                               :style {:vertical-align :top}}]))}))
 
-(defn decklist-table-row [decklist board index card error?]
+(defn decklist-table-row [decklist board card error?]
   (let [on-change (fn [_ _ quantity]
-                    (swap! decklist set-quantity board index quantity))]
-    (fn decklist-table-row-render [_ _ _ {:keys [name quantity]} error?]
+                    (swap! decklist set-quantity board (:name card) quantity))
+        on-delete (fn []
+                    (swap! decklist remove-card board (:name card)))]
+    (fn decklist-table-row-render [_ _ {:keys [name quantity]} error?]
       [ui/table-row
        [ui/table-row-column {:class-name :quantity
                              :style      {:padding "0 12px"}}
@@ -114,6 +125,11 @@
        [ui/table-row-column {:class-name :card
                              :style      {:font-size "14px"}}
         name]
+       [ui/table-row-column {:class-name :actions
+                             :style      {:font-size "14px"
+                                          :padding   0}}
+        [ui/icon-button {:on-click on-delete}
+         [icons/content-remove-circle-outline]]]
        [ui/table-row-column {:class-name :error
                              :style      {:padding "12px"}}
         (when error?
@@ -142,11 +158,12 @@
             [ui/table-header-column {:class-name :card
                                      :style      header-style}
              "Kortti"]
+            [ui/table-header-column {:class-name :actions}]
             [ui/table-header-column {:class-name :error}]]]
           [ui/table-body
-           (for [[index {:keys [name] :as card}] (indexed (get @decklist board))]
+           (for [{:keys [name] :as card} (get @decklist board)]
              ^{:key (str name "--" board "--tr")}
-             [decklist-table-row decklist board index card (contains? error-cards name)])]]]))))
+             [decklist-table-row decklist board card (contains? error-cards name)])]]]))))
 
 (defn player-info [decklist]
   (let [set-first-name #(swap! decklist assoc-in [:player :first-name] %)

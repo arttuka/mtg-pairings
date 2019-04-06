@@ -40,6 +40,8 @@
     [:.deck-table
      [:th.quantity :td.quantity
       {:width (px 72)}]
+     [:th.actions :td.actions
+      {:width (px 48)}]
      [:th.error :td.error
       {:width (px 48)}]]]])
 

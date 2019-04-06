@@ -107,6 +107,17 @@
 (defn some-value [pred coll]
   (first (filter pred coll)))
 
+(defn index-where [pred coll]
+  (loop [i 0
+         [x & xs] coll]
+    (cond
+      (pred x) i
+      (empty? xs) nil
+      :else (recur (inc i) xs))))
+
+(defn dissoc-index [v index]
+  (vec (concat (subvec v 0 index) (subvec v (inc index)))))
+
 #?(:clj
    (defn response [body]
      (if body
