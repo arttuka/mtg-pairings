@@ -45,6 +45,12 @@
 (defn format-date [date]
   (some->> date (format/unparse-local-date (format/formatter "dd.MM.yyyy"))))
 
+(defn parse-iso-date-time [datetime]
+  (some->> datetime (format/parse (format/formatters :date-time))))
+
+(defn format-iso-date-time [datetime]
+  (some->> datetime (format/unparse (format/formatters :date-time))))
+
 (defn today-or-yesterday? [date]
   (let [yesterday (time/minus (time/today) (time/days 1))
         tomorrow (time/plus (time/today) (time/days 1))]
@@ -94,6 +100,9 @@
                   (deep-merge %1 %2)
                   %2)
                m1 m2)))
+
+(defn some-value [pred coll]
+  (first (filter pred coll)))
 
 #?(:clj
    (defn response [body]

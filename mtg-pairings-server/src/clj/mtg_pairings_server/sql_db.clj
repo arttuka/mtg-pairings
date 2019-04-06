@@ -6,9 +6,10 @@
             [korma.db]
             [hikari-cp.core :as hikari]
             [mount.core :refer [defstate]]
-            [config.core :refer [env]])
-  (:import (java.sql Date)
-           (org.joda.time LocalDate)))
+            [config.core :refer [env]]
+            [mtg-pairings-server.util :refer [some-value]])
+  (:import (java.sql Date Timestamp)
+           (org.joda.time LocalDate DateTime)))
 
 (def datasource-options {:adapter       "postgresql"
                          :username      (env :db-user)
@@ -25,13 +26,16 @@
           (korma.db/default-connection nil)
           (hikari/close-datasource (get-in @db [:pool :datasource]))))
 
+(defn ^:private convert [conversions x]
+  (if-let [[_ converter] (some-value (fn [[cls _]]
+                                       (instance? cls x))
+                                     conversions)]
+    (converter x)
+    x))
+
 (defn ^:private convert-instances-of
-  [cls f m]
-  (postwalk (fn [x]
-              (if (instance? cls x)
-                (f x)
-                x))
-            m))
+  [conversions m]
+  (postwalk (partial convert conversions) m))
 
 (defn ^:private to-local-date-default-tz
   [date]
@@ -39,12 +43,15 @@
     (time-coerce/to-local-date (time/to-time-zone dt (time/default-time-zone)))))
 
 (def sql-date->joda-date
-  (partial convert-instances-of Date to-local-date-default-tz))
+  (partial convert-instances-of {Date      to-local-date-default-tz
+                                 Timestamp time-coerce/to-date-time}))
 
 (def joda-date->sql-date
-  (partial convert-instances-of LocalDate time-coerce/to-sql-date))
+  (partial convert-instances-of {LocalDate time-coerce/to-sql-date
+                                 DateTime  time-coerce/to-sql-time}))
 
-(declare tournament player team round pairing result standings team-players seating user pod-round)
+(declare tournament player team round pairing result standings team-players seating user pod-round
+         decklist decklist-card)
 
 (sql/defentity team-players
   (sql/table :team_players)
@@ -156,3 +163,26 @@
 (sql/defentity card
   (sql/table :trader_card)
   (sql/pk :id))
+
+(sql/defentity decklist-tournament
+  (sql/table :decklist_tournament)
+  (sql/pk :id)
+  (sql/has-many decklist
+    {:fk :tournament})
+  (sql/prepare joda-date->sql-date)
+  (sql/transform sql-date->joda-date))
+
+(sql/defentity decklist
+  (sql/pk :id)
+  (sql/belongs-to decklist-tournament
+    {:fk :tournament})
+  (sql/has-many decklist-card
+    {:fk :decklist})
+  (sql/prepare joda-date->sql-date)
+  (sql/transform sql-date->joda-date))
+
+(sql/defentity decklist-card
+  (sql/belongs-to decklist
+    {:fk :decklist})
+  (sql/belongs-to card
+    {:fk :card}))

@@ -12,6 +12,7 @@
             [mtg-pairings-server.middleware :refer [wrap-site-middleware]]
             [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
             [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
+            [mtg-pairings-server.service.decklist :as decklist]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.transit :as transit]
@@ -93,7 +94,10 @@
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
-  (GET "/decklist" [] (loading-page))
+  (GET "/decklist/tournament/:id" []
+    :path-params [id :- s/Str]
+    (loading-page {:page {:page :decklist}
+                   :decklist-tournament (decklist/get-tournament id)}))
   (GET "/robots.txt" [] robots-txt)
   ws/routes)
 

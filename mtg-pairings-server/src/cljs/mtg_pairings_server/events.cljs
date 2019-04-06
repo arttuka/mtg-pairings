@@ -51,8 +51,7 @@
                :logged-in-user      (local-storage/fetch :user)
                :notification        nil
                :mobile?             (mobile?)
-               :decklist-tournament {:name   "Testiturnaus"
-                                     :format :modern}}
+               :decklist-tournament {}}
               (transit/read (oget js/window "initial_db"))))
 
 (defn update-filters-active [db]
