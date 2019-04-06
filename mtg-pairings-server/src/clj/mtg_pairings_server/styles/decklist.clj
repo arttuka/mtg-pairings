@@ -17,6 +17,8 @@
       :display        :inline-block
       :vertical-align :top}]
     [:#player-info
+     [:.full-width :.half-width
+      {:height (px 100)}]
      [:.full-width
       {:width "100%"}]
      [:.half-width

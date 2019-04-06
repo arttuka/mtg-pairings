@@ -83,3 +83,7 @@
   (->> pairings
        (concat (map reverse-match pairings))
        (remove #(= "***BYE***" (:team1_name %)))))
+
+(defn valid-dci? [dci-number]
+  (when dci-number
+    (re-matches #"[0-9]+" dci-number)))

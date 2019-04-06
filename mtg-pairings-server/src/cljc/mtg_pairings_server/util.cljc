@@ -1,5 +1,7 @@
 (ns mtg-pairings-server.util
-  (:require [#?(:clj  clj-time.format
+  (:require #?(:clj  [clojure.core.async :refer [<! alts! chan go-loop put! timeout sliding-buffer]]
+               :cljs [cljs.core.async :refer [<! alts! chan put! timeout sliding-buffer] :refer-macros [go-loop]])
+            [#?(:clj  clj-time.format
                 :cljs cljs-time.format)
              :as format]
             [#?(:clj  clj-time.core
@@ -142,3 +144,15 @@
            minutes (Math/abs (round (/ seconds 60)))
            seconds (mod (Math/abs seconds) 60)]
        (gstring/format "%s%02d:%02d" sign minutes seconds))))
+
+(defn debounce [f ms]
+  (let [c (chan (sliding-buffer 1))]
+    (go-loop [args (<! c)]
+      (let [[val port] (alts! [c (timeout ms)])]
+        (if (= port c)
+          (recur val)
+          (do
+            (apply f args)
+            (recur (<! c))))))
+    (fn [& args]
+      (put! c (or args [])))))

@@ -10,8 +10,10 @@
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util :refer [dissoc-index format-date index-where]]
-            [mtg-pairings-server.util.material-ui :refer [get-theme text-field]]))
+            [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where]]
+            [mtg-pairings-server.util.mtg :refer [valid-dci?]]
+            [mtg-pairings-server.util.material-ui :refer [get-theme text-field]]
+            [clojure.string :as str]))
 
 (def basic? #{"Plains" "Island" "Swamp" "Mountain" "Forest" "Wastes"
               "Snow-Covered Plains" "Snow-Covered Island" "Snow-Covered Swamp"
@@ -25,27 +27,34 @@
 (defn input [on-change]
   (let [tournament (subscribe [::subs/decklist-tournament])
         suggestions (atom [])
-        autosuggest-on-change (fn [value]
-                                (on-change value))
-        on-suggestions-fetch-requested (fn [prefix]
-                                         (go
-                                           (reset! suggestions (<! (get-cards prefix (:format @tournament))))))
-        on-suggestions-clear-requested (fn []
-                                         (reset! suggestions []))]
+        fetch-suggestions (debounce (fn [prefix]
+                                      (go
+                                        (reset! suggestions
+                                                (<! (get-cards prefix (:format @tournament))))))
+                                    250)
+        clear-suggestions #(reset! suggestions [])]
     (fn input-render [_ _]
       [autosuggest {:suggestions                    suggestions
-                    :on-change                      autosuggest-on-change
-                    :on-suggestions-fetch-requested on-suggestions-fetch-requested
-                    :on-suggestions-clear-requested on-suggestions-clear-requested
+                    :on-change                      on-change
+                    :on-suggestions-fetch-requested fetch-suggestions
+                    :on-suggestions-clear-requested clear-suggestions
                     :id                             :decklist-autosuggest
                     :floating-label-text            "Lisää kortti..."}])))
+
+(defn valid-player-data? [{:keys [first-name last-name dci]}]
+  (and (valid-dci? dci)
+       (not (str/blank? first-name))
+       (not (str/blank? last-name))))
 
 (defn decklist-errors [decklist]
   (let [cards (reduce (fn [acc {:keys [name quantity]}]
                         (merge-with + acc {name quantity}))
                       {}
                       (concat (:main decklist) (:side decklist)))
-        errors (list* (when (< (get-in decklist [:count :main]) 60) {:type :maindeck
+        errors (list* (when-not (valid-player-data? (:player decklist)) {:type :player-data
+                                                                         :id   :missing-player-data
+                                                                         :text "Osa pelaajan tiedoista puuttuu"})
+                      (when (< (get-in decklist [:count :main]) 60) {:type :maindeck
                                                                      :id   :deck-error-maindeck
                                                                      :text "Maindeckissä on alle 60 korttia"})
                       (when (> (get-in decklist [:count :side]) 15) {:type :sideboard
@@ -177,27 +186,41 @@
         [text-field {:on-change           set-deck-name
                      :floating-label-text "Pakan nimi"
                      :full-width          true
-                     :value               (get-in @decklist [:player :deck-name])}]]
+                     :value               (get-in @decklist [:player :deck-name])
+                     :style               {:vertical-align :top}}]]
        [:div.half-width.left
-        [text-field {:on-change           set-first-name
-                     :floating-label-text "Etunimi"
-                     :full-width          true
-                     :value               (get-in @decklist [:player :first-name])}]]
+        (let [value (get-in @decklist [:player :first-name])]
+          [text-field {:on-change           set-first-name
+                       :floating-label-text "Etunimi"
+                       :full-width          true
+                       :value               value
+                       :error-text          (when (str/blank? value)
+                                              "Etunimi on pakollinen")
+                       :style               {:vertical-align :top}}])]
        [:div.half-width.right
-        [text-field {:on-change           set-last-name
-                     :floating-label-text "Sukunimi"
-                     :full-width          true
-                     :value               (get-in @decklist [:player :last-name])}]]
+        (let [value (get-in @decklist [:player :last-name])]
+          [text-field {:on-change           set-last-name
+                       :floating-label-text "Sukunimi"
+                       :full-width          true
+                       :value               value
+                       :error-text          (when (str/blank? value)
+                                              "Etunimi on pakollinen")
+                       :style               {:vertical-align :top}}])]
        [:div.half-width.left
-        [text-field {:on-change           set-dci
-                     :floating-label-text "DCI-numero"
-                     :full-width          true
-                     :value               (get-in @decklist [:player :dci])}]]
+        (let [value (get-in @decklist [:player :dci])]
+          [text-field {:on-change           set-dci
+                       :floating-label-text "DCI-numero"
+                       :full-width          true
+                       :value               value
+                       :error-text          (when-not (valid-dci? value)
+                                              "Virheellinen DCI-numero")
+                       :style               {:vertical-align :top}}])]
        [:div.half-width.right
         [text-field {:on-change           set-email
                      :floating-label-text "Sähköposti"
                      :full-width          true
-                     :value               (get-in @decklist [:player :email])}]]])))
+                     :value               (get-in @decklist [:player :email])
+                     :style               {:vertical-align :top}}]]])))
 
 (def empty-decklist {:main   []
                      :side   []
@@ -209,6 +232,14 @@
                               :last-name  ""
                               :deck-name  ""
                               :email      ""}})
+
+(defn error-list [errors]
+  [ui/list
+   (for [error errors]
+     ^{:key (str "error--" (name (:type error)))}
+     [ui/list-item {:primary-text (:text error)
+                    :left-icon    (reagent/as-element [:div
+                                                       [error-icon]])}])])
 
 (defn decklist-submit []
   (let [saved-decklist (subscribe [::subs/decklist])
@@ -227,58 +258,60 @@
         page (subscribe [::subs/page])
         save-decklist #(dispatch [::events/save-decklist (:id @tournament) @decklist])]
     (fn decklist-submit-render []
-      [:div#decklist-submit
-       [:h2 "Lähetä pakkalista"]
-       [:p.intro
-        "Lähetä pakkalistasi "
-        [:span.tournament-date
-         (format-date (:date @tournament))]
-        " pelattavaan turnaukseen "
-        [:span.tournament-name
-         (:name @tournament)]
-        ", jonka formaatti on "
-        [:span.tournament-format
-         (case (:format @tournament)
-           :standard "Standard"
-           :modern "Modern"
-           :legacy "Legacy")]
-        "."]
-       [:h3 "Pakkalista"]
-       [input on-change]
-       [ui/raised-button
-        {:label        "Main"
-         :on-click     select-main
-         :primary      (= :main (:board @decklist))
-         :style        button-style
-         :button-style {:border-radius "2px 0 0 2px"}}]
-       [ui/raised-button
-        {:label        "Side"
-         :on-click     select-side
-         :primary      (= :side (:board @decklist))
-         :style        button-style
-         :button-style {:border-radius "0 2px 2px 0"}}]
-       [:div
-        [decklist-table decklist :main]
-        [decklist-table decklist :side]]
-       [:h3 "Pelaajan tiedot"]
-       [player-info decklist]
-       [ui/raised-button
-        {:label    "Tallenna"
-         :on-click save-decklist
-         :primary  true
-         :disabled @saving?
-         :style    {:margin-top "24px"}}]
-       (when @saving?
-         [ui/circular-progress
-          {:size  36
-           :style {:margin         "24px 0 0 24px"
-                   :vertical-align :top}}])
-       (when @saved?
-         (let [url (str "https://pairings.fi/decklist/" (:id @page))]
-           [:div.success-notice
-            [:h4 "Tallennus onnistui!"]
-            [:p
-             "Pakkalistasi tallennus onnistui. Pääset muokkaamaan pakkalistaasi osoitteessa "
-             [:a {:href url}
-              url]
-             ". Jos annoit sähköpostiosoitteesi, pakkalistasi sekä sama osoite lähetettiin sinulle myös sähköpostitse. "]]))])))
+      (let [errors (decklist-errors @decklist)]
+        [:div#decklist-submit
+         [:h2 "Lähetä pakkalista"]
+         [:p.intro
+          "Lähetä pakkalistasi "
+          [:span.tournament-date
+           (format-date (:date @tournament))]
+          " pelattavaan turnaukseen "
+          [:span.tournament-name
+           (:name @tournament)]
+          ", jonka formaatti on "
+          [:span.tournament-format
+           (case (:format @tournament)
+             :standard "Standard"
+             :modern "Modern"
+             :legacy "Legacy")]
+          "."]
+         [:h3 "Pakkalista"]
+         [input on-change]
+         [ui/raised-button
+          {:label        "Main"
+           :on-click     select-main
+           :primary      (= :main (:board @decklist))
+           :style        button-style
+           :button-style {:border-radius "2px 0 0 2px"}}]
+         [ui/raised-button
+          {:label        "Side"
+           :on-click     select-side
+           :primary      (= :side (:board @decklist))
+           :style        button-style
+           :button-style {:border-radius "0 2px 2px 0"}}]
+         [:div
+          [decklist-table decklist :main]
+          [decklist-table decklist :side]]
+         [:h3 "Pelaajan tiedot"]
+         [player-info decklist]
+         [ui/raised-button
+          {:label    "Tallenna"
+           :on-click save-decklist
+           :primary  true
+           :disabled (boolean (or @saving? (seq errors)))
+           :style    {:margin-top "24px"}}]
+         (when @saving?
+           [ui/circular-progress
+            {:size  36
+             :style {:margin         "24px 0 0 24px"
+                     :vertical-align :top}}])
+         [error-list errors]
+         (when @saved?
+           (let [url (str "https://pairings.fi/decklist/" (:id @page))]
+             [:div.success-notice
+              [:h4 "Tallennus onnistui!"]
+              [:p
+               "Pakkalistasi tallennus onnistui. Pääset muokkaamaan pakkalistaasi osoitteessa "
+               [:a {:href url}
+                url]
+               ". Jos annoit sähköpostiosoitteesi, pakkalistasi sekä sama osoite lähetettiin sinulle myös sähköpostitse. "]]))]))))
