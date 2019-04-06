@@ -88,6 +88,7 @@
              :prod     {:source-paths ["env/prod/cljs"]}
              :provided {:dependencies [[org.clojure/clojurescript "1.10.520"]
                                        [reagent "0.8.1"]
+                                       [cljs-http "0.1.46"]
                                        [com.google.errorprone/error_prone_annotations "2.3.3"]
                                        [com.google.code.findbugs/jsr305 "3.0.2"]
                                        [com.bhauman/figwheel-main "0.2.0" :exclusions [org.clojure/clojurescript]]
@@ -103,6 +104,7 @@
                                        [cljs-react-material-ui "0.2.50" :exclusions [org.clojure/clojurescript]]
                                        [cljsjs/prop-types "15.6.2-0"]
                                        [cljsjs/rc-slider "8.6.1-0"]
+                                       [cljsjs/react-autosuggest "9.4.3-0"]
                                        [garden "1.3.6"]]}
              :uberjar  {:source-paths       ["env/prod/cljs"]
                         :main               mtg-pairings-server.main
