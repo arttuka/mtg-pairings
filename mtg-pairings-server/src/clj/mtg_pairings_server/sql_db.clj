@@ -152,3 +152,7 @@
     {:fk :pod})
   (sql/belongs-to team
     {:fk :team}))
+
+(sql/defentity card
+  (sql/table :trader_card)
+  (sql/pk :id))
