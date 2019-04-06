@@ -392,3 +392,19 @@
                    (assoc-in [:decklist-editor :saving] false)
                    (assoc-in [:decklist-editor :saved] true))
      :navigate (str "/decklist/organizer/" id)}))
+
+(reg-event-fx ::load-organizer-tournament-decklist
+  (fn [_ [_ id]]
+    {:ws-send [:client/load-organizer-tournament-decklist id]}))
+
+(reg-event-fx ::load-organizer-tournament-decklists
+  (fn [_ [_ id]]
+    {:ws-send [:client/load-organizer-tournament-decklists id]}))
+
+(reg-event-db :server/organizer-tournament-decklist
+  (fn [db [_ decklist]]
+    (assoc-in db [:decklist-editor :decklist] decklist)))
+
+(reg-event-db :server/organizer-tournament-decklists
+  (fn [db [_ decklists]]
+    (assoc-in db [:decklist-editor :decklists] decklists)))

@@ -55,7 +55,7 @@
            :organizer-menu [#'organizer-menu]
            :organizer-deck-construction [#'deck-construction-tables]
            :decklist-submit [#'decklist-submit]
-           (:decklist-organizer :decklist-organizer-tournament :decklist-organizer-view) [#'decklist-organizer]
+           (:decklist-organizer :decklist-organizer-tournament :decklist-organizer-view) [#'decklist-organizer @page]
            nil)]]])))
 
 (defn mount-root []

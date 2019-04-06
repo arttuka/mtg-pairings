@@ -73,9 +73,10 @@
            ^{:key (str (:id tournament) "--row")}
            [tournament-row tournament])]]])))
 
-(defn decklist-table [decklists]
+(defn decklist-table [decklists on-select]
   [ui/table {:class-name       :tournaments
-             :multi-selectable true}
+             :multi-selectable true
+             :on-row-selection on-select}
    [ui/table-header
     [ui/table-row {:style {:height "24px"}}
      [ui/table-header-column {:class-name :dci
@@ -88,11 +89,13 @@
                               :style      table-header-style}
       "Lähetetty"]]]
    [ui/table-body
+    {:deselect-on-clickaway false}
     (for [decklist decklists
           :let [column-style {:font-size "14px"
                               :padding   0}
                 decklist-url (routes/decklist-organizer-view-path {:id (:id decklist)})
-                link-props {:href decklist-url}]]
+                link-props {:href     decklist-url
+                            :on-click #(dispatch [::events/load-organizer-tournament-decklist (:id decklist)])}]]
       ^{:key (str (:id decklist) "--row")}
       [ui/table-row {}
        [ui/table-row-column {:class-name :dci
@@ -118,7 +121,16 @@
         set-format (fn [_ _ format]
                      (swap! tournament assoc :format (keyword format)))
         save-tournament #(dispatch [::events/save-decklist-organizer-tournament
-                                    (select-keys @tournament [:id :name :format :date :deadline])])]
+                                    (select-keys @tournament [:id :name :format :date :deadline])])
+        selected-decklists (atom [])
+        on-select (fn [selection]
+                    (let [selection (js->clj selection)]
+                      (reset! selected-decklists (case selection
+                                                   "all" (:decklist @tournament)
+                                                   "none" []
+                                                   (map (:decklist @tournament) selection)))))
+        load-selected-decklists #(dispatch [::events/load-organizer-tournament-decklists
+                                            (map :id @selected-decklists)])]
     (fn tournament-render [id]
       (when (and (nil? @tournament)
                  (some? @saved-tournament))
@@ -155,13 +167,24 @@
                             :on-click save-tournament
                             :primary  true
                             :disabled @saving?}]
-         (when @saving?
+         (if @saving?
            [ui/circular-progress
             {:size  36
              :style {:margin-left    "24px"
-                     :vertical-align :top}}])]]
+                     :margin-right   "24px"
+                     :vertical-align :top}}]
+           [:div.placeholder
+            {:style {:display        :inline-block
+                     :width          "84px"
+                     :height         "36px"
+                     :vertical-align :top}}])
+         [ui/raised-button {:label    "Tulosta valitut listat"
+                            :href     (routes/decklist-organizer-print-path)
+                            :on-click load-selected-decklists
+                            :primary  true
+                            :disabled (empty? @selected-decklists)}]]]
        [:div.decklists
-        [decklist-table (:decklist @tournament)]]])))
+        [decklist-table (:decklist @tournament) on-select]]])))
 
 (defn decklist-card [card]
   [:div.card
@@ -211,14 +234,14 @@
           ^{:key (str id "--dci--" index)}
           [:span.digit (get dci index)])]]]
      [:div.maindeck
-      [:h3 "Maindeck (" (counts :main) ")"]
+      [:h3 "Maindeck (" (:main counts) ")"]
       [:div.cards
        (for [card main]
          ^{:key (str id "--main--" (:name card))}
          [decklist-card card])]]
      [:div.sideboard
       {:class (str "sideboard-" (count side))}
-      [:h3 "Sideboard (" (counts :side) ")"]
+      [:h3 "Sideboard (" (:side counts) ")"]
       [:div.cards
        (for [card side]
          ^{:key (str id "--side--" (:name card))}
@@ -229,3 +252,18 @@
         tournament (subscribe [::subs/decklist-organizer-tournament])]
     (fn view-decklist-render []
       [render-decklist @decklist @tournament])))
+
+(defn view-decklists []
+  (let [decklists (subscribe [::subs/decklists])
+        tournament (subscribe [::subs/decklist-organizer-tournament])
+        print-page #(when (and (seq @decklists)
+                               @tournament)
+                      (.print js/window))]
+    (reagent/create-class
+     {:component-did-mount  print-page
+      :component-did-update print-page
+      :reagent-render       (fn view-decklists-render []
+                              [:div
+                               (doall (for [decklist @decklists]
+                                        ^{:key (:id decklist)}
+                                        [render-decklist decklist @tournament]))])})))

@@ -108,12 +108,13 @@
     (map #(update % :decklist count) tournaments)))
 
 (defn get-organizer-tournament [id]
-  (sql-util/select-unique db/decklist-tournament
-    (sql/fields :id :name :date :format :deadline)
-    (sql/with db/decklist
-      (sql/fields :id :first-name :last-name :dci :submitted)
-      (sql/order :submitted :asc))
-    (sql/where {:id id})))
+  (-> (sql-util/select-unique db/decklist-tournament
+        (sql/fields :id :name :date :format :deadline)
+        (sql/with db/decklist
+          (sql/fields :id :first-name :last-name :dci :submitted)
+          (sql/order :submitted :asc))
+        (sql/where {:id id}))
+      (update :decklist vec)))
 
 (defn format-saved-tournament [tournament]
   (-> tournament

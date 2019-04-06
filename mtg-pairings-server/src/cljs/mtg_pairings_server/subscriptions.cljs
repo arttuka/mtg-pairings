@@ -167,6 +167,10 @@
   (fn [db _]
     (get-in db [:decklist-editor :decklist])))
 
+(reg-sub ::decklists
+  (fn [db _]
+    (get-in db [:decklist-editor :decklists])))
+
 (reg-sub ::decklist-organizer-tournaments
   (fn [db _]
     (get-in db [:decklist-editor :organizer-tournaments])))

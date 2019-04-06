@@ -232,3 +232,14 @@
   [{uid :uid, tournament :?data}]
   (let [id (decklist/save-organizer-tournament tournament)]
     (ws/send! uid [:server/organizer-tournament-saved id])))
+
+(defmethod ws/event-handler :client/load-organizer-tournament-decklist
+  [{uid :uid, id :?data}]
+  (ws/send! uid [:server/organizer-tournament-decklist (decklist/get-decklist id)]))
+
+(defmethod ws/event-handler :client/load-organizer-tournament-decklists
+  [{uid :uid, ids :?data}]
+  (ws/send! uid [:server/organizer-tournament-decklists (->> (map decklist/get-decklist ids)
+                                                             (sort-by (fn [d]
+                                                                        [(get-in d [:player :last-name])
+                                                                         (get-in d [:player :first-name])])))]))
