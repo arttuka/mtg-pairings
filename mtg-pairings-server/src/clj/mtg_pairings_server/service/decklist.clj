@@ -100,16 +100,18 @@
      :board      :main
      :player     player}))
 
-(defn get-organizer-tournaments []
-  (let [tournaments (sql/select db/decklist-tournament
-                      (sql/fields :id :name :date :format :deadline)
-                      (sql/with db/decklist
-                        (sql/fields :id)))]
-    (map #(update % :decklist count) tournaments)))
+(defn get-organizer-tournaments [user-id]
+  (when user-id
+    (let [tournaments (sql/select db/decklist-tournament
+                        (sql/fields :id :name :date :format :deadline)
+                        (sql/with db/decklist
+                          (sql/fields :id))
+                        (sql/where {:user user-id}))]
+      (map #(update % :decklist count) tournaments))))
 
 (defn get-organizer-tournament [id]
   (-> (sql-util/select-unique db/decklist-tournament
-        (sql/fields :id :name :date :format :deadline)
+        (sql/fields :id :user :name :date :format :deadline)
         (sql/with db/decklist
           (sql/fields :id :first-name :last-name :dci :submitted)
           (sql/order :submitted :asc))
@@ -121,14 +123,21 @@
       (select-keys [:name :date :format :deadline])
       (update :format name)))
 
-(defn save-organizer-tournament [tournament]
+(defn save-organizer-tournament [user-id tournament]
   (let [old-id (:id tournament)
+        existing (when old-id
+                   (sql-util/select-unique-or-nil db/decklist-tournament
+                     (sql/where {:id old-id})))
         new-id (sql-util/generate-id)]
-    (if old-id
-      (sql-util/update-unique db/decklist-tournament
-        (sql/set-fields (format-saved-tournament tournament))
-        (sql/where {:id old-id}))
-      (sql/insert db/decklist-tournament
-        (sql/values (-> (format-saved-tournament tournament)
-                        (assoc :id new-id)))))
-    (or old-id new-id)))
+    (cond
+      (not existing) (do
+                       (sql/insert db/decklist-tournament
+                         (sql/values (-> (format-saved-tournament tournament)
+                                         (assoc :id new-id
+                                                :user user-id))))
+                       new-id)
+      (= user-id (:user existing)) (do
+                                     (sql-util/update-unique db/decklist-tournament
+                                       (sql/set-fields (format-saved-tournament tournament))
+                                       (sql/where {:id old-id}))
+                                     old-id))))

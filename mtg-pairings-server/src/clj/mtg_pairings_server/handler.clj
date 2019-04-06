@@ -56,6 +56,9 @@
    :body    "User-agent: *\nDisallow: /\n"
    :headers {"Content-Type" "text/plain"}})
 
+(def forbidden {:status 403
+                :body   "403 Forbidden"})
+
 (defroutes site-routes
   (GET "/" [] (loading-page))
   (GET "/tournaments" []
@@ -97,23 +100,33 @@
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
   (GET "/decklist/tournament/:id" []
     :path-params [id :- s/Str]
-    (loading-page {:page                {:page :decklist-submit}
-                   :decklist-tournament (decklist/get-tournament id)}))
-  (GET "/decklist/organizer" []
+    (loading-page {:page            {:page :decklist-submit}
+                   :decklist-editor {:tournament (decklist/get-tournament id)}}))
+  (GET "/decklist/organizer" request
     (loading-page {:page            {:page :decklist-organizer}
-                   :decklist-editor {:organizer-tournaments (decklist/get-organizer-tournaments)}}))
+                   :decklist-editor {:organizer-tournaments (decklist/get-organizer-tournaments (get-in request [:session :identity :id]))}}))
   (GET "/decklist/organizer/new" []
     (loading-page {:page {:page :decklist-organizer-tournament}}))
-  (GET "/decklist/organizer/view/:id" []
+  (GET "/decklist/organizer/view/:id" request
     :path-params [id :- s/Str]
-    (let [decklist (decklist/get-decklist id)]
-      (loading-page {:page            {:page :decklist-organizer-view, :id id}
-                     :decklist-editor {:decklist             decklist
-                                       :organizer-tournament (decklist/get-organizer-tournament (:tournament decklist))}})))
-  (GET "/decklist/organizer/:id" []
+    (let [decklist (decklist/get-decklist id)
+          tournament (decklist/get-organizer-tournament (:tournament decklist))
+          user-id (get-in request [:session :identity :id])]
+      (cond
+        (not user-id) (loading-page {:page {:page :decklist-organizer-view, :id id}})
+        (= user-id (:user tournament)) (loading-page {:page            {:page :decklist-organizer-view, :id id}
+                                                      :decklist-editor {:decklist             decklist
+                                                                        :organizer-tournament tournament}})
+        :else forbidden)))
+  (GET "/decklist/organizer/:id" request
     :path-params [id :- s/Str]
-    (loading-page {:page            {:page :decklist-organizer-tournament, :id id}
-                   :decklist-editor {:organizer-tournament (decklist/get-organizer-tournament id)}}))
+    (let [tournament (decklist/get-organizer-tournament id)
+          user-id (get-in request [:session :identity :id])]
+      (cond
+        (not user-id) (loading-page {:page {:page :decklist-organizer-tournament, :id id}})
+        (= user-id (:user tournament)) (loading-page {:page            {:page :decklist-organizer-tournament, :id id}
+                                                      :decklist-editor {:organizer-tournament tournament}})
+        :else forbidden)))
   (GET "/decklist/:id" []
     :path-params [id :- s/Str]
     (let [decklist (decklist/get-decklist id)]
@@ -150,8 +163,7 @@
   [{:keys [uid ring-req]}]
   (log/debugf "New connection from %s" uid)
   (ws/send! uid [:server/tournaments (tournament/client-tournaments)])
-  (when-let [user (get-in ring-req [:session :identity])]
-    (ws/send! uid [:server/organizer-login (:username user)])))
+  (ws/send! uid [:server/organizer-login (get-in ring-req [:session :identity :username] false)]))
 
 (defmethod ws/event-handler :client/login
   [{uid :uid, dci-number :?data}]
@@ -230,13 +242,17 @@
     (ws/send! uid [:server/decklist-saved id])))
 
 (defmethod ws/event-handler :client/decklist-organizer-tournament
-  [{uid :uid, id :?data}]
-  (ws/send! uid [:server/decklist-organizer-tournament (decklist/get-organizer-tournament id)]))
+  [{uid :uid, id :?data, ring-req :ring-req}]
+  (let [tournament (decklist/get-organizer-tournament id)]
+    (when (= (get-in ring-req [:session :identity :id]) (:user tournament))
+      (ws/send! uid [:server/decklist-organizer-tournament tournament]))))
 
 (defmethod ws/event-handler :client/save-decklist-organizer-tournament
-  [{uid :uid, tournament :?data}]
-  (let [id (decklist/save-organizer-tournament tournament)]
-    (ws/send! uid [:server/organizer-tournament-saved id])))
+  [{uid :uid, tournament :?data, ring-req :ring-req}]
+  (let [user-id (get-in ring-req [:session :identity :id])
+        id (decklist/save-organizer-tournament user-id tournament)]
+    (when id
+      (ws/send! uid [:server/organizer-tournament-saved id]))))
 
 (defmethod ws/event-handler :client/load-organizer-tournament-decklist
   [{uid :uid, id :?data}]
