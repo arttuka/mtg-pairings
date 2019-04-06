@@ -93,6 +93,7 @@
   (GET "/tournaments/:id/organizer" [] (loading-page))
   (GET "/tournaments/:id/organizer/menu" [] (loading-page))
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
+  (GET "/decklist" [] (loading-page))
   (GET "/robots.txt" [] robots-txt)
   ws/routes)
 

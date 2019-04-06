@@ -5,6 +5,7 @@
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.bracket :as bracket]
             [mtg-pairings-server.styles.common :refer [color]]
+            [mtg-pairings-server.styles.decklist :as decklist]
             [mtg-pairings-server.styles.organizer :as organizer]
             [mtg-pairings-server.styles.table :as table]
             [mtg-pairings-server.styles.tournament :as tournament]
@@ -55,6 +56,7 @@
   own-tournaments
   table/styles
   bracket/styles
+  decklist/styles
   organizer/styles
   tournament/styles
   mobile)

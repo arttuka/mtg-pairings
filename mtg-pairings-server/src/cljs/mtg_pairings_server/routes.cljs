@@ -66,3 +66,6 @@
   (let [id (js/parseInt id)]
     (dispatch [::events/load-deck-construction id])
     (dispatch-page :organizer-deck-construction id)))
+
+(secretary/defroute decklist-submit-path "/decklist" []
+  (dispatch-page :decklist-submit))

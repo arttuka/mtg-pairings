@@ -11,6 +11,7 @@
             mtg-pairings-server.util.event-listener
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.events :as events]
+            [mtg-pairings-server.pages.decklist :refer [decklist-submit]]
             [mtg-pairings-server.pages.main :refer [main-page]]
             [mtg-pairings-server.pages.tournament :refer [tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu deck-construction-tables]]
@@ -26,6 +27,9 @@
                        :accent3-color       "#ff77a9"
                        :picker-header-color "#5d99c6"}}))
 
+(defn display-header? [page]
+  (not (contains? #{:organizer :decklist-submit} (:page page))))
+
 (defn current-page []
   (let [page (subscribe [::subs/page])
         hide-organizer-menu? (subscribe [::subs/organizer :menu])]
@@ -33,8 +37,10 @@
       [ui/mui-theme-provider
        {:mui-theme theme}
        [:div
-        (if (= :organizer (:page @page))
-          (when-not @hide-organizer-menu? [organizer/menu])
+        (when (and (= :organizer (:page @page))
+                   (not @hide-organizer-menu?))
+          [organizer/menu])
+        (when (display-header? @page)
           [header])
         [notification]
         [:div#main-container
@@ -46,6 +52,7 @@
            :organizer [#'organizer-page]
            :organizer-menu [#'organizer-menu]
            :organizer-deck-construction [#'deck-construction-tables]
+           :decklist-submit [#'decklist-submit]
            nil)]]])))
 
 (defn mount-root []

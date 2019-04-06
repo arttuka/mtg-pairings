@@ -150,3 +150,7 @@
 (reg-sub ::notification
   (fn [db _]
     (:notification db)))
+
+(reg-sub ::decklist-tournament
+  (fn [db _]
+    (:decklist-tournament db)))

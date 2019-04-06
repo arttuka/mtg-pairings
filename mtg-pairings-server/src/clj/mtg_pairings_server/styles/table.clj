@@ -105,7 +105,7 @@
       ellipsis-overflow)])])
 
 (defstyles styles
-  [:table
+  [:table.pairings-table :table.seatings-table :table.standings-table :table.pods-table
    {:border-spacing 0}
    [:th
     {:text-align :left

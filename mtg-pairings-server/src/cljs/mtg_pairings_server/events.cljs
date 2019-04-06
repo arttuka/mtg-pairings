@@ -31,26 +31,28 @@
     (local-storage/store key obj)))
 
 (defn initial-db []
-  (deep-merge {:tournaments        {}
-               :tournament-count   0
-               :tournaments-page   0
-               :tournament-ids     []
-               :tournament-filter  {:organizer ""
-                                    :date-from nil
-                                    :date-to   nil
-                                    :players   [0 100]}
-               :filters-active     false
-               :max-players        100
-               :player-tournaments []
-               :pairings           {:sort-key :table_number}
-               :pods               {:sort-key :pod}
-               :seatings           {:sort-key :table_number}
-               :page               {:page  :main
-                                    :id    nil
-                                    :round nil}
-               :logged-in-user     (local-storage/fetch :user)
-               :notification       nil
-               :mobile?            (mobile?)}
+  (deep-merge {:tournaments         {}
+               :tournament-count    0
+               :tournaments-page    0
+               :tournament-ids      []
+               :tournament-filter   {:organizer ""
+                                     :date-from nil
+                                     :date-to   nil
+                                     :players   [0 100]}
+               :filters-active      false
+               :max-players         100
+               :player-tournaments  []
+               :pairings            {:sort-key :table_number}
+               :pods                {:sort-key :pod}
+               :seatings            {:sort-key :table_number}
+               :page                {:page  :main
+                                     :id    nil
+                                     :round nil}
+               :logged-in-user      (local-storage/fetch :user)
+               :notification        nil
+               :mobile?             (mobile?)
+               :decklist-tournament {:name   "Testiturnaus"
+                                     :format :modern}}
               (transit/read (oget js/window "initial_db"))))
 
 (defn update-filters-active [db]
