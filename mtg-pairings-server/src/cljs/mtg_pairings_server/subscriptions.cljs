@@ -155,6 +155,14 @@
   (fn [db _]
     (get-in db [:decklist-editor :tournament])))
 
+(reg-sub ::decklist-saving?
+  (fn [db _]
+    (get-in db [:decklist-editor :saving])))
+
+(reg-sub ::decklist-saved?
+  (fn [db _]
+    (get-in db [:decklist-editor :saved])))
+
 (reg-sub ::decklist
   (fn [db _]
     (get-in db [:decklist-editor :decklist])))

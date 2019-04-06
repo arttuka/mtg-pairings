@@ -11,5 +11,11 @@
 #?(:clj (defn when-desktop [& styles]
           (apply at-media {:min-width (px (inc mobile-max-width))} styles)))
 
+#?(:clj (defn when-screen [& styles]
+          (apply at-media {:screen true} styles)))
+
+#?(:clj (defn when-print [& styles]
+          (apply at-media {:print true} styles)))
+
 #?(:cljs (defn mobile? []
            (<= (oget js/window "innerWidth") mobile-max-width)))

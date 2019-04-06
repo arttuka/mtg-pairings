@@ -205,6 +205,8 @@
                       :width     "70px"
                       :min-width "70px"}
         tournament (subscribe [::subs/decklist-tournament])
+        saving? (subscribe [::subs/decklist-saving?])
+        saved? (subscribe [::subs/decklist-saved?])
         page (subscribe [::subs/page])
         save-decklist #(dispatch [::events/save-decklist (:id @tournament) @decklist])]
     (fn decklist-submit-render []
@@ -247,14 +249,14 @@
         {:label    "Tallenna"
          :on-click save-decklist
          :primary  true
-         :disabled (:saving @tournament)
+         :disabled @saving?
          :style    {:margin-top "24px"}}]
-       (when (:saving @tournament)
+       (when @saving?
          [ui/circular-progress
           {:size  36
            :style {:margin         "24px 0 0 24px"
                    :vertical-align :top}}])
-       (when (:saved @tournament)
+       (when @saved?
          (let [url (str "https://pairings.fi/decklist/" (:id @page))]
            [:div.success-notice
             [:h4 "Tallennus onnistui!"]

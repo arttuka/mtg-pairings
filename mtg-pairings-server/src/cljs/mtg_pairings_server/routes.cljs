@@ -70,6 +70,9 @@
 (secretary/defroute decklist-organizer-path "/decklist/organizer" []
   (dispatch-page :decklist-organizer))
 
+(secretary/defroute decklist-organizer-view-path "/decklist/organizer/view/:id" [id]
+  (dispatch-page :decklist-organizer-view id))
+
 (secretary/defroute decklist-organizer-new-tournament-path "/decklist/organizer/new" []
   (dispatch-page :decklist-organizer-tournament))
 

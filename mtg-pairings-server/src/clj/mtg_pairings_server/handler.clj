@@ -100,7 +100,19 @@
                    :decklist-tournament (decklist/get-tournament id)}))
   (GET "/decklist/organizer" []
     (loading-page {:page            {:page :decklist-organizer}
-                   :decklist-editor {:organizer-tournaments (decklist/get-tournaments)}}))
+                   :decklist-editor {:organizer-tournaments (decklist/get-organizer-tournaments)}}))
+  (GET "/decklist/organizer/new" []
+    (loading-page {:page {:page :decklist-organizer-tournament}}))
+  (GET "/decklist/organizer/view/:id" []
+    :path-params [id :- s/Str]
+    (let [decklist (decklist/get-decklist id)]
+      (loading-page {:page            {:page :decklist-organizer-view, :id id}
+                     :decklist-editor {:decklist             decklist
+                                       :organizer-tournament (decklist/get-organizer-tournament (:tournament decklist))}})))
+  (GET "/decklist/organizer/:id" []
+    :path-params [id :- s/Str]
+    (loading-page {:page            {:page :decklist-organizer-tournament, :id id}
+                   :decklist-editor {:organizer-tournament (decklist/get-organizer-tournament id)}}))
   (GET "/decklist/:id" []
     :path-params [id :- s/Str]
     (let [decklist (decklist/get-decklist id)]
@@ -211,3 +223,12 @@
   [{uid :uid, [tournament decklist] :?data}]
   (let [id (decklist/save-decklist tournament decklist)]
     (ws/send! uid [:server/decklist-saved id])))
+
+(defmethod ws/event-handler :client/decklist-organizer-tournament
+  [{uid :uid, id :?data}]
+  (ws/send! uid [:server/decklist-organizer-tournament (decklist/get-organizer-tournament id)]))
+
+(defmethod ws/event-handler :client/save-decklist-organizer-tournament
+  [{uid :uid, tournament :?data}]
+  (let [id (decklist/save-organizer-tournament tournament)]
+    (ws/send! uid [:server/organizer-tournament-saved id])))

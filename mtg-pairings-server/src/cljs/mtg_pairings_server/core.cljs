@@ -28,7 +28,8 @@
                        :picker-header-color "#5d99c6"}}))
 
 (defn display-header? [page]
-  (not (contains? #{:organizer :decklist-submit :decklist-organizer :decklist-organizer-tournament}
+  (not (contains? #{:organizer :decklist-submit :decklist-organizer
+                    :decklist-organizer-tournament :decklist-organizer-view}
                   (:page page))))
 
 (defn current-page []
@@ -54,7 +55,7 @@
            :organizer-menu [#'organizer-menu]
            :organizer-deck-construction [#'deck-construction-tables]
            :decklist-submit [#'decklist-submit]
-           (:decklist-organizer :decklist-organizer-tournament) [#'decklist-organizer]
+           (:decklist-organizer :decklist-organizer-tournament :decklist-organizer-view) [#'decklist-organizer]
            nil)]]])))
 
 (defn mount-root []

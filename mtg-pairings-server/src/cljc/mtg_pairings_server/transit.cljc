@@ -11,7 +11,7 @@
 (def writers
   {#?(:clj LocalDate, :cljs goog.date.Date)
    (transit/write-handler (constantly "Date") format-iso-date)
-   #?(:clj DateTime, :cljs goog.date.DateTime)
+   #?(:clj DateTime, :cljs goog.date.UtcDateTime)
    (transit/write-handler (constantly "DateTime") format-iso-date-time)
    #?@(:clj [Ratio
              (transit/write-handler (constantly "d") double)])})

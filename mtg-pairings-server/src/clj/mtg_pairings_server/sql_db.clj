@@ -170,7 +170,8 @@
   (sql/has-many decklist
     {:fk :tournament})
   (sql/prepare joda-date->sql-date)
-  (sql/transform sql-date->joda-date))
+  (sql/transform sql-date->joda-date)
+  (sql/transform #(update % :format keyword)))
 
 (sql/defentity decklist
   (sql/pk :id)

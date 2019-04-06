@@ -13,4 +13,5 @@
     (fn decklist-organizer-render []
       (case (:page @page)
         :decklist-organizer-tournament [organizer/tournament (:id @page)]
-        :decklist-organizer [organizer/all-tournaments]))))
+        :decklist-organizer [organizer/all-tournaments]
+        :decklist-organizer-view [organizer/view-decklist]))))

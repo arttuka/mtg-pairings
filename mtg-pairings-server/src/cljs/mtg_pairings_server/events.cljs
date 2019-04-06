@@ -36,29 +36,27 @@
     (accountant/navigate! path)))
 
 (defn initial-db []
-  (deep-merge {:tournaments         {}
-               :tournament-count    0
-               :tournaments-page    0
-               :tournament-ids      []
-               :tournament-filter   {:organizer ""
-                                     :date-from nil
-                                     :date-to   nil
-                                     :players   [0 100]}
-               :filters-active      false
-               :max-players         100
-               :player-tournaments  []
-               :pairings            {:sort-key :table_number}
-               :pods                {:sort-key :pod}
-               :seatings            {:sort-key :table_number}
-               :page                {:page  :main
-                                     :id    nil
-                                     :round nil}
-               :logged-in-user      (local-storage/fetch :user)
-               :notification        nil
-               :mobile?             (mobile?)
-               :decklist-editor {:tournament {}
-                                 :organizer-tournaments []
-                                 :organizer-tournament {}}}
+  (deep-merge {:tournaments        {}
+               :tournament-count   0
+               :tournaments-page   0
+               :tournament-ids     []
+               :tournament-filter  {:organizer ""
+                                    :date-from nil
+                                    :date-to   nil
+                                    :players   [0 100]}
+               :filters-active     false
+               :max-players        100
+               :player-tournaments []
+               :pairings           {:sort-key :table_number}
+               :pods               {:sort-key :pod}
+               :seatings           {:sort-key :table_number}
+               :page               {:page  :main
+                                    :id    nil
+                                    :round nil}
+               :logged-in-user     (local-storage/fetch :user)
+               :notification       nil
+               :mobile?            (mobile?)
+               :decklist-editor    {:organizer-tournaments []}}
               (transit/read (oget js/window "initial_db"))))
 
 (defn update-filters-active [db]
@@ -373,3 +371,24 @@
                    (assoc-in [:decklist-editor :saving] false)
                    (assoc-in [:decklist-editor :saved] true))
      :navigate (str "/decklist/" id)}))
+
+(reg-event-fx ::load-decklist-organizer-tournament
+  (fn [_ [_ id]]
+    {:ws-send [:client/decklist-organizer-tournament id]}))
+
+(reg-event-db :server/decklist-organizer-tournament
+  (fn [db [_ tournament]]
+    (assoc-in db [:decklist-editor :organizer-tournament] tournament)))
+
+(reg-event-fx ::save-decklist-organizer-tournament
+  (fn [{:keys [db]} [_ tournament]]
+    {:db      (assoc-in db [:decklist-editor :saving] true)
+     :ws-send [:client/save-decklist-organizer-tournament tournament]}))
+
+(reg-event-fx :server/organizer-tournament-saved
+  (fn [{:keys [db]} [_ id]]
+    {:db       (-> db
+                   (assoc-in [:decklist-editor :organizer-tournament :id] id)
+                   (assoc-in [:decklist-editor :saving] false)
+                   (assoc-in [:decklist-editor :saved] true))
+     :navigate (str "/decklist/organizer/" id)}))

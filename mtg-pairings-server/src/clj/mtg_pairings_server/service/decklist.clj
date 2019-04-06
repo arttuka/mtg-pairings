@@ -71,9 +71,8 @@
      (or old-id new-id))))
 
 (defn get-tournament [id]
-  (some-> (sql-util/select-unique-or-nil db/decklist-tournament
-            (sql/where {:id id}))
-          (update :format keyword)))
+  (sql-util/select-unique db/decklist-tournament
+    (sql/where {:id id})))
 
 (defn format-cards [cards maindeck?]
   (->> cards
@@ -101,9 +100,34 @@
      :board      :main
      :player     player}))
 
-(defn get-tournaments []
+(defn get-organizer-tournaments []
   (let [tournaments (sql/select db/decklist-tournament
                       (sql/fields :id :name :date :format :deadline)
                       (sql/with db/decklist
                         (sql/fields :id)))]
     (map #(update % :decklist count) tournaments)))
+
+(defn get-organizer-tournament [id]
+  (sql-util/select-unique db/decklist-tournament
+    (sql/fields :id :name :date :format :deadline)
+    (sql/with db/decklist
+      (sql/fields :id :first-name :last-name :dci :submitted)
+      (sql/order :submitted :asc))
+    (sql/where {:id id})))
+
+(defn format-saved-tournament [tournament]
+  (-> tournament
+      (select-keys [:name :date :format :deadline])
+      (update :format name)))
+
+(defn save-organizer-tournament [tournament]
+  (let [old-id (:id tournament)
+        new-id (sql-util/generate-id)]
+    (if old-id
+      (sql-util/update-unique db/decklist-tournament
+        (sql/set-fields (format-saved-tournament tournament))
+        (sql/where {:id old-id}))
+      (sql/insert db/decklist-tournament
+        (sql/values (-> (format-saved-tournament tournament)
+                        (assoc :id new-id)))))
+    (or old-id new-id)))
