@@ -100,3 +100,10 @@
                   :side (transduce (map :quantity) + 0 side)}
      :board      :main
      :player     player}))
+
+(defn get-tournaments []
+  (let [tournaments (sql/select db/decklist-tournament
+                      (sql/fields :id :name :date :format :deadline)
+                      (sql/with db/decklist
+                        (sql/fields :id)))]
+    (map #(update % :decklist count) tournaments)))

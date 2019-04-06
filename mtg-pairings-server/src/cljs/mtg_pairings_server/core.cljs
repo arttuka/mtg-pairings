@@ -11,7 +11,7 @@
             mtg-pairings-server.util.event-listener
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.events :as events]
-            [mtg-pairings-server.pages.decklist :refer [decklist-submit]]
+            [mtg-pairings-server.pages.decklist :refer [decklist-organizer decklist-submit]]
             [mtg-pairings-server.pages.main :refer [main-page]]
             [mtg-pairings-server.pages.tournament :refer [tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu deck-construction-tables]]
@@ -28,7 +28,8 @@
                        :picker-header-color "#5d99c6"}}))
 
 (defn display-header? [page]
-  (not (contains? #{:organizer :decklist-submit} (:page page))))
+  (not (contains? #{:organizer :decklist-submit :decklist-organizer :decklist-organizer-tournament}
+                  (:page page))))
 
 (defn current-page []
   (let [page (subscribe [::subs/page])
@@ -53,6 +54,7 @@
            :organizer-menu [#'organizer-menu]
            :organizer-deck-construction [#'deck-construction-tables]
            :decklist-submit [#'decklist-submit]
+           (:decklist-organizer :decklist-organizer-tournament) [#'decklist-organizer]
            nil)]]])))
 
 (defn mount-root []

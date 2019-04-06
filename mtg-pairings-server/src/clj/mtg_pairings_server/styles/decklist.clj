@@ -3,7 +3,7 @@
             [garden.units :refer [px]]
             [mtg-pairings-server.util.mobile :refer [when-desktop when-mobile]]))
 
-(defstyles styles
+(defstyles submit
   [:#decklist-submit
    {:position :relative}
    (when-desktop
@@ -40,3 +40,23 @@
       {:width (px 72)}]
      [:th.error :td.error
       {:width (px 48)}]]]])
+
+(defstyles organizer
+  [:#decklist-organizer-tournaments
+   {:margin "12px 24px"}
+   [:.tournaments
+    [:th.date :td.date
+     {:width (px 130)}]
+    [:th.deadline :td.deadline
+     {:width (px 160)}]
+    [:th.decklists :td.decklists
+     {:width (px 135)}]
+    [:.tournament-link
+     {:color       :black
+      :display     :block
+      :height      (px 48)
+      :line-height (px 48)}]]])
+
+(defstyles styles
+  organizer
+  submit)

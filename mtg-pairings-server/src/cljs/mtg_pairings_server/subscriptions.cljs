@@ -153,8 +153,16 @@
 
 (reg-sub ::decklist-tournament
   (fn [db _]
-    (:decklist-tournament db)))
+    (get-in db [:decklist-editor :tournament])))
 
 (reg-sub ::decklist
   (fn [db _]
-    (:decklist db)))
+    (get-in db [:decklist-editor :decklist])))
+
+(reg-sub ::decklist-organizer-tournaments
+  (fn [db _]
+    (get-in db [:decklist-editor :organizer-tournaments])))
+
+(reg-sub ::decklist-organizer-tournament
+  (fn [db _]
+    (get-in db [:decklist-editor :organizer-tournament])))

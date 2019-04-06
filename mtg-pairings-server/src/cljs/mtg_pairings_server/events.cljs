@@ -56,7 +56,9 @@
                :logged-in-user      (local-storage/fetch :user)
                :notification        nil
                :mobile?             (mobile?)
-               :decklist-tournament {}}
+               :decklist-editor {:tournament {}
+                                 :organizer-tournaments []
+                                 :organizer-tournament {}}}
               (transit/read (oget js/window "initial_db"))))
 
 (defn update-filters-active [db]
@@ -361,13 +363,13 @@
 (reg-event-fx ::save-decklist
   (fn [{:keys [db]} [_ tournament decklist]]
     {:db      (-> db
-                  (assoc-in [:decklist-tournament :saving] true)
-                  (assoc :decklist decklist))
+                  (assoc-in [:decklist-editor :saving] true)
+                  (assoc-in [:decklist-editor :decklist] decklist))
      :ws-send [:client/save-decklist [tournament decklist]]}))
 
 (reg-event-fx :server/decklist-saved
   (fn [{:keys [db]} [_ id]]
     {:db       (-> db
-                   (assoc-in [:decklist-tournament :saving] false)
-                   (assoc-in [:decklist-tournament :saved] true))
+                   (assoc-in [:decklist-editor :saving] false)
+                   (assoc-in [:decklist-editor :saved] true))
      :navigate (str "/decklist/" id)}))

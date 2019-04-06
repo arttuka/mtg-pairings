@@ -67,6 +67,15 @@
     (dispatch [::events/load-deck-construction id])
     (dispatch-page :organizer-deck-construction id)))
 
+(secretary/defroute decklist-organizer-path "/decklist/organizer" []
+  (dispatch-page :decklist-organizer))
+
+(secretary/defroute decklist-organizer-new-tournament-path "/decklist/organizer/new" []
+  (dispatch-page :decklist-organizer-tournament))
+
+(secretary/defroute decklist-organizer-tournament-path "/decklist/organizer/:id" [id]
+  (dispatch-page :decklist-organizer-tournament id))
+
 (secretary/defroute new-decklist-submit-path "/decklist/tournament/:id" [id]
   (dispatch-page :decklist-submit))
 

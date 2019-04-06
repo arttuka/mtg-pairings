@@ -96,14 +96,17 @@
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
   (GET "/decklist/tournament/:id" []
     :path-params [id :- s/Str]
-    (loading-page {:page                {:page :decklist}
+    (loading-page {:page                {:page :decklist-submit}
                    :decklist-tournament (decklist/get-tournament id)}))
+  (GET "/decklist/organizer" []
+    (loading-page {:page            {:page :decklist-organizer}
+                   :decklist-editor {:organizer-tournaments (decklist/get-tournaments)}}))
   (GET "/decklist/:id" []
     :path-params [id :- s/Str]
     (let [decklist (decklist/get-decklist id)]
-      (loading-page {:page                {:page :decklist, :id id}
-                     :decklist-tournament (decklist/get-tournament (:tournament decklist))
-                     :decklist            decklist})))
+      (loading-page {:page            {:page :decklist-submit, :id id}
+                     :decklist-editor {:tournament (decklist/get-tournament (:tournament decklist))
+                                       :decklist   decklist}})))
   (GET "/robots.txt" [] robots-txt)
   ws/routes)
 

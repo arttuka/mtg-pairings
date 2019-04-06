@@ -51,6 +51,9 @@
 (defn format-iso-date-time [datetime]
   (some->> datetime (format/unparse (format/formatters :date-time))))
 
+(defn format-date-time [datetime]
+  (some->> datetime (format/unparse (format/formatter "dd.MM.yyyy hh:mm"))))
+
 (defn today-or-yesterday? [date]
   (let [yesterday (time/minus (time/today) (time/days 1))
         tomorrow (time/plus (time/today) (time/days 1))]
