@@ -182,6 +182,7 @@
   (sql/transform sql-date->joda-date))
 
 (sql/defentity decklist-card
+  (sql/table :decklist_card)
   (sql/belongs-to decklist
     {:fk :decklist})
   (sql/belongs-to card

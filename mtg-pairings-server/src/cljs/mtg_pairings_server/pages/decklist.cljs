@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.pages.decklist
   (:require [reagent.core :as reagent :refer [atom]]
-            [re-frame.core :refer [subscribe]]
+            [re-frame.core :refer [subscribe dispatch]]
             [cljsjs.material-ui]
             [cljs-react-material-ui.reagent :as ui]
             [cljs-react-material-ui.icons :as icons]
@@ -8,6 +8,7 @@
             [cljs.core.async :refer [<!] :refer-macros [go]]
             [cljs-http.client :as http]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
+            [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util :refer [indexed format-date]]
             [mtg-pairings-server.util.material-ui :refer [get-theme text-field]]))
@@ -39,17 +40,17 @@
                     :id                             :decklist-autosuggest
                     :floating-label-text            "Lisää kortti..."}])))
 
-(defn deck-errors [deck]
+(defn decklist-errors [decklist]
   (let [cards (reduce (fn [acc {:keys [name quantity]}]
                         (merge-with + acc {name quantity}))
                       {}
-                      (concat (:main deck) (:side deck)))
-        errors (list* (when (< (get-in deck [:count :main]) 60) {:type :maindeck
-                                                                 :id   :deck-error-maindeck
-                                                                 :text "Maindeckissä on alle 60 korttia"})
-                      (when (> (get-in deck [:count :side]) 15) {:type :sideboard
-                                                                 :id   :deck-error-sideboard
-                                                                 :text "Sideboardilla on yli 15 korttia"})
+                      (concat (:main decklist) (:side decklist)))
+        errors (list* (when (< (get-in decklist [:count :main]) 60) {:type :maindeck
+                                                                     :id   :deck-error-maindeck
+                                                                     :text "Maindeckissä on alle 60 korttia"})
+                      (when (> (get-in decklist [:count :side]) 15) {:type :sideboard
+                                                                     :id   :deck-error-sideboard
+                                                                     :text "Sideboardilla on yli 15 korttia"})
                       (for [[card quantity] cards
                             :when (not (basic? card))
                             :when (> quantity 4)]
@@ -59,22 +60,22 @@
                          :text (str "Korttia " card " on yli 4 kappaletta")}))]
     (filter some? errors)))
 
-(defn cards-with-error [deck]
+(defn cards-with-error [decklist]
   (into #{}
         (comp (filter #(= :card-over-4 (:type %)))
               (map :card))
-        (deck-errors deck)))
+        (decklist-errors decklist)))
 
-(defn add-card [{:keys [board] :as deck} card]
-  (if (some #(= card (:name %)) (get deck board))
-    deck
-    (-> deck
+(defn add-card [{:keys [board] :as decklist} card]
+  (if (some #(= card (:name %)) (get decklist board))
+    decklist
+    (-> decklist
         (update board conj {:name card, :quantity 1})
         (update-in [:count board] inc))))
 
-(defn set-quantity [deck board index quantity]
-  (let [orig-quantity (get-in deck [board index :quantity])]
-    (-> deck
+(defn set-quantity [decklist board index quantity]
+  (let [orig-quantity (get-in decklist [board index :quantity])]
+    (-> decklist
         (assoc-in [board index :quantity] quantity)
         (update-in [:count board] + (- quantity orig-quantity)))))
 
@@ -86,10 +87,10 @@
                         [icons/alert-warning {:color (:accent3Color palette)
                                               :style {:vertical-align :top}}]))}))
 
-(defn deck-table-row [deck board index card error?]
+(defn decklist-table-row [decklist board index card error?]
   (let [on-change (fn [_ _ quantity]
-                    (swap! deck set-quantity board index quantity))]
-    (fn deck-table-row-render [_ _ _ {:keys [name quantity]} error?]
+                    (swap! decklist set-quantity board index quantity))]
+    (fn decklist-table-row-render [_ _ _ {:keys [name quantity]} error?]
       [ui/table-row
        [ui/table-row-column {:class-name :quantity
                              :style      {:padding "0 12px"}}
@@ -118,17 +119,17 @@
         (when error?
           [error-icon])]])))
 
-(defn deck-table [deck board]
+(defn decklist-table [decklist board]
   (let [header-style {:color       :black
                       :font-weight :bold
                       :font-size   "16px"
                       :height      "36px"}]
-    (fn deck-table-render [deck board]
-      (let [error-cards (cards-with-error @deck)]
+    (fn decklist-table-render [decklist board]
+      (let [error-cards (cards-with-error @decklist)]
         [:div.deck-table-container
          [:h3 (if (= :main board)
-                (str "Main deck (" (get-in @deck [:count :main]) ")")
-                (str "Sideboard (" (get-in @deck [:count :side]) ")"))]
+                (str "Main deck (" (get-in @decklist [:count :main]) ")")
+                (str "Sideboard (" (get-in @decklist [:count :side]) ")"))]
          [ui/table {:selectable false
                     :class-name :deck-table}
           [ui/table-header {:display-select-all  false
@@ -143,63 +144,71 @@
              "Kortti"]
             [ui/table-header-column {:class-name :error}]]]
           [ui/table-body
-           (for [[index {:keys [name] :as card}] (indexed (get @deck board))]
+           (for [[index {:keys [name] :as card}] (indexed (get @decklist board))]
              ^{:key (str name "--" board "--tr")}
-             [deck-table-row deck board index card (contains? error-cards name)])]]]))))
+             [decklist-table-row decklist board index card (contains? error-cards name)])]]]))))
 
-(defn player-info [deck]
-  (let [set-first-name #(swap! deck assoc-in [:player :first-name] %)
-        set-last-name #(swap! deck assoc-in [:player :last-name] %)
-        set-deck-name #(swap! deck assoc-in [:player :deck-name] %)
-        set-email #(swap! deck assoc-in [:player :email] %)
-        set-dci #(swap! deck assoc-in [:player :dci] %)]
-    (fn player-info-render [deck]
+(defn player-info [decklist]
+  (let [set-first-name #(swap! decklist assoc-in [:player :first-name] %)
+        set-last-name #(swap! decklist assoc-in [:player :last-name] %)
+        set-deck-name #(swap! decklist assoc-in [:player :deck-name] %)
+        set-email #(swap! decklist assoc-in [:player :email] %)
+        set-dci #(swap! decklist assoc-in [:player :dci] %)]
+    (fn player-info-render [_]
       [:div#player-info
        [:div.full-width
         [text-field {:on-change           set-deck-name
                      :floating-label-text "Pakan nimi"
-                     :full-width          true}]]
+                     :full-width          true
+                     :value               (get-in @decklist [:player :deck-name])}]]
        [:div.half-width.left
         [text-field {:on-change           set-first-name
                      :floating-label-text "Etunimi"
-                     :full-width          true}]]
+                     :full-width          true
+                     :value               (get-in @decklist [:player :first-name])}]]
        [:div.half-width.right
         [text-field {:on-change           set-last-name
                      :floating-label-text "Sukunimi"
-                     :full-width          true}]]
+                     :full-width          true
+                     :value               (get-in @decklist [:player :last-name])}]]
        [:div.half-width.left
         [text-field {:on-change           set-dci
                      :floating-label-text "DCI-numero"
-                     :full-width          true}]]
+                     :full-width          true
+                     :value               (get-in @decklist [:player :dci])}]]
        [:div.half-width.right
         [text-field {:on-change           set-email
                      :floating-label-text "Sähköposti"
-                     :full-width          true}]]])))
+                     :full-width          true
+                     :value               (get-in @decklist [:player :email])}]]])))
 
-(defonce deck (atom {:main   []
+(def empty-decklist {:main   []
                      :side   []
                      :count  {:main 0
                               :side 0}
                      :board  :main
-                     :name   ""
                      :player {:dci        ""
                               :first-name ""
                               :last-name  ""
                               :deck-name  ""
-                              :email      ""}}))
+                              :email      ""}})
 
 
 
 (defn decklist-submit []
-  (let [on-change (fn [card]
-                    (swap! deck add-card card))
-        select-main #(swap! deck assoc :board :main)
-        select-side #(swap! deck assoc :board :side)
+  (let [saved-decklist (subscribe [::subs/decklist])
+        decklist (atom (or @saved-decklist empty-decklist))
+        on-change (fn [card]
+                    (swap! decklist add-card card))
+        select-main #(swap! decklist assoc :board :main)
+        select-side #(swap! decklist assoc :board :side)
         button-style {:position  :relative
                       :top       "-5px"
                       :width     "70px"
                       :min-width "70px"}
-        tournament (subscribe [::subs/decklist-tournament])]
+        tournament (subscribe [::subs/decklist-tournament])
+        page (subscribe [::subs/page])
+        save-decklist #(dispatch [::events/save-decklist (:id @tournament) @decklist])]
     (fn decklist-submit-render []
       [:div#decklist-submit
        [:h2 "Lähetä pakkalista"]
@@ -222,17 +231,37 @@
        [ui/raised-button
         {:label        "Main"
          :on-click     select-main
-         :primary      (= :main (:board @deck))
+         :primary      (= :main (:board @decklist))
          :style        button-style
          :button-style {:border-radius "2px 0 0 2px"}}]
        [ui/raised-button
         {:label        "Side"
          :on-click     select-side
-         :primary      (= :side (:board @deck))
+         :primary      (= :side (:board @decklist))
          :style        button-style
          :button-style {:border-radius "0 2px 2px 0"}}]
        [:div
-        [deck-table deck :main]
-        [deck-table deck :side]]
+        [decklist-table decklist :main]
+        [decklist-table decklist :side]]
        [:h3 "Pelaajan tiedot"]
-       [player-info deck]])))
+       [player-info decklist]
+       [ui/raised-button
+        {:label    "Tallenna"
+         :on-click save-decklist
+         :primary  true
+         :disabled (:saving @tournament)
+         :style    {:margin-top "24px"}}]
+       (when (:saving @tournament)
+         [ui/circular-progress
+          {:size  36
+           :style {:margin         "24px 0 0 24px"
+                   :vertical-align :top}}])
+       (when (:saved @tournament)
+         (let [url (str "https://pairings.fi/decklist/" (:id @page))]
+           [:div.success-notice
+            [:h4 "Tallennus onnistui!"]
+            [:p
+             "Pakkalistasi tallennus onnistui. Pääset muokkaamaan pakkalistaasi osoitteessa "
+             [:a {:href url}
+              url]
+             ". Jos annoit sähköpostiosoitteesi, pakkalistasi sekä sama osoite lähetettiin sinulle myös sähköpostitse. "]]))])))

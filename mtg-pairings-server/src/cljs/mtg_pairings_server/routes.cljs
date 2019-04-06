@@ -71,4 +71,4 @@
   (dispatch-page :decklist-submit))
 
 (secretary/defroute old-decklist-submit-path "/decklist/:id" [id]
-  (dispatch-page :decklist-submit))
+  (dispatch-page :decklist-submit id))

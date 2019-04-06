@@ -3,6 +3,7 @@
             [cljs.core.async :refer [<! timeout] :refer-macros [go-loop]]
             [cljs-time.core :as time]
             [oops.core :refer [oget]]
+            [accountant.core :as accountant]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up]]
             [mtg-pairings-server.util.local-storage :as local-storage]
@@ -29,6 +30,10 @@
 (reg-fx :store
   (fn [[key obj]]
     (local-storage/store key obj)))
+
+(reg-fx :navigate
+  (fn [path]
+    (accountant/navigate! path)))
 
 (defn initial-db []
   (deep-merge {:tournaments         {}
@@ -352,3 +357,17 @@
 (reg-event-fx ::load-deck-construction
   (fn [_ [_ id]]
     {:ws-send [:client/deck-construction id]}))
+
+(reg-event-fx ::save-decklist
+  (fn [{:keys [db]} [_ tournament decklist]]
+    {:db      (-> db
+                  (assoc-in [:decklist-tournament :saving] true)
+                  (assoc :decklist decklist))
+     :ws-send [:client/save-decklist [tournament decklist]]}))
+
+(reg-event-fx :server/decklist-saved
+  (fn [{:keys [db]} [_ id]]
+    {:db       (-> db
+                   (assoc-in [:decklist-tournament :saving] false)
+                   (assoc-in [:decklist-tournament :saved] true))
+     :navigate (str "/decklist/" id)}))

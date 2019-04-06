@@ -154,3 +154,7 @@
 (reg-sub ::decklist-tournament
   (fn [db _]
     (:decklist-tournament db)))
+
+(reg-sub ::decklist
+  (fn [db _]
+    (:decklist db)))

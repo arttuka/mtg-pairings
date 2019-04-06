@@ -96,8 +96,14 @@
   (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
   (GET "/decklist/tournament/:id" []
     :path-params [id :- s/Str]
-    (loading-page {:page {:page :decklist}
+    (loading-page {:page                {:page :decklist}
                    :decklist-tournament (decklist/get-tournament id)}))
+  (GET "/decklist/:id" []
+    :path-params [id :- s/Str]
+    (let [decklist (decklist/get-decklist id)]
+      (loading-page {:page                {:page :decklist, :id id}
+                     :decklist-tournament (decklist/get-tournament (:tournament decklist))
+                     :decklist            decklist})))
   (GET "/robots.txt" [] robots-txt)
   ws/routes)
 
@@ -197,3 +203,8 @@
   [{uid :uid, id :?data}]
   (ws/send! uid [:server/organizer-seatings (tournament/seatings id)])
   (ws/send! uid [:server/organizer-pods (tournament/latest-pods id)]))
+
+(defmethod ws/event-handler :client/save-decklist
+  [{uid :uid, [tournament decklist] :?data}]
+  (let [id (decklist/save-decklist tournament decklist)]
+    (ws/send! uid [:server/decklist-saved id])))
