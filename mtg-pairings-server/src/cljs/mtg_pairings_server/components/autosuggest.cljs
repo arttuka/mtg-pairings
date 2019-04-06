@@ -50,11 +50,6 @@
                                {:on-change    (fn [event new-value]
                                                 (when (= "type" (oget new-value "method"))
                                                   (reset! value (oget event "target" "value"))))
-                                :on-key-press (fn [event]
-                                                (when (and (= 13 (oget event "charCode"))
-                                                           (some #{@value} @suggestions))
-                                                  (.preventDefault event)
-                                                  (select-suggestion @value)))
                                 :value        @value})]
         [:> js/Autosuggest {:suggestions                    @suggestions
                             :on-suggestions-fetch-requested on-suggestions-fetch-requested

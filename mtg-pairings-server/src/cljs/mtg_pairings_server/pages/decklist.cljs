@@ -9,8 +9,8 @@
             [cljs-http.client :as http]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.util :refer [indexed]]
-            [mtg-pairings-server.util.material-ui :refer [get-theme]]))
+            [mtg-pairings-server.util :refer [indexed format-date]]
+            [mtg-pairings-server.util.material-ui :refer [get-theme text-field]]))
 
 (def basic? #{"Plains" "Island" "Swamp" "Mountain" "Forest" "Wastes"
               "Snow-Covered Plains" "Snow-Covered Island" "Snow-Covered Swamp"
@@ -36,7 +36,8 @@
                     :on-change                      autosuggest-on-change
                     :on-suggestions-fetch-requested on-suggestions-fetch-requested
                     :on-suggestions-clear-requested on-suggestions-clear-requested
-                    :id                             :decklist-autosuggest}])))
+                    :id                             :decklist-autosuggest
+                    :floating-label-text            "Lisää kortti..."}])))
 
 (defn deck-errors [deck]
   (let [cards (reduce (fn [acc {:keys [name quantity]}]
@@ -125,7 +126,7 @@
     (fn deck-table-render [deck board]
       (let [error-cards (cards-with-error @deck)]
         [:div.deck-table-container
-         [:h2 (if (= :main board)
+         [:h3 (if (= :main board)
                 (str "Main deck (" (get-in @deck [:count :main]) ")")
                 (str "Sideboard (" (get-in @deck [:count :side]) ")"))]
          [ui/table {:selectable false
@@ -146,6 +147,35 @@
              ^{:key (str name "--" board "--tr")}
              [deck-table-row deck board index card (contains? error-cards name)])]]]))))
 
+(defn player-info [deck]
+  (let [set-first-name #(swap! deck assoc-in [:player :first-name] %)
+        set-last-name #(swap! deck assoc-in [:player :last-name] %)
+        set-deck-name #(swap! deck assoc-in [:player :deck-name] %)
+        set-email #(swap! deck assoc-in [:player :email] %)
+        set-dci #(swap! deck assoc-in [:player :dci] %)]
+    (fn player-info-render [deck]
+      [:div#player-info
+       [:div.full-width
+        [text-field {:on-change           set-deck-name
+                     :floating-label-text "Pakan nimi"
+                     :full-width          true}]]
+       [:div.half-width.left
+        [text-field {:on-change           set-first-name
+                     :floating-label-text "Etunimi"
+                     :full-width          true}]]
+       [:div.half-width.right
+        [text-field {:on-change           set-last-name
+                     :floating-label-text "Sukunimi"
+                     :full-width          true}]]
+       [:div.half-width.left
+        [text-field {:on-change           set-dci
+                     :floating-label-text "DCI-numero"
+                     :full-width          true}]]
+       [:div.half-width.right
+        [text-field {:on-change           set-email
+                     :floating-label-text "Sähköposti"
+                     :full-width          true}]]])))
+
 (defonce deck (atom {:main   []
                      :side   []
                      :count  {:main 0
@@ -155,7 +185,10 @@
                      :player {:dci        ""
                               :first-name ""
                               :last-name  ""
+                              :deck-name  ""
                               :email      ""}}))
+
+
 
 (defn decklist-submit []
   (let [on-change (fn [card]
@@ -163,11 +196,28 @@
         select-main #(swap! deck assoc :board :main)
         select-side #(swap! deck assoc :board :side)
         button-style {:position  :relative
-                      :top       "-3px"
+                      :top       "-5px"
                       :width     "70px"
-                      :min-width "70px"}]
+                      :min-width "70px"}
+        tournament (subscribe [::subs/decklist-tournament])]
     (fn decklist-submit-render []
       [:div#decklist-submit
+       [:h2 "Lähetä pakkalista"]
+       [:p.intro
+        "Lähetä pakkalistasi "
+        [:span.tournament-date
+         (format-date (:date @tournament))]
+        " pelattavaan turnaukseen "
+        [:span.tournament-name
+         (:name @tournament)]
+        ", jonka formaatti on "
+        [:span.tournament-format
+         (case (:format @tournament)
+           :standard "Standard"
+           :modern "Modern"
+           :legacy "Legacy")]
+        "."]
+       [:h3 "Pakkalista"]
        [input on-change]
        [ui/raised-button
         {:label        "Main"
@@ -183,4 +233,6 @@
          :button-style {:border-radius "0 2px 2px 0"}}]
        [:div
         [deck-table deck :main]
-        [deck-table deck :side]]])))
+        [deck-table deck :side]]
+       [:h3 "Pelaajan tiedot"]
+       [player-info deck]])))
