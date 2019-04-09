@@ -77,6 +77,7 @@
   (dispatch-page :decklist-organizer-view id))
 
 (secretary/defroute decklist-organizer-new-tournament-path "/decklist/organizer/new" []
+  (dispatch [::events/clear-organizer-decklist-tournament])
   (dispatch-page :decklist-organizer-tournament))
 
 (secretary/defroute decklist-organizer-tournament-path "/decklist/organizer/:id" [id]

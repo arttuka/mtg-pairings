@@ -281,6 +281,10 @@
      table-row-link]]]
   [:#decklist-organizer-tournament
    {:margin "12px 24px"}
+   [:.field
+    {:display        :inline-block
+     :vertical-align :top
+     :margin-right   "24px"}]
    [:.decklists
     [:th.dci :td.dci
      {:width (px 150)}]

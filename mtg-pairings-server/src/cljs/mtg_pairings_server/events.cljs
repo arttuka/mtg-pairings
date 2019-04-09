@@ -5,7 +5,7 @@
             [oops.core :refer [oget]]
             [accountant.core :as accountant]
             [mtg-pairings-server.transit :as transit]
-            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up]]
+            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in]]
             [mtg-pairings-server.util.local-storage :as local-storage]
             [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
@@ -382,7 +382,8 @@
 
 (reg-event-fx ::save-decklist-organizer-tournament
   (fn [{:keys [db]} [_ tournament]]
-    {:db      (assoc-in db [:decklist-editor :saving] true)
+    {:db      (update db :decklist-editor merge {:saving               true
+                                                 :organizer-tournament tournament})
      :ws-send [:client/save-decklist-organizer-tournament tournament]}))
 
 (reg-event-fx :server/organizer-tournament-saved
@@ -412,3 +413,9 @@
 (reg-event-db :server/organizer-login
   (fn [db [_ username]]
     (assoc-in db [:decklist-editor :user] username)))
+
+(reg-event-db ::clear-organizer-decklist-tournament
+  (fn [db _]
+    (update db :decklist-editor merge {:organizer-tournament nil
+                                       :saving               false
+                                       :saved                false})))

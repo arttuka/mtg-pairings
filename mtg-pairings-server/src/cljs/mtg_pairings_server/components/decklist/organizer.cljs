@@ -3,6 +3,7 @@
             [re-frame.core :refer [subscribe dispatch]]
             [cljsjs.material-ui]
             [cljs-react-material-ui.reagent :as ui]
+            [cljs-react-material-ui.icons :as icons]
             [cljs-time.coerce :as coerce]
             [oops.core :refer [oget]]
             [mtg-pairings-server.events :as events]
@@ -16,10 +17,15 @@
                          :font-size   "16px"
                          :height      "36px"})
 
+(defn list-submit-link [tournament-id]
+  (let [submit-url (routes/new-decklist-submit-path {:id tournament-id})]
+    [:a {:href   submit-url
+         :target :_blank}
+     (str "https://pairings.fi" submit-url)]))
+
 (defn tournament-row [tournament]
   (let [column-style {:font-size "14px"}
         edit-url (routes/decklist-organizer-tournament-path {:id (:id tournament)})
-        submit-url (routes/new-decklist-submit-path {:id (:id tournament)})
         link-props {:href     edit-url
                     :on-click #(dispatch [::events/load-decklist-organizer-tournament (:id tournament)])}]
     [ui/table-row
@@ -41,13 +47,19 @@
        (:decklist tournament)]]
      [ui/table-row-column {:class-name :submit-page
                            :style      column-style}
-      [:a {:href submit-url}
-       (str "https://pairings.fi" submit-url)]]]))
+      [list-submit-link (:id tournament)]]]))
 
 (defn all-tournaments []
   (let [tournaments (subscribe [::subs/decklist-organizer-tournaments])]
     (fn all-tournaments-render []
       [:div#decklist-organizer-tournaments
+       [ui/raised-button {:href  (routes/decklist-organizer-new-tournament-path)
+                          :label "Uusi turnaus"
+                          :icon  (reagent/as-element [icons/content-add
+                                                      {:style {:height         "36px"
+                                                               :width          "30px"
+                                                               :padding        "6px 0 6px 6px"
+                                                               :vertical-align :top}}])}]
        [ui/table {:selectable false
                   :class-name :tournaments}
         [ui/table-header {:display-select-all  false
@@ -137,11 +149,11 @@
         (reset! tournament @saved-tournament))
       [:div#decklist-organizer-tournament
        [:div.tournament-info
-        [:div
+        [:div.field
          [text-field {:on-change           set-name
                       :floating-label-text "Turnauksen nimi"
                       :value               (:name @tournament "")}]]
-        [:div
+        [:div.field
          [ui/select-field {:on-change           set-format
                            :value               (:format @tournament)
                            :floating-label-text "Formaatti"}
@@ -151,7 +163,7 @@
                          :primary-text "Modern"}]
           [ui/menu-item {:value        :legacy
                          :primary-text "Legacy"}]]]
-        [:div
+        [:div.field
          [ui/date-picker {:value                  (some-> (:date @tournament)
                                                           (coerce/to-long)
                                                           (js/Date.))
@@ -162,7 +174,12 @@
                           :locale                 "fi-FI"
                           :auto-ok                true
                           :DateTimeFormat         (oget js/Intl "DateTimeFormat")}]]
-        [:div
+        [:div.link
+         (when id
+           [:p
+            "Listojen lähetyssivu: "
+            [list-submit-link id]])]
+        [:div.buttons
          [ui/raised-button {:label    "Tallenna"
                             :on-click save-tournament
                             :primary  true
