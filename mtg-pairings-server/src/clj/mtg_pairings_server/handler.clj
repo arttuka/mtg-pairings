@@ -270,3 +270,7 @@
   (if-let [decklist (decklist/get-decklist id)]
     (ws/send! uid [:server/organizer-tournament-decklist (dissoc decklist :id :player)])
     (ws/send! uid [:server/decklist-load-error "Pakkalistaa ei löytynyt"])))
+
+(defmethod ws/event-handler :client/decklist-card-suggestions
+  [{[prefix format] :?data, reply-fn :?reply-fn}]
+  (reply-fn (decklist/search-cards prefix format)))

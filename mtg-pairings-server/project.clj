@@ -89,7 +89,6 @@
              :prod     {:source-paths ["env/prod/cljs"]}
              :provided {:dependencies [[org.clojure/clojurescript "1.10.520"]
                                        [reagent "0.8.1"]
-                                       [cljs-http "0.1.46"]
                                        [com.google.errorprone/error_prone_annotations "2.3.3"]
                                        [com.google.code.findbugs/jsr305 "3.0.2"]
                                        [com.bhauman/figwheel-main "0.2.0" :exclusions [org.clojure/clojurescript]]

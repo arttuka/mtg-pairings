@@ -5,8 +5,6 @@
             [cljs-react-material-ui.reagent :as ui]
             [cljs-react-material-ui.icons :as icons]
             [prop-types]
-            [cljs.core.async :refer [<!] :refer-macros [go]]
-            [cljs-http.client :as http]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.events :as events]
@@ -20,19 +18,15 @@
               "Snow-Covered Plains" "Snow-Covered Island" "Snow-Covered Swamp"
               "Snow-Covered Mountain" "Snow-Covered Forest"})
 
-(defn get-cards [prefix format]
-  (go (:body (<! (http/get "/api/card/search"
-                           {:query-params {:prefix prefix
-                                           :format (name format)}})))))
-
 (defn input []
   (let [tournament (subscribe [::subs/decklist-tournament])
         on-change #(dispatch [::events/decklist-add-card %])
         suggestions (atom [])
         fetch-suggestions (debounce (fn [prefix]
-                                      (go
-                                        (reset! suggestions
-                                                (<! (get-cards prefix (:format @tournament))))))
+                                      (dispatch [::events/decklist-card-suggestions
+                                                 prefix
+                                                 (:format @tournament)
+                                                 #(reset! suggestions %)]))
                                     250)
         clear-suggestions #(reset! suggestions [])]
     (fn input-render [_ _]

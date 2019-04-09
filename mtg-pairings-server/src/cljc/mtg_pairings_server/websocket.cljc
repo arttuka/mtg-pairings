@@ -72,8 +72,11 @@
    (defn send! [uid event]
      ((:send! @router) uid event))
    :cljs
-   (defn send! [event]
-     ((:send! @router) event)))
+   (defn send!
+     ([event]
+      (send! event nil nil))
+     ([event timeout callback]
+      ((:send! @router) event timeout callback))))
 
 #?(:clj (defroutes routes
           (GET path request ((:ajax-get-or-ws-handshake-fn @router) request))

@@ -19,14 +19,18 @@
 (def channel-open? (atom false))
 
 (reg-fx :ws-send
-  (fn [event]
-    (if @channel-open?
-      (ws/send! event)
-      (let [k (gensym)]
-        (add-watch channel-open? k (fn [_ _ _ new-val]
-                                     (when new-val
-                                       (remove-watch channel-open? k)
-                                       (ws/send! event))))))))
+  (fn ws-send
+    [data]
+    (let [[event timeout callback] (if (keyword? (first data))
+                                     [data nil nil]
+                                     data)]
+      (if @channel-open?
+        (ws/send! event timeout callback)
+        (let [k (gensym)]
+          (add-watch channel-open? k (fn [_ _ _ new-val]
+                                       (when new-val
+                                         (remove-watch channel-open? k)
+                                         (ws/send! event timeout callback)))))))))
 
 (reg-fx :store
   (fn [[key obj]]
@@ -479,3 +483,7 @@
 (reg-event-db ::decklist-update-player-info
   (fn [db [_ key value]]
     (assoc-in db [:decklist-editor :decklist :player key] value)))
+
+(reg-event-fx ::decklist-card-suggestions
+  (fn [_ [_ prefix format callback]]
+    {:ws-send [[:client/decklist-card-suggestions [prefix format]] 1000 callback]}))
