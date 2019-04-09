@@ -5,7 +5,8 @@
             [oops.core :refer [oget]]
             [accountant.core :as accountant]
             [mtg-pairings-server.transit :as transit]
-            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in]]
+            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in
+                                              index-where dissoc-index]]
             [mtg-pairings-server.util.local-storage :as local-storage]
             [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
@@ -35,6 +36,17 @@
   (fn [path]
     (accountant/navigate! path)))
 
+(def empty-decklist {:main   []
+                     :side   []
+                     :count  {:main 0
+                              :side 0}
+                     :board  :main
+                     :player {:dci        ""
+                              :first-name ""
+                              :last-name  ""
+                              :deck-name  ""
+                              :email      ""}})
+
 (defn initial-db []
   (deep-merge {:tournaments        {}
                :tournament-count   0
@@ -56,7 +68,8 @@
                :logged-in-user     (local-storage/fetch :user)
                :notification       nil
                :mobile?            (mobile?)
-               :decklist-editor    {:organizer-tournaments []}}
+               :decklist-editor    {:organizer-tournaments []
+                                    :decklist empty-decklist}}
               (transit/read (oget js/window "initial_db"))))
 
 (defn update-filters-active [db]
@@ -404,7 +417,7 @@
 
 (reg-event-db :server/organizer-tournament-decklist
   (fn [db [_ decklist]]
-    (assoc-in db [:decklist-editor :decklist] decklist)))
+    (assoc-in db [:decklist-editor :decklist] (merge empty-decklist decklist))))
 
 (reg-event-db :server/organizer-tournament-decklists
   (fn [db [_ decklists]]
@@ -419,3 +432,50 @@
     (update db :decklist-editor merge {:organizer-tournament nil
                                        :saving               false
                                        :saved                false})))
+
+(reg-event-fx ::load-decklist-from-address
+  (fn [_ [_ address]]
+    (when-let [[_ code] (re-find #"/decklist/([A-z0-9_-]{22})$" address)]
+      {:ws-send [:client/load-decklist-with-id code]})))
+
+(defn ^:private add-card [{:keys [board] :as decklist} name]
+  (if (some #(= name (:name %)) (get decklist board))
+    decklist
+    (-> decklist
+        (update board conj {:name name, :quantity 1})
+        (update-in [:count board] inc))))
+
+(reg-event-db ::decklist-add-card
+  (fn [db [_ name]]
+    (update-in db [:decklist-editor :decklist] add-card name)))
+
+(defn ^:private set-quantity [decklist board name quantity]
+  (let [index (index-where #(= name (:name %)) (get decklist board))
+        orig-quantity (get-in decklist [board index :quantity])]
+    (-> decklist
+        (assoc-in [board index :quantity] quantity)
+        (update-in [:count board] + (- quantity orig-quantity)))))
+
+(reg-event-db ::decklist-set-quantity
+  (fn [db [_ board name quantity]]
+    (update-in db [:decklist-editor :decklist] set-quantity board name quantity)))
+
+(defn ^:private remove-card [decklist board name]
+  (let [cards (get decklist board)
+        index (index-where #(= name (:name %)) cards)
+        n (get-in decklist [board index :quantity])]
+    (-> decklist
+        (assoc board (dissoc-index cards index))
+        (update-in [:count board] - n))))
+
+(reg-event-db ::decklist-remove-card
+  (fn [db [_ board name]]
+    (update-in db [:decklist-editor :decklist] remove-card board name)))
+
+(reg-event-db ::decklist-select-board
+  (fn [db [_ board]]
+    (assoc-in db [:decklist-editor :decklist :board] board)))
+
+(reg-event-db ::decklist-update-player-info
+  (fn [db [_ key value]]
+    (assoc-in db [:decklist-editor :decklist :player key] value)))

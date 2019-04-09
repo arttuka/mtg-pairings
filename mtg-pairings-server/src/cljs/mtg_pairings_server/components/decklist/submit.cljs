@@ -7,6 +7,7 @@
             [prop-types]
             [cljs.core.async :refer [<!] :refer-macros [go]]
             [cljs-http.client :as http]
+            [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
@@ -24,8 +25,9 @@
                            {:query-params {:prefix prefix
                                            :format (name format)}})))))
 
-(defn input [on-change]
+(defn input []
   (let [tournament (subscribe [::subs/decklist-tournament])
+        on-change #(dispatch [::events/decklist-add-card %])
         suggestions (atom [])
         fetch-suggestions (debounce (fn [prefix]
                                       (go
@@ -75,42 +77,15 @@
               (map :card))
         (decklist-errors decklist)))
 
-(defn add-card [{:keys [board] :as decklist} card]
-  (if (some #(= card (:name %)) (get decklist board))
-    decklist
-    (-> decklist
-        (update board conj {:name card, :quantity 1})
-        (update-in [:count board] inc))))
-
-(defn set-quantity [decklist board name quantity]
-  (let [index (index-where #(= name (:name %)) (get decklist board))
-        orig-quantity (get-in decklist [board index :quantity])]
-    (-> decklist
-        (assoc-in [board index :quantity] quantity)
-        (update-in [:count board] + (- quantity orig-quantity)))))
-
-(defn remove-card [decklist board name]
-  (let [cards (get decklist board)
-        index (index-where #(= name (:name %)) cards)
-        n (get-in decklist [board index :quantity])]
-    (-> decklist
-        (assoc board (dissoc-index cards index))
-        (update-in [:count board] - n))))
-
 (defn error-icon []
-  (reagent/create-class
-   {:context-types  #js {:muiTheme prop-types/object.isRequired}
-    :reagent-render (fn error-icon-render []
-                      (let [palette (:palette (get-theme (reagent/current-component)))]
-                        [icons/alert-warning {:color (:accent3Color palette)
-                                              :style {:vertical-align :top}}]))}))
+  [icons/alert-warning {:style {:color          "#f44336"
+                                :vertical-align :top}}])
 
-(defn decklist-table-row [decklist board card error?]
+(defn decklist-table-row [board card error?]
   (let [on-change (fn [_ _ quantity]
-                    (swap! decklist set-quantity board (:name card) quantity))
-        on-delete (fn []
-                    (swap! decklist remove-card board (:name card)))]
-    (fn decklist-table-row-render [_ _ {:keys [name quantity]} error?]
+                    (dispatch [::events/decklist-set-quantity board (:name card) quantity]))
+        on-delete #(dispatch [::events/decklist-remove-card board (:name card)])]
+    (fn decklist-table-row-render [_ {:keys [name quantity]} error?]
       [ui/table-row
        [ui/table-row-column {:class-name :quantity
                              :style      {:padding "0 12px"}}
@@ -172,14 +147,14 @@
           [ui/table-body
            (for [{:keys [name] :as card} (get @decklist board)]
              ^{:key (str name "--" board "--tr")}
-             [decklist-table-row decklist board card (contains? error-cards name)])]]]))))
+             [decklist-table-row board card (contains? error-cards name)])]]]))))
 
 (defn player-info [decklist]
-  (let [set-first-name #(swap! decklist assoc-in [:player :first-name] %)
-        set-last-name #(swap! decklist assoc-in [:player :last-name] %)
-        set-deck-name #(swap! decklist assoc-in [:player :deck-name] %)
-        set-email #(swap! decklist assoc-in [:player :email] %)
-        set-dci #(swap! decklist assoc-in [:player :dci] %)]
+  (let [set-first-name #(dispatch [::events/decklist-update-player-info :first-name %])
+        set-last-name #(dispatch [::events/decklist-update-player-info :last-name %])
+        set-deck-name #(dispatch [::events/decklist-update-player-info :deck-name %])
+        set-email #(dispatch [::events/decklist-update-player-info :email %])
+        set-dci #(dispatch [::events/decklist-update-player-info :dci %])]
     (fn player-info-render [_]
       [:div#player-info
        [:div.full-width
@@ -222,16 +197,68 @@
                      :value               (get-in @decklist [:player :email])
                      :style               {:vertical-align :top}}]]])))
 
-(def empty-decklist {:main   []
-                     :side   []
-                     :count  {:main 0
-                              :side 0}
-                     :board  :main
-                     :player {:dci        ""
-                              :first-name ""
-                              :last-name  ""
-                              :deck-name  ""
-                              :email      ""}})
+(defn decklist-import []
+  (let [mobile? (subscribe [::subs/mobile?])
+        selected (atom nil)
+        on-active (fn [tab]
+                    (let [value (oget tab "props" "value")]
+                      (reset! selected (if (= value @selected)
+                                         nil
+                                         value))))
+        address (atom "")
+        address-on-change #(reset! address %)
+        import-from-address #(dispatch [::events/load-decklist-from-address @address])
+        decklist (atom "")
+        decklist-on-change #(reset! decklist %)
+        import-decklist (fn []
+                          (println "Import decklist\n" @decklist))]
+
+    (fn decklist-import-render []
+      [:div.decklist-import
+       [ui/tabs {:value @selected}
+        [ui/tab {:label     "Lataa aiempi lista"
+                 :value     "load-previous"
+                 :on-active on-active
+                 :style     {:color :black}}
+         [:div.info
+          [:h3
+           "Lataa aiempi lista"]
+          [:p
+           "Lataa aiemmin syötetty pakkalista antamalla sen osoite (esim. "
+           [:span.address "https://pairings.fi/decklist/abcd..."]
+           ")."]]
+         [:div.form
+          [text-field {:on-change           address-on-change
+                       :floating-label-text "Osoite"
+                       :full-width          (not @mobile?)}]
+          [:br]
+          [ui/raised-button {:label    "Lataa"
+                             :disabled (str/blank? @address)
+                             :on-click import-from-address}]]]
+        [ui/tab {:label     "Lataa tekstimuotoinen lista"
+                 :value     "load-text"
+                 :on-active on-active
+                 :style     {:color :black}}
+         [:div.info
+          [:h3
+           "Lataa tekstimuotoinen lista"]
+          [:p
+           "Kopioi tekstikenttään tekstimuotoinen lista."
+           "Listassa tulee olla seuraavassa muodossa: lukumäärä, välilyönti, kortin nimi. Esimerkki:"]
+          [:pre
+           "4 Lightning Bolt\n4 Chain Lightning\n..."]
+          [:p "Maindeckin ja sideboardin väliin tulee rivi, jolla lukee pelkästään \"Sideboard\"."]]
+         [:div.form
+          [text-field {:on-change      decklist-on-change
+                       :multi-line     true
+                       :rows           7
+                       :rows-max       7
+                       :textarea-style {:background-color "rgba(0, 0, 0, 0.05)"}
+                       :full-width     (not @mobile?)}]
+          [:br]
+          [ui/raised-button {:label    "Lataa"
+                             :disabled (str/blank? @decklist)
+                             :on-click import-decklist}]]]]])))
 
 (defn error-list [errors]
   [ui/list
@@ -242,12 +269,9 @@
                                                        [error-icon]])}])])
 
 (defn decklist-submit []
-  (let [saved-decklist (subscribe [::subs/decklist])
-        decklist (atom (or @saved-decklist empty-decklist))
-        on-change (fn [card]
-                    (swap! decklist add-card card))
-        select-main #(swap! decklist assoc :board :main)
-        select-side #(swap! decklist assoc :board :side)
+  (let [decklist (subscribe [::subs/decklist])
+        select-main #(dispatch [::events/decklist-select-board :main])
+        select-side #(dispatch [::events/decklist-select-board :side])
         button-style {:position  :relative
                       :top       "-5px"
                       :width     "70px"
@@ -276,7 +300,7 @@
              :legacy "Legacy")]
           "."]
          [:h3 "Pakkalista"]
-         [input on-change]
+         [input]
          [ui/raised-button
           {:label        "Main"
            :on-click     select-main
@@ -292,6 +316,7 @@
          [:div
           [decklist-table decklist :main]
           [decklist-table decklist :side]]
+         [decklist-import]
          [:h3 "Pelaajan tiedot"]
          [player-info decklist]
          [ui/raised-button

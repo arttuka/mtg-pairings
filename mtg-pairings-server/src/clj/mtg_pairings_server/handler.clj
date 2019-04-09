@@ -264,3 +264,9 @@
                                                              (sort-by (fn [d]
                                                                         [(get-in d [:player :last-name])
                                                                          (get-in d [:player :first-name])])))]))
+
+(defmethod ws/event-handler :client/load-decklist-with-id
+  [{uid :uid, id :?data}]
+  (if-let [decklist (decklist/get-decklist id)]
+    (ws/send! uid [:server/organizer-tournament-decklist (dissoc decklist :id :player)])
+    (ws/send! uid [:server/decklist-load-error "Pakkalistaa ei löytynyt"])))

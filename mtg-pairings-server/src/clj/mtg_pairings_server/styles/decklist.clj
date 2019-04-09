@@ -27,7 +27,11 @@
       [:&.left
        {:margin-right (px 24)}]
       [:&.right
-       {:margin-left (px 24)}]]])
+       {:margin-left (px 24)}]]]
+    [:.decklist-import
+     [:.info :.form
+      {:display :inline-block
+       :width (percent 50)}]])
    (when-mobile
     [:#player-info
      [:.full-width :.half-width
@@ -45,7 +49,11 @@
      [:th.actions :td.actions
       {:width (px 48)}]
      [:th.error :td.error
-      {:width (px 48)}]]]])
+      {:width (px 48)}]]]
+   [:.decklist-import
+    {:margin "12px 0"}
+    [:.info :.form
+     {:padding (px 12)}]]])
 
 (def grey-border {:style :solid
                   :width (px 1)
