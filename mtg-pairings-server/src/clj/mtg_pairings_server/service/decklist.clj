@@ -141,3 +141,31 @@
                                        (sql/set-fields (format-saved-tournament tournament))
                                        (sql/where {:id old-id}))
                                      old-id))))
+
+(defn parse-decklist-row [row format]
+  (when-not (str/blank? row)
+    (if-let [[_ quantity name] (re-matches #"(\d+)\s+(.+)" (str/trim row))]
+      (if-let [{:keys [name legal]} (sql-util/select-unique-or-nil db/card
+                                      (sql/fields :name [format :legal])
+                                      (sql/where {:lowername (str/lower-case name)}))]
+        (if legal
+          {:name     name
+           :quantity (Long/parseLong quantity)}
+          {:name  name
+           :error "Ei sallittu tässä formaatissa"})
+        {:name name
+         :error "Korttia ei löydy"})
+      {:name  row
+       :error "Virheellinen rivi"})))
+
+(defn load-text-decklist [text-decklist format]
+  {:pre [(contains? #{:standard :modern :legacy} format)]}
+  (let [[maindeck sideboard] (str/split text-decklist #"[Ss]ideboard\s*")
+        maindeck-cards (keep #(parse-decklist-row % format) (str/split-lines maindeck))
+        sideboard-cards (when sideboard
+                          (keep #(parse-decklist-row % format) (str/split-lines sideboard)))]
+    {:main  (vec maindeck-cards)
+     :side  (vec (or sideboard-cards []))
+     :count {:main (transduce (keep :quantity) + 0 maindeck-cards)
+             :side (transduce (keep :quantity) + 0 sideboard-cards)}
+     :board :main}))

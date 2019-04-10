@@ -487,3 +487,7 @@
 (reg-event-fx ::decklist-card-suggestions
   (fn [_ [_ prefix format callback]]
     {:ws-send [[:client/decklist-card-suggestions [prefix format]] 1000 callback]}))
+
+(reg-event-fx ::load-text-decklist
+  (fn [{:keys [db]} [_ text-decklist]]
+    {:ws-send [:client/load-text-decklist [text-decklist (get-in db [:decklist-editor :tournament :format])]]}))

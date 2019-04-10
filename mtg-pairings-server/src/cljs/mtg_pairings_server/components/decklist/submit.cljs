@@ -7,6 +7,7 @@
             [prop-types]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
+            [mtg-pairings-server.components.tooltip :refer [tooltip]]
             [mtg-pairings-server.events :as events]
             [mtg-pairings-server.subscriptions :as subs]
             [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where]]
@@ -47,59 +48,70 @@
                         (merge-with + acc {name quantity}))
                       {}
                       (concat (:main decklist) (:side decklist)))
-        errors (list* (when-not (valid-player-data? (:player decklist)) {:type :player-data
-                                                                         :id   :missing-player-data
-                                                                         :text "Osa pelaajan tiedoista puuttuu"})
-                      (when (< (get-in decklist [:count :main]) 60) {:type :maindeck
-                                                                     :id   :deck-error-maindeck
-                                                                     :text "Maindeckissä on alle 60 korttia"})
-                      (when (> (get-in decklist [:count :side]) 15) {:type :sideboard
-                                                                     :id   :deck-error-sideboard
-                                                                     :text "Sideboardilla on yli 15 korttia"})
-                      (for [[card quantity] cards
-                            :when (not (basic? card))
-                            :when (> quantity 4)]
-                        {:type :card-over-4
-                         :id   (str "deck-error-card--" card)
-                         :card card
-                         :text (str "Korttia " card " on yli 4 kappaletta")}))]
+        errors (concat [(when-not (valid-player-data? (:player decklist)) {:type :player-data
+                                                                           :id   :missing-player-data
+                                                                           :text "Osa pelaajan tiedoista puuttuu"})
+                        (when (< (get-in decklist [:count :main]) 60) {:type :maindeck
+                                                                       :id   :deck-error-maindeck
+                                                                       :text "Maindeckissä on alle 60 korttia"})
+                        (when (> (get-in decklist [:count :side]) 15) {:type :sideboard
+                                                                       :id   :deck-error-sideboard
+                                                                       :text "Sideboardilla on yli 15 korttia"})]
+                       (for [[card quantity] cards
+                             :when (not (basic? card))
+                             :when (> quantity 4)]
+                         {:type :card-over-4
+                          :id   (str "deck-error-card--" card)
+                          :card card
+                          :text (str "Korttia " card " on yli 4 kappaletta")})
+                       (for [{:keys [error name]} (concat (:main decklist) (:side decklist))
+                             :when error]
+                         {:type :other
+                          :id   (str "other-error-card--" name)
+                          :text (str error ": " name)}))]
     (filter some? errors)))
 
 (defn cards-with-error [decklist]
-  (into #{}
+  (into {}
         (comp (filter #(= :card-over-4 (:type %)))
-              (map :card))
+              (map (juxt :card :text)))
         (decklist-errors decklist)))
 
-(defn error-icon []
-  [icons/alert-warning {:style {:color          "#f44336"
-                                :vertical-align :top}}])
+(defn error-icon [error]
+  (let [icon [icons/alert-warning {:title error
+                                   :style {:color          "#f44336"
+                                           :vertical-align :top}}]]
+    (if error
+      [tooltip {:label error}
+       icon]
+      icon)))
 
-(defn decklist-table-row [board card error?]
+(defn decklist-table-row [board card error]
   (let [on-change (fn [_ _ quantity]
                     (dispatch [::events/decklist-set-quantity board (:name card) quantity]))
         on-delete #(dispatch [::events/decklist-remove-card board (:name card)])]
-    (fn decklist-table-row-render [_ {:keys [name quantity]} error?]
+    (fn decklist-table-row-render [_ {:keys [name quantity]} error]
       [ui/table-row
        [ui/table-row-column {:class-name :quantity
                              :style      {:padding "0 12px"}}
-        [ui/select-field {:value           quantity
-                          :on-change       on-change
-                          :style           {:width          "48px"
-                                            :vertical-align :top}
-                          :menu-style      {:width "48px"}
-                          :icon-style      {:padding-left  0
-                                            :padding-right 0
-                                            :width         "24px"
-                                            :fill          "rgba(0, 0, 0, 0.54)"}
-                          :underline-style {:border-color "rgba(0, 0, 0, 0.24)"}}
-         (for [i (range 1 (if (basic? name)
-                            31
-                            5))]
-           ^{:key (str name "--quantity--" i)}
-           [ui/menu-item {:value           i
-                          :primary-text    i
-                          :inner-div-style {:padding "0 6px"}}])]]
+        (when quantity
+          [ui/select-field {:value           quantity
+                            :on-change       on-change
+                            :style           {:width          "48px"
+                                              :vertical-align :top}
+                            :menu-style      {:width "48px"}
+                            :icon-style      {:padding-left  0
+                                              :padding-right 0
+                                              :width         "24px"
+                                              :fill          "rgba(0, 0, 0, 0.54)"}
+                            :underline-style {:border-color "rgba(0, 0, 0, 0.24)"}}
+           (for [i (range 1 (if (basic? name)
+                              31
+                              5))]
+             ^{:key (str name "--quantity--" i)}
+             [ui/menu-item {:value           i
+                            :primary-text    i
+                            :inner-div-style {:padding "0 6px"}}])])]
        [ui/table-row-column {:class-name :card
                              :style      {:font-size "14px"}}
         name]
@@ -109,9 +121,10 @@
         [ui/icon-button {:on-click on-delete}
          [icons/content-remove-circle-outline]]]
        [ui/table-row-column {:class-name :error
-                             :style      {:padding "12px"}}
-        (when error?
-          [error-icon])]])))
+                             :style      {:padding  "12px"
+                                          :overflow :visible}}
+        (when error
+          [error-icon error])]])))
 
 (defn decklist-table [decklist board]
   (let [header-style {:color       :black
@@ -124,8 +137,10 @@
          [:h3 (if (= :main board)
                 (str "Main deck (" (get-in @decklist [:count :main]) ")")
                 (str "Sideboard (" (get-in @decklist [:count :side]) ")"))]
-         [ui/table {:selectable false
-                    :class-name :deck-table}
+         [ui/table {:selectable    false
+                    :class-name    :deck-table
+                    :wrapper-style {:overflow :visible}
+                    :body-style    {:overflow :visible}}
           [ui/table-header {:display-select-all  false
                             :adjust-for-checkbox false}
            [ui/table-row {:style {:height "24px"}}
@@ -139,9 +154,9 @@
             [ui/table-header-column {:class-name :actions}]
             [ui/table-header-column {:class-name :error}]]]
           [ui/table-body
-           (for [{:keys [name] :as card} (get @decklist board)]
+           (for [{:keys [name error] :as card} (get @decklist board)]
              ^{:key (str name "--" board "--tr")}
-             [decklist-table-row board card (contains? error-cards name)])]]]))))
+             [decklist-table-row board card (or error (get error-cards name))])]]]))))
 
 (defn player-info [decklist]
   (let [set-first-name #(dispatch [::events/decklist-update-player-info :first-name %])
@@ -205,7 +220,8 @@
         decklist (atom "")
         decklist-on-change #(reset! decklist %)
         import-decklist (fn []
-                          (println "Import decklist\n" @decklist))]
+                          (dispatch [::events/load-text-decklist @decklist])
+                          (reset! selected nil))]
 
     (fn decklist-import-render []
       [:div.decklist-import
@@ -260,7 +276,7 @@
      ^{:key (str "error--" (name (:type error)))}
      [ui/list-item {:primary-text (:text error)
                     :left-icon    (reagent/as-element [:div
-                                                       [error-icon]])}])])
+                                                       [error-icon nil]])}])])
 
 (defn decklist-submit []
   (let [decklist (subscribe [::subs/decklist])

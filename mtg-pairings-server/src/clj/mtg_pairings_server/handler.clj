@@ -274,3 +274,7 @@
 (defmethod ws/event-handler :client/decklist-card-suggestions
   [{[prefix format] :?data, reply-fn :?reply-fn}]
   (reply-fn (decklist/search-cards prefix format)))
+
+(defmethod ws/event-handler :client/load-text-decklist
+  [{uid :uid, [text-decklist format] :?data}]
+  (ws/send! uid [:server/organizer-tournament-decklist (decklist/load-text-decklist text-decklist format)]))

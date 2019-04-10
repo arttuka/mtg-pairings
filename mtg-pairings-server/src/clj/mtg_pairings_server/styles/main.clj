@@ -8,6 +8,7 @@
             [mtg-pairings-server.styles.decklist :as decklist]
             [mtg-pairings-server.styles.organizer :as organizer]
             [mtg-pairings-server.styles.table :as table]
+            [mtg-pairings-server.styles.tooltip :as tooltip]
             [mtg-pairings-server.styles.tournament :as tournament]
             [mtg-pairings-server.util.mobile :refer [when-desktop when-mobile]]))
 
@@ -58,6 +59,7 @@
   bracket/styles
   decklist/styles
   organizer/styles
+  tooltip/styles
   tournament/styles
   mobile)
 
