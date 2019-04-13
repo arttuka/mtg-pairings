@@ -3,6 +3,7 @@
             [config.core :refer [env]]
             [mtg-pairings-server.auth :refer [wrap-auth]]
             [mtg-pairings-server.middleware.cache-control :refer [wrap-cache-control]]
+            [mtg-pairings-server.middleware.decklist :refer [wrap-decklist-prefix]]
             [mtg-pairings-server.middleware.error :refer [wrap-errors]]))
 
 (defn add-dev-middleware [handler]
@@ -15,6 +16,7 @@
 
 (defn add-prod-middleware [handler]
   (-> handler
+      wrap-decklist-prefix
       (wrap-cache-control {#"\.(css|js|txt)$" "max-age=31536000"})
       wrap-errors))
 

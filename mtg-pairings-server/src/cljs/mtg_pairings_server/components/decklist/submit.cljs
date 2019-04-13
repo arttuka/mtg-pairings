@@ -9,9 +9,10 @@
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.components.tooltip :refer [tooltip]]
             [mtg-pairings-server.events.decklist :as events]
+            [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as subs]
-            [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where]]
+            [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where get-host]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
             [mtg-pairings-server.util.material-ui :refer [get-theme text-field]]
             [clojure.string :as str]))
@@ -331,7 +332,7 @@
          [:h3 "Pelaajan tiedot"]
          [player-info decklist]
          (when @saved?
-           (let [url (str "https://pairings.fi/decklist/" (:id @page))]
+           (let [url (str (get-host) (routes/old-decklist-path {:id (:id @page)}))]
              [:div.success-notice
               [:h4 "Tallennus onnistui!"]
               [:p

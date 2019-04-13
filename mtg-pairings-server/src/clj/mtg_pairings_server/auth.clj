@@ -1,13 +1,14 @@
 (ns mtg-pairings-server.auth
   (:require [buddy.auth.backends.session :refer [session-backend]]
             [buddy.auth.middleware :refer [wrap-authentication wrap-authorization]]
+            [clojure.string :as str]
             [compojure.api.sweet :refer :all]
+            [config.core :refer [env]]
             [ring.util.response :refer [redirect]]
             [schema.core :as s]
             [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
-            [mtg-pairings-server.util.sql :as sql-util]
-            [clojure.string :as str])
+            [mtg-pairings-server.util.sql :as sql-util])
   (:import (java.security MessageDigest)))
 
 (defonce auth-backend (session-backend))
@@ -42,4 +43,7 @@
       (let [new-session (assoc (:session request) :identity user)]
         (-> (redirect next :see-other)
             (assoc :session new-session)))
-      (redirect "/decklist/organizer" :see-other))))
+      (let [path (if (str/blank? (env :decklist-prefix))
+                   "/decklist/organizer"
+                   "/organizer")]
+        (redirect path :see-other)))))

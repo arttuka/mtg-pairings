@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.events.decklist
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [oops.core :refer [oget]]
+            [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :as util]
             [mtg-pairings-server.util.mobile :refer [mobile?]]
@@ -41,7 +42,7 @@
     {:db       (-> db
                    (assoc-in [:decklist-editor :saving] false)
                    (assoc-in [:decklist-editor :saved] true))
-     :navigate (str "/decklist/" id)}))
+     :navigate (routes/old-decklist-path {:id id})}))
 
 (reg-event-fx ::load-organizer-tournament
   (fn [_ [_ id]]
@@ -63,7 +64,7 @@
                    (assoc-in [:decklist-editor :organizer-tournament :id] id)
                    (assoc-in [:decklist-editor :saving] false)
                    (assoc-in [:decklist-editor :saved] true))
-     :navigate (str "/decklist/organizer/" id)}))
+     :navigate (routes/organizer-tournament-path {:id id})}))
 
 (reg-event-fx ::load-decklist
   (fn [_ [_ id]]

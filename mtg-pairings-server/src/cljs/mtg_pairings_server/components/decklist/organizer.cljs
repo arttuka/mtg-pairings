@@ -9,7 +9,7 @@
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]
-            [mtg-pairings-server.util :refer [format-date format-date-time to-local-date indexed]]
+            [mtg-pairings-server.util :refer [format-date format-date-time to-local-date indexed get-host]]
             [mtg-pairings-server.util.material-ui :refer [text-field]]))
 
 (def table-header-style {:color       :black
@@ -18,14 +18,14 @@
                          :height      "36px"})
 
 (defn list-submit-link [tournament-id]
-  (let [submit-url (routes/new-decklist-submit-path {:id tournament-id})]
+  (let [submit-url (routes/new-decklist-path {:id tournament-id})]
     [:a {:href   submit-url
          :target :_blank}
-     (str "https://pairings.fi" submit-url)]))
+     (str (get-host) submit-url)]))
 
 (defn tournament-row [tournament]
   (let [column-style {:font-size "14px"}
-        edit-url (routes/decklist-organizer-tournament-path {:id (:id tournament)})
+        edit-url (routes/organizer-tournament-path {:id (:id tournament)})
         link-props {:href     edit-url
                     :on-click #(dispatch [::events/load-organizer-tournament (:id tournament)])}]
     [ui/table-row
@@ -53,7 +53,7 @@
   (let [tournaments (subscribe [::subs/organizer-tournaments])]
     (fn all-tournaments-render []
       [:div#decklist-organizer-tournaments
-       [ui/raised-button {:href  (routes/decklist-organizer-new-tournament-path)
+       [ui/raised-button {:href  (routes/organizer-new-tournament-path)
                           :label "Uusi turnaus"
                           :icon  (reagent/as-element [icons/content-add
                                                       {:style {:height         "36px"
@@ -105,7 +105,7 @@
     (for [decklist decklists
           :let [column-style {:font-size "14px"
                               :padding   0}
-                decklist-url (routes/decklist-organizer-view-path {:id (:id decklist)})
+                decklist-url (routes/organizer-view-path {:id (:id decklist)})
                 link-props {:href     decklist-url
                             :on-click #(dispatch [::events/load-decklist (:id decklist)])}]]
       ^{:key (str (:id decklist) "--row")}
@@ -196,7 +196,7 @@
                      :height         "36px"
                      :vertical-align :top}}])
          [ui/raised-button {:label    "Tulosta valitut listat"
-                            :href     (routes/decklist-organizer-print-path)
+                            :href     (routes/organizer-print-path)
                             :on-click load-selected-decklists
                             :primary  true
                             :disabled (empty? @selected-decklists)}]]]
@@ -229,7 +229,7 @@
       [:div.tournament-name
        [:div.label "Turnaus:"]
        [:div.value
-        [:a {:href (routes/decklist-organizer-tournament-path {:id tournament-id})}
+        [:a {:href (routes/organizer-tournament-path {:id tournament-id})}
          tournament-name]]]
       [:div.deck-name
        [:div.label "Pakka:"]

@@ -14,7 +14,8 @@
                [ring.util.response :as ring])
             #?@(:cljs
                 [[goog.string :as gstring]
-                 [goog.string.format]])
+                 [goog.string.format]
+                 [oops.core :refer [oget]]])
             [clojure.string :as str]))
 
 (defn map-values
@@ -156,3 +157,9 @@
             (recur (<! c))))))
     (fn [& args]
       (put! c (or args [])))))
+
+#?(:cljs
+   (defn get-host []
+     (str (oget js/window "location" "protocol")
+          "//"
+          (oget js/window "location" "host"))))

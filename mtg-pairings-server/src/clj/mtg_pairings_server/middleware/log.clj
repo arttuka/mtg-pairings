@@ -16,6 +16,7 @@
           uri (:uri request)]
       (when (logged? uri)
         (log/info (get-in request [:headers "x-forwarded-for"] (:remote-addr request))
+                  (get-in request [:headers "host"])
                   (-> request :request-method name str/upper-case)
                   uri
                   (:status response)))
