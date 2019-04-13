@@ -60,6 +60,9 @@
                                                                :width          "30px"
                                                                :padding        "6px 0 6px 6px"
                                                                :vertical-align :top}}])}]
+       [ui/raised-button {:href  "/logout"
+                          :label "Kirjaudu ulos"
+                          :style {:margin-left "12px"}}]
        [ui/table {:selectable false
                   :class-name :tournaments}
         [ui/table-header {:display-select-all  false

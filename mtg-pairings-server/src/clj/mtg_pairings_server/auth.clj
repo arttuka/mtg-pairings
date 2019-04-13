@@ -33,6 +33,11 @@
         {:id       (:id user)
          :username username}))))
 
+(defn organizer-path []
+  (if (str/blank? (env :decklist-prefix))
+    "/decklist/organizer"
+    "/organizer"))
+
 (defroutes auth-routes
   (POST "/login" request
     :form-params [username :- s/Str
@@ -43,7 +48,8 @@
       (let [new-session (assoc (:session request) :identity user)]
         (-> (redirect next :see-other)
             (assoc :session new-session)))
-      (let [path (if (str/blank? (env :decklist-prefix))
-                   "/decklist/organizer"
-                   "/organizer")]
-        (redirect path :see-other)))))
+      (redirect (organizer-path) :see-other)))
+  (GET "/logout" request
+    (let [new-session (dissoc (:session request) :identity)]
+      (-> (redirect (organizer-path) :see-other)
+          (assoc :session new-session)))))
