@@ -6,14 +6,13 @@
             [cljs-react-material-ui.reagent :as ui]
             [cljs-react-material-ui.icons :as icons]
             [cljs-time.coerce :as coerce]
-            [prop-types]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.slider :refer [slider]]
             [mtg-pairings-server.events.pairings :as events]
+            [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.pairings :as subs]
-            [mtg-pairings-server.util :refer [to-local-date]]
-            [mtg-pairings-server.util.material-ui :refer [get-theme]]))
+            [mtg-pairings-server.util :refer [to-local-date]]))
 
 (defn organizer-filter []
   (let [organizers (subscribe [::subs/organizers])
@@ -81,18 +80,15 @@
 (defn player-filter []
   (let [players (subscribe [::subs/tournament-filter :players])
         max-players (subscribe [::subs/max-players])]
-    (reagent/create-class
-     {:context-types  #js {:muiTheme prop-types/object.isRequired}
-      :reagent-render (fn player-filter-render []
-                        (let [palette (:palette (get-theme (reagent/current-component)))]
-                          [:div.filter.player-filter
-                           [:label.filter-label "Pelaajamäärä"]
-                           [slider {:min       (atom 0)
-                                    :max       max-players
-                                    :value     players
-                                    :step      10
-                                    :color     (:accent1Color palette)
-                                    :on-change #(dispatch [::events/tournament-filter [:players %]])}]]))})))
+    (fn player-filter-render []
+      [:div.filter.player-filter
+       [:label.filter-label "Pelaajamäärä"]
+       [slider {:min       (atom 0)
+                :max       max-players
+                :value     players
+                :step      10
+                :color     (:accent1-color styles/palette)
+                :on-change #(dispatch [::events/tournament-filter [:players %]])}]])))
 
 (defn clear-filters []
   (let [filters-active? (subscribe [::subs/filters-active])]
@@ -113,31 +109,28 @@
 
 (defn mobile-filters []
   (let [filters-active? (subscribe [::subs/filters-active])]
-    (reagent/create-class
-     {:context-types  #js {:muiTheme prop-types/object.isRequired}
-      :reagent-render (fn mobile-filters-render []
-                        (let [palette (:palette (get-theme (reagent/current-component)))]
-                          [ui/card
-                           {:class-name "filters mobile-filters hidden-desktop"}
-                           [ui/card-header
-                            {:title                  "Hakutyökalut"
-                             :title-style            {:line-height "24px"}
-                             :act-as-expander        true
-                             :show-expandable-button true
-                             :avatar                 (reagent/as-element
-                                                      [ui/avatar
-                                                       {:icon             (icons/content-filter-list)
-                                                        :size             24
-                                                        :background-color (if @filters-active?
-                                                                            (:accent1Color palette)
-                                                                            (:primary1Color palette))}])}]
-                           [ui/card-text
-                            {:expandable true
-                             :style      {:padding-top 0}}
-                            [organizer-filter]
-                            [date-filter]
-                            [player-filter]
-                            [clear-filters]]]))})))
+    (fn mobile-filters-render []
+      [ui/card
+       {:class-name "filters mobile-filters hidden-desktop"}
+       [ui/card-header
+        {:title                  "Hakutyökalut"
+         :title-style            {:line-height "24px"}
+         :act-as-expander        true
+         :show-expandable-button true
+         :avatar                 (reagent/as-element
+                                  [ui/avatar
+                                   {:icon             (icons/content-filter-list)
+                                    :size             24
+                                    :background-color (if @filters-active?
+                                                        (:accent1-color styles/palette)
+                                                        (:primary1-color styles/palette))}])}]
+       [ui/card-text
+        {:expandable true
+         :style      {:padding-top 0}}
+        [organizer-filter]
+        [date-filter]
+        [player-filter]
+        [clear-filters]]])))
 
 (defn filters []
   (let [mobile? (subscribe [::common-subs/mobile?])]

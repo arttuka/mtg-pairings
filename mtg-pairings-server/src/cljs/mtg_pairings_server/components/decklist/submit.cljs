@@ -4,7 +4,6 @@
             [cljsjs.material-ui]
             [cljs-react-material-ui.reagent :as ui]
             [cljs-react-material-ui.icons :as icons]
-            [prop-types]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.components.tooltip :refer [tooltip]]
@@ -15,7 +14,7 @@
             [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where get-host]]
             [mtg-pairings-server.util.decklist :refer [->text]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
-            [mtg-pairings-server.util.material-ui :refer [get-theme text-field]]
+            [mtg-pairings-server.util.material-ui :refer [text-field]]
             [clojure.string :as str]))
 
 (def basic? #{"Plains" "Island" "Swamp" "Mountain" "Forest" "Wastes"

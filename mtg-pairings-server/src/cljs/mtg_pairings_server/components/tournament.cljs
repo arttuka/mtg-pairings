@@ -7,14 +7,13 @@
             [cljs-react-material-ui.icons :as icons]
             [goog.string :as gstring]
             [goog.string.format]
-            [prop-types]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.routes.pairings :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
             [mtg-pairings-server.components.filter :refer [filters]]
-            [mtg-pairings-server.util :refer [format-date indexed]]
-            [mtg-pairings-server.util.material-ui :refer [get-theme]]))
+            [mtg-pairings-server.styles.common :as styles]
+            [mtg-pairings-server.util :refer [format-date indexed]]))
 
 (defn tournament-card-header
   ([data]
@@ -97,19 +96,15 @@
          [tournament t])])]])
 
 (defn sortable-header [{:keys [class column sort-key dispatch-key]} & children]
-  (reagent/create-class
-   {:context-types  #js {:muiTheme prop-types/object.isRequired}
-    :reagent-render (fn sortable-header-render [{:keys [class column sort-key dispatch-key]} & children]
-                      (let [palette (:palette (get-theme (reagent/current-component)))]
-                        [:th {:class    class
-                              :style    (when (= column sort-key) {:color (:accent1Color palette)})
-                              :on-click #(dispatch [dispatch-key column])}
-                         [icons/hardware-keyboard-arrow-down
-                          {:style {:vertical-align :baseline
-                                   :position       :absolute
-                                   :left           0
-                                   :color          nil}}]
-                         children]))}))
+  [:th {:class    class
+        :style    (when (= column sort-key) {:color (:accent1-color styles/palette)})
+        :on-click #(dispatch [dispatch-key column])}
+   [icons/hardware-keyboard-arrow-down
+    {:style {:vertical-align :baseline
+             :position       :absolute
+             :left           0
+             :color          nil}}]
+   children])
 
 (defn pairing-row [pairing]
   (let [bye? (= (:table_number pairing) 0)]
