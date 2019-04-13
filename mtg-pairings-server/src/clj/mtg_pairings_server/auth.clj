@@ -1,7 +1,5 @@
 (ns mtg-pairings-server.auth
-  (:require [buddy.auth.backends.session :refer [session-backend]]
-            [buddy.auth.middleware :refer [wrap-authentication wrap-authorization]]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
             [compojure.api.sweet :refer :all]
             [config.core :refer [env]]
             [ring.util.response :refer [redirect]]
@@ -10,13 +8,6 @@
             [mtg-pairings-server.sql-db :as db]
             [mtg-pairings-server.util.sql :as sql-util])
   (:import (java.security MessageDigest)))
-
-(defonce auth-backend (session-backend))
-
-(defn wrap-auth [handler]
-  (-> handler
-      (wrap-authorization auth-backend)
-      (wrap-authentication auth-backend)))
 
 (defn ^:private ->hex [bytes]
   (apply str (for [b bytes] (format "%02x" b))))
