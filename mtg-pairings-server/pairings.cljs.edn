@@ -1,0 +1,4 @@
+{:main          mtg-pairings-server.pairings
+ :output-to     "target/js/pairings-main.js"
+ :output-dir    "target/js/compiled/pairings"
+ :optimizations :advanced}

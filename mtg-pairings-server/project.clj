@@ -48,7 +48,7 @@
                          :target "target/public/css/main.min.css"}]]
 
   :aliases {"fig"     ["trampoline" "run" "-m" "figwheel.main"]
-            "fig:min" ["run" "-m" "figwheel.main" "-bo" "prod"]}
+            "fig:min" ["run" "-m" "figwheel.main" "-bo"]}
 
   :cljfmt {:indents {reg-sub                       [[:inner 0]]
                      reg-fx                        [[:inner 0]]

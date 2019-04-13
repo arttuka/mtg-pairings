@@ -11,9 +11,9 @@ COPY ./env ./env
 COPY ./resources ./resources
 COPY ./test ./test
 COPY ./test-resources ./test-resources
-COPY prod.cljs.edn .
+COPY decklist.cljs.edn pairings.cljs.edn ./
 RUN lein test
-RUN lein with-profile provided,prod do clean, garden once, minify-assets, fig:min
+RUN lein with-profile provided,prod do clean, garden once, minify-assets, fig:min pairings, fig:min decklist
 RUN ./scripts/tag-assets.sh
 RUN lein uberjar
 

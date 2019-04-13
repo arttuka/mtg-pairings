@@ -20,10 +20,10 @@
 (defn escape-quotes [s]
   (str/escape s {\' "\\'"}))
 
-(defn loading-page
-  ([]
-   (loading-page {}))
-  ([initial-db]
+(defn index
+  ([js-file]
+   (index js-file {}))
+  ([js-file initial-db]
    (let [html (html5
                {:lang :fi}
                [:head
@@ -42,7 +42,7 @@
                               "var initial_db = '" (escape-quotes (transit/write initial-db)) "'; ")]
                 (include-js (if (env :dev)
                               "/js/dev-main.js"
-                              (env :main-js)))])]
+                              (env js-file)))])]
      {:status  200
       :body    html
       :headers {"Content-Type"  "text/html"
@@ -57,79 +57,79 @@
                 :body   "403 Forbidden"})
 
 (defroutes site-routes
-  (GET "/" [] (loading-page))
+  (GET "/" [] (index :pairings-js))
   (GET "/tournaments" []
-    (loading-page {:page {:page :tournaments}}))
+    (index :pairings-js {:page {:page :tournaments}}))
   (GET "/tournaments/:id" []
     :path-params [id :- s/Int]
-    (loading-page {:page        {:page :tournament, :id id}
-                   :tournaments {id (tournament/client-tournament id)}}))
+    (index :pairings-js {:page        {:page :tournament, :id id}
+                         :tournaments {id (tournament/client-tournament id)}}))
   (GET "/tournaments/:id/pairings-:round" []
     :path-params [id :- s/Int
                   round :- s/Int]
-    (loading-page {:page        {:page :pairings, :id id, :round round}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :pairings    {id {round (tournament/get-round id round)}}}))
+    (index :pairings-js {:page        {:page :pairings, :id id, :round round}
+                         :tournaments {id (tournament/client-tournament id)}
+                         :pairings    {id {round (tournament/get-round id round)}}}))
   (GET "/tournaments/:id/standings-:round" []
     :path-params [id :- s/Int
                   round :- s/Int]
-    (loading-page {:page        {:page :standings, :id id, :round round}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :standings   {id {round (tournament/standings id round false)}}}))
+    (index :pairings-js {:page        {:page :standings, :id id, :round round}
+                         :tournaments {id (tournament/client-tournament id)}
+                         :standings   {id {round (tournament/standings id round false)}}}))
   (GET "/tournaments/:id/pods-:round" []
     :path-params [id :- s/Int
                   round :- s/Int]
-    (loading-page {:page        {:page :pods, :id id, :round round}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :pods        {id {round (tournament/pods id round)}}}))
+    (index :pairings-js {:page        {:page :pods, :id id, :round round}
+                         :tournaments {id (tournament/client-tournament id)}
+                         :pods        {id {round (tournament/pods id round)}}}))
   (GET "/tournaments/:id/seatings" []
     :path-params [id :- s/Int]
-    (loading-page {:page        {:page :seatings, :id id}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :seatings    {id (tournament/seatings id)}}))
+    (index :pairings-js {:page        {:page :seatings, :id id}
+                         :tournaments {id (tournament/client-tournament id)}
+                         :seatings    {id (tournament/seatings id)}}))
   (GET "/tournaments/:id/bracket" []
     :path-params [id :- s/Int]
-    (loading-page {:page        {:page :bracket, :id id}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :bracket     {id (tournament/bracket id)}}))
-  (GET "/tournaments/:id/organizer" [] (loading-page))
-  (GET "/tournaments/:id/organizer/menu" [] (loading-page))
-  (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
+    (index :pairings-js {:page        {:page :bracket, :id id}
+                         :tournaments {id (tournament/client-tournament id)}
+                         :bracket     {id (tournament/bracket id)}}))
+  (GET "/tournaments/:id/organizer" [] (index :pairings-js))
+  (GET "/tournaments/:id/organizer/menu" [] (index :pairings-js))
+  (GET "/tournaments/:id/organizer/deck-construction" [] (index :pairings-js))
   (GET "/decklist/tournament/:id" []
     :path-params [id :- s/Str]
-    (loading-page {:page            {:page :decklist-submit}
-                   :decklist-editor {:tournament (decklist/get-tournament id)}}))
+    (index :decklist-js {:page            {:page :decklist-submit}
+                         :decklist-editor {:tournament (decklist/get-tournament id)}}))
   (GET "/decklist/organizer" request
-    (loading-page {:page            {:page :decklist-organizer}
-                   :decklist-editor {:organizer-tournaments (decklist/get-organizer-tournaments (get-in request [:session :identity :id]))}}))
+    (index :decklist-js {:page            {:page :decklist-organizer}
+                         :decklist-editor {:organizer-tournaments (decklist/get-organizer-tournaments (get-in request [:session :identity :id]))}}))
   (GET "/decklist/organizer/new" []
-    (loading-page {:page {:page :decklist-organizer-tournament}}))
+    (index :decklist-js {:page {:page :decklist-organizer-tournament}}))
   (GET "/decklist/organizer/view/:id" request
     :path-params [id :- s/Str]
     (let [decklist (decklist/get-decklist id)
           tournament (decklist/get-organizer-tournament (:tournament decklist))
           user-id (get-in request [:session :identity :id])]
       (cond
-        (not user-id) (loading-page {:page {:page :decklist-organizer-view, :id id}})
-        (= user-id (:user tournament)) (loading-page {:page            {:page :decklist-organizer-view, :id id}
-                                                      :decklist-editor {:decklist             decklist
-                                                                        :organizer-tournament tournament}})
+        (not user-id) (index :decklist-js {:page {:page :decklist-organizer-view, :id id}})
+        (= user-id (:user tournament)) (index :decklist-js {:page            {:page :decklist-organizer-view, :id id}
+                                                            :decklist-editor {:decklist             decklist
+                                                                              :organizer-tournament tournament}})
         :else forbidden)))
   (GET "/decklist/organizer/:id" request
     :path-params [id :- s/Str]
     (let [tournament (decklist/get-organizer-tournament id)
           user-id (get-in request [:session :identity :id])]
       (cond
-        (not user-id) (loading-page {:page {:page :decklist-organizer-tournament, :id id}})
-        (= user-id (:user tournament)) (loading-page {:page            {:page :decklist-organizer-tournament, :id id}
-                                                      :decklist-editor {:organizer-tournament tournament}})
+        (not user-id) (index :decklist-js {:page {:page :decklist-organizer-tournament, :id id}})
+        (= user-id (:user tournament)) (index :decklist-js {:page            {:page :decklist-organizer-tournament, :id id}
+                                                            :decklist-editor {:organizer-tournament tournament}})
         :else forbidden)))
   (GET "/decklist/:id" []
     :path-params [id :- s/Str]
     (let [decklist (decklist/get-decklist id)]
-      (loading-page {:page            {:page :decklist-submit, :id id}
-                     :decklist-editor {:tournament (decklist/get-tournament (:tournament decklist))
-                                       :decklist   decklist}})))
+      (index :decklist-js {:page            {:page :decklist-submit, :id id}
+                           :decklist-editor {:tournament (decklist/get-tournament (:tournament decklist))
+                                             :decklist   decklist}})))
   (GET "/robots.txt" [] robots-txt)
   auth-routes
   ws/routes)

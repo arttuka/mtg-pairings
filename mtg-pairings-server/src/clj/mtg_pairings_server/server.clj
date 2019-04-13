@@ -2,6 +2,7 @@
   (:require [taoensso.timbre :as log]
             [mount.core :refer [defstate]]
             [aleph.http :as http]
+            [mtg-pairings-server.events]
             [mtg-pairings-server.handler]
             [config.core :refer [env]]))
 
