@@ -300,6 +300,8 @@
      {:width (px 400)}]
     [:.decklist-link
      table-row-link]]]
+  [:#decklist-organizer-login
+   {:margin "12px 24px"}]
   organizer-decklist)
 
 (defstyles styles

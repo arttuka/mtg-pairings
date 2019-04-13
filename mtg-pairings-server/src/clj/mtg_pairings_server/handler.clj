@@ -7,8 +7,9 @@
             [schema.core :as s]
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
+            [ring.util.response :refer [redirect]]
             [mtg-pairings-server.api.http :as http-api]
-            [mtg-pairings-server.auth :refer [auth-routes]]
+            [mtg-pairings-server.auth :as auth :refer [auth-routes]]
             [mtg-pairings-server.middleware :refer [wrap-site-middleware]]
             [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
             [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
@@ -99,6 +100,8 @@
 
 (let [index (partial index :decklist-js)]
   (defroutes decklist-routes
+    (GET "/decklist" []
+      (redirect (auth/organizer-path)))
     (GET "/decklist/tournament/:id" []
       :path-params [id :- s/Str]
       (index {:page            {:page :decklist-submit}

@@ -37,9 +37,41 @@
    :index    index
    :quantity quantity})
 
+(defn get-tournament [id]
+  (sql-util/select-unique db/decklist-tournament
+    (sql/where {:id id})))
+
+(defn format-cards [cards maindeck?]
+  (->> cards
+       ((if maindeck? filter remove) :maindeck)
+       (sort-by :index)
+       (mapv #(select-keys % [:name :quantity]))))
+
+(defn get-decklist [id]
+  (let [decklist (sql-util/select-unique db/decklist
+                   (sql/fields :id [:name :deck-name] :first-name :last-name :dci :email :tournament)
+                   (sql/with db/decklist-card
+                     (sql/fields :maindeck :index :quantity)
+                     (sql/with db/card
+                       (sql/fields :name)))
+                   (sql/where {:id id}))
+        main (format-cards (:decklist_card decklist) true)
+        side (format-cards (:decklist_card decklist) false)
+        player (select-keys decklist [:deck-name :first-name :last-name :email :dci])
+        email-disabled? (not (str/blank? (:email player)))]
+    {:id         id
+     :tournament (:tournament decklist)
+     :main       main
+     :side       side
+     :count      {:main (transduce (map :quantity) + 0 main)
+                  :side (transduce (map :quantity) + 0 side)}
+     :board      :main
+     :player     (assoc player :email-disabled? email-disabled?)}))
+
 (defn save-decklist [tournament decklist]
   (transaction
    (let [old-id (:id decklist)
+         old-decklist (some-> old-id (get-decklist))
          new-id (sql-util/generate-id)
          card->id (generate-card->id (map :name
                                           (concat (:main decklist)
@@ -68,37 +100,9 @@
            (format-card (or old-id new-id) true (card->id name) index quantity))
          (for [[index {:keys [name quantity]}] (indexed (:side decklist))]
            (format-card (or old-id new-id) false (card->id name) index quantity)))))
-     (or old-id new-id))))
-
-(defn get-tournament [id]
-  (sql-util/select-unique db/decklist-tournament
-    (sql/where {:id id})))
-
-(defn format-cards [cards maindeck?]
-  (->> cards
-       ((if maindeck? filter remove) :maindeck)
-       (sort-by :index)
-       (mapv #(select-keys % [:name :quantity]))))
-
-(defn get-decklist [id]
-  (let [decklist (sql-util/select-unique db/decklist
-                   (sql/fields :id [:name :deck-name] :first-name :last-name :dci :email :tournament)
-                   (sql/with db/decklist-card
-                     (sql/fields :maindeck :index :quantity)
-                     (sql/with db/card
-                       (sql/fields :name)))
-                   (sql/where {:id id}))
-        main (format-cards (:decklist_card decklist) true)
-        side (format-cards (:decklist_card decklist) false)
-        player (select-keys decklist [:deck-name :first-name :last-name :email :dci])]
-    {:id         id
-     :tournament (:tournament decklist)
-     :main       main
-     :side       side
-     :count      {:main (transduce (map :quantity) + 0 main)
-                  :side (transduce (map :quantity) + 0 side)}
-     :board      :main
-     :player     player}))
+     {:id          (or old-id new-id)
+      :send-email? (and (not (str/blank? (get-in decklist [:player :email])))
+                        (str/blank? (get-in old-decklist [:player :email])))})))
 
 (defn get-organizer-tournaments [user-id]
   (when user-id
@@ -153,7 +157,7 @@
            :quantity (Long/parseLong quantity)}
           {:name  name
            :error "Ei sallittu tässä formaatissa"})
-        {:name name
+        {:name  name
          :error "Korttia ei löydy"})
       {:name  row
        :error "Virheellinen rivi"})))

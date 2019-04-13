@@ -1,11 +1,11 @@
 (ns mtg-pairings-server.events
   (:require [taoensso.timbre :as log]
             [mtg-pairings-server.service.decklist :as decklist]
+            [mtg-pairings-server.service.email :as email]
             [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.util.broadcast :as broadcast]
             [mtg-pairings-server.websocket :as ws]))
-
 
 (defmethod ws/event-handler
   :chsk/uidport-open
@@ -97,8 +97,12 @@
 
 (defmethod ws/event-handler :client/save-decklist
   [{uid :uid, [tournament decklist] :?data}]
-  (let [id (decklist/save-decklist tournament decklist)]
-    (ws/send! uid [:server/decklist-saved id])))
+  (let [{:keys [id send-email?]} (decklist/save-decklist tournament decklist)]
+    (ws/send! uid [:server/decklist-saved id])
+    (when send-email?
+      (let [tournament (decklist/get-tournament (:tournament decklist))
+            {:keys [subject text]} (email/generate-message tournament (assoc decklist :id id))]
+        (email/send-email (get-in decklist [:player :email]) subject text)))))
 
 (defmethod ws/event-handler :client/decklist-organizer-tournament
   [{uid :uid, id :?data, ring-req :ring-req}]

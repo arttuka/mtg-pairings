@@ -13,3 +13,6 @@
    (-> decklist
        (update :main #(mapv (partial add-id-to-card prefix) %))
        (update :side #(mapv (partial add-id-to-card prefix) %)))))
+
+(defn decklist-url [id]
+  (str "https://decklist.pairings.fi/" id))

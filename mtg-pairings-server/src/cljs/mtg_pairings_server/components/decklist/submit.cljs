@@ -205,7 +205,10 @@
                      :floating-label-text "Sähköposti"
                      :full-width          true
                      :value               (get-in @decklist [:player :email])
-                     :style               {:vertical-align :top}}]]])))
+                     :style               {:vertical-align :top}
+                     :disabled            (get-in @decklist [:player :email-disabled?])
+                     :title               (when (get-in @decklist [:player :email-disabled?])
+                                            "Tästä pakkalistasta on jo lähetetty sähköpostiviesti.")}]]])))
 
 (defn decklist-import []
   (let [mobile? (subscribe [::common-subs/mobile?])
