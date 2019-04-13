@@ -32,7 +32,7 @@
     :line-height 1.1}]
   [:a
    {:text-decoration :none
-    :color           (color :turquoise)}]
+    :color           (color :primary2-color)}]
   [:#main-container
    {:margin-bottom (px 10)}])
 

@@ -13,6 +13,7 @@
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where get-host]]
+            [mtg-pairings-server.util.decklist :refer [->text]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
             [mtg-pairings-server.util.material-ui :refer [get-theme text-field]]
             [clojure.string :as str]))
@@ -293,6 +294,7 @@
         tournament (subscribe [::subs/tournament])
         saving? (subscribe [::subs/saving?])
         saved? (subscribe [::subs/saved?])
+        error? (subscribe [::subs/error?])
         page (subscribe [::common-subs/page])
         save-decklist #(dispatch [::events/save-decklist (:id @tournament) @decklist])]
     (fn decklist-submit-render []
@@ -333,15 +335,6 @@
          [decklist-import]
          [:h3 "Pelaajan tiedot"]
          [player-info decklist]
-         (when @saved?
-           (let [url (str (get-host) (routes/old-decklist-path {:id (:id @page)}))]
-             [:div.success-notice
-              [:h4 "Tallennus onnistui!"]
-              [:p
-               "Pakkalistasi tallennus onnistui. Pääset muokkaamaan pakkalistaasi osoitteessa "
-               [:a {:href url}
-                url]
-               ". Jos annoit sähköpostiosoitteesi, pakkalistasi sekä sama osoite lähetettiin sinulle myös sähköpostitse. "]]))
          [ui/raised-button
           {:label    "Tallenna"
            :on-click save-decklist
@@ -353,4 +346,18 @@
             {:size  36
              :style {:margin         "24px 0 0 24px"
                      :vertical-align :top}}])
+         (when @saved?
+           (let [url (str (get-host) (routes/old-decklist-path {:id (:id @page)}))]
+             [:div.success-notice
+              [:h4 "Tallennus onnistui!"]
+              [:p
+               "Pakkalistasi tallennus onnistui. Pääset muokkaamaan pakkalistaasi osoitteessa "
+               [:a {:href url}
+                url]
+               ". Jos annoit sähköpostiosoitteesi, pakkalistasi sekä sama osoite lähetettiin sinulle myös sähköpostitse. "]]))
+         (when @error?
+           [:div.error-notice
+            [:h4 "Tallennus epäonnistui"]
+            [:p "Pakkalistan tallennus epäonnistui. Voit kopioida pakkalistasi tekstimuodossa alta ja yrittää myöhemmin uudelleen."]
+            [:pre (->text @decklist)]])
          [error-list errors]]))))

@@ -147,7 +147,8 @@
                                      old-id))))
 
 (defn parse-decklist-row [row format]
-  (when-not (str/blank? row)
+  (when-not (or (str/blank? row)
+                (re-matches #"^Maindeck.*" row))
     (if-let [[_ quantity name] (re-matches #"(\d+)\s+(.+)" (str/trim row))]
       (if-let [{:keys [name legal]} (sql-util/select-unique-or-nil db/card
                                       (sql/fields :name [format :legal])
@@ -164,7 +165,7 @@
 
 (defn load-text-decklist [text-decklist format]
   {:pre [(contains? #{:standard :modern :legacy} format)]}
-  (let [[maindeck sideboard] (str/split text-decklist #"[Ss]ideboard\s*")
+  (let [[maindeck sideboard] (str/split text-decklist #"[Ss]ideboard( \(\d*\))?\s*")
         maindeck-cards (keep #(parse-decklist-row % format) (str/split-lines maindeck))
         sideboard-cards (when sideboard
                           (keep #(parse-decklist-row % format) (str/split-lines sideboard)))]

@@ -9,6 +9,7 @@
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]
+            [mtg-pairings-server.styles.common :refer [palette]]
             [mtg-pairings-server.util :refer [format-date format-date-time to-local-date indexed get-host]]
             [mtg-pairings-server.util.material-ui :refer [text-field]]))
 
@@ -126,6 +127,30 @@
         [:a.decklist-link link-props
          (format-date-time (:submitted decklist))]]])]])
 
+(defn notice [type text]
+  (let [[color background] (case type
+                             :success [:black (:primary1-color palette)]
+                             :error [:white (:error-color palette)])
+        on-delete #(dispatch [::events/clear-status (case type
+                                                      :success :saved
+                                                      :error :error)])]
+    (fn notice-render [type text]
+      [ui/chip
+       {:background-color  background
+        :label-color       color
+        :on-request-delete on-delete}
+       text])))
+
+(defn notices []
+  (let [saved? (subscribe [::subs/saved?])
+        error? (subscribe [::subs/error?])]
+    (fn notices-render []
+      [:div.notices
+       (when @saved?
+         [notice :success "Tallennus onnistui"])
+       (when @error?
+         [notice :error "Tallennus epäonnistui"])])))
+
 (defn tournament [id]
   (let [saved-tournament (subscribe [::subs/organizer-tournament])
         saving? (subscribe [::subs/saving?])
@@ -198,11 +223,14 @@
                      :width          "84px"
                      :height         "36px"
                      :vertical-align :top}}])
+         [notices]
+         [:br]
          [ui/raised-button {:label    "Tulosta valitut listat"
                             :href     (routes/organizer-print-path)
                             :on-click load-selected-decklists
                             :primary  true
-                            :disabled (empty? @selected-decklists)}]]]
+                            :disabled (empty? @selected-decklists)
+                            :style    {:margin-top "12px"}}]]]
        [:div.decklists
         [decklist-table (:decklist @tournament) on-select]]])))
 

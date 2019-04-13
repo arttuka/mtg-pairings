@@ -6,7 +6,7 @@
             [clojure.string :as str]
             [taoensso.timbre :as log]
             [mtg-pairings-server.util :refer [format-date]]
-            [mtg-pairings-server.util.decklist :refer [decklist-url]])
+            [mtg-pairings-server.util.decklist :refer [decklist-url ->text]])
   (:import (clojure.lang ExceptionInfo)))
 
 (def mailgun-endpoint "https://api.eu.mailgun.net/v3/m.pairings.fi/messages")
@@ -27,7 +27,7 @@
         (log/error "Error sending email" response)))))
 
 (defn generate-message [tournament decklist]
-  (let [{:keys [id player main side]} decklist
+  (let [{:keys [id player]} decklist
         {:keys [dci first-name last-name deck-name]} player
         {:keys [name date]} tournament]
     {:subject (str "Pakkalistasi turnaukseen " name)
@@ -41,11 +41,7 @@
                    "Pelaaja: " first-name " " last-name " (" dci ")\n"
                    (when-not (str/blank? deck-name)
                      (str "Pakka: " deck-name "\n"))
-                   "\nMaindeck (" (get-in decklist [:count :main]) ")\n"
-                   (str/join "\n" (for [{:keys [name quantity]} main]
-                                    (format "%2d %s" quantity name)))
-                   "\n\nSideboard (" (get-in decklist [:count :side]) ")\n"
-                   (str/join "\n" (for [{:keys [name quantity]} side]
-                                    (format "%2d %s" quantity name)))
-                   "\n\n"
+                   "\n"
+                   (->text decklist)
+                   "\n"
                    "Tämä viesti on lähetetty automaattisesti eikä siihen voi vastata.\n")}))

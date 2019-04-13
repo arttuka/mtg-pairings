@@ -97,12 +97,16 @@
 
 (defmethod ws/event-handler :client/save-decklist
   [{uid :uid, [tournament decklist] :?data}]
-  (let [{:keys [id send-email?]} (decklist/save-decklist tournament decklist)]
-    (ws/send! uid [:server/decklist-saved id])
-    (when send-email?
-      (let [tournament (decklist/get-tournament (:tournament decklist))
-            {:keys [subject text]} (email/generate-message tournament (assoc decklist :id id))]
-        (email/send-email (get-in decklist [:player :email]) subject text)))))
+  (try
+    (let [{:keys [id send-email?]} (decklist/save-decklist tournament decklist)]
+      (ws/send! uid [:server/decklist-saved id])
+      (when send-email?
+        (let [tournament (decklist/get-tournament (:tournament decklist))
+              {:keys [subject text]} (email/generate-message tournament (assoc decklist :id id))]
+          (email/send-email (get-in decklist [:player :email]) subject text))))
+    (catch Exception e
+      (log/error e "Error saving decklist")
+      (ws/send! uid [:server/decklist-error]))))
 
 (defmethod ws/event-handler :client/decklist-organizer-tournament
   [{uid :uid, id :?data, ring-req :ring-req}]
@@ -112,10 +116,14 @@
 
 (defmethod ws/event-handler :client/save-decklist-organizer-tournament
   [{uid :uid, tournament :?data, ring-req :ring-req}]
-  (let [user-id (get-in ring-req [:session :identity :id])
-        id (decklist/save-organizer-tournament user-id tournament)]
-    (when id
-      (ws/send! uid [:server/organizer-tournament-saved id]))))
+  (try
+    (let [user-id (get-in ring-req [:session :identity :id])
+          id (decklist/save-organizer-tournament user-id tournament)]
+      (when id
+        (ws/send! uid [:server/organizer-tournament-saved id])))
+    (catch Exception e
+      (log/error e "Error saving tournament")
+      (ws/send! uid [:server/decklist-error]))))
 
 (defmethod ws/event-handler :client/load-decklist
   [{uid :uid, id :?data}]

@@ -31,18 +31,23 @@
 (defn connect! []
   (ws/send! [:client/connect-decklist]))
 
+(reg-event-db :server/decklist-error
+  (fn [db _]
+    (update db :decklist-editor merge {:error  true
+                                       :saving false
+                                       :saved  false})))
+
 (reg-event-fx ::save-decklist
   (fn [{:keys [db]} [_ tournament decklist]]
-    {:db      (-> db
-                  (assoc-in [:decklist-editor :saving] true)
-                  (assoc-in [:decklist-editor :decklist] decklist))
+    {:db      (update db :decklist-editor merge {:decklist decklist
+                                                 :saving   true})
      :ws-send [:client/save-decklist [tournament decklist]]}))
 
 (reg-event-fx :server/decklist-saved
   (fn [{:keys [db]} [_ id]]
-    {:db       (-> db
-                   (assoc-in [:decklist-editor :saving] false)
-                   (assoc-in [:decklist-editor :saved] true))
+    {:db       (update db :decklist-editor merge {:saved  true
+                                                  :saving false
+                                                  :error  false})
      :navigate (routes/old-decklist-path {:id id})}))
 
 (reg-event-fx ::load-organizer-tournament
@@ -61,10 +66,11 @@
 
 (reg-event-fx :server/organizer-tournament-saved
   (fn [{:keys [db]} [_ id]]
-    {:db       (-> db
-                   (assoc-in [:decklist-editor :organizer-tournament :id] id)
-                   (assoc-in [:decklist-editor :saving] false)
-                   (assoc-in [:decklist-editor :saved] true))
+    {:db       (util/assoc-in-many db
+                                   [:decklist-editor :organizer-tournament :id] id
+                                   [:decklist-editor :saved] true
+                                   [:decklist-editor :saving] false
+                                   [:decklist-editor :error] false)
      :navigate (routes/organizer-tournament-path {:id id})}))
 
 (reg-event-fx ::load-decklist
@@ -92,7 +98,12 @@
   (fn [db _]
     (update db :decklist-editor merge {:organizer-tournament nil
                                        :saving               false
-                                       :saved                false})))
+                                       :saved                false
+                                       :error                false})))
+
+(reg-event-db ::clear-status
+  (fn [db [_ key]]
+    (assoc-in db [:decklist-editor key] false)))
 
 (reg-event-fx ::import-address
   (fn [_ [_ address]]

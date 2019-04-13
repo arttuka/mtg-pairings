@@ -293,6 +293,8 @@
     {:display        :inline-block
      :vertical-align :top
      :margin-right   "24px"}]
+   [:.notices
+    {:display :inline-block}]
    [:.decklists
     [:th.dci :td.dci
      {:width (px 150)}]
