@@ -1,44 +1,15 @@
-(ns mtg-pairings-server.events
+(ns mtg-pairings-server.events.pairings
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [cljs.core.async :refer [<! timeout] :refer-macros [go-loop]]
             [cljs-time.core :as time]
             [oops.core :refer [oget]]
-            [accountant.core :as accountant]
+            [mtg-pairings-server.events.common :as common-events]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in
                                               index-where dissoc-index]]
             [mtg-pairings-server.util.local-storage :as local-storage]
             [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
-
-(defmethod ws/event-handler :chsk/recv
-  [{:keys [?data]}]
-  (let [[event data] ?data]
-    (dispatch [event data])))
-
-(def channel-open? (atom false))
-
-(reg-fx :ws-send
-  (fn ws-send
-    [data]
-    (let [[event timeout callback] (if (keyword? (first data))
-                                     [data nil nil]
-                                     data)]
-      (if @channel-open?
-        (ws/send! event timeout callback)
-        (let [k (gensym)]
-          (add-watch channel-open? k (fn [_ _ _ new-val]
-                                       (when new-val
-                                         (remove-watch channel-open? k)
-                                         (ws/send! event timeout callback)))))))))
-
-(reg-fx :store
-  (fn [[key obj]]
-    (local-storage/store key obj)))
-
-(reg-fx :navigate
-  (fn [path]
-    (accountant/navigate! path)))
 
 (def empty-decklist {:main   []
                      :side   []
@@ -96,12 +67,8 @@
   [{:keys [?data]}]
   (let [[_ new-state] ?data]
     (when (:first-open? new-state)
-      (reset! channel-open? true)
+      (reset! common-events/channel-open? true)
       (connect!))))
-
-(reg-event-db ::window-resized
-  (fn [db _]
-    (assoc db :mobile? (mobile?))))
 
 (reg-event-fx ::login
   (fn [_ [_ dci-number]]
@@ -120,10 +87,6 @@
     {:ws-send [:client/logout]
      :db      (assoc db :logged-in-user nil)
      :store   [:user nil]}))
-
-(reg-event-db ::page
-  (fn [db [_ data]]
-    (assoc db :page data)))
 
 (reg-event-db ::tournaments-page
   (fn [db [_ page]]
@@ -374,120 +337,3 @@
 (reg-event-fx ::load-deck-construction
   (fn [_ [_ id]]
     {:ws-send [:client/deck-construction id]}))
-
-(reg-event-fx ::save-decklist
-  (fn [{:keys [db]} [_ tournament decklist]]
-    {:db      (-> db
-                  (assoc-in [:decklist-editor :saving] true)
-                  (assoc-in [:decklist-editor :decklist] decklist))
-     :ws-send [:client/save-decklist [tournament decklist]]}))
-
-(reg-event-fx :server/decklist-saved
-  (fn [{:keys [db]} [_ id]]
-    {:db       (-> db
-                   (assoc-in [:decklist-editor :saving] false)
-                   (assoc-in [:decklist-editor :saved] true))
-     :navigate (str "/decklist/" id)}))
-
-(reg-event-fx ::load-decklist-organizer-tournament
-  (fn [_ [_ id]]
-    {:ws-send [:client/decklist-organizer-tournament id]}))
-
-(reg-event-db :server/decklist-organizer-tournament
-  (fn [db [_ tournament]]
-    (assoc-in db [:decklist-editor :organizer-tournament] tournament)))
-
-(reg-event-fx ::save-decklist-organizer-tournament
-  (fn [{:keys [db]} [_ tournament]]
-    {:db      (update db :decklist-editor merge {:saving               true
-                                                 :organizer-tournament tournament})
-     :ws-send [:client/save-decklist-organizer-tournament tournament]}))
-
-(reg-event-fx :server/organizer-tournament-saved
-  (fn [{:keys [db]} [_ id]]
-    {:db       (-> db
-                   (assoc-in [:decklist-editor :organizer-tournament :id] id)
-                   (assoc-in [:decklist-editor :saving] false)
-                   (assoc-in [:decklist-editor :saved] true))
-     :navigate (str "/decklist/organizer/" id)}))
-
-(reg-event-fx ::load-organizer-tournament-decklist
-  (fn [_ [_ id]]
-    {:ws-send [:client/load-organizer-tournament-decklist id]}))
-
-(reg-event-fx ::load-organizer-tournament-decklists
-  (fn [_ [_ id]]
-    {:ws-send [:client/load-organizer-tournament-decklists id]}))
-
-(reg-event-db :server/organizer-tournament-decklist
-  (fn [db [_ decklist]]
-    (assoc-in db [:decklist-editor :decklist] (merge empty-decklist decklist))))
-
-(reg-event-db :server/organizer-tournament-decklists
-  (fn [db [_ decklists]]
-    (assoc-in db [:decklist-editor :decklists] decklists)))
-
-(reg-event-db :server/organizer-login
-  (fn [db [_ username]]
-    (assoc-in db [:decklist-editor :user] username)))
-
-(reg-event-db ::clear-organizer-decklist-tournament
-  (fn [db _]
-    (update db :decklist-editor merge {:organizer-tournament nil
-                                       :saving               false
-                                       :saved                false})))
-
-(reg-event-fx ::load-decklist-from-address
-  (fn [_ [_ address]]
-    (when-let [[_ code] (re-find #"/decklist/([A-z0-9_-]{22})$" address)]
-      {:ws-send [:client/load-decklist-with-id code]})))
-
-(defn ^:private add-card [{:keys [board] :as decklist} name]
-  (if (some #(= name (:name %)) (get decklist board))
-    decklist
-    (-> decklist
-        (update board conj {:name name, :quantity 1})
-        (update-in [:count board] inc))))
-
-(reg-event-db ::decklist-add-card
-  (fn [db [_ name]]
-    (update-in db [:decklist-editor :decklist] add-card name)))
-
-(defn ^:private set-quantity [decklist board name quantity]
-  (let [index (index-where #(= name (:name %)) (get decklist board))
-        orig-quantity (get-in decklist [board index :quantity])]
-    (-> decklist
-        (assoc-in [board index :quantity] quantity)
-        (update-in [:count board] + (- quantity orig-quantity)))))
-
-(reg-event-db ::decklist-set-quantity
-  (fn [db [_ board name quantity]]
-    (update-in db [:decklist-editor :decklist] set-quantity board name quantity)))
-
-(defn ^:private remove-card [decklist board name]
-  (let [cards (get decklist board)
-        index (index-where #(= name (:name %)) cards)
-        n (get-in decklist [board index :quantity])]
-    (-> decklist
-        (assoc board (dissoc-index cards index))
-        (update-in [:count board] - n))))
-
-(reg-event-db ::decklist-remove-card
-  (fn [db [_ board name]]
-    (update-in db [:decklist-editor :decklist] remove-card board name)))
-
-(reg-event-db ::decklist-select-board
-  (fn [db [_ board]]
-    (assoc-in db [:decklist-editor :decklist :board] board)))
-
-(reg-event-db ::decklist-update-player-info
-  (fn [db [_ key value]]
-    (assoc-in db [:decklist-editor :decklist :player key] value)))
-
-(reg-event-fx ::decklist-card-suggestions
-  (fn [_ [_ prefix format callback]]
-    {:ws-send [[:client/decklist-card-suggestions [prefix format]] 1000 callback]}))
-
-(reg-event-fx ::load-text-decklist
-  (fn [{:keys [db]} [_ text-decklist]]
-    {:ws-send [:client/load-text-decklist [text-decklist (get-in db [:decklist-editor :tournament :format])]]}))

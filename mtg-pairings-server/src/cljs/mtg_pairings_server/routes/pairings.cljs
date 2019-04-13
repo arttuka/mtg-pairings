@@ -1,17 +1,8 @@
-(ns mtg-pairings-server.routes
+(ns mtg-pairings-server.routes.pairings
   (:require [re-frame.core :refer [dispatch]]
             [secretary.core :as secretary :include-macros true]
-            [mtg-pairings-server.events :as events]))
-
-(defn dispatch-page
-  ([page]
-   (dispatch-page page nil nil))
-  ([page id]
-   (dispatch-page page id nil))
-  ([page id round]
-   (dispatch [::events/page {:page  page
-                             :id    id
-                             :round round}])))
+            [mtg-pairings-server.events.pairings :as events]
+            [mtg-pairings-server.routes.common :refer [dispatch-page]]))
 
 (secretary/defroute "/" []
   (dispatch-page :main))
@@ -67,24 +58,3 @@
     (dispatch [::events/load-deck-construction id])
     (dispatch-page :organizer-deck-construction id)))
 
-(secretary/defroute decklist-organizer-path "/decklist/organizer" []
-  (dispatch-page :decklist-organizer))
-
-(secretary/defroute decklist-organizer-print-path "/decklist/organizer/print" []
-  (dispatch-page :decklist-organizer-view))
-
-(secretary/defroute decklist-organizer-view-path "/decklist/organizer/view/:id" [id]
-  (dispatch-page :decklist-organizer-view id))
-
-(secretary/defroute decklist-organizer-new-tournament-path "/decklist/organizer/new" []
-  (dispatch [::events/clear-organizer-decklist-tournament])
-  (dispatch-page :decklist-organizer-tournament))
-
-(secretary/defroute decklist-organizer-tournament-path "/decklist/organizer/:id" [id]
-  (dispatch-page :decklist-organizer-tournament id))
-
-(secretary/defroute new-decklist-submit-path "/decklist/tournament/:id" [id]
-  (dispatch-page :decklist-submit))
-
-(secretary/defroute old-decklist-submit-path "/decklist/:id" [id]
-  (dispatch-page :decklist-submit id))

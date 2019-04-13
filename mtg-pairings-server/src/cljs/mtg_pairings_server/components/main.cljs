@@ -9,9 +9,9 @@
             [oops.core :refer [oget]]
             [accountant.core :as accountant]
             [mtg-pairings-server.components.tournament :refer [tournament-card-header]]
-            [mtg-pairings-server.events :as events]
-            [mtg-pairings-server.routes :refer [tournaments-path standings-path]]
-            [mtg-pairings-server.subscriptions :as subs]
+            [mtg-pairings-server.events.pairings :as events]
+            [mtg-pairings-server.routes.pairings :refer [tournaments-path standings-path]]
+            [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [format-date indexed]]
             [mtg-pairings-server.util.material-ui :refer [get-theme]]))
 

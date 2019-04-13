@@ -9,8 +9,9 @@
             [prop-types]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.slider :refer [slider]]
-            [mtg-pairings-server.events :as events]
-            [mtg-pairings-server.subscriptions :as subs]
+            [mtg-pairings-server.events.pairings :as events]
+            [mtg-pairings-server.subscriptions.common :as common-subs]
+            [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [to-local-date]]
             [mtg-pairings-server.util.material-ui :refer [get-theme]]))
 
@@ -139,7 +140,7 @@
                             [clear-filters]]]))})))
 
 (defn filters []
-  (let [mobile? (subscribe [::subs/mobile?])]
+  (let [mobile? (subscribe [::common-subs/mobile?])]
     (fn filters-render []
       (if @mobile?
         [mobile-filters]

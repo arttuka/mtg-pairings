@@ -254,21 +254,21 @@
     (when id
       (ws/send! uid [:server/organizer-tournament-saved id]))))
 
-(defmethod ws/event-handler :client/load-organizer-tournament-decklist
+(defmethod ws/event-handler :client/load-decklist
   [{uid :uid, id :?data}]
-  (ws/send! uid [:server/organizer-tournament-decklist (decklist/get-decklist id)]))
+  (ws/send! uid [:server/decklist (decklist/get-decklist id)]))
 
-(defmethod ws/event-handler :client/load-organizer-tournament-decklists
+(defmethod ws/event-handler :client/load-decklists
   [{uid :uid, ids :?data}]
-  (ws/send! uid [:server/organizer-tournament-decklists (->> (map decklist/get-decklist ids)
-                                                             (sort-by (fn [d]
-                                                                        [(get-in d [:player :last-name])
-                                                                         (get-in d [:player :first-name])])))]))
+  (ws/send! uid [:server/decklists (->> (map decklist/get-decklist ids)
+                                                  (sort-by (fn [d]
+                                                             [(get-in d [:player :last-name])
+                                                              (get-in d [:player :first-name])])))]))
 
 (defmethod ws/event-handler :client/load-decklist-with-id
   [{uid :uid, id :?data}]
   (if-let [decklist (decklist/get-decklist id)]
-    (ws/send! uid [:server/organizer-tournament-decklist (dissoc decklist :id :player)])
+    (ws/send! uid [:server/decklist (dissoc decklist :id :player)])
     (ws/send! uid [:server/decklist-load-error "Pakkalistaa ei löytynyt"])))
 
 (defmethod ws/event-handler :client/decklist-card-suggestions
@@ -277,4 +277,4 @@
 
 (defmethod ws/event-handler :client/load-text-decklist
   [{uid :uid, [text-decklist format] :?data}]
-  (ws/send! uid [:server/organizer-tournament-decklist (decklist/load-text-decklist text-decklist format)]))
+  (ws/send! uid [:server/decklist (decklist/load-text-decklist text-decklist format)]))

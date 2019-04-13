@@ -6,8 +6,8 @@
             [cljs-react-material-ui.reagent :as ui]
             [cljs-react-material-ui.icons :as icons]
             [goog.string :as gstring]
-            [mtg-pairings-server.events :as events]
-            [mtg-pairings-server.subscriptions :as subs]
+            [mtg-pairings-server.events.pairings :as events]
+            [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [cls indexed]]
             [mtg-pairings-server.util.mtg :refer [duplicate-pairings]]
             [mtg-pairings-server.components.tournament :refer [standing-table]]))

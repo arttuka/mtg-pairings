@@ -7,10 +7,14 @@
             [mount.core :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
-            mtg-pairings-server.routes
+            mtg-pairings-server.routes.decklist
+            mtg-pairings-server.routes.pairings
             mtg-pairings-server.util.event-listener
-            [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.events :as events]
+            [mtg-pairings-server.subscriptions.common :as common-subs]
+            [mtg-pairings-server.subscriptions.decklist :as decklist-subs]
+            [mtg-pairings-server.subscriptions.pairings :as pairings-subs]
+            [mtg-pairings-server.events.decklist :as decklist-events]
+            [mtg-pairings-server.events.pairings :as pairings-events]
             [mtg-pairings-server.pages.decklist :refer [decklist-organizer decklist-submit]]
             [mtg-pairings-server.pages.main :refer [main-page]]
             [mtg-pairings-server.pages.tournament :refer [tournament-page tournament-subpage tournaments-page]]
@@ -33,8 +37,8 @@
                   (:page page))))
 
 (defn current-page []
-  (let [page (subscribe [::subs/page])
-        hide-organizer-menu? (subscribe [::subs/organizer :menu])]
+  (let [page (subscribe [::common-subs/page])
+        hide-organizer-menu? (subscribe [::pairings-subs/organizer :menu])]
     (fn []
       [ui/mui-theme-provider
        {:mui-theme theme}
@@ -63,11 +67,11 @@
 
 (defn ^:after-load figwheel-reload []
   (clear-subscription-cache!)
-  (events/connect!)
+  (pairings-events/connect!)
   (mount-root))
 
 (defn init! []
-  (dispatch-sync [::events/initialize])
+  (dispatch-sync [::pairings-events/initialize])
   (accountant/configure-navigation!
    {:nav-handler
     (fn [path]

@@ -5,7 +5,7 @@
             [cljs-react-material-ui.reagent :as ui]
             [mtg-pairings-server.components.decklist.organizer :as organizer]
             [mtg-pairings-server.components.decklist.submit :as submit]
-            [mtg-pairings-server.subscriptions :as subs]))
+            [mtg-pairings-server.subscriptions.decklist :as subs]))
 
 (defn decklist-submit []
   [submit/decklist-submit])
@@ -16,7 +16,7 @@
     :style {:margin    "24px"}}])
 
 (defn decklist-organizer [page]
-  (let [user (subscribe [::subs/decklist-organizer-user])]
+  (let [user (subscribe [::subs/user])]
     (fn decklist-organizer-render [page]
       (case @user
         nil [loading-indicator]

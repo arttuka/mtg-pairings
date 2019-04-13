@@ -4,8 +4,8 @@
             [cljs-react-material-ui.core]
             [cljs-react-material-ui.reagent :as ui]
             [mtg-pairings-server.components.tournament :refer [tournament-list tournament-card-header tournament pairings standings pods seatings bracket]]
-            [mtg-pairings-server.routes :refer [tournament-path]]
-            [mtg-pairings-server.subscriptions :as subs]
+            [mtg-pairings-server.routes.pairings :refer [tournament-path]]
+            [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [format-date]]))
 
 (defn tournaments-page []

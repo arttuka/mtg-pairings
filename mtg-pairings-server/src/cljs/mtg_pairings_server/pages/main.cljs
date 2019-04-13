@@ -4,7 +4,7 @@
             [cljs-react-material-ui.reagent :as ui]
             [mtg-pairings-server.components.main :refer [own-tournament pairing]]
             [mtg-pairings-server.components.tournament :refer [newest-tournaments-list]]
-            [mtg-pairings-server.subscriptions :as subs]))
+            [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (defn get-latest-pairing [player-tournaments]
   (let [t (first player-tournaments)

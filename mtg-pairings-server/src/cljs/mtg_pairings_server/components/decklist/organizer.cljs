@@ -6,9 +6,9 @@
             [cljs-react-material-ui.icons :as icons]
             [cljs-time.coerce :as coerce]
             [oops.core :refer [oget]]
-            [mtg-pairings-server.events :as events]
-            [mtg-pairings-server.routes :as routes]
-            [mtg-pairings-server.subscriptions :as subs]
+            [mtg-pairings-server.events.decklist :as events]
+            [mtg-pairings-server.routes.decklist :as routes]
+            [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [format-date format-date-time to-local-date indexed]]
             [mtg-pairings-server.util.material-ui :refer [text-field]]))
 
@@ -27,7 +27,7 @@
   (let [column-style {:font-size "14px"}
         edit-url (routes/decklist-organizer-tournament-path {:id (:id tournament)})
         link-props {:href     edit-url
-                    :on-click #(dispatch [::events/load-decklist-organizer-tournament (:id tournament)])}]
+                    :on-click #(dispatch [::events/load-organizer-tournament (:id tournament)])}]
     [ui/table-row
      [ui/table-row-column {:class-name :date
                            :style      column-style}
@@ -50,7 +50,7 @@
       [list-submit-link (:id tournament)]]]))
 
 (defn all-tournaments []
-  (let [tournaments (subscribe [::subs/decklist-organizer-tournaments])]
+  (let [tournaments (subscribe [::subs/organizer-tournaments])]
     (fn all-tournaments-render []
       [:div#decklist-organizer-tournaments
        [ui/raised-button {:href  (routes/decklist-organizer-new-tournament-path)
@@ -107,7 +107,7 @@
                               :padding   0}
                 decklist-url (routes/decklist-organizer-view-path {:id (:id decklist)})
                 link-props {:href     decklist-url
-                            :on-click #(dispatch [::events/load-organizer-tournament-decklist (:id decklist)])}]]
+                            :on-click #(dispatch [::events/load-decklist (:id decklist)])}]]
       ^{:key (str (:id decklist) "--row")}
       [ui/table-row {}
        [ui/table-row-column {:class-name :dci
@@ -124,15 +124,15 @@
          (format-date-time (:submitted decklist))]]])]])
 
 (defn tournament [id]
-  (let [saved-tournament (subscribe [::subs/decklist-organizer-tournament])
-        saving? (subscribe [::subs/decklist-saving?])
+  (let [saved-tournament (subscribe [::subs/organizer-tournament])
+        saving? (subscribe [::subs/saving?])
         tournament (atom @saved-tournament)
         set-name #(swap! tournament assoc :name %)
         set-date (fn [_ date]
                    (swap! tournament assoc :date (to-local-date date)))
         set-format (fn [_ _ format]
                      (swap! tournament assoc :format (keyword format)))
-        save-tournament #(dispatch [::events/save-decklist-organizer-tournament
+        save-tournament #(dispatch [::events/save-tournament
                                     (select-keys @tournament [:id :name :format :date :deadline])])
         selected-decklists (atom [])
         on-select (fn [selection]
@@ -141,7 +141,7 @@
                                                    "all" (:decklist @tournament)
                                                    "none" []
                                                    (map (:decklist @tournament) selection)))))
-        load-selected-decklists #(dispatch [::events/load-organizer-tournament-decklists
+        load-selected-decklists #(dispatch [::events/load-decklists
                                             (map :id @selected-decklists)])]
     (fn tournament-render [id]
       (when (and (nil? @tournament)
@@ -266,13 +266,13 @@
 
 (defn view-decklist []
   (let [decklist (subscribe [::subs/decklist])
-        tournament (subscribe [::subs/decklist-organizer-tournament])]
+        tournament (subscribe [::subs/organizer-tournament])]
     (fn view-decklist-render []
       [render-decklist @decklist @tournament])))
 
 (defn view-decklists []
   (let [decklists (subscribe [::subs/decklists])
-        tournament (subscribe [::subs/decklist-organizer-tournament])
+        tournament (subscribe [::subs/organizer-tournament])
         print-page #(when (and (seq @decklists)
                                @tournament)
                       (.print js/window))]

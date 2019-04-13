@@ -1,7 +1,7 @@
 (ns mtg-pairings-server.pages.organizer
   (:require [re-frame.core :refer [subscribe]]
             [mtg-pairings-server.components.organizer :refer [menu pairings seatings pods standings clock]]
-            [mtg-pairings-server.subscriptions :as subs]))
+            [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (defn organizer-page []
   (let [organizer-mode (subscribe [::subs/organizer-mode])

@@ -8,8 +8,9 @@
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.components.tooltip :refer [tooltip]]
-            [mtg-pairings-server.events :as events]
-            [mtg-pairings-server.subscriptions :as subs]
+            [mtg-pairings-server.events.decklist :as events]
+            [mtg-pairings-server.subscriptions.common :as common-subs]
+            [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
             [mtg-pairings-server.util.material-ui :refer [get-theme text-field]]
@@ -20,11 +21,11 @@
               "Snow-Covered Mountain" "Snow-Covered Forest"})
 
 (defn input []
-  (let [tournament (subscribe [::subs/decklist-tournament])
-        on-change #(dispatch [::events/decklist-add-card %])
+  (let [tournament (subscribe [::subs/tournament])
+        on-change #(dispatch [::events/add-card %])
         suggestions (atom [])
         fetch-suggestions (debounce (fn [prefix]
-                                      (dispatch [::events/decklist-card-suggestions
+                                      (dispatch [::events/card-suggestions
                                                  prefix
                                                  (:format @tournament)
                                                  #(reset! suggestions %)]))
@@ -88,8 +89,8 @@
 
 (defn decklist-table-row [board card error]
   (let [on-change (fn [_ _ quantity]
-                    (dispatch [::events/decklist-set-quantity board (:name card) quantity]))
-        on-delete #(dispatch [::events/decklist-remove-card board (:name card)])]
+                    (dispatch [::events/set-quantity board (:name card) quantity]))
+        on-delete #(dispatch [::events/remove-card board (:name card)])]
     (fn decklist-table-row-render [_ {:keys [name quantity]} error]
       [ui/table-row
        [ui/table-row-column {:class-name :quantity
@@ -159,11 +160,11 @@
              [decklist-table-row board card (or error (get error-cards name))])]]]))))
 
 (defn player-info [decklist]
-  (let [set-first-name #(dispatch [::events/decklist-update-player-info :first-name %])
-        set-last-name #(dispatch [::events/decklist-update-player-info :last-name %])
-        set-deck-name #(dispatch [::events/decklist-update-player-info :deck-name %])
-        set-email #(dispatch [::events/decklist-update-player-info :email %])
-        set-dci #(dispatch [::events/decklist-update-player-info :dci %])]
+  (let [set-first-name #(dispatch [::events/update-player-info :first-name %])
+        set-last-name #(dispatch [::events/update-player-info :last-name %])
+        set-deck-name #(dispatch [::events/update-player-info :deck-name %])
+        set-email #(dispatch [::events/update-player-info :email %])
+        set-dci #(dispatch [::events/update-player-info :dci %])]
     (fn player-info-render [_]
       [:div#player-info
        [:div.full-width
@@ -207,7 +208,7 @@
                      :style               {:vertical-align :top}}]]])))
 
 (defn decklist-import []
-  (let [mobile? (subscribe [::subs/mobile?])
+  (let [mobile? (subscribe [::common-subs/mobile?])
         selected (atom nil)
         on-active (fn [tab]
                     (let [value (oget tab "props" "value")]
@@ -216,11 +217,11 @@
                                          value))))
         address (atom "")
         address-on-change #(reset! address %)
-        import-from-address #(dispatch [::events/load-decklist-from-address @address])
+        import-from-address #(dispatch [::events/import-address @address])
         decklist (atom "")
         decklist-on-change #(reset! decklist %)
         import-decklist (fn []
-                          (dispatch [::events/load-text-decklist @decklist])
+                          (dispatch [::events/import-text @decklist])
                           (reset! selected nil))]
 
     (fn decklist-import-render []
@@ -280,16 +281,16 @@
 
 (defn decklist-submit []
   (let [decklist (subscribe [::subs/decklist])
-        select-main #(dispatch [::events/decklist-select-board :main])
-        select-side #(dispatch [::events/decklist-select-board :side])
+        select-main #(dispatch [::events/select-board :main])
+        select-side #(dispatch [::events/select-board :side])
         button-style {:position  :relative
                       :top       "-5px"
                       :width     "70px"
                       :min-width "70px"}
-        tournament (subscribe [::subs/decklist-tournament])
-        saving? (subscribe [::subs/decklist-saving?])
-        saved? (subscribe [::subs/decklist-saved?])
-        page (subscribe [::subs/page])
+        tournament (subscribe [::subs/tournament])
+        saving? (subscribe [::subs/saving?])
+        saved? (subscribe [::subs/saved?])
+        page (subscribe [::common-subs/page])
         save-decklist #(dispatch [::events/save-decklist (:id @tournament) @decklist])]
     (fn decklist-submit-render []
       (let [errors (decklist-errors @decklist)]
@@ -329,6 +330,15 @@
          [decklist-import]
          [:h3 "Pelaajan tiedot"]
          [player-info decklist]
+         (when @saved?
+           (let [url (str "https://pairings.fi/decklist/" (:id @page))]
+             [:div.success-notice
+              [:h4 "Tallennus onnistui!"]
+              [:p
+               "Pakkalistasi tallennus onnistui. Pääset muokkaamaan pakkalistaasi osoitteessa "
+               [:a {:href url}
+                url]
+               ". Jos annoit sähköpostiosoitteesi, pakkalistasi sekä sama osoite lähetettiin sinulle myös sähköpostitse. "]]))
          [ui/raised-button
           {:label    "Tallenna"
            :on-click save-decklist
@@ -340,13 +350,4 @@
             {:size  36
              :style {:margin         "24px 0 0 24px"
                      :vertical-align :top}}])
-         [error-list errors]
-         (when @saved?
-           (let [url (str "https://pairings.fi/decklist/" (:id @page))]
-             [:div.success-notice
-              [:h4 "Tallennus onnistui!"]
-              [:p
-               "Pakkalistasi tallennus onnistui. Pääset muokkaamaan pakkalistaasi osoitteessa "
-               [:a {:href url}
-                url]
-               ". Jos annoit sähköpostiosoitteesi, pakkalistasi sekä sama osoite lähetettiin sinulle myös sähköpostitse. "]]))]))))
+         [error-list errors]]))))
