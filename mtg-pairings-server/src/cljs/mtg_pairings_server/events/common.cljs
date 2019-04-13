@@ -10,21 +10,13 @@
   (let [[event data] ?data]
     (dispatch [event data])))
 
-(def channel-open? (atom false))
-
 (reg-fx :ws-send
   (fn ws-send
     [data]
     (let [[event timeout callback] (if (keyword? (first data))
                                      [data nil nil]
                                      data)]
-      (if @channel-open?
-        (ws/send! event timeout callback)
-        (let [k (gensym)]
-          (add-watch channel-open? k (fn [_ _ _ new-val]
-                                       (when new-val
-                                         (remove-watch channel-open? k)
-                                         (ws/send! event timeout callback)))))))))
+      (ws/send! event timeout callback))))
 
 (reg-event-db ::window-resized
   (fn [db _]
