@@ -1,16 +1,10 @@
 (ns mtg-pairings-server.events.decklist
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [oops.core :refer [oget]]
-            [mtg-pairings-server.events.common :as common-events]
+            [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :as util]
+            [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
-
-#_
-(defmethod ws/event-handler :chsk/state
-  [{:keys [?data]}]
-  (let [[_ new-state] ?data]
-    (when (:first-open? new-state)
-      (reset! common-events/channel-open? true))))
 
 (def empty-decklist {:main   []
                      :side   []
@@ -23,36 +17,17 @@
                               :deck-name  ""
                               :email      ""}})
 
-#_
 (defn initial-db []
-  (deep-merge {:tournaments        {}
-               :tournament-count   0
-               :tournaments-page   0
-               :tournament-ids     []
-               :tournament-filter  {:organizer ""
-                                    :date-from nil
-                                    :date-to   nil
-                                    :players   [0 100]}
-               :filters-active     false
-               :max-players        100
-               :player-tournaments []
-               :pairings           {:sort-key :table_number}
-               :pods               {:sort-key :pod}
-               :seatings           {:sort-key :table_number}
-               :page               {:page  :main
-                                    :id    nil
-                                    :round nil}
-               :logged-in-user     (local-storage/fetch :user)
-               :notification       nil
-               :mobile?            (mobile?)
-               :decklist-editor    {:organizer-tournaments []
-                                    :decklist empty-decklist}}
-              (transit/read (oget js/window "initial_db"))))
+  (util/deep-merge {:decklist-editor {:organizer-tournaments []
+                                      :decklist              empty-decklist}}
+                   (transit/read (oget js/window "initial_db"))))
 
-#_
 (reg-event-db ::initialize
   (fn [db _]
     (merge db (initial-db))))
+
+(defn connect! []
+  (ws/send! [:client/connect-decklist]))
 
 (reg-event-fx ::save-decklist
   (fn [{:keys [db]} [_ tournament decklist]]

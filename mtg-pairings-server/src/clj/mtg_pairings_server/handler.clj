@@ -159,10 +159,13 @@
   [{:keys [uid]}]
   (broadcast/disconnect uid))
 
-(defmethod ws/event-handler :client/connect
-  [{:keys [uid ring-req]}]
+(defmethod ws/event-handler :client/connect-pairings
+  [{:keys [uid]}]
   (log/debugf "New connection from %s" uid)
-  (ws/send! uid [:server/tournaments (tournament/client-tournaments)])
+  (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
+
+(defmethod ws/event-handler :client/connect-decklist
+  [{:keys [uid ring-req]}]
   (ws/send! uid [:server/organizer-login (get-in ring-req [:session :identity :username] false)]))
 
 (defmethod ws/event-handler :client/login

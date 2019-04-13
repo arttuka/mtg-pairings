@@ -3,24 +3,12 @@
             [cljs.core.async :refer [<! timeout] :refer-macros [go-loop]]
             [cljs-time.core :as time]
             [oops.core :refer [oget]]
-            [mtg-pairings-server.events.common :as common-events]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in
                                               index-where dissoc-index]]
             [mtg-pairings-server.util.local-storage :as local-storage]
             [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
-
-(def empty-decklist {:main   []
-                     :side   []
-                     :count  {:main 0
-                              :side 0}
-                     :board  :main
-                     :player {:dci        ""
-                              :first-name ""
-                              :last-name  ""
-                              :deck-name  ""
-                              :email      ""}})
 
 (defn initial-db []
   (deep-merge {:tournaments        {}
@@ -42,9 +30,7 @@
                                     :round nil}
                :logged-in-user     (local-storage/fetch :user)
                :notification       nil
-               :mobile?            (mobile?)
-               :decklist-editor    {:organizer-tournaments []
-                                    :decklist empty-decklist}}
+               :mobile?            (mobile?)}
               (transit/read (oget js/window "initial_db"))))
 
 (defn update-filters-active [db]
@@ -59,16 +45,9 @@
     (merge db (initial-db))))
 
 (defn connect! []
-  (ws/send! [:client/connect])
+  (ws/send! [:client/connect-pairings])
   (when-let [user (local-storage/fetch :user)]
     (ws/send! [:client/login (:dci user)])))
-
-(defmethod ws/event-handler :chsk/state
-  [{:keys [?data]}]
-  (let [[_ new-state] ?data]
-    (when (:first-open? new-state)
-      (reset! common-events/channel-open? true)
-      (connect!))))
 
 (reg-event-fx ::login
   (fn [_ [_ dci-number]]
