@@ -90,30 +90,29 @@
 
 (defn decklist-table-row [board card error]
   (let [on-change (fn [_ _ quantity]
-                    (dispatch [::events/set-quantity board (:name card) quantity]))
-        on-delete #(dispatch [::events/remove-card board (:name card)])]
+                    (dispatch [::events/set-quantity board (:id card) quantity]))
+        on-delete #(dispatch [::events/remove-card board (:id card)])]
     (fn decklist-table-row-render [_ {:keys [name quantity]} error]
       [ui/table-row
        [ui/table-row-column {:class-name :quantity
                              :style      {:padding "0 12px"}}
         (when quantity
-          [ui/select-field {:value           quantity
-                            :on-change       on-change
-                            :style           {:width          "48px"
-                                              :vertical-align :top}
-                            :menu-style      {:width "48px"}
-                            :icon-style      {:padding-left  0
-                                              :padding-right 0
-                                              :width         "24px"
-                                              :fill          "rgba(0, 0, 0, 0.54)"}
-                            :underline-style {:border-color "rgba(0, 0, 0, 0.24)"}}
-           (for [i (range 1 (if (basic? name)
-                              31
-                              5))]
-             ^{:key (str name "--quantity--" i)}
-             [ui/menu-item {:value           i
-                            :primary-text    i
-                            :inner-div-style {:padding "0 6px"}}])])]
+          (into [ui/select-field {:value           quantity
+                                  :on-change       on-change
+                                  :style           {:width          "48px"
+                                                    :vertical-align :top}
+                                  :menu-style      {:width "48px"}
+                                  :icon-style      {:padding-left  0
+                                                    :padding-right 0
+                                                    :width         "24px"
+                                                    :fill          "rgba(0, 0, 0, 0.54)"}
+                                  :underline-style {:border-color "rgba(0, 0, 0, 0.24)"}}]
+                (for [i (range 1 (if (basic? name)
+                                   31
+                                   5))]
+                  [ui/menu-item {:value           i
+                                 :primary-text    i
+                                 :inner-div-style {:padding "0 6px"}}])))]
        [ui/table-row-column {:class-name :card
                              :style      {:font-size "14px"}}
         name]
@@ -156,8 +155,8 @@
             [ui/table-header-column {:class-name :actions}]
             [ui/table-header-column {:class-name :error}]]]
           [ui/table-body
-           (for [{:keys [name error] :as card} (get @decklist board)]
-             ^{:key (str name "--" board "--tr")}
+           (for [{:keys [id name error] :as card} (get @decklist board)]
+             ^{:key (str id "--tr")}
              [decklist-table-row board card (or error (get error-cards name))])]]]))))
 
 (defn player-info [decklist]

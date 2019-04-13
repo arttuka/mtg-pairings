@@ -4,6 +4,7 @@
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :as util]
+            [mtg-pairings-server.util.decklist :refer [add-id-to-card add-id-to-cards]]
             [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
 
@@ -76,7 +77,8 @@
 
 (reg-event-db :server/decklist
   (fn [db [_ decklist]]
-    (assoc-in db [:decklist-editor :decklist] (merge empty-decklist decklist))))
+    (assoc-in db [:decklist-editor :decklist] (-> (merge empty-decklist decklist)
+                                                  (add-id-to-cards)))))
 
 (reg-event-db :server/decklists
   (fn [db [_ decklists]]
@@ -101,35 +103,35 @@
   (if (some #(= name (:name %)) (get decklist board))
     decklist
     (-> decklist
-        (update board conj {:name name, :quantity 1})
+        (update board conj (add-id-to-card {:name name, :quantity 1}))
         (update-in [:count board] inc))))
 
 (reg-event-db ::add-card
   (fn [db [_ name]]
     (update-in db [:decklist-editor :decklist] add-card name)))
 
-(defn ^:private set-quantity [decklist board name quantity]
-  (let [index (util/index-where #(= name (:name %)) (get decklist board))
+(defn ^:private set-quantity [decklist board id quantity]
+  (let [index (util/index-where #(= id (:id %)) (get decklist board))
         orig-quantity (get-in decklist [board index :quantity])]
     (-> decklist
         (assoc-in [board index :quantity] quantity)
         (update-in [:count board] + (- quantity orig-quantity)))))
 
 (reg-event-db ::set-quantity
-  (fn [db [_ board name quantity]]
-    (update-in db [:decklist-editor :decklist] set-quantity board name quantity)))
+  (fn [db [_ board id quantity]]
+    (update-in db [:decklist-editor :decklist] set-quantity board id quantity)))
 
-(defn ^:private remove-card [decklist board name]
+(defn ^:private remove-card [decklist board id]
   (let [cards (get decklist board)
-        index (util/index-where #(= name (:name %)) cards)
+        index (util/index-where #(= id (:id %)) cards)
         n (get-in decklist [board index :quantity])]
     (-> decklist
         (assoc board (util/dissoc-index cards index))
         (update-in [:count board] - n))))
 
 (reg-event-db ::remove-card
-  (fn [db [_ board name]]
-    (update-in db [:decklist-editor :decklist] remove-card board name)))
+  (fn [db [_ board id]]
+    (update-in db [:decklist-editor :decklist] remove-card board id)))
 
 (reg-event-db ::select-board
   (fn [db [_ board]]

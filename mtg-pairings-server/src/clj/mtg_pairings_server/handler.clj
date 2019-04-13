@@ -15,6 +15,7 @@
             [mtg-pairings-server.service.decklist :as decklist]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.transit :as transit]
+            [mtg-pairings-server.util.decklist :refer [add-id-to-card add-id-to-cards]]
             [mtg-pairings-server.websocket :as ws]))
 
 (defn escape-quotes [s]
@@ -127,7 +128,7 @@
                                      {:organizer-tournament tournament})}))))
     (GET "/decklist/:id" []
       :path-params [id :- s/Str]
-      (let [decklist (decklist/get-decklist id)]
+      (let [decklist (add-id-to-cards "server-card__" (decklist/get-decklist id))]
         (index {:page            {:page :decklist-submit, :id id}
                 :decklist-editor {:tournament (decklist/get-tournament (:tournament decklist))
                                   :decklist   decklist}})))))
