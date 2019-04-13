@@ -213,17 +213,15 @@
 (defn render-decklist [decklist tournament]
   (let [{:keys [player main side id], counts :count} decklist
         {:keys [last-name first-name dci deck-name]} player
+        [l1 l2 l3] last-name
         dci (vec dci)
         {tournament-id :id, tournament-name :name, date :date} tournament]
     [:div.organizer-decklist
      [:div.first-letters
       [:div.label "Alkukirjaimet"]
-      [:div.letter
-       (nth last-name 0)]
-      [:div.letter
-       (nth last-name 1)]
-      [:div.letter
-       (nth last-name 2)]]
+      [:div.letter l1]
+      [:div.letter l2]
+      [:div.letter l3]]
      [:div.deck-info
       [:div.tournament-date
        [:div.label "Päivä:"]
