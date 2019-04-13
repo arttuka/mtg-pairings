@@ -18,8 +18,8 @@
       (wrap-authorization auth-backend)
       (wrap-authentication auth-backend)))
 
-(defn ^:private ->hex [#^bytes bytes]
-  (.toString (BigInteger. 1 bytes) 16))
+(defn ^:private ->hex [bytes]
+  (apply str (for [b bytes] (format "%02x" b))))
 
 (defn ^:private authenticate [username password]
   (when-let [user (sql-util/select-unique-or-nil db/smf-user
