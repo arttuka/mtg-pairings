@@ -29,14 +29,19 @@
       [:&.right
        {:margin-left (px 24)}]]]
     [:.decklist-import
+     {:margin "12px 0"}
      [:.info :.form
       {:display :inline-block
-       :width (percent 50)}]])
+       :width   (percent 50)
+       :padding (px 12)}]])
    (when-mobile
     [:#player-info
      [:.full-width :.half-width
       {:width   "100%"
-       :display :block}]])
+       :display :block}]]
+    [:.decklist-import
+     [:.form
+      {:padding-bottom (px 12)}]])
    [:.intro
     [:.tournament-date :.tournament-name :.tournament-format
      {:font-weight :bold}]]
@@ -49,11 +54,7 @@
      [:th.actions :td.actions
       {:width (px 48)}]
      [:th.error :td.error
-      {:width (px 48)}]]]
-   [:.decklist-import
-    {:margin "12px 0"}
-    [:.info :.form
-     {:padding (px 12)}]]])
+      {:width (px 48)}]]]])
 
 (def grey-border {:style :solid
                   :width (px 1)

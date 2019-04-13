@@ -15,7 +15,7 @@
     (rgb? c) (rgb->hex c)))
 
 (def color {:light-blue           (hex->rgb "d0e9fc")
-            :light-grey           (hex->rgb "e6e6e6")
+            :light-grey           (hex->rgb "e0e0e0")
             :grey                 (hex->rgb "999999")
             :dark-grey            (hex->rgb "333333")
             :light-green          (hex->rgb "ccffcc")
@@ -32,7 +32,8 @@
             :secondary-text-color (rgba 0 0 0 0.54)
             :alternate-text-color (hex->rgb "ffffff")})
 
-(def palette (into {} (for [key [:primary1-color :primary2-color :primary3-color :accent1-color
-                                 :accent2-color :accent3-color :error-color :picker-header-color
-                                 :text-color :secondary-text-color :alternate-text-color]]
-                        [key (->str (color key))])))
+(def palette (into {} (for [[k c] color]
+                        [k (->str c)])))
+
+(defn border [width style color]
+  (str width " " (name style) " " color))

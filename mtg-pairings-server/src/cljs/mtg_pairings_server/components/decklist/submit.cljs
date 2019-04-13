@@ -9,6 +9,7 @@
             [mtg-pairings-server.components.tooltip :refer [tooltip]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
+            [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where get-host]]
@@ -23,6 +24,7 @@
 
 (defn input []
   (let [tournament (subscribe [::subs/tournament])
+        mobile? (subscribe [::common-subs/mobile?])
         on-change #(dispatch [::events/add-card %])
         suggestions (atom [])
         fetch-suggestions (debounce (fn [prefix]
@@ -33,12 +35,17 @@
                                     250)
         clear-suggestions #(reset! suggestions [])]
     (fn input-render [_ _]
-      [autosuggest {:suggestions                    suggestions
-                    :on-change                      on-change
-                    :on-suggestions-fetch-requested fetch-suggestions
-                    :on-suggestions-clear-requested clear-suggestions
-                    :id                             :decklist-autosuggest
-                    :floating-label-text            "Lisää kortti..."}])))
+      (let [width (if @mobile?
+                    "calc(100vw - 140px)"
+                    256)]
+        [autosuggest {:suggestions                    suggestions
+                      :on-change                      on-change
+                      :on-suggestions-fetch-requested fetch-suggestions
+                      :on-suggestions-clear-requested clear-suggestions
+                      :id                             :decklist-autosuggest
+                      :floating-label-text            "Lisää kortti..."
+                      :styles                         {:container {:width width}
+                                                       :input     {:width width}}}]))))
 
 (defn valid-player-data? [{:keys [first-name last-name dci]}]
   (and (valid-dci? dci)
@@ -89,7 +96,8 @@
       icon)))
 
 (defn decklist-table-row [board card error]
-  (let [on-change (fn [_ _ quantity]
+  (let [mobile? (subscribe [::common-subs/mobile?])
+        on-change (fn [_ _ quantity]
                     (dispatch [::events/set-quantity board (:id card) quantity]))
         on-delete #(dispatch [::events/remove-card board (:id card)])]
     (fn decklist-table-row-render [_ {:keys [name quantity]} error]
@@ -114,10 +122,11 @@
                                  :primary-text    i
                                  :inner-div-style {:padding "0 6px"}}])))]
        [ui/table-row-column {:class-name :card
-                             :style      {:font-size "14px"}}
+                             :style      {:font-size "16px"
+                                          :padding-left (if @mobile? 0 "24px")}}
         name]
        [ui/table-row-column {:class-name :actions
-                             :style      {:font-size "14px"
+                             :style      {:font-size "16px"
                                           :padding   0}}
         [ui/icon-button {:on-click on-delete}
          [icons/content-remove-circle-outline]]]
@@ -128,7 +137,8 @@
           [error-icon error])]])))
 
 (defn decklist-table [decklist board]
-  (let [header-style {:color       :black
+  (let [mobile? (subscribe [::common-subs/mobile?])
+        header-style {:color       :black
                       :font-weight :bold
                       :font-size   "16px"
                       :height      "36px"}]
@@ -150,7 +160,9 @@
                                                         {:padding "0 12px"})}
              "Määrä"]
             [ui/table-header-column {:class-name :card
-                                     :style      header-style}
+                                     :style      (merge header-style
+                                                        (when @mobile?
+                                                          {:padding-left 0}))}
              "Kortti"]
             [ui/table-header-column {:class-name :actions}]
             [ui/table-header-column {:class-name :error}]]]
@@ -225,11 +237,16 @@
         decklist-on-change #(reset! decklist %)
         import-decklist (fn []
                           (dispatch [::events/import-text @decklist])
-                          (reset! selected nil))]
+                          (reset! selected nil))
+        border (styles/border "1px" :solid (styles/palette :light-grey))]
 
     (fn decklist-import-render []
       [:div.decklist-import
-       [ui/tabs {:value @selected}
+       [ui/tabs {:value                   @selected
+                 :content-container-style (when @selected
+                                            {:border-bottom border
+                                             :border-left   (when-not @mobile? border)
+                                             :border-right  (when-not @mobile? border)})}
         [ui/tab {:label     "Lataa aiempi lista"
                  :value     "load-previous"
                  :on-active on-active
@@ -239,17 +256,17 @@
            "Lataa aiempi lista"]
           [:p
            "Lataa aiemmin syötetty pakkalista antamalla sen osoite (esim. "
-           [:span.address "https://pairings.fi/decklist/abcd..."]
+           [:span.address "https://decklist.pairings.fi/abcd..."]
            ")."]]
          [:div.form
           [text-field {:on-change           address-on-change
                        :floating-label-text "Osoite"
-                       :full-width          (not @mobile?)}]
+                       :full-width          true}]
           [:br]
           [ui/raised-button {:label    "Lataa"
                              :disabled (str/blank? @address)
                              :on-click import-from-address}]]]
-        [ui/tab {:label     "Lataa tekstimuotoinen lista"
+        [ui/tab {:label     "Lataa tekstilista"
                  :value     "load-text"
                  :on-active on-active
                  :style     {:color :black}}
@@ -268,7 +285,7 @@
                        :rows           7
                        :rows-max       7
                        :textarea-style {:background-color "rgba(0, 0, 0, 0.05)"}
-                       :full-width     (not @mobile?)}]
+                       :full-width     true}]
           [:br]
           [ui/raised-button {:label    "Lataa"
                              :disabled (str/blank? @decklist)

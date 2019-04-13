@@ -3,7 +3,8 @@
             [cljsjs.material-ui]
             [cljs-react-material-ui.reagent :as ui]
             [cljsjs.react-autosuggest]
-            [oops.core :refer [oget]]))
+            [oops.core :refer [oget]]
+            [mtg-pairings-server.util :refer [deep-merge]]))
 
 (defn ^:private suggestion [suggestion opts]
   (reagent/as-element
@@ -60,4 +61,4 @@
                             :render-suggestion              suggestion
                             :render-input-component         input
                             :input-props                    input-props
-                            :theme                          (merge default-styles styles)}]))))
+                            :theme                          (deep-merge default-styles styles)}]))))
