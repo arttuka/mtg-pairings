@@ -6,17 +6,21 @@ RUN apk --no-cache add curl bash \
 WORKDIR /app
 COPY project.clj .
 RUN lein deps
-COPY ./scripts ./scripts
 COPY ./src ./src
 COPY ./env ./env
+COPY ./dev-resources ./dev-resources
 COPY ./resources ./resources
 COPY ./test ./test
 COPY ./test-resources ./test-resources
 COPY decklist.cljs.edn pairings.cljs.edn ./
 RUN lein test \
-    && lein with-profile provided,prod do clean, garden once, minify-assets, fig:min pairings, fig:min decklist \
-    && ./scripts/tag-assets.sh \
-    && lein uberjar
+    && lein with-profile provided,prod do \
+         clean, \
+         garden once, \
+         minify-assets, \
+         fig:min pairings, \
+         fig:min decklist, \
+         uberjar
 
 FROM adoptopenjdk/openjdk12-openj9:alpine-jre
 WORKDIR /app

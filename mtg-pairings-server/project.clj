@@ -26,11 +26,15 @@
   :plugins [[lein-asset-minifier "0.4.6"]
             [lein-cljfmt "0.6.4"]
             [lein-ancient "0.6.15"]
-            [lein-garden "0.3.0" :exclusions [org.apache.commons/commons-compress]]]
+            [lein-garden "0.3.0" :exclusions [org.apache.commons/commons-compress]]
+            [no.terjedahl/lein-buster "0.2.0"]]
 
   :uberjar-name "mtg-pairings.jar"
 
-  :clean-targets ^{:protect false} ["target"]
+  :clean-targets ^{:protect false} ["target"
+                                    "resources/public/js"
+                                    "resources/public/css"
+                                    "resources/manifest.json"]
 
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
   :resource-paths ["resources"]
@@ -43,8 +47,15 @@
                                     :pretty-print? true}}]}
 
   :minify-assets [[:css {:source ["target/public/css/main.css"
-                                  "resources/public/css/slider.css"]
+                                  "resources/private/slider.css"]
                          :target "target/public/css/main.min.css"}]]
+
+  :buster {:files       ["target/public/js/pairings-main.js"
+                         "target/public/js/decklist-main.js"
+                         "target/public/css/main.min.css"]
+           :files-base  "target/public"
+           :output-base "resources/public"
+           :manifest    "resources/manifest.json"}
 
   :aliases {"fig"     ["trampoline" "run" "-m" "figwheel.main"]
             "fig:min" ["run" "-m" "figwheel.main" "-bo"]}
@@ -72,7 +83,7 @@
   :profiles {:dev      {:repl-options   {:init-ns          mtg-pairings-server.repl
                                          :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
                         :source-paths   ["dev" "env/dev/clj" "env/dev/cljs"]
-                        :resource-paths ["target"]
+                        :resource-paths ["dev-resources" "target"]
                         :test-paths     ["test/clj"]
                         :dependencies   [[org.clojure/tools.namespace "0.2.11"]
                                          [binaryage/devtools "0.9.10"]
@@ -108,5 +119,5 @@
              :uberjar  {:source-paths       ["env/prod/cljs"]
                         :main               mtg-pairings-server.main
                         :aot                :all
-                        :uberjar-exclusions [#"public/css/slider.css"]
-                        :omit-source        true}})
+                        :omit-source        true
+                        :auto-clean         false}})

@@ -1,8 +1,10 @@
 (ns mtg-pairings-server.handler
   (:require [compojure.api.sweet :refer :all]
             [compojure.route :refer [not-found resources]]
+            [clojure.java.io :as io]
             [clojure.string :as str]
             [config.core :refer [env]]
+            [cheshire.core :as json]
             [hiccup.page :refer [include-js include-css html5]]
             [schema.core :as s]
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
@@ -22,6 +24,10 @@
 (defn escape-quotes [s]
   (str/escape s {\' "\\'"}))
 
+(def asset-manifest (delay (some-> (io/resource "manifest.json")
+                                   (io/reader)
+                                   (json/parse-stream))))
+
 (defn index
   ([js-file]
    (index js-file {}))
@@ -35,7 +41,7 @@
                         :content "width=device-width, initial-scale=1"}]
                 (include-css (if (env :dev)
                                "/css/main.css"
-                               (env :main-css)))
+                               (str \/ (@asset-manifest "css/main.min.css"))))
                 (when (env :dev)
                   (include-css "/css/slider.css"))]
                [:body {:class "body-container"}
@@ -44,13 +50,13 @@
                               "var initial_db = '" (escape-quotes (transit/write initial-db)) "'; ")]
                 (include-js (if (env :dev)
                               "/js/dev-main.js"
-                              (env js-file)))])]
+                              (str \/ (@asset-manifest js-file))))])]
      {:status  200
       :body    html
       :headers {"Content-Type"  "text/html"
                 "Cache-Control" "no-cache"}})))
 
-(let [index (partial index :pairings-js)]
+(let [index (partial index "js/pairings-main.js")]
   (defroutes pairings-routes
     (GET "/" []
       (index))
@@ -88,9 +94,9 @@
       (index {:page        {:page :bracket, :id id}
               :tournaments {id (tournament/client-tournament id)}
               :bracket     {id (tournament/bracket id)}}))
-    (GET "/tournaments/:id/organizer" [] (index :pairings-js))
-    (GET "/tournaments/:id/organizer/menu" [] (index :pairings-js))
-    (GET "/tournaments/:id/organizer/deck-construction" [] (index :pairings-js))))
+    (GET "/tournaments/:id/organizer" [] (index))
+    (GET "/tournaments/:id/organizer/menu" [] (index))
+    (GET "/tournaments/:id/organizer/deck-construction" [] (index))))
 
 (defmacro validate-request [user-id tournament & body]
   `(if (and ~user-id (not= ~user-id (:user ~tournament)))
@@ -98,7 +104,7 @@
       :body   "403 Forbidden"}
      (do ~@body)))
 
-(let [index (partial index :decklist-js)]
+(let [index (partial index "js/decklist-main.js")]
   (defroutes decklist-routes
     (GET "/decklist" []
       (redirect (auth/organizer-path)))

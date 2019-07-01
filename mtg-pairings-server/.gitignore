@@ -18,5 +18,5 @@ pom.xml.asc
 .classpath
 .DS_Store
 /resources/public/js
-/resources/public/css/main.css
-/resources/public/css/main.min.css
+/resources/public/css
+/resources/manifest.json
