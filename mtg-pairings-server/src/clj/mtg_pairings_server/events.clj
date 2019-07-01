@@ -131,10 +131,10 @@
 
 (defmethod ws/event-handler :client/load-decklists
   [{uid :uid, ids :?data}]
-  (ws/send! uid [:server/decklists (->> (map decklist/get-decklist ids)
-                                        (sort-by (fn [d]
-                                                   [(get-in d [:player :last-name])
-                                                    (get-in d [:player :first-name])])))]))
+  (ws/send! uid [:server/decklists (sort-by (fn [d]
+                                              [(get-in d [:player :last-name])
+                                               (get-in d [:player :first-name])])
+                                            (map decklist/get-decklist ids))]))
 
 (defmethod ws/event-handler :client/load-decklist-with-id
   [{uid :uid, id :?data}]

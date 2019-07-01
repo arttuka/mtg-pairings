@@ -12,18 +12,19 @@
             [mtg-pairings-server.routes.pairings :refer [tournaments-path standings-path]]
             [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.subscriptions.pairings :as subs]
-            [mtg-pairings-server.util :refer [format-date indexed]]))
+            [mtg-pairings-server.util :refer [format-date indexed]]
+            [mtg-pairings-server.util.mtg :refer [bye?]]))
 
 (defn pairing [data pairing?]
-  (let [bye? (= (:table_number data) 0)]
+  (let [bye (bye? data)]
     [ui/list-item
      {:class                :mui-pairing
       :left-avatar          (reagent/as-element [ui/avatar
-                                                 {:background-color (if bye?
+                                                 {:background-color (if bye
                                                                       (:accent3-color styles/palette)
                                                                       (:primary1-color styles/palette))
                                                   :color            (:text-color styles/palette)}
-                                                 (when-not bye?
+                                                 (when-not bye
                                                    (or (:table_number data) (:pod data)))])
       :primary-text         (if pairing?
                               (str "Kierros " (:round_number data))
@@ -38,10 +39,10 @@
                                   (str (:team1_name data) " (" (:team1_points data) ")")]
                                  [:span.hidden-mobile " - "]
                                  [:br.hidden-desktop]
-                                 [:span (if bye?
+                                 [:span (if bye
                                           (:team2_name data)
                                           (str (:team2_name data) " (" (:team2_points data) ")"))]]
-                                (when-not bye?
+                                (when-not bye
                                   [:span.points
                                    [:span (:team1_wins data)]
                                    [:span.hidden-mobile " - "]

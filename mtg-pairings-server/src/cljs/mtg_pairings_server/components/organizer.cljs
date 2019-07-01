@@ -9,7 +9,7 @@
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [cls indexed]]
-            [mtg-pairings-server.util.mtg :refer [duplicate-pairings]]
+            [mtg-pairings-server.util.mtg :refer [bye? duplicate-pairings]]
             [mtg-pairings-server.components.tournament :refer [standing-table]]))
 
 (defn round-select [type a rounds]
@@ -101,11 +101,11 @@
          :disabled  (not @clock-running)}]])))
 
 (defn pairing [data]
-  (let [bye? (= (:table_number data) 0)]
-    [:div.row.pairing.no-round {:class (when bye? :bye)}
-     [:span.table-number (when-not bye? (or (:table_number data) (:pod data)))]
+  (let [bye (bye? data)]
+    [:div.row.pairing.no-round {:class (when bye :bye)}
+     [:span.table-number (when-not bye (or (:table_number data) (:pod data)))]
      [:span.player (:team1_name data) [:span.points (:team1_points data)]]
-     [:span.player.opponent (:team2_name data) [:span.points (when-not bye? (:team2_points data))]]]))
+     [:span.player.opponent (:team2_name data) [:span.points (when-not bye (:team2_points data))]]]))
 
 (defn pairings []
   (let [pairings (subscribe [::subs/organizer :pairings])

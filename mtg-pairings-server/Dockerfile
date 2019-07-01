@@ -13,13 +13,18 @@ COPY ./resources ./resources
 COPY ./test ./test
 COPY ./test-resources ./test-resources
 COPY decklist.cljs.edn pairings.cljs.edn ./
-RUN lein test \
+RUN lein do \
+         test, \
+         kibit, \
+         eastwood, \
+         cljfmt check \
     && lein with-profile provided,prod do \
          clean, \
          garden once, \
          minify-assets, \
          fig:min pairings, \
          fig:min decklist, \
+         buster, \
          uberjar
 
 FROM adoptopenjdk/openjdk12-openj9:alpine-jre

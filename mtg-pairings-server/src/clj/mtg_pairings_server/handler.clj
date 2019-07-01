@@ -56,47 +56,47 @@
       :headers {"Content-Type"  "text/html"
                 "Cache-Control" "no-cache"}})))
 
-(let [index (partial index "js/pairings-main.js")]
+(let [pairings-index (partial index "js/pairings-main.js")]
   (defroutes pairings-routes
     (GET "/" []
-      (index))
+      (pairings-index))
     (GET "/tournaments" []
-      (index {:page {:page :tournaments}}))
+      (pairings-index {:page {:page :tournaments}}))
     (GET "/tournaments/:id" []
       :path-params [id :- s/Int]
-      (index {:page        {:page :tournament, :id id}
-              :tournaments {id (tournament/client-tournament id)}}))
+      (pairings-index {:page        {:page :tournament, :id id}
+                       :tournaments {id (tournament/client-tournament id)}}))
     (GET "/tournaments/:id/pairings-:round" []
       :path-params [id :- s/Int
                     round :- s/Int]
-      (index {:page        {:page :pairings, :id id, :round round}
-              :tournaments {id (tournament/client-tournament id)}
-              :pairings    {id {round (tournament/get-round id round)}}}))
+      (pairings-index {:page        {:page :pairings, :id id, :round round}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :pairings    {id {round (tournament/get-round id round)}}}))
     (GET "/tournaments/:id/standings-:round" []
       :path-params [id :- s/Int
                     round :- s/Int]
-      (index {:page        {:page :standings, :id id, :round round}
-              :tournaments {id (tournament/client-tournament id)}
-              :standings   {id {round (tournament/standings id round false)}}}))
+      (pairings-index {:page        {:page :standings, :id id, :round round}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :standings   {id {round (tournament/standings id round false)}}}))
     (GET "/tournaments/:id/pods-:round" []
       :path-params [id :- s/Int
                     round :- s/Int]
-      (index {:page        {:page :pods, :id id, :round round}
-              :tournaments {id (tournament/client-tournament id)}
-              :pods        {id {round (tournament/pods id round)}}}))
+      (pairings-index {:page        {:page :pods, :id id, :round round}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :pods        {id {round (tournament/pods id round)}}}))
     (GET "/tournaments/:id/seatings" []
       :path-params [id :- s/Int]
-      (index {:page        {:page :seatings, :id id}
-              :tournaments {id (tournament/client-tournament id)}
-              :seatings    {id (tournament/seatings id)}}))
+      (pairings-index {:page        {:page :seatings, :id id}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :seatings    {id (tournament/seatings id)}}))
     (GET "/tournaments/:id/bracket" []
       :path-params [id :- s/Int]
-      (index {:page        {:page :bracket, :id id}
-              :tournaments {id (tournament/client-tournament id)}
-              :bracket     {id (tournament/bracket id)}}))
-    (GET "/tournaments/:id/organizer" [] (index))
-    (GET "/tournaments/:id/organizer/menu" [] (index))
-    (GET "/tournaments/:id/organizer/deck-construction" [] (index))))
+      (pairings-index {:page        {:page :bracket, :id id}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :bracket     {id (tournament/bracket id)}}))
+    (GET "/tournaments/:id/organizer" [] (pairings-index))
+    (GET "/tournaments/:id/organizer/menu" [] (pairings-index))
+    (GET "/tournaments/:id/organizer/deck-construction" [] (pairings-index))))
 
 (defmacro validate-request [user-id tournament & body]
   `(if (and ~user-id (not= ~user-id (:user ~tournament)))
@@ -104,43 +104,43 @@
       :body   "403 Forbidden"}
      (do ~@body)))
 
-(let [index (partial index "js/decklist-main.js")]
+(let [decklist-index (partial index "js/decklist-main.js")]
   (defroutes decklist-routes
     (GET "/decklist" []
       (redirect (auth/organizer-path)))
     (GET "/decklist/tournament/:id" []
       :path-params [id :- s/Str]
-      (index {:page            {:page :decklist-submit}
-              :decklist-editor {:tournament (decklist/get-tournament id)}}))
+      (decklist-index {:page            {:page :decklist-submit}
+                       :decklist-editor {:tournament (decklist/get-tournament id)}}))
     (GET "/decklist/organizer" request
-      (index {:page            {:page :decklist-organizer}
-              :decklist-editor {:organizer-tournaments (decklist/get-organizer-tournaments (get-in request [:session :identity :id]))}}))
+      (decklist-index {:page            {:page :decklist-organizer}
+                       :decklist-editor {:organizer-tournaments (decklist/get-organizer-tournaments (get-in request [:session :identity :id]))}}))
     (GET "/decklist/organizer/new" []
-      (index {:page {:page :decklist-organizer-tournament}}))
+      (decklist-index {:page {:page :decklist-organizer-tournament}}))
     (GET "/decklist/organizer/view/:id" request
       :path-params [id :- s/Str]
       (let [decklist (decklist/get-decklist id)
             tournament (decklist/get-organizer-tournament (:tournament decklist))
             user-id (get-in request [:session :identity :id])]
         (validate-request user-id tournament
-          (index {:page            {:page :decklist-organizer-view, :id id}
-                  :decklist-editor (when user-id
-                                     {:decklist             decklist
-                                      :organizer-tournament tournament})}))))
+          (decklist-index {:page            {:page :decklist-organizer-view, :id id}
+                           :decklist-editor (when user-id
+                                              {:decklist             decklist
+                                               :organizer-tournament tournament})}))))
     (GET "/decklist/organizer/:id" request
       :path-params [id :- s/Str]
       (let [tournament (decklist/get-organizer-tournament id)
             user-id (get-in request [:session :identity :id])]
         (validate-request user-id tournament
-          (index {:page            {:page :decklist-organizer-tournament, :id id}
-                  :decklist-editor (when user-id
-                                     {:organizer-tournament tournament})}))))
+          (decklist-index {:page            {:page :decklist-organizer-tournament, :id id}
+                           :decklist-editor (when user-id
+                                              {:organizer-tournament tournament})}))))
     (GET "/decklist/:id" []
       :path-params [id :- s/Str]
       (let [decklist (add-id-to-cards "server-card__" (decklist/get-decklist id))]
-        (index {:page            {:page :decklist-submit, :id id}
-                :decklist-editor {:tournament (decklist/get-tournament (:tournament decklist))
-                                  :decklist   decklist}})))))
+        (decklist-index {:page            {:page :decklist-submit, :id id}
+                         :decklist-editor {:tournament (decklist/get-tournament (:tournament decklist))
+                                           :decklist   decklist}})))))
 
 (def robots-txt
   {:status  200

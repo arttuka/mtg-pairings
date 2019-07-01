@@ -13,7 +13,8 @@
             [mtg-pairings-server.components.paging :refer [with-paging]]
             [mtg-pairings-server.components.filter :refer [filters]]
             [mtg-pairings-server.styles.common :as styles]
-            [mtg-pairings-server.util :refer [format-date indexed]]))
+            [mtg-pairings-server.util :refer [format-date indexed]]
+            [mtg-pairings-server.util.mtg :refer [bye?]]))
 
 (defn tournament-card-header
   ([data]
@@ -107,22 +108,22 @@
    children])
 
 (defn pairing-row [pairing]
-  (let [bye? (= (:table_number pairing) 0)]
+  (let [bye (bye? pairing)]
     [:tr
-     [:td.table (when-not bye? (:table_number pairing))]
+     [:td.table (when-not bye (:table_number pairing))]
      [:td.players
       [:span.player1 (:team1_name pairing)]
       [:span.player2.hidden-desktop
        (:team2_name pairing)]]
      [:td.players2.hidden-mobile (:team2_name pairing)]
-     (if bye?
+     (if bye
        [:td.points
         [:span.team1-points (:team1_points pairing)]]
        [:td.points
         [:span.team1-points (:team1_points pairing)]
         [:span.hidden-mobile " - "]
         [:span.team2-points (:team2_points pairing)]])
-     (if bye?
+     (if bye
        [:td.result]
        [:td.result
         [:span.team1-wins (:team1_wins pairing)]

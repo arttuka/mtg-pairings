@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.util.mtg
-  (:require [mtg-pairings-server.util :refer [map-values]]))
+  (:require [clojure.set :refer [rename-keys]]
+            [mtg-pairings-server.util :refer [map-values]]))
 
 (defn ^:private add-result [acc {:keys [team1_wins team2_wins draws]}]
   (let [result {:match-points   (cond
@@ -35,15 +36,15 @@
            :ogw (avg-of :pgw opponents))))
 
 (defn reverse-match [match]
-  (clojure.set/rename-keys match {:team1        :team2
-                                  :team2        :team1
-                                  :team1_name   :team2_name
-                                  :team2_name   :team1_name
-                                  :team1_wins   :team2_wins
-                                  :team2_wins   :team1_wins
-                                  :team1_points :team2_points
-                                  :team2_points :team1_points
-                                  :draws        :draws}))
+  (rename-keys match {:team1        :team2
+                      :team2        :team1
+                      :team1_name   :team2_name
+                      :team2_name   :team1_name
+                      :team1_wins   :team2_wins
+                      :team2_wins   :team1_wins
+                      :team1_points :team2_points
+                      :team2_points :team1_points
+                      :draws        :draws}))
 
 (defn has-result? [match]
   (some? (:team1_wins match)))
@@ -87,3 +88,6 @@
 (defn valid-dci? [dci-number]
   (when dci-number
     (re-matches #"[0-9]+" dci-number)))
+
+(defn bye? [pairing]
+  (zero? (:table_number pairing)))

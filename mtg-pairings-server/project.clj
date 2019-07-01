@@ -23,10 +23,12 @@
                  [com.taoensso/timbre "4.10.0"]
                  [com.cognitect/transit-clj "0.8.313"]
                  [com.fzakaria/slf4j-timbre "0.3.13"]]
-  :plugins [[lein-asset-minifier "0.4.6"]
+  :plugins [[lein-ancient "0.6.15"]
+            [lein-asset-minifier "0.4.6"]
             [lein-cljfmt "0.6.4"]
-            [lein-ancient "0.6.15"]
             [lein-garden "0.3.0" :exclusions [org.apache.commons/commons-compress]]
+            [lein-kibit "0.1.6"]
+            [jonase/eastwood "0.3.6"]
             [no.terjedahl/lein-buster "0.2.0"]]
 
   :uberjar-name "mtg-pairings.jar"
@@ -79,6 +81,9 @@
                      sql-util/delete-unique        [[:inner 0]]
                      sql-util/update-unique        [[:inner 0]]
                      validate-request              [[:inner 0]]}}
+
+  :eastwood {:namespaces   [:source-paths :test-paths]
+             :config-files ["test-resources/eastwood.clj"]}
 
   :profiles {:dev      {:repl-options   {:init-ns          mtg-pairings-server.repl
                                          :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}

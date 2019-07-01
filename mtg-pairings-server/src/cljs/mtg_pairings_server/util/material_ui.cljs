@@ -8,9 +8,6 @@
 (def theme (get-mui-theme
             {:palette palette}))
 
-(defn get-theme [component]
-  (js->clj (oget component "context" "muiTheme") :keywordize-keys true))
-
 (defn text-field [props]
   (let [original-on-change (:on-change props)
         on-change (fn [event]

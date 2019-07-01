@@ -10,7 +10,7 @@
   (:import (java.security MessageDigest)))
 
 (defn ^:private ->hex [bytes]
-  (apply str (for [b bytes] (format "%02x" b))))
+  (str/join (for [b bytes] (format "%02x" b))))
 
 (defn ^:private authenticate [username password]
   (when-let [user (sql-util/select-unique-or-nil db/smf-user
@@ -37,10 +37,10 @@
     :query-params [next :- s/Str]
     (if-let [user (authenticate username password)]
       (let [new-session (assoc (:session request) :identity user)]
-        (-> (redirect next :see-other)
-            (assoc :session new-session)))
+        (assoc (redirect next :see-other)
+               :session new-session))
       (redirect (organizer-path) :see-other)))
   (GET "/logout" request
     (let [new-session (dissoc (:session request) :identity)]
-      (-> (redirect (organizer-path) :see-other)
-          (assoc :session new-session)))))
+      (assoc (redirect (organizer-path) :see-other)
+             :session new-session))))

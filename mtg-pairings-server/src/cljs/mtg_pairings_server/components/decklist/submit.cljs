@@ -227,8 +227,7 @@
         selected (atom nil)
         on-active (fn [tab]
                     (let [value (oget tab "props" "value")]
-                      (reset! selected (if (= value @selected)
-                                         nil
+                      (reset! selected (when (not= value @selected)
                                          value))))
         address (atom "")
         address-on-change #(reset! address %)

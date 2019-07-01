@@ -83,8 +83,7 @@
 
 (reg-event-db :server/decklist
   (fn [db [_ decklist]]
-    (assoc-in db [:decklist-editor :decklist] (-> (merge empty-decklist decklist)
-                                                  (add-id-to-cards)))))
+    (assoc-in db [:decklist-editor :decklist] (add-id-to-cards (merge empty-decklist decklist)))))
 
 (reg-event-db :server/decklists
   (fn [db [_ decklists]]
