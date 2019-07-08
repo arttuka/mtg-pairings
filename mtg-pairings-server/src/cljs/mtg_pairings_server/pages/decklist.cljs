@@ -18,12 +18,14 @@
 (defn decklist-organizer [id page]
   (let [user (subscribe [::subs/user])]
     (fn decklist-organizer-render [id page]
-      (case @user
-        nil [loading-indicator]
-        false [organizer/login]
-        (case page
-          ::organizer-tournament [organizer/tournament id]
-          ::organizer [organizer/all-tournaments]
-          ::organizer-view (if id
-                             [organizer/view-decklist]
-                             [organizer/view-decklists]))))))
+      [:div#decklist-organizer
+       [organizer/header]
+       (case @user
+         nil [loading-indicator]
+         false [organizer/login]
+         (case page
+           ::organizer-tournament [organizer/tournament id]
+           ::organizer [organizer/all-tournaments]
+           ::organizer-view (if id
+                              [organizer/view-decklist]
+                              [organizer/view-decklists])))])))

@@ -283,35 +283,43 @@
                      :padding     "0 24px"})
 
 (defstyles organizer
-  [:#decklist-organizer-tournaments
-   {:margin "12px 24px"}
-   [:.tournaments
-    [:th.date :td.date
-     {:width (px 130)}]
-    [:th.deadline :td.deadline
-     {:width (px 160)}]
-    [:th.decklists :td.decklists
-     {:width (px 135)}]
-    [:.tournament-link
-     table-row-link]]]
-  [:#decklist-organizer-tournament
-   {:margin "12px 24px"}
-   [:.field
-    {:display        :inline-block
-     :vertical-align :top
-     :margin-right   "24px"}]
-   [:.notices
-    {:display :inline-block}]
-   [:.decklists
-    [:th.dci :td.dci
-     {:width (px 150)}]
-    [:th.name :td.name
-     {:width (px 400)}]
-    [:.decklist-link
-     table-row-link]]]
-  [:#decklist-organizer-login
-   {:margin "12px 24px"}]
-  organizer-decklist)
+  [:#decklist-organizer
+   [:#decklist-organizer-tournaments
+    {:margin "12px 24px"}
+    [:.tournaments
+     [:th.date :td.date
+      {:width (px 130)}]
+     [:th.deadline :td.deadline
+      {:width (px 160)}]
+     [:th.decklists :td.decklists
+      {:width (px 135)}]
+     [:.tournament-link
+      table-row-link]]]
+   [:#decklist-organizer-tournament
+    {:margin "12px 24px"}
+    [:.fields
+     {:margin-bottom (px 24)}
+     [:.field
+      {:display        :inline-block
+       :vertical-align :top
+       :margin-right   (px 24)
+       :height         (px 72)}]]
+
+    [:.notices
+     {:display :inline-block}]
+    [:.decklists
+     [:th.dci :td.dci
+      {:width (px 150)}]
+     [:th.name :td.name
+      {:width (px 400)}]
+     [:.decklist-link
+      table-row-link]]]
+   [:#decklist-organizer-login
+    {:margin "12px 24px"}]
+   organizer-decklist
+   (when-print
+    [:.decklist-organizer-header
+     {:display "none !important"}])])
 
 (defstyles styles
   organizer

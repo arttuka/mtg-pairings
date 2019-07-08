@@ -17,8 +17,8 @@
                     (sql/fields [:id_member :id] [:passwd :hash])
                     (sql/where {:member_name username}))]
     (let [input (str (str/lower-case username) password)
-          md (MessageDigest/getInstance "SHA-1")
-          _ (.update md (.getBytes input "UTF-8"))
+          md (doto (MessageDigest/getInstance "SHA-1")
+               (.update (.getBytes input "UTF-8")))
           sha1 (->hex (.digest md))]
       (when (= sha1 (:hash user))
         {:id       (:id user)

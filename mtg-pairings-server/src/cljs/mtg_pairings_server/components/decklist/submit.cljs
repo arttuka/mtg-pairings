@@ -341,7 +341,7 @@
         tournament (subscribe [::subs/tournament])
         saving? (subscribe [::subs/saving?])
         saved? (subscribe [::subs/saved?])
-        error? (subscribe [::subs/error :save])
+        error? (subscribe [::subs/error :save-decklist])
         page (subscribe [::common-subs/page])
         save-decklist #(dispatch [::events/save-decklist (:id @tournament) @decklist])]
     (fn decklist-submit-render []

@@ -114,6 +114,11 @@
     (when (= (get-in ring-req [:session :identity :id]) (:user tournament))
       (ws/send! uid [:server/decklist-organizer-tournament tournament]))))
 
+(defmethod ws/event-handler :client/decklist-organizer-tournaments
+  [{uid :uid, ring-req :ring-req}]
+  (let [tournaments (decklist/get-organizer-tournaments (get-in ring-req [:session :identity :id]))]
+    (ws/send! uid [:server/decklist-organizer-tournaments tournaments])))
+
 (defmethod ws/event-handler :client/save-decklist-organizer-tournament
   [{uid :uid, tournament :?data, ring-req :ring-req}]
   (try
@@ -123,7 +128,7 @@
         (ws/send! uid [:server/organizer-tournament-saved id])))
     (catch Exception e
       (log/error e "Error saving tournament")
-      (ws/send! uid [:server/decklist-error]))))
+      (ws/send! uid [:server/decklist-tournament-error]))))
 
 (defmethod ws/event-handler :client/load-decklist
   [{uid :uid, id :?data}]
