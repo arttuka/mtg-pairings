@@ -61,37 +61,46 @@
     (GET "/" []
       (pairings-index))
     (GET "/tournaments" []
-      (pairings-index {:page {:page :tournaments}}))
+      (pairings-index {:page {:page :mtg-pairings-server.pages.pairings/tournaments}}))
     (GET "/tournaments/:id" []
       :path-params [id :- s/Int]
-      (pairings-index {:page        {:page :tournament, :id id}
+      (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/tournament
+                                     :id   id}
                        :tournaments {id (tournament/client-tournament id)}}))
     (GET "/tournaments/:id/pairings-:round" []
       :path-params [id :- s/Int
                     round :- s/Int]
-      (pairings-index {:page        {:page :pairings, :id id, :round round}
+      (pairings-index {:page        {:page  :mtg-pairings-server.pages.pairings/pairings
+                                     :id    id
+                                     :round round}
                        :tournaments {id (tournament/client-tournament id)}
                        :pairings    {id {round (tournament/get-round id round)}}}))
     (GET "/tournaments/:id/standings-:round" []
       :path-params [id :- s/Int
                     round :- s/Int]
-      (pairings-index {:page        {:page :standings, :id id, :round round}
+      (pairings-index {:page        {:page  :mtg-pairings-server.pages.pairings/standings
+                                     :id    id
+                                     :round round}
                        :tournaments {id (tournament/client-tournament id)}
                        :standings   {id {round (tournament/standings id round false)}}}))
     (GET "/tournaments/:id/pods-:round" []
       :path-params [id :- s/Int
                     round :- s/Int]
-      (pairings-index {:page        {:page :pods, :id id, :round round}
+      (pairings-index {:page        {:page  :mtg-pairings-server.pages.pairings/pods
+                                     :id    id
+                                     :round round}
                        :tournaments {id (tournament/client-tournament id)}
                        :pods        {id {round (tournament/pods id round)}}}))
     (GET "/tournaments/:id/seatings" []
       :path-params [id :- s/Int]
-      (pairings-index {:page        {:page :seatings, :id id}
+      (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/seatings
+                                     :id   id}
                        :tournaments {id (tournament/client-tournament id)}
                        :seatings    {id (tournament/seatings id)}}))
     (GET "/tournaments/:id/bracket" []
       :path-params [id :- s/Int]
-      (pairings-index {:page        {:page :bracket, :id id}
+      (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/bracket
+                                     :id   id}
                        :tournaments {id (tournament/client-tournament id)}
                        :bracket     {id (tournament/bracket id)}}))
     (GET "/tournaments/:id/organizer" [] (pairings-index))
@@ -110,20 +119,21 @@
       (redirect (auth/organizer-path)))
     (GET "/decklist/tournament/:id" []
       :path-params [id :- s/Str]
-      (decklist-index {:page            {:page :decklist-submit}
+      (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/submit}
                        :decklist-editor {:tournament (decklist/get-tournament id)}}))
     (GET "/decklist/organizer" request
-      (decklist-index {:page            {:page :decklist-organizer}
+      (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/organizer}
                        :decklist-editor {:organizer-tournaments (decklist/get-organizer-tournaments (get-in request [:session :identity :id]))}}))
     (GET "/decklist/organizer/new" []
-      (decklist-index {:page {:page :decklist-organizer-tournament}}))
+      (decklist-index {:page {:page :mtg-pairings-server.pages.decklist/organizer-tournament}}))
     (GET "/decklist/organizer/view/:id" request
       :path-params [id :- s/Str]
       (let [decklist (decklist/get-decklist id)
             tournament (decklist/get-organizer-tournament (:tournament decklist))
             user-id (get-in request [:session :identity :id])]
         (validate-request user-id tournament
-          (decklist-index {:page            {:page :decklist-organizer-view, :id id}
+          (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/organizer-view
+                                             :id   id}
                            :decklist-editor (when user-id
                                               {:decklist             decklist
                                                :organizer-tournament tournament})}))))
@@ -132,13 +142,15 @@
       (let [tournament (decklist/get-organizer-tournament id)
             user-id (get-in request [:session :identity :id])]
         (validate-request user-id tournament
-          (decklist-index {:page            {:page :decklist-organizer-tournament, :id id}
+          (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/organizer-tournament
+                                             :id   id}
                            :decklist-editor (when user-id
                                               {:organizer-tournament tournament})}))))
     (GET "/decklist/:id" []
       :path-params [id :- s/Str]
       (let [decklist (add-id-to-cards "server-card__" (decklist/get-decklist id))]
-        (decklist-index {:page            {:page :decklist-submit, :id id}
+        (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/submit
+                                           :id   id}
                          :decklist-editor {:tournament (decklist/get-tournament (:tournament decklist))
                                            :decklist   decklist}})))))
 

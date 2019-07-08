@@ -25,7 +25,7 @@
                :pairings           {:sort-key :table_number}
                :pods               {:sort-key :pod}
                :seatings           {:sort-key :table_number}
-               :page               {:page  :main
+               :page               {:page  :mtg-pairings-server.pages.pairings/main
                                     :id    nil
                                     :round nil}
                :logged-in-user     (local-storage/fetch :user)
@@ -42,7 +42,7 @@
 
 (reg-event-db ::initialize
   (fn [db _]
-    (merge db (initial-db))))
+    (deep-merge db (initial-db))))
 
 (defn connect! []
   (ws/send! [:client/connect-pairings])
@@ -284,8 +284,8 @@
   (fn [{:keys [db]} [_ action value]]
     (let [{:keys [id page]} (:page db)]
       (case page
-        :organizer (resolve-organizer-action db id action value)
-        :organizer-menu (send-organizer-action db id action value)))))
+        :mtg-pairings-server.pages.organizer/main (resolve-organizer-action db id action value)
+        :mtg-pairings-server.pages.organizer/menu (send-organizer-action db id action value)))))
 
 (reg-fx :popup
   (fn [id]
@@ -299,14 +299,14 @@
   (fn [{:keys [db]} _]
     (let [{:keys [id page]} (:page db)]
       (case page
-        :organizer {:db    (assoc-in db [:organizer :menu] true)
-                    :popup (get-in db [:page :id])}
-        :organizer-menu {:store       [["organizer" id] {:action :close-popup}]
-                         :close-popup nil}))))
+        :mtg-pairings-server.pages.organizer/main {:db    (assoc-in db [:organizer :menu] true)
+                                                   :popup (get-in db [:page :id])}
+        :mtg-pairings-server.pages.organizer/menu {:store       [["organizer" id] {:action :close-popup}]
+                                                   :close-popup nil}))))
 
 (reg-event-fx ::local-storage-updated
   (fn [{:keys [db]} [_ k v]]
-    (when (and (= (get-in db [:page :page]) :organizer)
+    (when (and (= (get-in db [:page :page]) :mtg-pairings-server.pages.organizer/main)
                (= k ["organizer" (get-in db [:page :id])]))
       (resolve-organizer-action db
                                 (get-in db [:page :id])

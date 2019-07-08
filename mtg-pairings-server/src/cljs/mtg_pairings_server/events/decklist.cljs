@@ -26,7 +26,7 @@
 
 (reg-event-db ::initialize
   (fn [db _]
-    (merge db (initial-db))))
+    (util/deep-merge db (initial-db))))
 
 (defn connect! []
   (ws/send! [:client/connect-decklist]))

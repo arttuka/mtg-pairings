@@ -5,56 +5,56 @@
             [mtg-pairings-server.routes.common :refer [dispatch-page]]))
 
 (secretary/defroute "/" []
-  (dispatch-page :main))
+  (dispatch-page :mtg-pairings-server.pages.pairings/main))
 
 (secretary/defroute tournaments-path "/tournaments" []
-  (dispatch-page :tournaments))
+  (dispatch-page :mtg-pairings-server.pages.pairings/tournaments))
 
 (secretary/defroute tournament-path "/tournaments/:id" [id]
   (let [id (js/parseInt id)]
     (dispatch [::events/load-tournament id])
-    (dispatch-page :tournament id)))
+    (dispatch-page :mtg-pairings-server.pages.pairings/tournament id)))
 
 (secretary/defroute pairings-path "/tournaments/:id/pairings-:round" [id round]
   (let [id (js/parseInt id)
         round (js/parseInt round)]
     (dispatch [::events/load-pairings id round])
-    (dispatch-page :pairings id round)))
+    (dispatch-page :mtg-pairings-server.pages.pairings/pairings id round)))
 
 (secretary/defroute standings-path "/tournaments/:id/standings-:round" [id round]
   (let [id (js/parseInt id)
         round (js/parseInt round)]
     (dispatch [::events/load-standings id round])
-    (dispatch-page :standings id round)))
+    (dispatch-page :mtg-pairings-server.pages.pairings/standings id round)))
 
 (secretary/defroute pods-path "/tournaments/:id/pods-:round" [id round]
   (let [id (js/parseInt id)
         round (js/parseInt round)]
     (dispatch [::events/load-pods id round])
-    (dispatch-page :pods id round)))
+    (dispatch-page :mtg-pairings-server.pages.pairings/pods id round)))
 
 (secretary/defroute seatings-path "/tournaments/:id/seatings" [id]
   (let [id (js/parseInt id)]
     (dispatch [::events/load-seatings id])
-    (dispatch-page :seatings id)))
+    (dispatch-page :mtg-pairings-server.pages.pairings/seatings id)))
 
 (secretary/defroute bracket-path "/tournaments/:id/bracket" [id]
   (let [id (js/parseInt id)]
     (dispatch [::events/load-bracket id])
-    (dispatch-page :bracket id)))
+    (dispatch-page :mtg-pairings-server.pages.pairings/bracket id)))
 
 (secretary/defroute organizer-path "/tournaments/:id/organizer" [id]
   (let [id (js/parseInt id)]
     (dispatch [::events/load-organizer-tournament id])
-    (dispatch-page :organizer id)))
+    (dispatch-page :mtg-pairings-server.pages.organizer/main id)))
 
 (secretary/defroute organizer-menu-path "/tournaments/:id/organizer/menu" [id]
   (let [id (js/parseInt id)]
     (dispatch [::events/load-organizer-tournament id])
-    (dispatch-page :organizer-menu id)))
+    (dispatch-page :mtg-pairings-server.pages.organizer/menu id)))
 
 (secretary/defroute deck-construction-path "/tournaments/:id/organizer/deck-construction" [id]
   (let [id (js/parseInt id)]
     (dispatch [::events/load-deck-construction id])
-    (dispatch-page :organizer-deck-construction id)))
+    (dispatch-page :mtg-pairings-server.pages.organizer/deck-construction id)))
 

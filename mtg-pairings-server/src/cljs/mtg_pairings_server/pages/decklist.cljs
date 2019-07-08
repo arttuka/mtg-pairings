@@ -13,17 +13,17 @@
 (defn loading-indicator []
   [ui/circular-progress
    {:size  36
-    :style {:margin    "24px"}}])
+    :style {:margin "24px"}}])
 
-(defn decklist-organizer [page]
+(defn decklist-organizer [id page]
   (let [user (subscribe [::subs/user])]
-    (fn decklist-organizer-render [page]
+    (fn decklist-organizer-render [id page]
       (case @user
         nil [loading-indicator]
         false [organizer/login]
-        (case (:page page)
-          :decklist-organizer-tournament [organizer/tournament (:id page)]
-          :decklist-organizer [organizer/all-tournaments]
-          :decklist-organizer-view (if (:id page)
-                                     [organizer/view-decklist]
-                                     [organizer/view-decklists]))))))
+        (case page
+          ::organizer-tournament [organizer/tournament id]
+          ::organizer [organizer/all-tournaments]
+          ::organizer-view (if id
+                             [organizer/view-decklist]
+                             [organizer/view-decklists]))))))
