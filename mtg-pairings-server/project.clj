@@ -22,7 +22,8 @@
                  [com.taoensso/sente "1.14.0-RC2"]
                  [com.taoensso/timbre "4.10.0"]
                  [com.cognitect/transit-clj "0.8.313"]
-                 [com.fzakaria/slf4j-timbre "0.3.13"]]
+                 [com.fzakaria/slf4j-timbre "0.3.13"]
+                 [garden "1.3.9"]]
   :plugins [[lein-ancient "0.6.15"]
             [lein-asset-minifier "0.4.6"]
             [lein-cljfmt "0.6.4"]
@@ -118,8 +119,7 @@
                                        [cljsjs/react-dom-server "16.8.6-0"]
                                        [cljs-react-material-ui "0.2.50" :exclusions [org.clojure/clojurescript]]
                                        [cljsjs/rc-slider "8.6.1-0"]
-                                       [cljsjs/react-autosuggest "9.4.3-0"]
-                                       [garden "1.3.9"]]}
+                                       [cljsjs/react-autosuggest "9.4.3-0"]]}
              :uberjar  {:source-paths       ["env/prod/cljs"]
                         :main               mtg-pairings-server.main
                         :aot                :all

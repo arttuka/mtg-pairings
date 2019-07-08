@@ -4,17 +4,19 @@
             [garden.stylesheet :refer [at-import]]
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.bracket :as bracket]
-            [mtg-pairings-server.styles.common :refer [color]]
+            [mtg-pairings-server.styles.common :refer [color when-desktop when-mobile when-print]]
             [mtg-pairings-server.styles.decklist :as decklist]
             [mtg-pairings-server.styles.organizer :as organizer]
             [mtg-pairings-server.styles.table :as table]
             [mtg-pairings-server.styles.tooltip :as tooltip]
-            [mtg-pairings-server.styles.tournament :as tournament]
-            [mtg-pairings-server.util.mobile :refer [when-desktop when-mobile]]))
+            [mtg-pairings-server.styles.tournament :as tournament]))
 
 (defstyles base
   (at-import "https://fonts.googleapis.com/css?family=Lato:700")
   (at-import "https://fonts.googleapis.com/css?family=Roboto:400,500,700")
+  (when-print
+   ["@page"
+    {:size "A4"}])
   [:html
    {:-webkit-text-size-adjust "100%"
     :-ms-text-size-adjust     "100%"}]

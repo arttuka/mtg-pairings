@@ -1,8 +1,7 @@
 (ns mtg-pairings-server.styles.bracket
   (:require [garden.def :refer [defstyles]]
             [garden.units :refer [px px-]]
-            [mtg-pairings-server.styles.common :refer [color]]
-            [mtg-pairings-server.util.mobile :refer [when-desktop when-mobile]]))
+            [mtg-pairings-server.styles.common :refer [color when-desktop when-mobile]]))
 
 (def line-height 20)
 (def bracket-height 50)

@@ -3,11 +3,11 @@
             [cljs.core.async :refer [<! timeout] :refer-macros [go-loop]]
             [cljs-time.core :as time]
             [oops.core :refer [oget]]
+            [mtg-pairings-server.styles.common :refer [mobile?]]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in
                                               index-where dissoc-index]]
             [mtg-pairings-server.util.local-storage :as local-storage]
-            [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
 
 (defn initial-db []

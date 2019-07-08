@@ -1,8 +1,8 @@
 (ns mtg-pairings-server.events.common
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [accountant.core :as accountant]
+            [mtg-pairings-server.styles.common :refer [mobile?]]
             [mtg-pairings-server.util.local-storage :as local-storage]
-            [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
 
 (defmethod ws/event-handler :chsk/recv

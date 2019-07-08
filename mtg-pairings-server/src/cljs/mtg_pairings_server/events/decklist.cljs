@@ -2,10 +2,10 @@
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [oops.core :refer [oget]]
             [mtg-pairings-server.routes.decklist :as routes]
+            [mtg-pairings-server.styles.common :refer [mobile?]]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :as util]
             [mtg-pairings-server.util.decklist :refer [add-id-to-card add-id-to-cards]]
-            [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
 
 (def empty-decklist {:main   []

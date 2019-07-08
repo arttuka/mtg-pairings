@@ -1,5 +1,11 @@
 (ns mtg-pairings-server.styles.common
-  (:require [garden.color :refer [hex->rgb rgb? rgba rgb->hex]]))
+  (:require [clojure.string :as str]
+            [clojure.walk :refer [postwalk]]
+            [garden.color :refer [hex->rgb rgb? rgba rgb->hex]]
+            [garden.compiler :refer [CSSRenderer]]
+            #?(:clj [garden.stylesheet :refer [at-media]])
+            #?(:clj [garden.units :refer [px percent]])
+            #?(:cljs [oops.core :refer [oget]])))
 
 (def ellipsis-overflow {:white-space    :nowrap
                         :text-overflow  :ellipsis
@@ -37,3 +43,64 @@
 
 (defn border [width style color]
   (str width " " (name style) " " color))
+
+(def mobile-max-width 767)
+
+#?(:clj (defn when-mobile [& styles]
+          (apply at-media {:max-width (px mobile-max-width)} styles)))
+
+#?(:clj (defn when-desktop [& styles]
+          (apply at-media {:min-width (px (inc mobile-max-width))} styles)))
+
+#?(:clj (defn when-screen [& styles]
+          (apply at-media {:screen true} styles)))
+
+#?(:clj (defn when-print [& styles]
+          (apply at-media {:print true} styles)))
+
+#?(:cljs (defn mobile? []
+           (<= (oget js/window "innerWidth") mobile-max-width)))
+
+(declare calc*)
+
+(defrecord Calc [expression s]
+  Object
+  (toString [_]
+    (str "(calc" s ")"))
+  CSSRenderer
+  (render-css [_]
+    (str "calc" (calc* expression))))
+
+(defn ^:private calc* [token]
+  (cond
+    (vector? token)
+    (let [[op & vals] token]
+      (str \(
+           (str/join (interpose (str " " op " ") (map calc* vals)))
+           \)))
+
+    (number? token)
+    (str token)
+
+    (string? token)
+    token
+
+    ;; CSSUnit
+    (and (:magnitude token) (:unit token))
+    (str (:magnitude token) (name (:unit token)))
+
+    ;; Calc
+    (:expression token)
+    (calc* (:expression token))
+
+    :else
+    (throw (ex-info (str "Don't know how to calc token " token) {:token token}))))
+
+(defmacro calc [expression]
+  `(Calc. ~(postwalk (fn [token]
+                       (if (and (sequential? token)
+                                (contains? #{'+ '- '* '/} (first token)))
+                         (into [(str (first token))] (rest token))
+                         token))
+                     expression)
+          ~(str expression)))

@@ -1,7 +1,7 @@
 (ns mtg-pairings-server.styles.tournament
   (:require [garden.def :refer [defstyles]]
             [garden.units :refer [px percent]]
-            [mtg-pairings-server.util.mobile :refer [when-desktop when-mobile]]))
+            [mtg-pairings-server.styles.common :refer [when-desktop when-mobile]]))
 
 (defstyles mobile-filters
   [:.mobile-filters

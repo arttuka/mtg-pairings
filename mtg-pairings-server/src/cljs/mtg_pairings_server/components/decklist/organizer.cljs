@@ -333,19 +333,19 @@
         (for [index (range 10)]
           ^{:key (str id "--dci--" index)}
           [:span.digit (get dci index)])]]]
-     [:div.maindeck
-      [:h3 "Maindeck (" (:main counts) ")"]
-      [:div.cards
-       (for [card main]
-         ^{:key (str id "--main--" (:name card))}
-         [decklist-card card])]]
-     [:div.sideboard
-      {:class (str "sideboard-" (count side))}
-      [:h3 "Sideboard (" (:side counts) ")"]
-      [:div.cards
-       (for [card side]
-         ^{:key (str id "--side--" (:name card))}
-         [decklist-card card])]]]))
+     [:div.decklists
+      [:div.maindeck
+       [:h3 "Maindeck (" (:main counts) ")"]
+       [:div.cards
+        (for [card main]
+          ^{:key (str id "--main--" (:name card))}
+          [decklist-card card])]]
+      [:div.sideboard
+       [:h3 "Sideboard (" (:side counts) ")"]
+       [:div.cards
+        (for [card side]
+          ^{:key (str id "--side--" (:name card))}
+          [decklist-card card])]]]]))
 
 (defn view-decklist []
   (let [decklist (subscribe [::subs/decklist])

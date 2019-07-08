@@ -1,9 +1,8 @@
 (ns mtg-pairings-server.styles.decklist
   (:require [garden.def :refer [defstyles]]
             [garden.selectors :refer [after & first-child last-child]]
-            [garden.units :refer [px px- px+ px* px-div percent vh]]
-            [mtg-pairings-server.styles.common :refer [color ellipsis-overflow]]
-            [mtg-pairings-server.util.mobile :refer [when-desktop when-mobile when-screen when-print]]))
+            [garden.units :refer [mm px px- px+ px* px-div percent vh]]
+            [mtg-pairings-server.styles.common :refer [calc color ellipsis-overflow when-desktop when-mobile when-screen when-print]]))
 
 (defstyles submit
   [:#decklist-submit
@@ -66,28 +65,51 @@
                   :width (px 1)
                   :color (color :grey)})
 
-(def body-height (px 952))
+(def print-height (mm 297))
+(def print-width (mm 210))
 (def left-margin (px 64))
 (def header-line-height (px 36))
 (def top-margin (px+ (px 1) (px* header-line-height 2)))
+(def print-body-height (calc (- print-height top-margin)))
 (def player-height (px 48))
 (def card-width (px 270))
 (def card-height (px 30))
+(def column-margin (px 10))
 (def column-gap (px 20))
+(def print-body-width (calc (- print-width player-height)))
+(def print-card-width (calc (- (/ print-body-width 2) (* column-margin 2))))
+(def letters-width (px 90))
+(def date-width (px 200))
+(def tournament-name-width (calc (- print-body-width letters-width date-width)))
+(def deck-name-width (calc (- print-body-width letters-width)))
+
 
 (defstyles cardlists
+  [:.decklists
+   {:position :relative}]
   [:.maindeck :.sideboard
    (when-screen
     [:&
      {:display        :inline-block
-      :vertical-align :top}])
+      :vertical-align :top}
+     [:.cards
+      [:.card
+       {:width card-width}
+       [:.name
+        {:width (px 220)}]]]])
    (when-print
     [:h3
-     {:margin "16px 0"}])
+     {:margin "16px 0"}]
+    [:.cards
+     [:.card
+      {:width        print-card-width
+       :margin-left  column-margin
+       :margin-right column-margin}
+      [:.name
+       {:width (calc (- print-card-width (px 50)))}]]])
    [:.cards
     [:.card
-     {:width         card-width
-      :height        (px 24)
+     {:height        (px 24)
       :line-height   (px 24)
       :margin-bottom (px 6)}
      [:.quantity :.name
@@ -98,35 +120,33 @@
        :text-align :center
        :margin     "0 8px"}]
      [:.name
-      {:width        (px 220)
-       :padding-left (px 6)}]]]]
+      {:padding-left (px 6)}]]]]
   [:.maindeck
-   [:.cards
-    {:width (px+ card-width column-gap card-width)}]
    (when-screen
     [:&
      {:margin-right column-gap}
      [:.cards
-      {:column {:count 2
+      {:width  (px+ (px* card-width 2) (px* column-margin 4))
+       :column {:count 2
                 :gap   column-gap}}]])
    (when-print
     [:&
-     {:margin-left left-margin
+     {:width       print-body-width
+      :margin-left player-height
       :position    :relative}
      [:h3
       {:position :absolute
        :top      0
-       :left     0}]
+       :left     column-margin}]
      [:.cards
       {:display     :flex
        :flex        {:direction :column
                      :wrap      :wrap}
        :align       {:content :space-between}
-       :height      body-height
+       :max-height  print-body-height
        :padding-top (px 22)}
-      [:.card
-       [(& first-child)
-        {:margin-top card-height}]]]])]
+      [:.card:first-child
+       {:margin-top card-height}]]])]
   [:.sideboard
    (when-screen
     [:&
@@ -134,12 +154,10 @@
    (when-print
     [:&
      {:position :absolute
-      :left     (px+ left-margin card-width column-gap)}
-     (for [i (range 16)
-           :let [free-space (px* card-height (- 30 i))
-                 top (px+ top-margin free-space)]]
-       [(keyword (str "&.sideboard-" i))
-        {:top top}])])])
+      :right    0
+      :bottom   0}
+     [:h3
+      {:margin-left column-margin}]])])
 
 (defstyles player-info
   [:.player-info
@@ -169,14 +187,15 @@
       :margin-left (px 12)}])
    (when-print
     [:&
-     {:height        player-height
-      :padding-top   (px 1)
-      :line-height   (px- player-height (px 2))
-      :width         body-height
-      :border-bottom grey-border
-      :top           (px+ (px-div (px- body-height player-height) 2) top-margin)
-      :left          (px-div (px- body-height player-height) -2)
-      :transform     "rotate(270deg)"}]
+     {:height           player-height
+      :padding-top      (px 1)
+      :line-height      (px- player-height (px 2))
+      :width            print-body-height
+      :border-bottom    grey-border
+      :top              0
+      :left             0
+      :transform        "translateY(297mm) rotate(270deg)"
+      :transform-origin "top left"}]
     [:.label
      {:vertical-align :top}]
     [:.value
@@ -196,11 +215,13 @@
         :line-height    (px 36)
         :margin         "5px 0"}]]]
     [:.name
-     {:width (px- body-height (px 420))}
+     {:width (calc (- print-body-height (px 420)))}
      [:.first-name :.last-name
-      {:width (percent 50)}
+      {:width         (percent 50)
+       :padding-right (px 16)}
+      ellipsis-overflow
       [:.label
-       {:width (px 80)}]]])])
+       {:margin-right (px 8)}]]])])
 
 (defstyles deck-info
   [:.deck-info
@@ -223,8 +244,9 @@
       :margin-right (px 12)}])
    (when-print
     [:&
-     {:padding-left left-margin}
+     {:padding-left player-height}
      [:.tournament-date :.tournament-name :.deck-name
+      ellipsis-overflow
       [:.label
        {:width      (px 72)
         :text-align :right}]
@@ -232,16 +254,18 @@
        {:padding-left (px 6)
         :font-size    (px 20)}]]
      [:.tournament-date
-      {:width (px 200)}]
+      {:width date-width}]
      [:.tournament-name
+      {:width tournament-name-width}
       [:a
        {:color :black}]]
      [:.deck-name
-      {:width (percent 100)}]])])
+      {:width deck-name-width}]])])
 
 (defstyles organizer-decklist
   [:.organizer-decklist
-   {:position :relative}
+   {:position :relative
+    :width    (percent 100)}
    [:.label :.value
     {:display :inline-block}]
    (when-screen
@@ -252,24 +276,25 @@
      {:display :none}])
    (when-print
     [:&
-     {:height      (px+ body-height top-margin)
-      :break-after :page}]
+     {:width            print-width
+      :height           print-height
+      :break-after      :page}]
     [:.label
      {:color (color :dark-grey)}]
     [:.first-letters
      {:position :absolute
       :top      0
       :right    0
-      :width    (px 84)}
+      :width    letters-width}
      [:.label
-      {:font-size  (px 12)
+      {:font-size  (px 14)
        :text-align :center
        :width      (percent 100)}]
      [:.letter
       {:font-size      (px 32)
        :font-weight    :bold
        :display        :inline-block
-       :width          (px 28)
+       :width          (px 30)
        :text-align     :center
        :text-transform :uppercase}]])
    cardlists
