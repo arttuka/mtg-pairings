@@ -70,7 +70,7 @@
                                    [:decklist-editor :organizer-tournament :id] id
                                    [:decklist-editor :saved] true
                                    [:decklist-editor :saving] false
-                                   [:decklist-editor :error] false)
+                                   [:decklist-editor :error :save] false)
      :navigate (routes/organizer-tournament-path {:id id})}))
 
 (reg-event-fx ::load-decklist
@@ -83,7 +83,9 @@
 
 (reg-event-db :server/decklist
   (fn [db [_ decklist]]
-    (assoc-in db [:decklist-editor :decklist] (add-id-to-cards (merge empty-decklist decklist)))))
+    (util/assoc-in-many db
+                        [:decklist-editor :decklist] (add-id-to-cards (merge empty-decklist decklist))
+                        [:decklist-editor :loaded] true)))
 
 (reg-event-db :server/decklists
   (fn [db [_ decklists]]
@@ -98,16 +100,23 @@
     (update db :decklist-editor merge {:organizer-tournament nil
                                        :saving               false
                                        :saved                false
-                                       :error                false})))
+                                       :error                {:save           false
+                                                              :import-address nil}})))
 
 (reg-event-db ::clear-status
   (fn [db [_ key]]
     (assoc-in db [:decklist-editor key] false)))
 
 (reg-event-fx ::import-address
-  (fn [_ [_ address]]
-    (when-let [[_ code] (re-find #"/decklist/([A-z0-9_-]{22})$" address)]
-      {:ws-send [:client/load-decklist-with-id code]})))
+  (fn [{:keys [db]} [_ code]]
+    {:db      (util/assoc-in-many db
+                                  [:decklist-editor :error :import-address] nil
+                                  [:decklist-editor :loaded] false)
+     :ws-send [:client/load-decklist-with-id code]}))
+
+(reg-event-db :server/decklist-load-error
+  (fn [db [_ error]]
+    (assoc-in db [:decklist-editor :error :import-address] error)))
 
 (defn ^:private add-card [{:keys [board] :as decklist} name]
   (if (some #(= name (:name %)) (get decklist board))

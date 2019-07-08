@@ -163,3 +163,7 @@
      (str (oget js/window "location" "protocol")
           "//"
           (oget js/window "location" "host"))))
+
+(defn valid-email? [email]
+  (some->> email
+           (re-matches #".+@.+")))

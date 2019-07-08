@@ -140,7 +140,7 @@
   [{uid :uid, id :?data}]
   (if-let [decklist (decklist/get-decklist id)]
     (ws/send! uid [:server/decklist (dissoc decklist :id :player)])
-    (ws/send! uid [:server/decklist-load-error "Pakkalistaa ei löytynyt"])))
+    (ws/send! uid [:server/decklist-load-error :not-found])))
 
 (defmethod ws/event-handler :client/decklist-card-suggestions
   [{[prefix format] :?data, reply-fn :?reply-fn}]

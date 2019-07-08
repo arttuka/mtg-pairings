@@ -13,10 +13,6 @@
   (fn [db _]
     (get-in db [:decklist-editor :saved])))
 
-(reg-sub ::error?
-  (fn [db _]
-    (get-in db [:decklist-editor :error])))
-
 (reg-sub ::decklist
   (fn [db _]
     (get-in db [:decklist-editor :decklist])))
@@ -36,3 +32,11 @@
 (reg-sub ::user
   (fn [db _]
     (get-in db [:decklist-editor :user])))
+
+(reg-sub ::error
+  (fn [db [_ k]]
+    (get-in db [:decklist-editor :error k])))
+
+(reg-sub ::loaded?
+  (fn [db _]
+    (get-in db [:decklist-editor :loaded])))

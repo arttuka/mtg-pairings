@@ -48,25 +48,25 @@
        (mapv #(select-keys % [:name :quantity]))))
 
 (defn get-decklist [id]
-  (let [decklist (sql-util/select-unique db/decklist
-                   (sql/fields :id [:name :deck-name] :first-name :last-name :dci :email :tournament)
-                   (sql/with db/decklist-card
-                     (sql/fields :maindeck :index :quantity)
-                     (sql/with db/card
-                       (sql/fields :name)))
-                   (sql/where {:id id}))
-        main (format-cards (:decklist_card decklist) true)
-        side (format-cards (:decklist_card decklist) false)
-        player (select-keys decklist [:deck-name :first-name :last-name :email :dci])
-        email-disabled? (not (str/blank? (:email player)))]
-    {:id         id
-     :tournament (:tournament decklist)
-     :main       main
-     :side       side
-     :count      {:main (transduce (map :quantity) + 0 main)
-                  :side (transduce (map :quantity) + 0 side)}
-     :board      :main
-     :player     (assoc player :email-disabled? email-disabled?)}))
+  (when-let [decklist (sql-util/select-unique-or-nil db/decklist
+                        (sql/fields :id [:name :deck-name] :first-name :last-name :dci :email :tournament)
+                        (sql/with db/decklist-card
+                          (sql/fields :maindeck :index :quantity)
+                          (sql/with db/card
+                            (sql/fields :name)))
+                        (sql/where {:id id}))]
+    (let [main (format-cards (:decklist_card decklist) true)
+          side (format-cards (:decklist_card decklist) false)
+          player (select-keys decklist [:deck-name :first-name :last-name :email :dci])
+          email-disabled? (not (str/blank? (:email player)))]
+      {:id         id
+       :tournament (:tournament decklist)
+       :main       main
+       :side       side
+       :count      {:main (transduce (map :quantity) + 0 main)
+                    :side (transduce (map :quantity) + 0 side)}
+       :board      :main
+       :player     (assoc player :email-disabled? email-disabled?)})))
 
 (defn save-decklist [tournament decklist]
   (transaction
@@ -148,7 +148,7 @@
 
 (defn parse-decklist-row [row format]
   (when-not (or (str/blank? row)
-                (re-matches #"^Maindeck.*" row))
+                (re-matches #"^[Mm]aindeck.*" row))
     (if-let [[_ quantity name] (re-matches #"(\d+)\s+(.+)" (str/trim row))]
       (if-let [{:keys [name legal]} (sql-util/select-unique-or-nil db/card
                                       (sql/fields :name [format :legal])

@@ -18,7 +18,7 @@
       :vertical-align :top}]
     [:#player-info
      [:.full-width :.half-width
-      {:height (px 100)}]
+      {:height (px 72)}]
      [:.full-width
       {:width "100%"}]
      [:.half-width
@@ -31,9 +31,12 @@
     [:.decklist-import
      {:margin "12px 0"}
      [:.info :.form
-      {:display :inline-block
-       :width   (percent 50)
-       :padding (px 12)}]])
+      {:display        :inline-block
+       :vertical-align :top
+       :width          (percent 50)
+       :padding        (px 12)}
+      [:.text-field-container
+       {:height (px 72)}]]])
    (when-mobile
     [:#player-info
      [:.full-width :.half-width
@@ -54,7 +57,10 @@
      [:th.actions :td.actions
       {:width (px 48)}]
      [:th.error :td.error
-      {:width (px 48)}]]]])
+      {:width (px 48)}]]]
+   [:.decklist-import
+    [:.decklist-import-error
+     {:color (color :error-color)}]]])
 
 (def grey-border {:style :solid
                   :width (px 1)

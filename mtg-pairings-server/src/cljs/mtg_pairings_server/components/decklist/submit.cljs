@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.components.decklist.submit
   (:require [reagent.core :as reagent :refer [atom]]
+            [reagent.ratom :refer [make-reaction]]
             [re-frame.core :refer [subscribe dispatch]]
             [cljsjs.material-ui]
             [cljs-react-material-ui.reagent :as ui]
@@ -12,7 +13,7 @@
             [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as subs]
-            [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where get-host]]
+            [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where get-host valid-email?]]
             [mtg-pairings-server.util.decklist :refer [->text]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
             [mtg-pairings-server.util.material-ui :refer [text-field]]
@@ -88,7 +89,7 @@
 
 (defn error-icon [error]
   (let [icon [icons/alert-warning {:title error
-                                   :style {:color          "#f44336"
+                                   :style {:color          (:error-color styles/palette)
                                            :vertical-align :top}}]]
     (if error
       [tooltip {:label error}
@@ -122,7 +123,7 @@
                                  :primary-text    i
                                  :inner-div-style {:padding "0 6px"}}])))]
        [ui/table-row-column {:class-name :card
-                             :style      {:font-size "16px"
+                             :style      {:font-size    "16px"
                                           :padding-left (if @mobile? 0 "24px")}}
         name]
        [ui/table-row-column {:class-name :actions
@@ -171,7 +172,7 @@
              ^{:key (str id "--tr")}
              [decklist-table-row board card (or error (get error-cards name))])]]]))))
 
-(defn player-info [decklist]
+(defn player-info [player]
   (let [set-first-name #(dispatch [::events/update-player-info :first-name %])
         set-last-name #(dispatch [::events/update-player-info :last-name %])
         set-deck-name #(dispatch [::events/update-player-info :deck-name %])
@@ -183,10 +184,10 @@
         [text-field {:on-change           set-deck-name
                      :floating-label-text "Pakan nimi"
                      :full-width          true
-                     :value               (get-in @decklist [:player :deck-name])
+                     :value               (:deck-name @player)
                      :style               {:vertical-align :top}}]]
        [:div.half-width.left
-        (let [value (get-in @decklist [:player :first-name])]
+        (let [value (:first-name @player)]
           [text-field {:on-change           set-first-name
                        :floating-label-text "Etunimi"
                        :full-width          true
@@ -195,7 +196,7 @@
                                               "Etunimi on pakollinen")
                        :style               {:vertical-align :top}}])]
        [:div.half-width.right
-        (let [value (get-in @decklist [:player :last-name])]
+        (let [value (:last-name @player)]
           [text-field {:on-change           set-last-name
                        :floating-label-text "Sukunimi"
                        :full-width          true
@@ -204,7 +205,7 @@
                                               "Etunimi on pakollinen")
                        :style               {:vertical-align :top}}])]
        [:div.half-width.left
-        (let [value (get-in @decklist [:player :dci])]
+        (let [value (:dci @player)]
           [text-field {:on-change           set-dci
                        :floating-label-text "DCI-numero"
                        :full-width          true
@@ -213,82 +214,112 @@
                                               "Virheellinen DCI-numero")
                        :style               {:vertical-align :top}}])]
        [:div.half-width.right
-        [text-field {:on-change           set-email
-                     :floating-label-text "Sähköposti"
-                     :full-width          true
-                     :value               (get-in @decklist [:player :email])
-                     :style               {:vertical-align :top}
-                     :disabled            (get-in @decklist [:player :email-disabled?])
-                     :title               (when (get-in @decklist [:player :email-disabled?])
-                                            "Tästä pakkalistasta on jo lähetetty sähköpostiviesti.")}]]])))
+        (let [value (:email @player)]
+          [text-field {:on-change           set-email
+                       :floating-label-text "Sähköposti"
+                       :full-width          true
+                       :value               value
+                       :error-text          (when-not (or (str/blank? value)
+                                                          (valid-email? value))
+                                              "Virheellinen sähköposti")
+                       :style               {:vertical-align :top}
+                       :disabled            (:email-disabled? @player)
+                       :title               (when (:email-disabled? @player)
+                                              "Tästä pakkalistasta on jo lähetetty sähköpostiviesti.")}])]])))
+
+(defn valid-code [address]
+  (when address
+    (let [[_ code] (re-find #"/([A-z0-9_-]{22})$" address)]
+      code)))
 
 (defn decklist-import []
   (let [mobile? (subscribe [::common-subs/mobile?])
+        loaded? (subscribe [::subs/loaded?])
         selected (atom nil)
         on-active (fn [tab]
                     (let [value (oget tab "props" "value")]
                       (reset! selected (when (not= value @selected)
                                          value))))
         address (atom "")
+        code (make-reaction #(valid-code @address))
         address-on-change #(reset! address %)
-        import-from-address #(dispatch [::events/import-address @address])
+        import-from-address #(dispatch [::events/import-address @code])
         decklist (atom "")
         decklist-on-change #(reset! decklist %)
         import-decklist (fn []
                           (dispatch [::events/import-text @decklist])
                           (reset! selected nil))
+        import-error (subscribe [::subs/error :import-address])
         border (styles/border "1px" :solid (styles/palette :light-grey))]
-
-    (fn decklist-import-render []
-      [:div.decklist-import
-       [ui/tabs {:value                   @selected
-                 :content-container-style (when @selected
-                                            {:border-bottom border
-                                             :border-left   (when-not @mobile? border)
-                                             :border-right  (when-not @mobile? border)})}
-        [ui/tab {:label     "Lataa aiempi lista"
-                 :value     "load-previous"
-                 :on-active on-active
-                 :style     {:color :black}}
-         [:div.info
-          [:h3
-           "Lataa aiempi lista"]
-          [:p
-           "Lataa aiemmin syötetty pakkalista antamalla sen osoite (esim. "
-           [:span.address "https://decklist.pairings.fi/abcd..."]
-           ")."]]
-         [:div.form
-          [text-field {:on-change           address-on-change
-                       :floating-label-text "Osoite"
-                       :full-width          true}]
-          [:br]
-          [ui/raised-button {:label    "Lataa"
-                             :disabled (str/blank? @address)
-                             :on-click import-from-address}]]]
-        [ui/tab {:label     "Lataa tekstilista"
-                 :value     "load-text"
-                 :on-active on-active
-                 :style     {:color :black}}
-         [:div.info
-          [:h3
-           "Lataa tekstimuotoinen lista"]
-          [:p
-           "Kopioi tekstikenttään tekstimuotoinen lista."
-           "Listassa tulee olla seuraavassa muodossa: lukumäärä, välilyönti, kortin nimi. Esimerkki:"]
-          [:pre
-           "4 Lightning Bolt\n4 Chain Lightning\n..."]
-          [:p "Maindeckin ja sideboardin väliin tulee rivi, jolla lukee pelkästään \"Sideboard\"."]]
-         [:div.form
-          [text-field {:on-change      decklist-on-change
-                       :multi-line     true
-                       :rows           7
-                       :rows-max       7
-                       :textarea-style {:background-color "rgba(0, 0, 0, 0.05)"}
-                       :full-width     true}]
-          [:br]
-          [ui/raised-button {:label    "Lataa"
-                             :disabled (str/blank? @decklist)
-                             :on-click import-decklist}]]]]])))
+    (reagent/create-class
+     {:component-did-mount    (fn []
+                                (add-watch loaded? ::decklist-import
+                                           (fn [_ _ _ new]
+                                             (when new
+                                               (reset! selected nil)
+                                               (reset! address "")))))
+      :component-will-unmount (fn []
+                                (remove-watch loaded? ::decklist-import))
+      :reagent-render         (fn decklist-import-render []
+                                [:div.decklist-import
+                                 [ui/tabs {:value                   @selected
+                                           :content-container-style (when @selected
+                                                                      {:border-bottom border
+                                                                       :border-left   (when-not @mobile? border)
+                                                                       :border-right  (when-not @mobile? border)})}
+                                  [ui/tab {:label     "Lataa aiempi lista"
+                                           :value     "load-previous"
+                                           :on-active on-active
+                                           :style     {:color :black}}
+                                   [:div.info
+                                    [:h3
+                                     "Lataa aiempi lista"]
+                                    [:p
+                                     "Lataa aiemmin syötetty pakkalista antamalla sen osoite (esim. "
+                                     [:span.address "https://decklist.pairings.fi/abcd..."]
+                                     ")."]]
+                                   [:div.form
+                                    [:div.text-field-container
+                                     [text-field {:on-change           address-on-change
+                                                  :floating-label-text "Osoite"
+                                                  :full-width          true
+                                                  :error-text          (when-not (or (str/blank? @address)
+                                                                                     @code)
+                                                                         "Virheellinen osoite")}]]
+                                    [:br]
+                                    [ui/raised-button {:label    "Lataa"
+                                                       :disabled (nil? @code)
+                                                       :on-click import-from-address}]
+                                    (when @import-error
+                                      [:p.decklist-import-error
+                                       (case @import-error
+                                         :not-found "Pakkalistaa ei löytynyt"
+                                         "Virhe pakkalistan latauksessa")])]]
+                                  [ui/tab {:label     "Lataa tekstilista"
+                                           :value     "load-text"
+                                           :on-active on-active
+                                           :style     {:color :black}}
+                                   [:div.info
+                                    [:h3
+                                     "Lataa tekstimuotoinen lista"]
+                                    [:p
+                                     "Kopioi tekstikenttään tekstimuotoinen lista."
+                                     "Listassa tulee olla seuraavassa muodossa: lukumäärä, välilyönti, kortin nimi. Esimerkki:"]
+                                    [:pre
+                                     "4 Lightning Bolt\n4 Chain Lightning\n..."]
+                                    [:p "Maindeckin ja sideboardin väliin tulee rivi, jolla lukee pelkästään \"Sideboard\"."]]
+                                   [:div.form
+                                    [text-field {:on-change      decklist-on-change
+                                                 :multi-line     true
+                                                 :rows           7
+                                                 :rows-max       7
+                                                 :textarea-style {:background-color "rgba(0, 0, 0, 0.05)"}
+                                                 :full-width     true
+                                                 :name           :text-decklist}]
+                                    [:br]
+                                    [ui/raised-button {:label    "Lataa"
+                                                       :disabled (str/blank? @decklist)
+                                                       :on-click import-decklist}]]]]])})))
 
 (defn error-list [errors]
   [ui/list
@@ -300,6 +331,7 @@
 
 (defn decklist-submit []
   (let [decklist (subscribe [::subs/decklist])
+        player (reagent/cursor decklist [:player])
         select-main #(dispatch [::events/select-board :main])
         select-side #(dispatch [::events/select-board :side])
         button-style {:position  :relative
@@ -309,7 +341,7 @@
         tournament (subscribe [::subs/tournament])
         saving? (subscribe [::subs/saving?])
         saved? (subscribe [::subs/saved?])
-        error? (subscribe [::subs/error?])
+        error? (subscribe [::subs/error :save])
         page (subscribe [::common-subs/page])
         save-decklist #(dispatch [::events/save-decklist (:id @tournament) @decklist])]
     (fn decklist-submit-render []
@@ -349,7 +381,7 @@
           [decklist-table decklist :side]]
          [decklist-import]
          [:h3 "Pelaajan tiedot"]
-         [player-info decklist]
+         [player-info player]
          [ui/raised-button
           {:label    "Tallenna"
            :on-click save-decklist
