@@ -80,8 +80,9 @@
 
 (reg-event-fx ::save-tournament
   (fn [{:keys [db]} [_ tournament]]
-    {:db      (update db :decklist-editor merge {:saving               true
-                                                 :organizer-tournament tournament})
+    {:db      (-> db
+                  (assoc-in [:decklist-editor :saving] true)
+                  (update-in [:decklist-editor :organizer-tournament] merge tournament))
      :ws-send [:client/save-decklist-organizer-tournament tournament]}))
 
 (reg-event-fx :server/organizer-tournament-saved

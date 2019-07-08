@@ -7,6 +7,7 @@
             [cljs-time.coerce :as coerce]
             [clojure.string :as str]
             [oops.core :refer [oget]]
+            [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]
@@ -56,7 +57,8 @@
      (str (get-host) submit-url)]))
 
 (defn tournament-row [tournament]
-  (let [column-style {:font-size "14px"}
+  (let [column-style {:font-size "14px"
+                      :padding   0}
         link-props {:href (routes/organizer-tournament-path {:id (:id tournament)})}]
     [ui/table-row
      [ui/table-row-column {:class-name :date
@@ -76,7 +78,7 @@
       [:a.tournament-link link-props
        (:decklist tournament)]]
      [ui/table-row-column {:class-name :submit-page
-                           :style      column-style}
+                           :style      {:font-size "14px"}}
       [list-submit-link (:id tournament)]]]))
 
 (defn all-tournaments []
@@ -190,18 +192,32 @@
        (when @error?
          [notice :error "Tallennus epäonnistui"])])))
 
+(defn date-picker [opts]
+  [ui/date-picker (merge {:container              :inline
+                          :dialog-container-style {:left "-9999px"}
+                          :locale                 "fi-FI"
+                          :auto-ok                true
+                          :DateTimeFormat         (oget js/Intl "DateTimeFormat")
+                          :text-field-style       {:width "128px"}}
+                         opts)])
+
 (defn tournament [id]
   (let [saved-tournament (subscribe [::subs/organizer-tournament])
         decklists (subscribe [::subs/organizer-decklists])
         saving? (subscribe [::subs/saving?])
-        tournament (atom @saved-tournament)
+        tournament (atom nil)
         set-name #(swap! tournament assoc :name %)
         set-date (fn [_ date]
-                   (swap! tournament assoc :date (to-local-date date)))
+                   (swap! tournament assoc :date date))
+        set-deadline (fn [_ date]
+                       (swap! tournament assoc :deadline date))
         set-format (fn [_ _ format]
                      (swap! tournament assoc :format (keyword format)))
         save-tournament #(dispatch [::events/save-tournament
-                                    (select-keys @tournament [:id :name :format :date :deadline])])
+                                    (-> @tournament
+                                        (select-keys [:id :name :format :date :deadline])
+                                        (update :date to-local-date)
+                                        (update :deadline coerce/to-date-time))])
         selected-decklists (atom #{})
         on-select (fn [selection]
                     (let [selection (js->clj selection)]
@@ -214,7 +230,9 @@
     (fn tournament-render [id]
       (when (and (nil? @tournament)
                  (some? @saved-tournament))
-        (reset! tournament @saved-tournament))
+        (reset! tournament (-> @saved-tournament
+                               (update :date coerce/to-date)
+                               (update :deadline coerce/to-date))))
       [:div#decklist-organizer-tournament
        [:div.tournament-info
         [:div.fields
@@ -231,7 +249,8 @@
                               :value               value
                               :floating-label-text "Formaatti"
                               :error-text          (when-not value
-                                                     "Formaatti on pakollinen")}
+                                                     "Formaatti on pakollinen")
+                              :style               {:width "128px"}}
              [ui/menu-item {:value        :standard
                             :primary-text "Standard"}]
              [ui/menu-item {:value        :modern
@@ -239,19 +258,30 @@
              [ui/menu-item {:value        :legacy
                             :primary-text "Legacy"}]])]
          [:div.field
-          (let [value (some-> (:date @tournament)
-                              (coerce/to-long)
-                              (js/Date.))]
-            [ui/date-picker {:value                  value
-                             :error-text             (when-not value
-                                                       "Päivämäärä on pakollinen")
-                             :on-change              set-date
-                             :container              :inline
-                             :dialog-container-style {:left "-9999px"}
-                             :floating-label-text    "Päivämäärä"
-                             :locale                 "fi-FI"
-                             :auto-ok                true
-                             :DateTimeFormat         (oget js/Intl "DateTimeFormat")}])]]
+          (let [value (:date @tournament)]
+            [date-picker {:value               value
+                          :error-text          (when-not value
+                                                 "Päivämäärä on pakollinen")
+                          :on-change           set-date
+                          :floating-label-text "Päivämäärä"
+                          :min-date            (js/Date.)}])]
+         [:div.field
+          (let [value (:deadline @tournament)]
+            [date-picker {:value               value
+                          :error-text          (when-not value
+                                                 "Listojen lähettämisen deadline on pakollinen")
+                          :on-change           set-deadline
+                          :floating-label-text "Deadline"
+                          :min-date            (js/Date.)}])]
+         [:div.field
+          (let [value (:deadline @tournament)]
+            [ui/time-picker {:value               value
+                             :floating-label-text "Deadline klo"
+                             :on-change           set-deadline
+                             :format              "24hr"
+                             :auto-ok             true
+                             :minutes-step        10
+                             :text-field-style    {:width "128px"}}])]]
         [:div.link
          (when id
            [:p
@@ -264,7 +294,8 @@
                             :disabled (or @saving?
                                           (str/blank? (:name @tournament))
                                           (nil? (:format @tournament))
-                                          (nil? (:date @tournament)))
+                                          (nil? (:date @tournament))
+                                          (nil? (:deadline @tournament)))
                             :style    {:width "200px"}}]
          (if @saving?
            [ui/circular-progress
@@ -287,68 +318,9 @@
                             :style    {:margin-top "12px"
                                        :width      "200px"}}]]]
        [:div.decklists
-        [decklist-table @decklists @selected-decklists on-select]]])))
-
-(defn decklist-card [card]
-  [:div.card
-   [:div.quantity
-    (:quantity card)]
-   [:div.name
-    (:name card)]])
-
-(defn render-decklist [decklist tournament]
-  (let [{:keys [player main side id], counts :count} decklist
-        {:keys [last-name first-name dci deck-name]} player
-        [l1 l2 l3] last-name
-        dci (vec dci)
-        {tournament-id :id, tournament-name :name, date :date} tournament]
-    [:div.organizer-decklist
-     [:div.first-letters
-      [:div.label "Alkukirjaimet"]
-      [:div.letter l1]
-      [:div.letter l2]
-      [:div.letter l3]]
-     [:div.deck-info
-      [:div.tournament-date
-       [:div.label "Päivä:"]
-       [:div.value (format-date date)]]
-      [:div.tournament-name
-       [:div.label "Turnaus:"]
-       [:div.value
-        [:a {:href (routes/organizer-tournament-path {:id tournament-id})}
-         tournament-name]]]
-      [:div.deck-name
-       [:div.label "Pakka:"]
-       [:div.value deck-name]]]
-     [:div.player-info
-      [:div.name
-       [:div.last-name
-        [:div.label "Sukunimi:"]
-        [:div.value last-name]]
-       [:div.first-name
-        [:div.label "Etunimi:"]
-        [:div.value first-name]]]
-      [:div.dci
-       [:div.label "DCI:"]
-       [:div.value
-        (for [index (range 10)]
-          ^{:key (str id "--dci--" index)}
-          [:span.digit (get dci index)])]]]
-     [:div.decklists
-      [:div.maindeck
-       [:h3 "Maindeck (" (:main counts) ")"]
-       (into [:div.cards]
-             (mapcat (fn [type]
-                       (when-let [cards (get main type)]
-                         (list* [:h4.type-header (type->header type)]
-                                (for [card cards]
-                                  [decklist-card card])))))
-             card-types)]
-      [:div.sideboard
-       [:h3 "Sideboard (" (:side counts) ")"]
-       (into [:div.cards]
-             (for [card side]
-               [decklist-card card]))]]]))
+        (if (seq @decklists)
+          [decklist-table @decklists @selected-decklists on-select]
+          [:p "Ei lähetettyjä listoja"])]])))
 
 (defn view-decklist []
   (let [decklist (subscribe [::subs/decklist-by-type])

@@ -44,8 +44,11 @@
     [:.decklist-import
      [:.form
       {:padding-bottom (px 12)}]])
+   (when-print
+    [:.no-print
+     {:display :none}])
    [:.intro
-    [:.tournament-date :.tournament-name :.tournament-format
+    [:.tournament-date :.tournament-name :.tournament-format :.tournament-deadline
      {:font-weight :bold}]]
    [:h3
     {:margin-bottom 0}]
@@ -82,7 +85,6 @@
 (def date-width (px 200))
 (def tournament-name-width (calc (- print-body-width letters-width date-width)))
 (def deck-name-width (calc (- print-body-width letters-width)))
-
 
 (defstyles cardlists
   [:.decklists
@@ -270,8 +272,8 @@
      [:.deck-name
       {:width deck-name-width}]])])
 
-(defstyles organizer-decklist
-  [:.organizer-decklist
+(defstyles print-decklist
+  [:.print-decklist
    {:position :relative
     :width    (percent 100)}
    [:.label :.value
@@ -349,11 +351,11 @@
       table-row-link]]]
    [:#decklist-organizer-login
     {:margin "12px 24px"}]
-   organizer-decklist
    (when-print
     [:.decklist-organizer-header
      {:display "none !important"}])])
 
 (defstyles styles
   organizer
+  print-decklist
   submit)
