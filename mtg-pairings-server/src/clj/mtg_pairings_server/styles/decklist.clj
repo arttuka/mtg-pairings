@@ -102,9 +102,9 @@
      {:margin "16px 0"}]
     [:.cards
      [:.card
-      {:width        print-card-width
-       :margin-left  column-margin
-       :margin-right column-margin}
+      {:width  print-card-width
+       :margin {:left  column-margin
+                :right column-margin}}
       [:.name
        {:width (calc (- print-card-width (px 50)))}]]])
    [:.cards
@@ -120,7 +120,13 @@
        :text-align :center
        :margin     "0 8px"}]
      [:.name
-      {:padding-left (px 6)}]]]]
+      {:padding-left (px 6)}]]
+    [:.type-header
+     {:height      (px 24)
+      :line-height (px 24)
+      :margin      {:top    0
+                    :bottom (px 6)}
+      :break-after :avoid-column}]]]
   [:.maindeck
    (when-screen
     [:&
@@ -138,6 +144,8 @@
       {:position :absolute
        :top      0
        :left     column-margin}]
+     [:.type-header
+      {:margin-left column-margin}]
      [:.cards
       {:display     :flex
        :flex        {:direction :column
@@ -145,7 +153,7 @@
        :align       {:content :space-between}
        :max-height  print-body-height
        :padding-top (px 22)}
-      [:.card:first-child
+      [:.card:first-child :.type-header:first-child
        {:margin-top card-height}]]])]
   [:.sideboard
    (when-screen
@@ -276,9 +284,9 @@
      {:display :none}])
    (when-print
     [:&
-     {:width            print-width
-      :height           print-height
-      :break-after      :page}]
+     {:width       print-width
+      :height      print-height
+      :break-after :page}]
     [:.label
      {:color (color :dark-grey)}]
     [:.first-letters

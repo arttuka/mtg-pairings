@@ -14,7 +14,7 @@
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [debounce dissoc-index format-date index-where get-host valid-email?]]
-            [mtg-pairings-server.util.decklist :refer [->text]]
+            [mtg-pairings-server.util.decklist :refer [->text card-types type->header]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
             [mtg-pairings-server.util.material-ui :refer [text-field]]
             [clojure.string :as str]))
@@ -43,6 +43,7 @@
                       :on-change                      on-change
                       :on-suggestions-fetch-requested fetch-suggestions
                       :on-suggestions-clear-requested clear-suggestions
+                      :suggestion->string             :name
                       :id                             :decklist-autosuggest
                       :floating-label-text            "Lisää kortti..."
                       :styles                         {:container {:width width}
@@ -54,10 +55,11 @@
        (not (str/blank? last-name))))
 
 (defn decklist-errors [decklist]
-  (let [cards (reduce (fn [acc {:keys [name quantity]}]
+  (let [all-cards (concat (mapcat (:main decklist) card-types) (:side decklist))
+        cards (reduce (fn [acc {:keys [name quantity]}]
                         (merge-with + acc {name quantity}))
                       {}
-                      (concat (:main decklist) (:side decklist)))
+                      all-cards)
         errors (concat [(when-not (valid-player-data? (:player decklist)) {:type :player-data
                                                                            :id   :missing-player-data
                                                                            :text "Osa pelaajan tiedoista puuttuu"})
@@ -74,7 +76,7 @@
                           :id   (str "deck-error-card--" card)
                           :card card
                           :text (str "Korttia " card " on yli 4 kappaletta")})
-                       (for [{:keys [error name]} (concat (:main decklist) (:side decklist))
+                       (for [{:keys [error name]} all-cards
                              :when error]
                          {:type :other
                           :id   (str "other-error-card--" name)
@@ -137,6 +139,27 @@
         (when error
           [error-icon error])]])))
 
+(defn decklist-header-row [type]
+  [ui/table-row
+   [ui/table-row-column {:class-name :quantity}]
+   [ui/table-row-column {:class-name :card
+                         :style      {:font-size   "16px"
+                                      :font-weight :bold}}
+    (type->header type)]
+   [ui/table-row-column {:class-name :actions}]
+   [ui/table-row-column {:class-name :error}]])
+
+(defn table-body-by-type [decklist board error-cards]
+  (mapcat (fn [type]
+            (when-let [cards (get-in decklist [board type])]
+              (list*
+               ^{:key (str (name type) "--header")}
+               [decklist-header-row type]
+               (for [{:keys [id name error] :as card} cards]
+                 ^{:key (str id "--tr")}
+                 [decklist-table-row board card (or error (get error-cards name))]))))
+          card-types))
+
 (defn decklist-table [decklist board]
   (let [mobile? (subscribe [::common-subs/mobile?])
         header-style {:color       :black
@@ -168,9 +191,11 @@
             [ui/table-header-column {:class-name :actions}]
             [ui/table-header-column {:class-name :error}]]]
           [ui/table-body
-           (for [{:keys [id name error] :as card} (get @decklist board)]
-             ^{:key (str id "--tr")}
-             [decklist-table-row board card (or error (get error-cards name))])]]]))))
+           (case board
+             :main (table-body-by-type @decklist :main error-cards)
+             :side (for [{:keys [id name error] :as card} (:side @decklist)]
+                     ^{:key (str id "--tr")}
+                     [decklist-table-row :side card (or error (get error-cards name))]))]]]))))
 
 (defn player-info [player]
   (let [set-first-name #(dispatch [::events/update-player-info :first-name %])
@@ -252,74 +277,79 @@
         import-error (subscribe [::subs/error :import-address])
         border (styles/border "1px" :solid (styles/palette :light-grey))]
     (reagent/create-class
-     {:component-did-mount    (fn []
-                                (add-watch loaded? ::decklist-import
-                                           (fn [_ _ _ new]
-                                             (when new
-                                               (reset! selected nil)
-                                               (reset! address "")))))
-      :component-will-unmount (fn []
-                                (remove-watch loaded? ::decklist-import))
-      :reagent-render         (fn decklist-import-render []
-                                [:div.decklist-import
-                                 [ui/tabs {:value                   @selected
-                                           :content-container-style (when @selected
-                                                                      {:border-bottom border
-                                                                       :border-left   (when-not @mobile? border)
-                                                                       :border-right  (when-not @mobile? border)})}
-                                  [ui/tab {:label     "Lataa aiempi lista"
-                                           :value     "load-previous"
-                                           :on-active on-active
-                                           :style     {:color :black}}
-                                   [:div.info
-                                    [:h3
-                                     "Lataa aiempi lista"]
-                                    [:p
-                                     "Lataa aiemmin syötetty pakkalista antamalla sen osoite (esim. "
-                                     [:span.address "https://decklist.pairings.fi/abcd..."]
-                                     ")."]]
-                                   [:div.form
-                                    [:div.text-field-container
-                                     [text-field {:on-change           address-on-change
-                                                  :floating-label-text "Osoite"
-                                                  :full-width          true
-                                                  :error-text          (when-not (or (str/blank? @address)
-                                                                                     @code)
-                                                                         "Virheellinen osoite")}]]
-                                    [:br]
-                                    [ui/raised-button {:label    "Lataa"
-                                                       :disabled (nil? @code)
-                                                       :on-click import-from-address}]
-                                    (when @import-error
-                                      [:p.decklist-import-error
-                                       (case @import-error
-                                         :not-found "Pakkalistaa ei löytynyt"
-                                         "Virhe pakkalistan latauksessa")])]]
-                                  [ui/tab {:label     "Lataa tekstilista"
-                                           :value     "load-text"
-                                           :on-active on-active
-                                           :style     {:color :black}}
-                                   [:div.info
-                                    [:h3
-                                     "Lataa tekstimuotoinen lista"]
-                                    [:p
-                                     "Kopioi tekstikenttään tekstimuotoinen lista."
-                                     "Listassa tulee olla seuraavassa muodossa: lukumäärä, välilyönti, kortin nimi. Esimerkki:"]
-                                    [:pre
-                                     "4 Lightning Bolt\n4 Chain Lightning\n..."]
-                                    [:p "Maindeckin ja sideboardin väliin tulee rivi, jolla lukee pelkästään \"Sideboard\"."]]
-                                   [:div.form
-                                    [text-field {:on-change      decklist-on-change
-                                                 :multi-line     true
-                                                 :rows           7
-                                                 :rows-max       7
-                                                 :textarea-style {:background-color "rgba(0, 0, 0, 0.05)"}
-                                                 :full-width     true
-                                                 :name           :text-decklist}]
-                                    [:br]
-                                    [ui/raised-button {:label    "Lataa"
-                                                       :disabled (str/blank? @decklist)
-                                                       :on-click import-decklist}]]]]])})))
+     {:component-did-mount
+      (fn []
+        (add-watch loaded? ::decklist-import
+                   (fn [_ _ _ new]
+                     (when new
+                       (reset! selected nil)
+                       (reset! address "")))))
+
+      :component-will-unmount
+      (fn []
+        (remove-watch loaded? ::decklist-import))
+
+      :reagent-render
+      (fn decklist-import-render []
+        [:div.decklist-import
+         [ui/tabs {:value                   @selected
+                   :content-container-style (when @selected
+                                              {:border-bottom border
+                                               :border-left   (when-not @mobile? border)
+                                               :border-right  (when-not @mobile? border)})}
+          [ui/tab {:label     "Lataa aiempi lista"
+                   :value     "load-previous"
+                   :on-active on-active
+                   :style     {:color :black}}
+           [:div.info
+            [:h3
+             "Lataa aiempi lista"]
+            [:p
+             "Lataa aiemmin syötetty pakkalista antamalla sen osoite (esim. "
+             [:span.address "https://decklist.pairings.fi/abcd..."]
+             ")."]]
+           [:div.form
+            [:div.text-field-container
+             [text-field {:on-change           address-on-change
+                          :floating-label-text "Osoite"
+                          :full-width          true
+                          :error-text          (when-not (or (str/blank? @address)
+                                                             @code)
+                                                 "Virheellinen osoite")}]]
+            [:br]
+            [ui/raised-button {:label    "Lataa"
+                               :disabled (nil? @code)
+                               :on-click import-from-address}]
+            (when @import-error
+              [:p.decklist-import-error
+               (case @import-error
+                 :not-found "Pakkalistaa ei löytynyt"
+                 "Virhe pakkalistan latauksessa")])]]
+          [ui/tab {:label     "Lataa tekstilista"
+                   :value     "load-text"
+                   :on-active on-active
+                   :style     {:color :black}}
+           [:div.info
+            [:h3
+             "Lataa tekstimuotoinen lista"]
+            [:p
+             "Kopioi tekstikenttään tekstimuotoinen lista."
+             "Listassa tulee olla seuraavassa muodossa: lukumäärä, välilyönti, kortin nimi. Esimerkki:"]
+            [:pre
+             "4 Lightning Bolt\n4 Chain Lightning\n..."]
+            [:p "Maindeckin ja sideboardin väliin tulee rivi, jolla lukee pelkästään \"Sideboard\"."]]
+           [:div.form
+            [text-field {:on-change      decklist-on-change
+                         :multi-line     true
+                         :rows           7
+                         :rows-max       7
+                         :textarea-style {:background-color "rgba(0, 0, 0, 0.05)"}
+                         :full-width     true
+                         :name           :text-decklist}]
+            [:br]
+            [ui/raised-button {:label    "Lataa"
+                               :disabled (str/blank? @decklist)
+                               :on-click import-decklist}]]]]])})))
 
 (defn error-list [errors]
   [ui/list
@@ -330,7 +360,7 @@
                                                        [error-icon nil]])}])])
 
 (defn decklist-submit []
-  (let [decklist (subscribe [::subs/decklist])
+  (let [decklist (subscribe [::subs/decklist-by-type])
         player (reagent/cursor decklist [:player])
         select-main #(dispatch [::events/select-board :main])
         select-side #(dispatch [::events/select-board :side])
@@ -343,7 +373,7 @@
         saved? (subscribe [::subs/saved?])
         error? (subscribe [::subs/error :save-decklist])
         page (subscribe [::common-subs/page])
-        save-decklist #(dispatch [::events/save-decklist (:id @tournament) @decklist])]
+        save-decklist #(dispatch [::events/save-decklist (:id @tournament)])]
     (fn decklist-submit-render []
       (let [errors (decklist-errors @decklist)]
         [:div#decklist-submit

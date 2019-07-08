@@ -6,13 +6,13 @@
             [oops.core :refer [oget]]
             [mtg-pairings-server.util :refer [deep-merge]]))
 
-(defn ^:private suggestion [suggestion opts]
+(defn ^:private suggestion [suggestion->string suggestion opts]
   (reagent/as-element
    [ui/menu-item {:primary-text (reagent/as-element
                                  [:div {:style {:white-space   :nowrap
                                                 :text-overflow :ellipsis
                                                 :overflow      :hidden}}
-                                  suggestion])}]))
+                                  (suggestion->string (js->clj suggestion :keywordize-keys true))])}]))
 
 (defn ^:private suggestion-container [props]
   (reagent/as-element
@@ -45,20 +45,20 @@
                             (reset! value "")
                             (on-change suggestion))
         on-suggestion-selected (fn [_ data]
-                                 (select-suggestion (oget data "suggestion")))]
-    (fn autosuggest-render [{:keys [suggestions styles on-suggestions-clear-requested] :as options}]
-      (let [input-props (merge (dissoc options :suggestions :styles :on-change :on-suggestions-fetch-requested :on-suggestions-clear-requested)
-                               {:on-change    (fn [event new-value]
-                                                (when (= "type" (oget new-value "method"))
-                                                  (reset! value (oget event "target" "value"))))
-                                :value        @value})]
+                                 (select-suggestion (js->clj (oget data "suggestion") :keywordize-keys true)))]
+    (fn autosuggest-render [{:keys [suggestions styles on-suggestions-clear-requested suggestion->string] :as options}]
+      (let [input-props (merge (dissoc options :suggestions :styles :on-change :on-suggestions-fetch-requested :on-suggestions-clear-requested :suggestion->string)
+                               {:on-change (fn [event new-value]
+                                             (when (= "type" (oget new-value "method"))
+                                               (reset! value (oget event "target" "value"))))
+                                :value     @value})]
         [:> js/Autosuggest {:suggestions                    @suggestions
                             :on-suggestions-fetch-requested on-suggestions-fetch-requested
                             :on-suggestions-clear-requested on-suggestions-clear-requested
                             :on-suggestion-selected         on-suggestion-selected
                             :get-suggestion-value           identity
                             :render-suggestions-container   suggestion-container
-                            :render-suggestion              suggestion
+                            :render-suggestion              (partial suggestion suggestion->string)
                             :render-input-component         input
                             :input-props                    input-props
                             :theme                          (deep-merge default-styles styles)}]))))

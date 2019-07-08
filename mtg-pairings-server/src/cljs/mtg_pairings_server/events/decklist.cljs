@@ -48,10 +48,9 @@
                         [:decklist-editor :error :save-tournament] true)))
 
 (reg-event-fx ::save-decklist
-  (fn [{:keys [db]} [_ tournament decklist]]
-    {:db      (update db :decklist-editor merge {:decklist decklist
-                                                 :saving   true})
-     :ws-send [:client/save-decklist [tournament decklist]]}))
+  (fn [{:keys [db]} [_ tournament]]
+    {:db      (assoc-in db [:decklist-editor :saving] true)
+     :ws-send [:client/save-decklist [tournament (get-in db [:decklist-editor :decklist])]]}))
 
 (reg-event-fx :server/decklist-saved
   (fn [{:keys [db]} [_ id]]
@@ -103,8 +102,9 @@
                                                :ascending true})))))
 
 (reg-event-fx ::load-decklist
-  (fn [_ [_ id]]
-    {:ws-send [:client/load-decklist id]}))
+  (fn [{:keys [db]} [_ id]]
+    {:db      (assoc-in db [:decklist-editor :decklist] empty-decklist)
+     :ws-send [:client/load-decklist id]}))
 
 (reg-event-fx ::load-decklists
   (fn [_ [_ id]]
@@ -144,16 +144,20 @@
   (fn [db [_ error]]
     (assoc-in db [:decklist-editor :error :import-address] error)))
 
-(defn ^:private add-card [{:keys [board] :as decklist} name]
-  (if (some #(= name (:name %)) (get decklist board))
+(defn ^:private add-card [{:keys [board] :as decklist} card]
+  (if (some #(= (:name card) (:name %)) (get decklist board))
     decklist
-    (-> decklist
-        (update board conj (add-id-to-card {:name name, :quantity 1}))
-        (update-in [:count board] inc))))
+    (let [new-card (-> card
+                       (update :types set)
+                       (assoc :quantity 1)
+                       (add-id-to-card))]
+      (-> decklist
+          (update board conj new-card)
+          (update-in [:count board] inc)))))
 
 (reg-event-db ::add-card
-  (fn [db [_ name]]
-    (update-in db [:decklist-editor :decklist] add-card name)))
+  (fn [db [_ card]]
+    (update-in db [:decklist-editor :decklist] add-card card)))
 
 (defn ^:private set-quantity [decklist board id quantity]
   (let [index (util/index-where #(= id (:id %)) (get decklist board))

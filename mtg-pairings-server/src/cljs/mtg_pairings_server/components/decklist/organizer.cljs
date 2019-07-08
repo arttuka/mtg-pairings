@@ -12,6 +12,7 @@
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.styles.common :refer [palette]]
             [mtg-pairings-server.util :refer [format-date format-date-time to-local-date indexed get-host]]
+            [mtg-pairings-server.util.decklist :refer [card-types type->header]]
             [mtg-pairings-server.util.material-ui :refer [text-field]]))
 
 (defn header []
@@ -205,10 +206,10 @@
         on-select (fn [selection]
                     (let [selection (js->clj selection)]
                       (reset! selected-decklists
-                              (into #{} (case selection
-                                          "all" (map :id @decklists)
-                                          "none" []
-                                          (map (comp :id @decklists) selection))))))
+                              (set (case selection
+                                     "all" (map :id @decklists)
+                                     "none" []
+                                     (map (comp :id @decklists) selection))))))
         load-selected-decklists #(dispatch [::events/load-decklists @selected-decklists])]
     (fn tournament-render [id]
       (when (and (nil? @tournament)
@@ -336,28 +337,33 @@
      [:div.decklists
       [:div.maindeck
        [:h3 "Maindeck (" (:main counts) ")"]
-       [:div.cards
-        (for [card main]
-          ^{:key (str id "--main--" (:name card))}
-          [decklist-card card])]]
+       (into [:div.cards]
+             (mapcat (fn [type]
+                       (when-let [cards (get main type)]
+                         (list* [:h4.type-header (type->header type)]
+                                (for [card cards]
+                                  [decklist-card card])))))
+             card-types)]
       [:div.sideboard
        [:h3 "Sideboard (" (:side counts) ")"]
-       [:div.cards
-        (for [card side]
-          ^{:key (str id "--side--" (:name card))}
-          [decklist-card card])]]]]))
+       (into [:div.cards]
+             (for [card side]
+               [decklist-card card]))]]]))
 
 (defn view-decklist []
-  (let [decklist (subscribe [::subs/decklist])
+  (let [decklist (subscribe [::subs/decklist-by-type])
         tournament (subscribe [::subs/organizer-tournament])]
     (fn view-decklist-render []
       [render-decklist @decklist @tournament])))
 
 (defn view-decklists []
-  (let [decklists (subscribe [::subs/decklists])
+  (let [decklists (subscribe [::subs/decklists-by-type])
         tournament (subscribe [::subs/organizer-tournament])
+        printed? (clojure.core/atom false)
         print-page #(when (and (seq @decklists)
-                               @tournament)
+                               @tournament
+                               (not @printed?))
+                      (reset! printed? true)
                       (.print js/window))]
     (reagent/create-class
      {:component-did-mount  print-page

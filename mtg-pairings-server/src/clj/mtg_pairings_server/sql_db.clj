@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.sql-db
   (:require [clojure.walk :refer [postwalk]]
+            [clojure.java.jdbc :as jdbc]
             [clj-time.core :as time]
             [clj-time.coerce :as time-coerce]
             [korma.core :as sql]
@@ -9,7 +10,13 @@
             [config.core :refer [env]]
             [mtg-pairings-server.util :refer [some-value]])
   (:import (java.sql Date Timestamp)
-           (org.joda.time LocalDate DateTime)))
+           (org.joda.time LocalDate DateTime)
+           (org.postgresql.jdbc PgArray)))
+
+(extend-protocol jdbc/IResultSetReadColumn
+  PgArray
+  (result-set-read-column [pgobj _ _]
+    (vec (.getArray pgobj))))
 
 (def datasource-options {:adapter       "postgresql"
                          :username      (env :db-user)

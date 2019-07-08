@@ -1,7 +1,8 @@
 (ns mtg-pairings-server.subscriptions.decklist
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [clojure.string :as str]
-            [cljs-time.coerce :as coerce]))
+            [cljs-time.coerce :as coerce]
+            [mtg-pairings-server.util.decklist :refer [by-type]]))
 
 (reg-sub ::tournament
   (fn [db _]
@@ -19,9 +20,19 @@
   (fn [db _]
     (get-in db [:decklist-editor :decklist])))
 
+(reg-sub ::decklist-by-type
+  :<- [::decklist]
+  (fn [decklist _]
+    (by-type decklist)))
+
 (reg-sub ::decklists
   (fn [db _]
     (get-in db [:decklist-editor :decklists])))
+
+(reg-sub ::decklists-by-type
+  :<- [::decklists]
+  (fn [decklists _]
+    (map by-type decklists)))
 
 (reg-sub ::organizer-tournaments
   (fn [db _]

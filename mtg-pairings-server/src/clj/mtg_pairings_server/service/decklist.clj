@@ -12,17 +12,16 @@
   (let [name-param (-> prefix
                        (str/replace "%" "")
                        (str/lower-case)
-                       (str \%))
-        result (cond-> (-> (sql/select* db/card)
-                           (sql/fields :name)
-                           (sql/where {:lowername [like name-param]})
-                           (sql/order :lowername :asc)
-                           (sql/limit 10))
-                 (= :standard format) (sql/where {:standard true})
-                 (= :modern format) (sql/where {:modern true})
-                 (= :legacy format) (sql/where {:legacy true})
-                 true (sql/exec))]
-    (map :name result)))
+                       (str \%))]
+    (cond-> (-> (sql/select* db/card)
+                (sql/fields :name :types)
+                (sql/where {:lowername [like name-param]})
+                (sql/order :lowername :asc)
+                (sql/limit 10))
+      (= :standard format) (sql/where {:standard true})
+      (= :modern format) (sql/where {:modern true})
+      (= :legacy format) (sql/where {:legacy true})
+      true (sql/exec))))
 
 (defn generate-card->id [cards]
   (into {}
@@ -30,11 +29,10 @@
         (sql/select db/card
           (sql/where {:name [in cards]}))))
 
-(defn format-card [decklist maindeck card index quantity]
+(defn format-card [decklist maindeck card quantity]
   {:decklist decklist
    :maindeck maindeck
    :card     card
-   :index    index
    :quantity quantity})
 
 (defn get-tournament [id]
@@ -44,16 +42,17 @@
 (defn format-cards [cards maindeck?]
   (->> cards
        ((if maindeck? filter remove) :maindeck)
-       (sort-by :index)
-       (mapv #(select-keys % [:name :quantity]))))
+       (map #(update % :types set))
+       (mapv #(select-keys % [:name :quantity :types]))))
 
 (defn get-decklist [id]
   (when-let [decklist (sql-util/select-unique-or-nil db/decklist
                         (sql/fields :id [:name :deck-name] :first-name :last-name :dci :email :tournament)
                         (sql/with db/decklist-card
-                          (sql/fields :maindeck :index :quantity)
+                          (sql/fields :maindeck :quantity)
                           (sql/with db/card
-                            (sql/fields :name)))
+                            (sql/fields :name :types)
+                            (sql/order :name)))
                         (sql/where {:id id}))]
     (let [main (format-cards (:decklist_card decklist) true)
           side (format-cards (:decklist_card decklist) false)
@@ -96,10 +95,10 @@
      (sql/insert db/decklist-card
        (sql/values
         (concat
-         (for [[index {:keys [name quantity]}] (indexed (:main decklist))]
-           (format-card (or old-id new-id) true (card->id name) index quantity))
-         (for [[index {:keys [name quantity]}] (indexed (:side decklist))]
-           (format-card (or old-id new-id) false (card->id name) index quantity)))))
+         (for [{:keys [name quantity]} (:main decklist)]
+           (format-card (or old-id new-id) true (card->id name) quantity))
+         (for [{:keys [name quantity]} (:side decklist)]
+           (format-card (or old-id new-id) false (card->id name) quantity)))))
      {:id          (or old-id new-id)
       :send-email? (and (not (str/blank? (get-in decklist [:player :email])))
                         (str/blank? (get-in old-decklist [:player :email])))})))
@@ -150,12 +149,13 @@
   (when-not (or (str/blank? row)
                 (re-matches #"^[Mm]aindeck.*" row))
     (if-let [[_ quantity name] (re-matches #"(\d+)\s+(.+)" (str/trim row))]
-      (if-let [{:keys [name legal]} (sql-util/select-unique-or-nil db/card
-                                      (sql/fields :name [format :legal])
-                                      (sql/where {:lowername (str/lower-case name)}))]
+      (if-let [{:keys [name legal types]} (sql-util/select-unique-or-nil db/card
+                                            (sql/fields :name [format :legal] :types)
+                                            (sql/where {:lowername (str/lower-case name)}))]
         (if legal
           {:name     name
-           :quantity (Long/parseLong quantity)}
+           :quantity (Long/parseLong quantity)
+           :types    (set types)}
           {:name  name
            :error "Ei sallittu tässä formaatissa"})
         {:name  name

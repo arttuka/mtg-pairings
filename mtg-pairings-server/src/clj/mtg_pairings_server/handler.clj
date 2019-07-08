@@ -137,6 +137,8 @@
                            :decklist-editor (when user-id
                                               {:decklist             decklist
                                                :organizer-tournament tournament})}))))
+    (GET "/decklist/organizer/print" []
+      (redirect (auth/organizer-path)))
     (GET "/decklist/organizer/:id" request
       :path-params [id :- s/Str]
       (let [tournament (decklist/get-organizer-tournament id)
