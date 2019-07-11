@@ -15,8 +15,8 @@
                        (str \%))]
     (cond-> (-> (sql/select* db/card)
                 (sql/fields :name :types)
-                (sql/where {:lowername [like name-param]})
-                (sql/order :lowername :asc)
+                (sql/where {(sql/sqlfn :lower :name) [like name-param]})
+                (sql/order :name :asc)
                 (sql/limit 10))
       (= :standard format) (sql/where {:standard true})
       (= :modern format) (sql/where {:modern true})
@@ -151,7 +151,7 @@
     (if-let [[_ quantity name] (re-matches #"(\d+)\s+(.+)" (str/trim row))]
       (if-let [{:keys [name legal types]} (sql-util/select-unique-or-nil db/card
                                             (sql/fields :name [format :legal] :types)
-                                            (sql/where {:lowername (str/lower-case name)}))]
+                                            (sql/where {(sql/sqlfn :lower :name) (str/lower-case name)}))]
         (if legal
           {:name     name
            :quantity (Long/parseLong quantity)

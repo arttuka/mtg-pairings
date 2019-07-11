@@ -25,7 +25,6 @@
                  [com.fzakaria/slf4j-timbre "0.3.13"]
                  [garden "1.3.9"]]
   :plugins [[lein-ancient "0.6.15"]
-            [lein-asset-minifier "0.4.6"]
             [lein-cljfmt "0.6.4"]
             [lein-garden "0.3.0" :exclusions [org.apache.commons/commons-compress]]
             [lein-kibit "0.1.6"]
@@ -48,10 +47,6 @@
                      :stylesheet   mtg-pairings-server.styles.main/main
                      :compiler     {:output-to     "target/public/css/main.css"
                                     :pretty-print? true}}]}
-
-  :minify-assets [[:css {:source ["target/public/css/main.css"
-                                  "resources/private/slider.css"]
-                         :target "target/public/css/main.min.css"}]]
 
   :buster {:files       ["target/public/js/pairings-main.js"
                          "target/public/js/decklist-main.js"

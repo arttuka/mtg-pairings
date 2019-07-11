@@ -80,10 +80,10 @@
 (def column-margin (px 10))
 (def column-gap (px 20))
 (def print-body-width (calc (- print-width player-height)))
-(def print-card-width (calc (- (/ print-body-width 2) (* column-margin 2))))
+(def print-card-width (calc (- (/ print-body-width 2) (px* column-margin 2))))
 (def letters-width (px 90))
 (def date-width (px 200))
-(def tournament-name-width (calc (- print-body-width letters-width date-width)))
+(def tournament-name-width (calc (- print-body-width (px+ letters-width date-width))))
 (def deck-name-width (calc (- print-body-width letters-width)))
 
 (defstyles cardlists
