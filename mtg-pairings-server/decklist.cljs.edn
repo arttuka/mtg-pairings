@@ -1,0 +1,4 @@
+{:main          mtg-pairings-server.decklist
+ :output-to     "target/public/js/decklist-main.js"
+ :output-dir    "target/public/js/compiled/decklist"
+ :optimizations :advanced}

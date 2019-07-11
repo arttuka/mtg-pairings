@@ -2,62 +2,81 @@
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [dispatch-sync subscribe clear-subscription-cache!]]
             [cljsjs.material-ui]
-            [cljs-react-material-ui.core :refer [get-mui-theme]]
             [cljs-react-material-ui.reagent :as ui]
             [mount.core :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
-            mtg-pairings-server.routes
+            [mtg-pairings-server.routes.decklist :as decklist-routes]
+            mtg-pairings-server.routes.pairings
             mtg-pairings-server.util.event-listener
-            [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.events :as events]
-            [mtg-pairings-server.pages.main :refer [main-page]]
-            [mtg-pairings-server.pages.tournament :refer [tournament-page tournament-subpage tournaments-page]]
-            [mtg-pairings-server.pages.organizer :refer [organizer-page organizer-menu deck-construction-tables]]
+            [mtg-pairings-server.subscriptions.common :as common-subs]
+            [mtg-pairings-server.subscriptions.decklist :as decklist-subs]
+            [mtg-pairings-server.subscriptions.pairings :as pairings-subs]
+            [mtg-pairings-server.events.decklist :as decklist-events]
+            [mtg-pairings-server.events.pairings :as pairings-events]
+            [mtg-pairings-server.pages.decklist :as decklist-pages :refer [decklist-organizer decklist-submit]]
+            [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu deck-construction-tables]]
+            [mtg-pairings-server.pages.pairings :as pairings-pages :refer [main-page tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.components.organizer :as organizer]
-            [mtg-pairings-server.components.main :refer [header notification]]))
+            [mtg-pairings-server.components.main :refer [header notification]]
+            [mtg-pairings-server.util.material-ui :refer [theme]]))
 
-(def theme (get-mui-theme
-            {:palette {:primary1-color      "#90caf9"
-                       :primary2-color      "#5d99c6"
-                       :primary3-color      "#c3fdff"
-                       :accent1-color       "#ec407a"
-                       :accent2-color       "#b4004e"
-                       :accent3-color       "#ff77a9"
-                       :picker-header-color "#5d99c6"}}))
+(defn display-header? [page]
+  (not (contains? #{::organizer-pages/main
+                    ::decklist-pages/submit
+                    ::decklist-pages/organizer
+                    ::decklist-pages/organizer-tournament
+                    ::decklist-pages/organizer-view}
+                  page)))
 
 (defn current-page []
-  (let [page (subscribe [::subs/page])
-        hide-organizer-menu? (subscribe [::subs/organizer :menu])]
+  (let [page-data (subscribe [::common-subs/page])
+        hide-organizer-menu? (subscribe [::pairings-subs/organizer :menu])]
     (fn []
-      [ui/mui-theme-provider
-       {:mui-theme theme}
-       [:div
-        (if (= :organizer (:page @page))
-          (when-not @hide-organizer-menu? [organizer/menu])
-          [header])
-        [notification]
-        [:div#main-container
-         (case (:page @page)
-           :main [#'main-page]
-           :tournaments [#'tournaments-page]
-           :tournament [#'tournament-page (:id @page)]
-           (:pairings :standings :pods :seatings :bracket) [#'tournament-subpage (:id @page) (:page @page) (:round @page)]
-           :organizer [#'organizer-page]
-           :organizer-menu [#'organizer-menu]
-           :organizer-deck-construction [#'deck-construction-tables]
-           nil)]]])))
+      (let [{:keys [page id round]} @page-data]
+        [ui/mui-theme-provider
+         {:mui-theme theme}
+         [:div
+          (when (and (= ::organizer-pages/main page)
+                     (not @hide-organizer-menu?))
+            [organizer/menu])
+          (when (display-header? page)
+            [header])
+          [notification]
+          [:div#main-container
+           (case page
+             ::pairings-pages/main [#'main-page]
+             ::pairings-pages/tournaments [#'tournaments-page]
+             ::pairings-pages/tournament [#'tournament-page id]
+             (::pairings-pages/pairings
+              ::pairings-pages/standings
+              ::pairings-pages/pods
+              ::pairings-pages/seatings
+              ::pairings-pages/bracket) [#'tournament-subpage id page round]
+             ::organizer-pages/main [#'organizer-page]
+             ::organizer-pages/menu [#'organizer-menu]
+             ::organizer-pages/deck-construction [#'deck-construction-tables]
+             ::decklist-pages/submit [#'decklist-submit]
+             (::decklist-pages/organizer
+              ::decklist-pages/organizer-tournament
+              ::decklist-pages/organizer-view) [#'decklist-organizer id page]
+             nil)]]]))))
 
 (defn mount-root []
   (reagent/render [current-page] (.getElementById js/document "app")))
 
 (defn ^:after-load figwheel-reload []
   (clear-subscription-cache!)
-  (events/connect!)
+  (pairings-events/connect!)
+  (decklist-events/connect!)
   (mount-root))
 
 (defn init! []
-  (dispatch-sync [::events/initialize])
+  (dispatch-sync [::pairings-events/initialize])
+  (dispatch-sync [::decklist-events/initialize])
+  (decklist-routes/initialize-routes "/decklist")
+  (pairings-events/connect!)
+  (decklist-events/connect!)
   (accountant/configure-navigation!
    {:nav-handler
     (fn [path]

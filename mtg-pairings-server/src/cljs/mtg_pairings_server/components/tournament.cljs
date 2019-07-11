@@ -7,14 +7,14 @@
             [cljs-react-material-ui.icons :as icons]
             [goog.string :as gstring]
             [goog.string.format]
-            [prop-types]
-            [mtg-pairings-server.events :as events]
-            [mtg-pairings-server.subscriptions :as subs]
-            [mtg-pairings-server.routes :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
+            [mtg-pairings-server.events.pairings :as events]
+            [mtg-pairings-server.subscriptions.pairings :as subs]
+            [mtg-pairings-server.routes.pairings :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
             [mtg-pairings-server.components.filter :refer [filters]]
+            [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.util :refer [format-date indexed]]
-            [mtg-pairings-server.util.material-ui :refer [get-theme]]))
+            [mtg-pairings-server.util.mtg :refer [bye?]]))
 
 (defn tournament-card-header
   ([data]
@@ -97,37 +97,33 @@
          [tournament t])])]])
 
 (defn sortable-header [{:keys [class column sort-key dispatch-key]} & children]
-  (reagent/create-class
-   {:context-types  #js {:muiTheme prop-types/object.isRequired}
-    :reagent-render (fn sortable-header-render [{:keys [class column sort-key dispatch-key]} & children]
-                      (let [palette (:palette (get-theme (reagent/current-component)))]
-                        [:th {:class    class
-                              :style    (when (= column sort-key) {:color (:accent1Color palette)})
-                              :on-click #(dispatch [dispatch-key column])}
-                         [icons/hardware-keyboard-arrow-down
-                          {:style {:vertical-align :baseline
-                                   :position       :absolute
-                                   :left           0
-                                   :color          nil}}]
-                         children]))}))
+  [:th {:class    class
+        :style    (when (= column sort-key) {:color (:accent1-color styles/palette)})
+        :on-click #(dispatch [dispatch-key column])}
+   [icons/hardware-keyboard-arrow-down
+    {:style {:vertical-align :baseline
+             :position       :absolute
+             :left           0
+             :color          nil}}]
+   children])
 
 (defn pairing-row [pairing]
-  (let [bye? (= (:table_number pairing) 0)]
+  (let [bye (bye? pairing)]
     [:tr
-     [:td.table (when-not bye? (:table_number pairing))]
+     [:td.table (when-not bye (:table_number pairing))]
      [:td.players
       [:span.player1 (:team1_name pairing)]
       [:span.player2.hidden-desktop
        (:team2_name pairing)]]
      [:td.players2.hidden-mobile (:team2_name pairing)]
-     (if bye?
+     (if bye
        [:td.points
         [:span.team1-points (:team1_points pairing)]]
        [:td.points
         [:span.team1-points (:team1_points pairing)]
         [:span.hidden-mobile " - "]
         [:span.team2-points (:team2_points pairing)]])
-     (if bye?
+     (if bye
        [:td.result]
        [:td.result
         [:span.team1-wins (:team1_wins pairing)]

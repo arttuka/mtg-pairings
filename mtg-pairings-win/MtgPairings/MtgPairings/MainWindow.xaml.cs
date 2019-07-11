@@ -1,30 +1,17 @@
 ﻿using System;
-using System.Collections.Immutable;
+using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Threading;
-using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
 using MtgPairings.Service;
 using MtgPairings.Data;
 using MtgPairings.Domain;
-using System.Collections.Generic;
-using System.Collections.Concurrent;
-using System.ComponentModel;
 using MtgPairings.Functional;
-using System.Collections.ObjectModel;
 using MtgPairings.Properties;
-using System.Diagnostics;
-using WPFCustomMessageBox;
 
 namespace MtgPairings
 {
@@ -225,11 +212,10 @@ namespace MtgPairings
         private void Poista_Click(object sender, RoutedEventArgs e)
         {
             var tournament = (TrackableTournament)TournamentList.SelectedItem;
-            var confirm = CustomMessageBox.ShowYesNo(
+            var confirm = MessageBox.Show(
                 "Haluatko varmasti poistaa turnauksen " + tournament.Tournament.SanctionNumber + " " + tournament.Name + "?",
                 "Oletko varma?",
-                "Poista",
-                "Peruuta");
+                MessageBoxButton.YesNo);
             if(confirm == MessageBoxResult.Yes)
             {
                 tournament.Tracking = false;
@@ -243,11 +229,10 @@ namespace MtgPairings
         private void Reset_Click(object sender, RoutedEventArgs e)
         {
             var tournament = (TrackableTournament)TournamentList.SelectedItem;
-            var confirm = CustomMessageBox.ShowYesNo(
+            var confirm = MessageBox.Show(
                 "Haluatko varmasti resetoida turnauksen " + tournament.Tournament.SanctionNumber + " " + tournament.Name + "?",
                 "Oletko varma?",
-                "Resetoi",
-                "Peruuta");
+                MessageBoxButton.YesNo);
             if (confirm == MessageBoxResult.Yes)
             {
                 tournament.Tracking = false;

@@ -14,10 +14,9 @@
    {:ui   "/api-docs"
     :spec "/swagger.json"
     :data {:info {:title "WER pairings backend API"}}})
-  (context "/api" []
-    (context "/tournament" [] tournament-routes)
-    (context "/player" [] player-routes)
-    (GET "/client-version" []
-      :no-doc true
-      {:status 200
-       :body {:version (env :client-version)}})))
+  (context "/tournament" [] tournament-routes)
+  (context "/player" [] player-routes)
+  (GET "/client-version" []
+    :no-doc true
+    {:status 200
+     :body   {:version (env :client-version)}}))

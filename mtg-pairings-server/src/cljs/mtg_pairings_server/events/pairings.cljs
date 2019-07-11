@@ -1,34 +1,14 @@
-(ns mtg-pairings-server.events
+(ns mtg-pairings-server.events.pairings
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [cljs.core.async :refer [<! timeout] :refer-macros [go-loop]]
             [cljs-time.core :as time]
             [oops.core :refer [oget]]
+            [mtg-pairings-server.styles.common :refer [mobile?]]
             [mtg-pairings-server.transit :as transit]
-            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up]]
+            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in
+                                              index-where dissoc-index]]
             [mtg-pairings-server.util.local-storage :as local-storage]
-            [mtg-pairings-server.util.mobile :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
-
-(defmethod ws/event-handler :chsk/recv
-  [{:keys [?data]}]
-  (let [[event data] ?data]
-    (dispatch [event data])))
-
-(def channel-open? (atom false))
-
-(reg-fx :ws-send
-  (fn [event]
-    (if @channel-open?
-      (ws/send! event)
-      (let [k (gensym)]
-        (add-watch channel-open? k (fn [_ _ _ new-val]
-                                     (when new-val
-                                       (remove-watch channel-open? k)
-                                       (ws/send! event))))))))
-
-(reg-fx :store
-  (fn [[key obj]]
-    (local-storage/store key obj)))
 
 (defn initial-db []
   (deep-merge {:tournaments        {}
@@ -45,7 +25,7 @@
                :pairings           {:sort-key :table_number}
                :pods               {:sort-key :pod}
                :seatings           {:sort-key :table_number}
-               :page               {:page  :main
+               :page               {:page  :mtg-pairings-server.pages.pairings/main
                                     :id    nil
                                     :round nil}
                :logged-in-user     (local-storage/fetch :user)
@@ -62,23 +42,12 @@
 
 (reg-event-db ::initialize
   (fn [db _]
-    (merge db (initial-db))))
+    (deep-merge db (initial-db))))
 
 (defn connect! []
-  (ws/send! [:client/connect])
+  (ws/send! [:client/connect-pairings])
   (when-let [user (local-storage/fetch :user)]
     (ws/send! [:client/login (:dci user)])))
-
-(defmethod ws/event-handler :chsk/state
-  [{:keys [?data]}]
-  (let [[_ new-state] ?data]
-    (when (:first-open? new-state)
-      (reset! channel-open? true)
-      (connect!))))
-
-(reg-event-db ::window-resized
-  (fn [db _]
-    (assoc db :mobile? (mobile?))))
 
 (reg-event-fx ::login
   (fn [_ [_ dci-number]]
@@ -97,10 +66,6 @@
     {:ws-send [:client/logout]
      :db      (assoc db :logged-in-user nil)
      :store   [:user nil]}))
-
-(reg-event-db ::page
-  (fn [db [_ data]]
-    (assoc db :page data)))
 
 (reg-event-db ::tournaments-page
   (fn [db [_ page]]
@@ -319,8 +284,8 @@
   (fn [{:keys [db]} [_ action value]]
     (let [{:keys [id page]} (:page db)]
       (case page
-        :organizer (resolve-organizer-action db id action value)
-        :organizer-menu (send-organizer-action db id action value)))))
+        :mtg-pairings-server.pages.organizer/main (resolve-organizer-action db id action value)
+        :mtg-pairings-server.pages.organizer/menu (send-organizer-action db id action value)))))
 
 (reg-fx :popup
   (fn [id]
@@ -334,14 +299,14 @@
   (fn [{:keys [db]} _]
     (let [{:keys [id page]} (:page db)]
       (case page
-        :organizer {:db    (assoc-in db [:organizer :menu] true)
-                    :popup (get-in db [:page :id])}
-        :organizer-menu {:store       [["organizer" id] {:action :close-popup}]
-                         :close-popup nil}))))
+        :mtg-pairings-server.pages.organizer/main {:db    (assoc-in db [:organizer :menu] true)
+                                                   :popup (get-in db [:page :id])}
+        :mtg-pairings-server.pages.organizer/menu {:store       [["organizer" id] {:action :close-popup}]
+                                                   :close-popup nil}))))
 
 (reg-event-fx ::local-storage-updated
   (fn [{:keys [db]} [_ k v]]
-    (when (and (= (get-in db [:page :page]) :organizer)
+    (when (and (= (get-in db [:page :page]) :mtg-pairings-server.pages.organizer/main)
                (= k ["organizer" (get-in db [:page :id])]))
       (resolve-organizer-action db
                                 (get-in db [:page :id])

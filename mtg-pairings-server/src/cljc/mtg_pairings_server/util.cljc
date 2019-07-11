@@ -1,5 +1,7 @@
 (ns mtg-pairings-server.util
-  (:require [#?(:clj  clj-time.format
+  (:require #?(:clj  [clojure.core.async :refer [<! alts! chan go-loop put! timeout sliding-buffer]]
+               :cljs [cljs.core.async :refer [<! alts! chan put! timeout sliding-buffer] :refer-macros [go-loop]])
+            [#?(:clj  clj-time.format
                 :cljs cljs-time.format)
              :as format]
             [#?(:clj  clj-time.core
@@ -12,7 +14,8 @@
                [ring.util.response :as ring])
             #?@(:cljs
                 [[goog.string :as gstring]
-                 [goog.string.format]])
+                 [goog.string.format]
+                 [oops.core :refer [oget]]])
             [clojure.string :as str]))
 
 (defn map-values
@@ -44,6 +47,17 @@
 
 (defn format-date [date]
   (some->> date (format/unparse-local-date (format/formatter "dd.MM.yyyy"))))
+
+(defn parse-iso-date-time [datetime]
+  (some->> datetime (format/parse (format/formatters :date-time))))
+
+(defn format-iso-date-time [datetime]
+  (some->> datetime (format/unparse (format/formatters :date-time))))
+
+(defn format-date-time [datetime]
+  (some->> datetime
+           #?(:cljs time/to-default-time-zone)
+           (format/unparse (format/formatter "dd.MM.yyyy HH:mm"))))
 
 (defn today-or-yesterday? [date]
   (let [yesterday (time/minus (time/today) (time/days 1))
@@ -95,6 +109,20 @@
                   %2)
                m1 m2)))
 
+(defn some-value [pred coll]
+  (first (filter pred coll)))
+
+(defn index-where [pred coll]
+  (loop [i 0
+         [x & xs] coll]
+    (cond
+      (pred x) i
+      (empty? xs) nil
+      :else (recur (inc i) xs))))
+
+(defn dissoc-index [v index]
+  (vec (concat (subvec v 0 index) (subvec v (inc index)))))
+
 #?(:clj
    (defn response [body]
      (if body
@@ -119,3 +147,25 @@
            minutes (Math/abs (round (/ seconds 60)))
            seconds (mod (Math/abs seconds) 60)]
        (gstring/format "%s%02d:%02d" sign minutes seconds))))
+
+(defn debounce [f ms]
+  (let [c (chan (sliding-buffer 1))]
+    (go-loop [args (<! c)]
+      (let [[val port] (alts! [c (timeout ms)])]
+        (if (= port c)
+          (recur val)
+          (do
+            (apply f args)
+            (recur (<! c))))))
+    (fn [& args]
+      (put! c (or args [])))))
+
+#?(:cljs
+   (defn get-host []
+     (str (oget js/window "location" "protocol")
+          "//"
+          (oget js/window "location" "host"))))
+
+(defn valid-email? [email]
+  (some->> email
+           (re-matches #".+@.+")))

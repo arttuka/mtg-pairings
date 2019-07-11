@@ -2,8 +2,7 @@
   (:require [garden.def :refer [defstyles]]
             [garden.selectors :refer [nth-child &]]
             [garden.units :refer [px percent]]
-            [mtg-pairings-server.styles.common :refer [ellipsis-overflow color]]
-            [mtg-pairings-server.util.mobile :refer [when-mobile when-desktop]]))
+            [mtg-pairings-server.styles.common :refer [ellipsis-overflow color when-mobile when-desktop]]))
 
 (defstyles pairings-table
   [:table.pairings-table
@@ -105,7 +104,7 @@
       ellipsis-overflow)])])
 
 (defstyles styles
-  [:table
+  [:table.pairings-table :table.seatings-table :table.standings-table :table.pods-table
    {:border-spacing 0}
    [:th
     {:text-align :left

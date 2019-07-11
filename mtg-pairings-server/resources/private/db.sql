@@ -92,4 +92,33 @@ create table pod_seat (
   seat int not null
 );
 
+create table decklist_tournament (
+  id char(22) not null primary key,
+  "user" integer not null references smf_members(id_member),
+  name text not null,
+  date date not null,
+  deadline timestamptz,
+  format text not null
+);
+
+create table decklist (
+  id char(22) not null primary key,
+  tournament char(22) not null references decklist_tournament(id),
+  submitted timestamptz not null,
+  name text,
+  "last-name" text,
+  "first-name" text,
+  dci text,
+  email text
+);
+
+create table decklist_card (
+  decklist char(22) not null references decklist(id),
+  maindeck boolean not null,
+  card int not null references trader_card(id),
+  index int not null,
+  quantity int not null,
+  primary key (decklist, maindeck, card)
+);
+
 commit;

@@ -1,5 +1,0 @@
-^{:watch-dirs ["src/cljs" "src/cljc" "env/prod/cljs"]}
-{:main          mtg-pairings-server.prod
- :output-to     "target/js/prod-main.js"
- :output-dir    "target/js/compiled"
- :optimizations :advanced}

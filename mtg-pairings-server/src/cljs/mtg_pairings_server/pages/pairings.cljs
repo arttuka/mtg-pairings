@@ -1,10 +1,10 @@
-(ns mtg-pairings-server.pages.main
+(ns mtg-pairings-server.pages.pairings
   (:require [re-frame.core :refer [subscribe]]
             [cljsjs.material-ui]
             [cljs-react-material-ui.reagent :as ui]
             [mtg-pairings-server.components.main :refer [own-tournament pairing]]
-            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list]]
-            [mtg-pairings-server.subscriptions :as subs]))
+            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list tournament-card-header tournament pairings standings pods seatings bracket]]
+            [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (defn get-latest-pairing [player-tournaments]
   (let [t (first player-tournaments)
@@ -45,3 +45,25 @@
            ^{:key [:tournament (:id t)]}
            [own-tournament t])]
         [newest-tournaments-list]))))
+
+(defn tournaments-page []
+  [tournament-list])
+
+(defn tournament-page [id]
+  (let [data (subscribe [::subs/tournament id])]
+    (fn tournament-page-render [id]
+      [tournament @data])))
+
+(defn tournament-subpage [id type round]
+  (let [tournament (subscribe [::subs/tournament id])]
+    (fn tournament-subpage-render [id type round]
+      [ui/card
+       [tournament-card-header @tournament]
+       [ui/card-text
+        {:style {:padding-top 0}}
+        (case type
+          ::pairings [pairings id round]
+          ::standings [standings id round]
+          ::pods [pods id round]
+          ::seatings [seatings id]
+          ::bracket [bracket id])]])))

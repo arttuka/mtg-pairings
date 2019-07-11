@@ -1,7 +1,7 @@
 (ns mtg-pairings-server.util.event-listener
   (:require [re-frame.core :refer [dispatch]]
             [mount.core :refer-macros [defstate]]
-            [mtg-pairings-server.events :as events]
+            [mtg-pairings-server.events.common :as events]
             [mtg-pairings-server.util.local-storage :as local-storage]))
 
 (defn resize-listener [_]

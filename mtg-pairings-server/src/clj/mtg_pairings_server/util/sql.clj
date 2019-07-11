@@ -1,6 +1,8 @@
 (ns mtg-pairings-server.util.sql
   (:require [korma.core :as sql]
-            [korma.db :as db]))
+            [korma.db :as db]
+            [korma.sql.engine :as eng])
+  (:import (java.util Random Base64)))
 
 (defn unique-or-nil
   [results]
@@ -49,3 +51,14 @@
                      sql/exec)]
       (assert (= count# 1) (str "Expected one deleted row, got " count#))
       count#)))
+
+(defn like
+  [k v]
+  (eng/infix k "LIKE" v))
+
+(let [random (Random.)
+      encoder (.withoutPadding (Base64/getUrlEncoder))]
+  (defn generate-id []
+    (let [bytes (byte-array 16)]
+      (.nextBytes random bytes)
+      (.encodeToString encoder bytes))))

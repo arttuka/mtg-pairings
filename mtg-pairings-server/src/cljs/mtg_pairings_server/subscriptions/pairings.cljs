@@ -1,13 +1,9 @@
-(ns mtg-pairings-server.subscriptions
+(ns mtg-pairings-server.subscriptions.pairings
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [cljs-time.core :as time]
             [clojure.string :as str]
             [mtg-pairings-server.util :refer [today-or-yesterday?]]
             [mtg-pairings-server.util.mtg :refer [duplicate-pairings]]))
-
-(reg-sub ::mobile?
-  (fn [db _]
-    (:mobile? db)))
 
 (reg-sub ::logged-in-user
   (fn [db _]
@@ -16,10 +12,6 @@
 (reg-sub ::player-tournaments
   (fn [db _]
     (:player-tournaments db)))
-
-(reg-sub ::page
-  (fn [db _]
-    (:page db)))
 
 (reg-sub ::tournaments-page
   (fn [db _]

@@ -1,30 +1,37 @@
 (ns mtg-pairings-server.handler
   (:require [compojure.api.sweet :refer :all]
             [compojure.route :refer [not-found resources]]
+            [clojure.java.io :as io]
             [clojure.string :as str]
             [config.core :refer [env]]
+            [cheshire.core :as json]
             [hiccup.page :refer [include-js include-css html5]]
             [schema.core :as s]
-            [taoensso.timbre :as log]
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
             [ring.middleware.jsonp :refer [wrap-json-with-padding]]
+            [ring.util.response :refer [redirect]]
             [mtg-pairings-server.api.http :as http-api]
+            [mtg-pairings-server.auth :as auth :refer [auth-routes]]
             [mtg-pairings-server.middleware :refer [wrap-site-middleware]]
             [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
             [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
+            [mtg-pairings-server.service.decklist :as decklist]
             [mtg-pairings-server.service.tournament :as tournament]
-            [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.transit :as transit]
-            [mtg-pairings-server.util.broadcast :as broadcast]
+            [mtg-pairings-server.util.decklist :refer [add-id-to-card add-id-to-cards]]
             [mtg-pairings-server.websocket :as ws]))
 
 (defn escape-quotes [s]
   (str/escape s {\' "\\'"}))
 
-(defn loading-page
-  ([]
-   (loading-page {}))
-  ([initial-db]
+(def asset-manifest (delay (some-> (io/resource "manifest.json")
+                                   (io/reader)
+                                   (json/parse-stream))))
+
+(defn index
+  ([js-file]
+   (index js-file {}))
+  ([js-file initial-db]
    (let [html (html5
                {:lang :fi}
                [:head
@@ -34,7 +41,7 @@
                         :content "width=device-width, initial-scale=1"}]
                 (include-css (if (env :dev)
                                "/css/main.css"
-                               (env :main-css)))
+                               (str \/ (@asset-manifest "css/main.min.css"))))
                 (when (env :dev)
                   (include-css "/css/slider.css"))]
                [:body {:class "body-container"}
@@ -43,11 +50,111 @@
                               "var initial_db = '" (escape-quotes (transit/write initial-db)) "'; ")]
                 (include-js (if (env :dev)
                               "/js/dev-main.js"
-                              (env :main-js)))])]
+                              (str \/ (@asset-manifest js-file))))])]
      {:status  200
       :body    html
       :headers {"Content-Type"  "text/html"
                 "Cache-Control" "no-cache"}})))
+
+(let [pairings-index (partial index "js/pairings-main.js")]
+  (defroutes pairings-routes
+    (GET "/" []
+      (pairings-index))
+    (GET "/tournaments" []
+      (pairings-index {:page {:page :mtg-pairings-server.pages.pairings/tournaments}}))
+    (GET "/tournaments/:id" []
+      :path-params [id :- s/Int]
+      (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/tournament
+                                     :id   id}
+                       :tournaments {id (tournament/client-tournament id)}}))
+    (GET "/tournaments/:id/pairings-:round" []
+      :path-params [id :- s/Int
+                    round :- s/Int]
+      (pairings-index {:page        {:page  :mtg-pairings-server.pages.pairings/pairings
+                                     :id    id
+                                     :round round}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :pairings    {id {round (tournament/get-round id round)}}}))
+    (GET "/tournaments/:id/standings-:round" []
+      :path-params [id :- s/Int
+                    round :- s/Int]
+      (pairings-index {:page        {:page  :mtg-pairings-server.pages.pairings/standings
+                                     :id    id
+                                     :round round}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :standings   {id {round (tournament/standings id round false)}}}))
+    (GET "/tournaments/:id/pods-:round" []
+      :path-params [id :- s/Int
+                    round :- s/Int]
+      (pairings-index {:page        {:page  :mtg-pairings-server.pages.pairings/pods
+                                     :id    id
+                                     :round round}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :pods        {id {round (tournament/pods id round)}}}))
+    (GET "/tournaments/:id/seatings" []
+      :path-params [id :- s/Int]
+      (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/seatings
+                                     :id   id}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :seatings    {id (tournament/seatings id)}}))
+    (GET "/tournaments/:id/bracket" []
+      :path-params [id :- s/Int]
+      (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/bracket
+                                     :id   id}
+                       :tournaments {id (tournament/client-tournament id)}
+                       :bracket     {id (tournament/bracket id)}}))
+    (GET "/tournaments/:id/organizer" [] (pairings-index))
+    (GET "/tournaments/:id/organizer/menu" [] (pairings-index))
+    (GET "/tournaments/:id/organizer/deck-construction" [] (pairings-index))))
+
+(defmacro validate-request [user-id tournament & body]
+  `(if (and ~user-id (not= ~user-id (:user ~tournament)))
+     {:status 403
+      :body   "403 Forbidden"}
+     (do ~@body)))
+
+(let [decklist-index (partial index "js/decklist-main.js")]
+  (defroutes decklist-routes
+    (GET "/decklist" []
+      (redirect (auth/organizer-path)))
+    (GET "/decklist/tournament/:id" []
+      :path-params [id :- s/Str]
+      (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/submit}
+                       :decklist-editor {:tournament (decklist/get-tournament id)}}))
+    (GET "/decklist/organizer" request
+      (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/organizer}
+                       :decklist-editor {:organizer-tournaments (decklist/get-organizer-tournaments (get-in request [:session :identity :id]))}}))
+    (GET "/decklist/organizer/new" []
+      (decklist-index {:page {:page :mtg-pairings-server.pages.decklist/organizer-tournament}}))
+    (GET "/decklist/organizer/view/:id" request
+      :path-params [id :- s/Str]
+      (let [decklist (decklist/get-decklist id)
+            tournament (decklist/get-organizer-tournament (:tournament decklist))
+            user-id (get-in request [:session :identity :id])]
+        (validate-request user-id tournament
+          (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/organizer-view
+                                             :id   id}
+                           :decklist-editor (when user-id
+                                              {:decklist             decklist
+                                               :organizer-tournament tournament})}))))
+    (GET "/decklist/organizer/print" []
+      (redirect (auth/organizer-path)))
+    (GET "/decklist/organizer/:id" request
+      :path-params [id :- s/Str]
+      (let [tournament (decklist/get-organizer-tournament id)
+            user-id (get-in request [:session :identity :id])]
+        (validate-request user-id tournament
+          (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/organizer-tournament
+                                             :id   id}
+                           :decklist-editor (when user-id
+                                              {:organizer-tournament tournament})}))))
+    (GET "/decklist/:id" []
+      :path-params [id :- s/Str]
+      (let [decklist (add-id-to-cards "server-card__" (decklist/get-decklist id))]
+        (decklist-index {:page            {:page :mtg-pairings-server.pages.decklist/submit
+                                           :id   id}
+                         :decklist-editor {:tournament (decklist/get-tournament (:tournament decklist))
+                                           :decklist   decklist}})))))
 
 (def robots-txt
   {:status  200
@@ -55,49 +162,15 @@
    :headers {"Content-Type" "text/plain"}})
 
 (defroutes site-routes
-  (GET "/" [] (loading-page))
-  (GET "/tournaments" []
-    (loading-page {:page {:page :tournaments}}))
-  (GET "/tournaments/:id" []
-    :path-params [id :- s/Int]
-    (loading-page {:page        {:page :tournament, :id id}
-                   :tournaments {id (tournament/client-tournament id)}}))
-  (GET "/tournaments/:id/pairings-:round" []
-    :path-params [id :- s/Int
-                  round :- s/Int]
-    (loading-page {:page        {:page :pairings, :id id, :round round}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :pairings    {id {round (tournament/get-round id round)}}}))
-  (GET "/tournaments/:id/standings-:round" []
-    :path-params [id :- s/Int
-                  round :- s/Int]
-    (loading-page {:page        {:page :standings, :id id, :round round}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :standings   {id {round (tournament/standings id round false)}}}))
-  (GET "/tournaments/:id/pods-:round" []
-    :path-params [id :- s/Int
-                  round :- s/Int]
-    (loading-page {:page        {:page :pods, :id id, :round round}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :pods        {id {round (tournament/pods id round)}}}))
-  (GET "/tournaments/:id/seatings" []
-    :path-params [id :- s/Int]
-    (loading-page {:page        {:page :seatings, :id id}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :seatings    {id (tournament/seatings id)}}))
-  (GET "/tournaments/:id/bracket" []
-    :path-params [id :- s/Int]
-    (loading-page {:page        {:page :bracket, :id id}
-                   :tournaments {id (tournament/client-tournament id)}
-                   :bracket     {id (tournament/bracket id)}}))
-  (GET "/tournaments/:id/organizer" [] (loading-page))
-  (GET "/tournaments/:id/organizer/menu" [] (loading-page))
-  (GET "/tournaments/:id/organizer/deck-construction" [] (loading-page))
-  (GET "/robots.txt" [] robots-txt)
-  ws/routes)
+  decklist-routes
+  pairings-routes
+  auth-routes
+  ws/routes
+  (GET "/robots.txt" [] robots-txt))
 
 (defroutes app-routes
-  http-api/app
+  (context "/api" []
+    http-api/app)
   (wrap-site-middleware
    (routes
     site-routes
@@ -108,87 +181,3 @@
              wrap-json-with-padding
              wrap-request-log
              wrap-allow-origin))
-
-(defmethod ws/event-handler
-  :chsk/uidport-open
-  [_])
-
-(defmethod ws/event-handler :chsk/uidport-close
-  [{:keys [uid]}]
-  (broadcast/disconnect uid))
-
-(defmethod ws/event-handler :client/connect
-  [{:keys [uid]}]
-  (log/debugf "New connection from %s" uid)
-  (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
-
-(defmethod ws/event-handler :client/login
-  [{uid :uid, dci-number :?data}]
-  (try
-    (if-let [player (player/player dci-number)]
-      (do
-        (ws/send! uid [:server/login player])
-        (ws/send! uid [:server/player-tournaments (player/tournaments dci-number)])
-        (broadcast/login uid dci-number))
-      (ws/send! uid [:server/login nil]))
-    (catch NumberFormatException _
-      (ws/send! uid [:server/login nil]))))
-
-(defmethod ws/event-handler :client/logout
-  [{:keys [uid]}]
-  (broadcast/logout uid))
-
-(defmethod ws/event-handler :client/tournaments
-  [{:keys [uid]}]
-  (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
-
-(defmethod ws/event-handler :client/tournament
-  [{uid :uid, id :?data}]
-  (ws/send! uid [:server/tournament (tournament/client-tournament id)]))
-
-(defmethod ws/event-handler :client/pairings
-  [{uid :uid, [id round] :?data}]
-  (ws/send! uid [:server/pairings [id round (tournament/get-round id round)]]))
-
-(defmethod ws/event-handler :client/standings
-  [{uid :uid, [id round] :?data}]
-  (ws/send! uid [:server/standings [id round (tournament/standings id round false)]]))
-
-(defmethod ws/event-handler :client/pods
-  [{uid :uid, [id round] :?data}]
-  (ws/send! uid [:server/pods [id round (tournament/pods id round)]]))
-
-(defmethod ws/event-handler :client/seatings
-  [{uid :uid, id :?data}]
-  (ws/send! uid [:server/seatings [id (tournament/seatings id)]]))
-
-(defmethod ws/event-handler :client/bracket
-  [{uid :uid, id :?data}]
-  (ws/send! uid [:server/bracket [id (tournament/bracket id)]]))
-
-(defmethod ws/event-handler :client/organizer-tournament
-  [{uid :uid, id :?data}]
-  (broadcast/watch uid id)
-  (ws/send! uid [:server/organizer-tournament (tournament/tournament id)]))
-
-(defmethod ws/event-handler :client/organizer-pairings
-  [{uid :uid, [id round] :?data}]
-  (ws/send! uid [:server/organizer-pairings (tournament/get-round id round)]))
-
-(defmethod ws/event-handler :client/organizer-standings
-  [{uid :uid, [id round] :?data}]
-  (ws/send! uid [:server/organizer-standings (tournament/standings id round false)]))
-
-(defmethod ws/event-handler :client/organizer-pods
-  [{uid :uid, [id number] :?data}]
-  (when-not (Double/isNaN number)
-    (ws/send! uid [:server/organizer-pods (tournament/pods id number)])))
-
-(defmethod ws/event-handler :client/organizer-seatings
-  [{uid :uid, id :?data}]
-  (ws/send! uid [:server/organizer-seatings (tournament/seatings id)]))
-
-(defmethod ws/event-handler :client/deck-construction
-  [{uid :uid, id :?data}]
-  (ws/send! uid [:server/organizer-seatings (tournament/seatings id)])
-  (ws/send! uid [:server/organizer-pods (tournament/latest-pods id)]))

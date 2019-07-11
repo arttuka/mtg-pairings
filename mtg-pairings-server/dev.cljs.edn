@@ -1,5 +1,5 @@
 ^{:watch-dirs ["src/cljs" "src/cljc" "env/dev/cljs"]
-  :css-dirs   ["resources/public/css"]
+  :css-dirs   ["dev-resources/public/css" "target/public/css"]
   :open-url   false}
 {:main       mtg-pairings-server.dev
  :preloads   [re-frisk.preload]
