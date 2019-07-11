@@ -60,7 +60,7 @@ namespace MtgPairings.Service
             var request = new RestRequest(method);
             request.Resource = url;
             request.RequestFormat = DataFormat.Json;
-            request.AddBody(body);
+            request.AddJsonBody(body);
             return request;
         }
 
