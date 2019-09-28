@@ -11,6 +11,7 @@
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
             [mtg-pairings-server.components.tooltip :refer [tooltip]]
+            [mtg-pairings-server.events.common :as common-events]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.styles.common :as styles]
@@ -440,6 +441,27 @@
              (->text @decklist)]])
          [error-list errors]]))))
 
+(defn language-selector []
+  (let [language (subscribe [::common-subs/language])
+        button-style {:width     "60px"
+                      :min-width "60px"}
+        select-fi #(dispatch [::common-events/set-language :fi])
+        select-en #(dispatch [::common-events/set-language :en])]
+    (fn language-selector-render []
+      [:div.language-selector.no-print
+       [ui/raised-button
+        {:label        "FI"
+         :on-click     select-fi
+         :primary      (= :fi @language)
+         :style        button-style
+         :button-style {:border-radius "2px 0 0 2px"}}]
+       [ui/raised-button
+        {:label        "EN"
+         :on-click     select-en
+         :primary      (= :en @language)
+         :style        button-style
+         :button-style {:border-radius "0 2px 2px 0"}}]])))
+
 (defn decklist-submit []
   (let [tournament (subscribe [::subs/tournament])
         decklist (subscribe [::subs/decklist-by-type])
@@ -454,7 +476,8 @@
       (let [translate @translate]
         [:div#decklist-submit
          [:div {:class (when @deadline-gone? :no-print)}
-          [:h2 (translate :submit.header)]
+          [language-selector]
+          [:h2.top-header (translate :submit.header)]
           [:p.intro
            (translate :submit.intro.0)
            [:span.tournament-name

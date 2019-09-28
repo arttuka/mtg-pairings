@@ -33,3 +33,8 @@
 (reg-event-db ::page
   (fn [db [_ data]]
     (assoc db :page data)))
+
+(reg-event-fx ::set-language
+  (fn [{:keys [db]} [_ language]]
+    {:db    (assoc db :language language)
+     :store [:stored-language language]}))

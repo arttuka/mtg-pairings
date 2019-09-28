@@ -47,6 +47,12 @@
    (when-print
     [:.no-print
      {:display :none}])
+   [:.language-selector
+    {:float :right}]
+   [:.top-header
+    {:line-height   (px 36)
+     :margin-top    (px 15)
+     :margin-bottom (px 15)}]
    [:.intro
     [:.tournament-date :.tournament-name :.tournament-format :.tournament-deadline
      {:font-weight :bold}]]
