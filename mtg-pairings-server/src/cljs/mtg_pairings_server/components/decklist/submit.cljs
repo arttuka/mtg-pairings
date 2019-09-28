@@ -83,7 +83,8 @@
                              :when error]
                          {:type :other
                           :id   (str "other-error-card--" name)
-                          :text (str error ": " name)}))]
+                          :text error
+                          :card name}))]
     (filter some? errors)))
 
 (defn cards-with-error [decklist]
@@ -103,46 +104,48 @@
 
 (defn decklist-table-row [board card error]
   (let [mobile? (subscribe [::common-subs/mobile?])
+        translate (subscribe [::subs/translate])
         on-change (fn [_ _ quantity]
                     (dispatch [::events/set-quantity board (:id card) quantity]))
         on-delete #(dispatch [::events/remove-card board (:id card)])]
-    (fn decklist-table-row-render [_ {:keys [name quantity]} error]
-      [ui/table-row
-       [ui/table-row-column {:class-name :quantity
-                             :style      {:padding    "0 12px"
-                                          :text-align :center
-                                          :font-size  "16px"}}
-        (when quantity
-          (into [ui/select-field {:value           quantity
-                                  :on-change       on-change
-                                  :style           {:width          "48px"
-                                                    :vertical-align :top}
-                                  :menu-style      {:width "48px"}
-                                  :icon-style      {:padding-left  0
-                                                    :padding-right 0
-                                                    :width         "24px"
-                                                    :fill          "rgba(0, 0, 0, 0.54)"}
-                                  :underline-style {:border-color "rgba(0, 0, 0, 0.24)"}}]
-                (for [i (range 1 (if (basic? name)
-                                   31
-                                   5))]
-                  [ui/menu-item {:value           i
-                                 :primary-text    i
-                                 :inner-div-style {:padding "0 6px"}}])))]
-       [ui/table-row-column {:class-name :card
-                             :style      {:font-size    "16px"
-                                          :padding-left (if @mobile? 0 "24px")}}
-        name]
-       [ui/table-row-column {:class-name :actions
-                             :style      {:font-size "16px"
-                                          :padding   0}}
-        [ui/icon-button {:on-click on-delete}
-         [icons/action-delete]]]
-       [ui/table-row-column {:class-name :error
-                             :style      {:padding  "12px"
-                                          :overflow :visible}}
-        (when error
-          [error-icon error])]])))
+    (fn decklist-table-row-render [_ card error]
+      (let [translate @translate]
+        [ui/table-row
+         [ui/table-row-column {:class-name :quantity
+                               :style      {:padding    "0 12px"
+                                            :text-align :center
+                                            :font-size  "16px"}}
+          (when (:quantity card)
+            (into [ui/select-field {:value           (:quantity card)
+                                    :on-change       on-change
+                                    :style           {:width          "48px"
+                                                      :vertical-align :top}
+                                    :menu-style      {:width "48px"}
+                                    :icon-style      {:padding-left  0
+                                                      :padding-right 0
+                                                      :width         "24px"
+                                                      :fill          "rgba(0, 0, 0, 0.54)"}
+                                    :underline-style {:border-color "rgba(0, 0, 0, 0.24)"}}]
+                  (for [i (range 1 (if (basic? (:name card))
+                                     31
+                                     5))]
+                    [ui/menu-item {:value           i
+                                   :primary-text    i
+                                   :inner-div-style {:padding "0 6px"}}])))]
+         [ui/table-row-column {:class-name :card
+                               :style      {:font-size    "16px"
+                                            :padding-left (if @mobile? 0 "24px")}}
+          (:name card)]
+         [ui/table-row-column {:class-name :actions
+                               :style      {:font-size "16px"
+                                            :padding   0}}
+          [ui/icon-button {:on-click on-delete}
+           [icons/action-delete]]]
+         [ui/table-row-column {:class-name :error
+                               :style      {:padding  "12px"
+                                            :overflow :visible}}
+          (when error
+            [error-icon (translate (str "submit.error." (name error)))])]]))))
 
 (defn decklist-header-row [type]
   (let [mobile? (subscribe [::common-subs/mobile?])]
@@ -282,6 +285,9 @@
         code (make-reaction #(valid-code @address))
         address-on-change #(reset! address %)
         import-from-address #(dispatch [::events/import-address @code])
+        address-on-key-press (fn [e]
+                               (when (= "Enter" (.-key e))
+                                 (import-from-address)))
         decklist (atom "")
         decklist-on-change #(reset! decklist %)
         import-decklist (fn []
@@ -317,6 +323,7 @@
            [:div.form
             [:div.text-field-container
              [text-field {:on-change           address-on-change
+                          :on-key-press        address-on-key-press
                           :floating-label-text (translate :submit.load-previous.address)
                           :full-width          true
                           :error-text          (when-not (or (str/blank? @address)
@@ -362,12 +369,14 @@
     (fn error-list-render [errors]
       (let [translate @translate]
         [ui/list
-         (for [{:keys [id text] :as error} errors
+         (for [{:keys [id text card] :as error} errors
                :let [error-text (if (string? text)
                                   text
                                   (translate (str "submit.error." (name (or text id)))))]]
-           ^{:key (str "error--" (name (:type error)))}
-           [ui/list-item {:primary-text error-text
+           ^{:key (str "error--" (name (:id error)))}
+           [ui/list-item {:primary-text (str error-text
+                                             (when card
+                                               (str ": " card)))
                           :left-icon    (reagent/as-element [:div
                                                              [error-icon nil]])}])]))))
 

@@ -157,11 +157,11 @@
            :quantity (Long/parseLong quantity)
            :types    (set types)}
           {:name  name
-           :error "Ei sallittu tässä formaatissa"})
+           :error :card-not-in-format})
         {:name  name
-         :error "Korttia ei löydy"})
+         :error :card-not-found})
       {:name  row
-       :error "Virheellinen rivi"})))
+       :error :invalid-row})))
 
 (defn load-text-decklist [text-decklist format]
   {:pre [(contains? #{:standard :modern :legacy} format)]}
