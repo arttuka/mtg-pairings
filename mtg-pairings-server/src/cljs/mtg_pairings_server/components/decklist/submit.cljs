@@ -299,8 +299,7 @@
                (fn [_ _ _ new]
                  (when new
                    (reset! selected nil)
-                   (reset! address "")
-                   (remove-watch loaded? ::decklist-import))))
+                   (reset! address ""))))
     (fn decklist-import-render []
       (let [translate @translate]
         [:div.decklist-import
