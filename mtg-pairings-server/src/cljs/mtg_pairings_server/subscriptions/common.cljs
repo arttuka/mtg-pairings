@@ -8,3 +8,7 @@
 (reg-sub ::page
   (fn [db _]
     (:page db)))
+
+(reg-sub ::language
+  (fn [db _]
+    (:language db)))

@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.events.decklist
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [oops.core :refer [oget]]
+            [mtg-pairings-server.i18n.common :as i18n]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.styles.common :refer [mobile?]]
             [mtg-pairings-server.transit :as transit]
@@ -23,7 +24,8 @@
   (util/deep-merge {:decklist-editor {:organizer-tournaments []
                                       :decklist              empty-decklist
                                       :sort                  {:key       :submitted
-                                                              :ascending true}}}
+                                                              :ascending true}}
+                    :language        (i18n/language :en)}
                    (transit/read (oget js/window "initial_db"))))
 
 (reg-event-db ::initialize

@@ -28,6 +28,7 @@
 (defn input []
   (let [tournament (subscribe [::subs/tournament])
         mobile? (subscribe [::common-subs/mobile?])
+        translate (subscribe [::subs/translate])
         on-change #(dispatch [::events/add-card %])
         suggestions (atom [])
         fetch-suggestions (debounce (fn [prefix]
@@ -40,14 +41,15 @@
     (fn input-render [_ _]
       (let [width (if @mobile?
                     "calc(100vw - 140px)"
-                    256)]
+                    256)
+            translate @translate]
         [autosuggest {:suggestions                    suggestions
                       :on-change                      on-change
                       :on-suggestions-fetch-requested fetch-suggestions
                       :on-suggestions-clear-requested clear-suggestions
                       :suggestion->string             :name
                       :id                             :decklist-autosuggest
-                      :floating-label-text            "Lisää kortti..."
+                      :floating-label-text            (translate :submit.add-card)
                       :styles                         {:container {:width width}
                                                        :input     {:width width}}}]))))
 
@@ -63,21 +65,18 @@
                       {}
                       all-cards)
         errors (concat [(when-not (valid-player-data? (:player decklist)) {:type :player-data
-                                                                           :id   :missing-player-data
-                                                                           :text "Osa pelaajan tiedoista puuttuu"})
+                                                                           :id   :missing-player-data})
                         (when (< (get-in decklist [:count :main]) 60) {:type :maindeck
-                                                                       :id   :deck-error-maindeck
-                                                                       :text "Maindeckissä on alle 60 korttia"})
+                                                                       :id   :deck-error-maindeck})
                         (when (> (get-in decklist [:count :side]) 15) {:type :sideboard
-                                                                       :id   :deck-error-sideboard
-                                                                       :text "Sideboardilla on yli 15 korttia"})]
+                                                                       :id   :deck-error-sideboard})]
                        (for [[card quantity] cards
                              :when (not (basic? card))
                              :when (> quantity 4)]
                          {:type :card-over-4
                           :id   (str "deck-error-card--" card)
                           :card card
-                          :text (str "Korttia " card " on yli 4 kappaletta")})
+                          :text :card-over-4})
                        (for [{:keys [error name]} all-cards
                              :when error]
                          {:type :other
@@ -169,12 +168,14 @@
 
 (defn decklist-table [decklist board]
   (let [mobile? (subscribe [::common-subs/mobile?])
+        translate (subscribe [::subs/translate])
         header-style {:color       :black
                       :font-weight :bold
                       :font-size   "16px"
                       :height      "36px"}]
     (fn decklist-table-render [decklist board]
-      (let [error-cards (cards-with-error @decklist)]
+      (let [translate @translate
+            error-cards (cards-with-error @decklist)]
         [:div.deck-table-container
          [:h3 (if (= :main board)
                 (str "Main deck (" (get-in @decklist [:count :main]) ")")
@@ -189,12 +190,12 @@
             [ui/table-header-column {:class-name :quantity
                                      :style      (merge header-style
                                                         {:padding "0 12px"})}
-             "Määrä"]
+             (translate :submit.quantity)]
             [ui/table-header-column {:class-name :card
                                      :style      (merge header-style
                                                         (when @mobile?
                                                           {:padding-left 0}))}
-             "Kortti"]
+             (translate :submit.card)]
             [ui/table-header-column {:class-name :actions}]
             [ui/table-header-column {:class-name :error}]]]
           [ui/table-body
@@ -209,55 +210,57 @@
         set-last-name #(dispatch [::events/update-player-info :last-name %])
         set-deck-name #(dispatch [::events/update-player-info :deck-name %])
         set-email #(dispatch [::events/update-player-info :email %])
-        set-dci #(dispatch [::events/update-player-info :dci %])]
+        set-dci #(dispatch [::events/update-player-info :dci %])
+        translate (subscribe [::subs/translate])]
     (fn player-info-render [_]
-      [:div#player-info
-       [:div.full-width
-        [text-field {:on-change           set-deck-name
-                     :floating-label-text "Pakan nimi"
-                     :full-width          true
-                     :value               (:deck-name @player)
-                     :style               {:vertical-align :top}}]]
-       [:div.half-width.left
-        (let [value (:first-name @player)]
-          [text-field {:on-change           set-first-name
-                       :floating-label-text "Etunimi"
+      (let [translate @translate]
+        [:div#player-info
+         [:div.full-width
+          [text-field {:on-change           set-deck-name
+                       :floating-label-text (translate :submit.deck-name)
                        :full-width          true
-                       :value               value
-                       :error-text          (when (str/blank? value)
-                                              "Etunimi on pakollinen")
-                       :style               {:vertical-align :top}}])]
-       [:div.half-width.right
-        (let [value (:last-name @player)]
-          [text-field {:on-change           set-last-name
-                       :floating-label-text "Sukunimi"
-                       :full-width          true
-                       :value               value
-                       :error-text          (when (str/blank? value)
-                                              "Etunimi on pakollinen")
-                       :style               {:vertical-align :top}}])]
-       [:div.half-width.left
-        (let [value (:dci @player)]
-          [text-field {:on-change           set-dci
-                       :floating-label-text "DCI-numero"
-                       :full-width          true
-                       :value               value
-                       :error-text          (when-not (valid-dci? value)
-                                              "Virheellinen DCI-numero")
-                       :style               {:vertical-align :top}}])]
-       [:div.half-width.right
-        (let [value (:email @player)]
-          [text-field {:on-change           set-email
-                       :floating-label-text "Sähköposti"
-                       :full-width          true
-                       :value               value
-                       :error-text          (when-not (or (str/blank? value)
-                                                          (valid-email? value))
-                                              "Virheellinen sähköposti")
-                       :style               {:vertical-align :top}
-                       :disabled            (:email-disabled? @player)
-                       :title               (when (:email-disabled? @player)
-                                              "Tästä pakkalistasta on jo lähetetty sähköpostiviesti.")}])]])))
+                       :value               (:deck-name @player)
+                       :style               {:vertical-align :top}}]]
+         [:div.half-width.left
+          (let [value (:first-name @player)]
+            [text-field {:on-change           set-first-name
+                         :floating-label-text (translate :submit.first-name)
+                         :full-width          true
+                         :value               value
+                         :error-text          (when (str/blank? value)
+                                                (translate :submit.error.first-name))
+                         :style               {:vertical-align :top}}])]
+         [:div.half-width.right
+          (let [value (:last-name @player)]
+            [text-field {:on-change           set-last-name
+                         :floating-label-text (translate :submit.last-name)
+                         :full-width          true
+                         :value               value
+                         :error-text          (when (str/blank? value)
+                                                (translate :submit.error.last-name))
+                         :style               {:vertical-align :top}}])]
+         [:div.half-width.left
+          (let [value (:dci @player)]
+            [text-field {:on-change           set-dci
+                         :floating-label-text (translate :submit.dci)
+                         :full-width          true
+                         :value               value
+                         :error-text          (when-not (valid-dci? value)
+                                                (translate :submit.error.dci))
+                         :style               {:vertical-align :top}}])]
+         [:div.half-width.right
+          (let [value (:email @player)]
+            [text-field {:on-change           set-email
+                         :floating-label-text (translate :submit.email)
+                         :full-width          true
+                         :value               value
+                         :error-text          (when-not (or (str/blank? value)
+                                                            (valid-email? value))
+                                                (translate :submit.error.email))
+                         :style               {:vertical-align :top}
+                         :disabled            (:email-disabled? @player)
+                         :title               (when (:email-disabled? @player)
+                                                (translate :submit.email-disabled))}])]]))))
 
 (defn valid-code [address]
   (when address
@@ -267,6 +270,7 @@
 (defn decklist-import []
   (let [mobile? (subscribe [::common-subs/mobile?])
         loaded? (subscribe [::subs/loaded?])
+        translate (subscribe [::subs/translate])
         selected (atom nil)
         on-active (fn [tab]
                     (let [value (oget tab "props" "value")]
@@ -290,73 +294,80 @@
                    (reset! address "")
                    (remove-watch loaded? ::decklist-import))))
     (fn decklist-import-render []
-      [:div.decklist-import
-       [ui/tabs {:value                   @selected
-                 :content-container-style (when @selected
-                                            {:border-bottom border
-                                             :border-left   (when-not @mobile? border)
-                                             :border-right  (when-not @mobile? border)})}
-        [ui/tab {:label     "Lataa aiempi lista"
-                 :value     "load-previous"
-                 :on-active on-active
-                 :style     {:color :black}}
-         [:div.info
-          [:h3
-           "Lataa aiempi lista"]
-          [:p
-           "Lataa aiemmin syötetty pakkalista antamalla sen osoite (esim. "
-           [:span.address "https://decklist.pairings.fi/abcd..."]
-           ")."]]
-         [:div.form
-          [:div.text-field-container
-           [text-field {:on-change           address-on-change
-                        :floating-label-text "Osoite"
-                        :full-width          true
-                        :error-text          (when-not (or (str/blank? @address)
-                                                           @code)
-                                               "Virheellinen osoite")}]]
-          [:br]
-          [ui/raised-button {:label    "Lataa"
-                             :disabled (nil? @code)
-                             :on-click import-from-address}]
-          (when @import-error
-            [:p.decklist-import-error
-             (case @import-error
-               :not-found "Pakkalistaa ei löytynyt"
-               "Virhe pakkalistan latauksessa")])]]
-        [ui/tab {:label     "Lataa tekstilista"
-                 :value     "load-text"
-                 :on-active on-active
-                 :style     {:color :black}}
-         [:div.info
-          [:h3
-           "Lataa tekstimuotoinen lista"]
-          [:p
-           "Kopioi tekstikenttään tekstimuotoinen lista."
-           "Listassa tulee olla seuraavassa muodossa: lukumäärä, välilyönti, kortin nimi. Esimerkki:"]
-          [:pre
-           "4 Lightning Bolt\n4 Chain Lightning\n..."]
-          [:p "Maindeckin ja sideboardin väliin tulee rivi, jolla lukee pelkästään \"Sideboard\"."]]
-         [:div.form
-          [text-field {:on-change      decklist-on-change
-                       :multi-line     true
-                       :rows           7
-                       :rows-max       7
-                       :textarea-style {:background-color "rgba(0, 0, 0, 0.05)"}
-                       :full-width     true
-                       :name           :text-decklist}]
-          [:br]
-          [ui/raised-button {:label    "Lataa"
-                             :disabled (str/blank? @decklist)
-                             :on-click import-decklist}]]]]])))
+      (let [translate @translate]
+        [:div.decklist-import
+         [ui/tabs {:value                   @selected
+                   :content-container-style (when @selected
+                                              {:border-bottom border
+                                               :border-left   (when-not @mobile? border)
+                                               :border-right  (when-not @mobile? border)})}
+          [ui/tab {:label     (translate :submit.load-previous.label)
+                   :value     "load-previous"
+                   :on-active on-active
+                   :style     {:color :black}}
+           [:div.info
+            [:h3
+             (translate :submit.load-previous.label)]
+            [:p
+             (translate :submit.load-previous.text.0)
+             [:span.address "https://decklist.pairings.fi/abcd..."]
+             (translate :submit.load-previous.text.1)]]
+           [:div.form
+            [:div.text-field-container
+             [text-field {:on-change           address-on-change
+                          :floating-label-text (translate :submit.load-previous.address)
+                          :full-width          true
+                          :error-text          (when-not (or (str/blank? @address)
+                                                             @code)
+                                                 (translate :submit.error.address))}]]
+            [:br]
+            [ui/raised-button {:label    (translate :submit.load)
+                               :disabled (nil? @code)
+                               :on-click import-from-address}]
+            (when @import-error
+              [:p.decklist-import-error
+               (translate (case @import-error
+                            :not-found :submit.error.not-found
+                            :submit.error.decklist-import-error))])]]
+          [ui/tab {:label     (translate :submit.load-text.label)
+                   :value     "load-text"
+                   :on-active on-active
+                   :style     {:color :black}}
+           [:div.info
+            [:h3
+             (translate :submit.load-text.header)]
+            [:p
+             (translate :submit.load-text.info.0)]
+            [:pre
+             "4 Lightning Bolt\n4 Chain Lightning\n..."]
+            [:p
+             (translate :submit.load-text.info.1)]]
+           [:div.form
+            [text-field {:on-change      decklist-on-change
+                         :multi-line     true
+                         :rows           7
+                         :rows-max       7
+                         :textarea-style {:background-color "rgba(0, 0, 0, 0.05)"}
+                         :full-width     true
+                         :name           :text-decklist}]
+            [:br]
+            [ui/raised-button {:label    (translate :submit.load)
+                               :disabled (str/blank? @decklist)
+                               :on-click import-decklist}]]]]]))))
 
 (defn error-list [errors]
-  [ui/list
-   (for [error errors]
-     ^{:key (str "error--" (name (:type error)))}
-     [ui/list-item {:primary-text (:text error)
-                    :left-icon    (reagent/as-element [:div
-                                                       [error-icon nil]])}])])
+  (let [translate (subscribe [::subs/translate])]
+    (fn error-list-render [errors]
+      (let [translate @translate]
+        [ui/list
+         (for [{:keys [id text] :as error} errors
+               :let [error-text (if (string? text)
+                                  text
+                                  (translate (str "submit.error." (name (or text id)))))]]
+           ^{:key (str "error--" (name (:type error)))}
+           [ui/list-item {:primary-text error-text
+                          :left-icon    (reagent/as-element [:div
+                                                             [error-icon nil]])}])]))))
 
 (defn decklist-submit-form [tournament decklist]
   (let [player (reagent/cursor decklist [:player])
@@ -370,11 +381,14 @@
         saved? (subscribe [::subs/saved?])
         error? (subscribe [::subs/error :save-decklist])
         page (subscribe [::common-subs/page])
+        translate (subscribe [::subs/translate])
         save-decklist #(dispatch [::events/save-decklist (:id @tournament)])]
     (fn decklist-submit-form-render [tournament decklist]
-      (let [errors (decklist-errors @decklist)]
+      (let [translate @translate
+            errors (decklist-errors @decklist)]
         [:div
-         [:h3 "Pakkalista"]
+         [:h3
+          (translate :submit.decklist)]
          [input]
          [ui/raised-button
           {:label        "Main"
@@ -392,10 +406,11 @@
           [decklist-table decklist :main]
           [decklist-table decklist :side]]
          [decklist-import]
-         [:h3 "Pelaajan tiedot"]
+         [:h3
+          (translate :submit.player-info)]
          [player-info player]
          [ui/raised-button
-          {:label    "Tallenna"
+          {:label    (translate :submit.save.button)
            :on-click save-decklist
            :primary  true
            :disabled (boolean (or @saving? (seq errors)))
@@ -408,22 +423,27 @@
          (when @saved?
            (let [url (str (get-host) (routes/old-decklist-path {:id (:id @page)}))]
              [:div.success-notice
-              [:h4 "Tallennus onnistui!"]
+              [:h4
+               (translate :submit.save.success.header)]
               [:p
-               "Pakkalistasi tallennus onnistui. Pääset muokkaamaan pakkalistaasi osoitteessa "
+               (translate :submit.save.success.info.0)
                [:a {:href url}
                 url]
-               ". Jos annoit sähköpostiosoitteesi, pakkalistasi sekä sama osoite lähetettiin sinulle myös sähköpostitse. "]]))
+               (translate :submit.save.success.info.1)]]))
          (when @error?
            [:div.error-notice
-            [:h4 "Tallennus epäonnistui"]
-            [:p "Pakkalistan tallennus epäonnistui. Voit kopioida pakkalistasi tekstimuodossa alta ja yrittää myöhemmin uudelleen."]
-            [:pre (->text @decklist)]])
+            [:h4
+             (translate :submit.save.error.header)]
+            [:p
+             (translate :submit.save.error.info)]
+            [:pre
+             (->text @decklist)]])
          [error-list errors]]))))
 
 (defn decklist-submit []
   (let [tournament (subscribe [::subs/tournament])
         decklist (subscribe [::subs/decklist-by-type])
+        translate (subscribe [::subs/translate])
         deadline-gone? (atom false)
         update-deadline (fn update-deadline []
                           (if (time/after? (time/now) (:deadline @tournament))
@@ -431,34 +451,36 @@
                             (.setTimeout js/window update-deadline 1000)))]
     (update-deadline)
     (fn decklist-submit-render []
-      [:div#decklist-submit
-       [:div {:class (when @deadline-gone? :no-print)}
-        [:h2 "Lähetä pakkalista"]
-        [:p.intro
-         "Lähetä pakkalistasi "
-         [:span.tournament-date
-          (format-date (:date @tournament))]
-         " pelattavaan turnaukseen "
-         [:span.tournament-name
-          (:name @tournament)]
-         ", jonka formaatti on "
-         [:span.tournament-format
-          (case (:format @tournament)
-            :standard "Standard"
-            :modern "Modern"
-            :legacy "Legacy")]
-         "."]
-        [:p.intro
-         "Lista on lähetettävä viimeistään "
-         [:span.tournament-deadline
-          (format-date-time (:deadline @tournament))]
-         "."]
-        (if-not @deadline-gone?
-          [decklist-submit-form tournament decklist]
-          [:div
-           [:p.deadline-gone
-            "Listojen lähetys tähän turnaukseen on päättynyt."]
-           (when (:id @decklist)
-             [:h3 "Lähettämäsi lista"])])]
-       (when (and @deadline-gone? (:id @decklist))
-         [render-decklist @decklist @tournament])])))
+      (let [translate @translate]
+        [:div#decklist-submit
+         [:div {:class (when @deadline-gone? :no-print)}
+          [:h2 (translate :submit.header)]
+          [:p.intro
+           (translate :submit.intro.0)
+           [:span.tournament-name
+            (:name @tournament)]
+           (translate :submit.intro.1)
+           [:span.tournament-date
+            (format-date (:date @tournament))]
+           (translate :submit.intro.2)
+           [:span.tournament-format
+            (case (:format @tournament)
+              :standard "Standard"
+              :modern "Modern"
+              :legacy "Legacy")]
+           "."]
+          [:p.intro
+           (translate :submit.intro.3)
+           [:span.tournament-deadline
+            (format-date-time (:deadline @tournament))]
+           "."]
+          (if-not @deadline-gone?
+            [decklist-submit-form tournament decklist]
+            [:div
+             [:p.deadline-gone
+              (translate :submit.deadline-gone)]
+             (when (:id @decklist)
+               [:h3
+                (translate :submit.your-decklist)])])]
+         (when (and @deadline-gone? (:id @decklist))
+           [render-decklist @decklist @tournament])]))))

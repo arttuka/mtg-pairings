@@ -169,3 +169,22 @@
 (defn valid-email? [email]
   (some->> email
            (re-matches #".+@.+")))
+
+(defn stringify-key [k]
+  (cond
+    (keyword? k) (name k)
+    (string? k) k
+    (vector? k) (str/join "." (map stringify-key k))
+    :else (str k)))
+
+(defn split-key
+  ([k]
+   (split-key k false))
+  ([k keywordize?]
+   (for [part (str/split (name k) #"\.")]
+     (cond
+       (re-matches #"\d+" part) (#?(:clj  Long/parseLong
+                                    :cljs js/parseInt)
+                                 part)
+       keywordize? (keyword part)
+       :else part))))

@@ -18,20 +18,22 @@
 
 (defn header []
   (let [logged-in? (subscribe [::subs/user])
+        translate (subscribe [::subs/translate])
         button-style {:margin-left  "12px"
                       :margin-right "12px"}]
 
     (fn header-render []
-      (let [disabled? (not @logged-in?)]
+      (let [disabled? (not @logged-in?)
+            translate @translate]
         [ui/toolbar {:class-name :decklist-organizer-header
                      :style      {:background-color (palette :primary1-color)}}
          [ui/toolbar-group {:first-child true}
           [ui/raised-button {:href     (routes/organizer-path)
-                             :label    "Kaikki turnaukset"
+                             :label    (translate :organizer.all-tournaments)
                              :style    button-style
                              :disabled disabled?}]
           [ui/raised-button {:href     (routes/organizer-new-tournament-path)
-                             :label    "Uusi turnaus"
+                             :label    (translate :organizer.new-tournament)
                              :icon     (reagent/as-element [icons/content-add
                                                             {:style {:height         "36px"
                                                                      :width          "30px"
@@ -41,7 +43,7 @@
                              :disabled disabled?}]]
          [ui/toolbar-group {:last-child true}
           [ui/raised-button {:href     "/logout"
-                             :label    "Kirjaudu ulos"
+                             :label    (translate :organizer.log-out)
                              :style    button-style
                              :disabled disabled?}]]]))))
 
@@ -82,33 +84,35 @@
       [list-submit-link (:id tournament)]]]))
 
 (defn all-tournaments []
-  (let [tournaments (subscribe [::subs/organizer-tournaments])]
+  (let [tournaments (subscribe [::subs/organizer-tournaments])
+        translate (subscribe [::subs/translate])]
     (fn all-tournaments-render []
-      [:div#decklist-organizer-tournaments
-       [ui/table {:selectable false
-                  :class-name :tournaments}
-        [ui/table-header {:display-select-all  false
-                          :adjust-for-checkbox false}
-         [ui/table-row {:style {:height "24px"}}
-          [ui/table-header-column {:class-name :date
-                                   :style      table-header-style}
-           "Päivä"]
-          [ui/table-header-column {:class-name :deadline
-                                   :style      table-header-style}
-           "Deadline"]
-          [ui/table-header-column {:class-name :name
-                                   :style      table-header-style}
-           "Turnaus"]
-          [ui/table-header-column {:class-name :decklists
-                                   :style      table-header-style}
-           "Dekkilistoja"]
-          [ui/table-header-column {:class-name :submit-page
-                                   :style      table-header-style}
-           "Listojen lähetyssivu"]]]
-        [ui/table-body
-         (for [tournament @tournaments]
-           ^{:key (str (:id tournament) "--row")}
-           [tournament-row tournament])]]])))
+      (let [translate @translate]
+        [:div#decklist-organizer-tournaments
+         [ui/table {:selectable false
+                    :class-name :tournaments}
+          [ui/table-header {:display-select-all  false
+                            :adjust-for-checkbox false}
+           [ui/table-row {:style {:height "24px"}}
+            [ui/table-header-column {:class-name :date
+                                     :style      table-header-style}
+             (translate :organizer.date)]
+            [ui/table-header-column {:class-name :deadline
+                                     :style      table-header-style}
+             (translate :organizer.deadline)]
+            [ui/table-header-column {:class-name :name
+                                     :style      table-header-style}
+             (translate :organizer.tournament.title)]
+            [ui/table-header-column {:class-name :decklists
+                                     :style      table-header-style}
+             (translate :organizer.decklists)]
+            [ui/table-header-column {:class-name :submit-page
+                                     :style      table-header-style}
+             (translate :organizer.submit-page)]]]
+          [ui/table-body
+           (for [tournament @tournaments]
+             ^{:key (str (:id tournament) "--row")}
+             [tournament-row tournament])]]]))))
 
 (defn sortable-header [{:keys [class-name column]} & children]
   (let [sort-data (subscribe [::subs/decklist-sort])]
@@ -129,7 +133,7 @@
                         :color          nil}}]
          children]))))
 
-(defn decklist-table [decklists selected-decklists on-select]
+(defn decklist-table [decklists selected-decklists on-select translate]
   [ui/table {:class-name        :tournaments
              :multi-selectable  true
              :on-row-selection  on-select
@@ -138,13 +142,13 @@
     [ui/table-row {:style {:height "24px"}}
      [ui/table-header-column {:class-name :dci
                               :style      table-header-style}
-      "DCI"]
+      (translate :organizer.dci)]
      [sortable-header {:class-name :name
                        :column     :name}
-      "Nimi"]
+      (translate :organizer.name)]
      [sortable-header {:class-name :submitted
                        :column     :submitted}
-      "Lähetetty"]]]
+      (translate :organizer.sent)]]]
    [ui/table-body
     {:deselect-on-clickaway false}
     (for [decklist decklists
@@ -184,13 +188,15 @@
 
 (defn notices []
   (let [saved? (subscribe [::subs/saved?])
-        error? (subscribe [::subs/error :save-tournament])]
+        error? (subscribe [::subs/error :save-tournament])
+        translate (subscribe [::subs/translate])]
     (fn notices-render []
-      [:div.notices
-       (when @saved?
-         [notice :success "Tallennus onnistui"])
-       (when @error?
-         [notice :error "Tallennus epäonnistui"])])))
+      (let [translate @translate]
+        [:div.notices
+         (when @saved?
+           [notice :success (translate :organizer.save.success)])
+         (when @error?
+           [notice :error (translate :organizer.save.fail)])]))))
 
 (defn date-picker [opts]
   [ui/date-picker (merge {:container              :inline
@@ -205,6 +211,7 @@
   (let [saved-tournament (subscribe [::subs/organizer-tournament])
         decklists (subscribe [::subs/organizer-decklists])
         saving? (subscribe [::subs/saving?])
+        translate (subscribe [::subs/translate])
         tournament (atom nil)
         set-name #(swap! tournament assoc :name %)
         set-date (fn [_ date]
@@ -233,94 +240,96 @@
         (reset! tournament (-> @saved-tournament
                                (update :date coerce/to-date)
                                (update :deadline coerce/to-date))))
-      [:div#decklist-organizer-tournament
-       [:div.tournament-info
-        [:div.fields
-         [:div.field
-          (let [value (:name @tournament "")]
-            [text-field {:on-change           set-name
-                         :floating-label-text "Turnauksen nimi"
-                         :value               value
-                         :error-text          (when (str/blank? value)
-                                                "Nimi on pakollinen")}])]
-         [:div.field
-          (let [value (:format @tournament)]
-            [ui/select-field {:on-change           set-format
-                              :value               value
-                              :floating-label-text "Formaatti"
-                              :error-text          (when-not value
-                                                     "Formaatti on pakollinen")
-                              :style               {:width "128px"}}
-             [ui/menu-item {:value        :standard
-                            :primary-text "Standard"}]
-             [ui/menu-item {:value        :modern
-                            :primary-text "Modern"}]
-             [ui/menu-item {:value        :legacy
-                            :primary-text "Legacy"}]])]
-         [:div.field
-          (let [value (:date @tournament)]
-            [date-picker {:value               value
-                          :error-text          (when-not value
-                                                 "Päivämäärä on pakollinen")
-                          :on-change           set-date
-                          :floating-label-text "Päivämäärä"
-                          :min-date            (js/Date.)}])]
-         [:div.field
-          (let [value (:deadline @tournament)]
-            [date-picker {:value               value
-                          :error-text          (when-not value
-                                                 "Listojen lähettämisen deadline on pakollinen")
-                          :on-change           set-deadline
-                          :floating-label-text "Deadline"
-                          :min-date            (js/Date.)}])]
-         [:div.field
-          (let [value (:deadline @tournament)]
-            [ui/time-picker {:value               value
-                             :floating-label-text "Deadline klo"
-                             :on-change           set-deadline
-                             :format              "24hr"
-                             :auto-ok             true
-                             :minutes-step        10
-                             :text-field-style    {:width "128px"}}])]]
-        [:div.link
-         (when id
-           [:p
-            "Listojen lähetyssivu: "
-            [list-submit-link id]])]
-        [:div.buttons
-         [ui/raised-button {:label    "Tallenna"
-                            :on-click save-tournament
-                            :primary  true
-                            :disabled (or @saving?
-                                          (str/blank? (:name @tournament))
-                                          (nil? (:format @tournament))
-                                          (nil? (:date @tournament))
-                                          (nil? (:deadline @tournament)))
-                            :style    {:width "200px"}}]
-         (if @saving?
-           [ui/circular-progress
-            {:size  36
-             :style {:margin-left    "24px"
-                     :margin-right   "24px"
-                     :vertical-align :top}}]
-           [:div.placeholder
-            {:style {:display        :inline-block
-                     :width          "84px"
-                     :height         "36px"
-                     :vertical-align :top}}])
-         [notices]
-         [:br]
-         [ui/raised-button {:label    "Tulosta valitut listat"
-                            :href     (routes/organizer-print-path)
-                            :on-click load-selected-decklists
-                            :primary  true
-                            :disabled (empty? @selected-decklists)
-                            :style    {:margin-top "12px"
-                                       :width      "200px"}}]]]
-       [:div.decklists
-        (if (seq @decklists)
-          [decklist-table @decklists @selected-decklists on-select]
-          [:p "Ei lähetettyjä listoja"])]])))
+      (let [translate @translate]
+        [:div#decklist-organizer-tournament
+         [:div.tournament-info
+          [:div.fields
+           [:div.field
+            (let [value (:name @tournament "")]
+              [text-field {:on-change           set-name
+                           :floating-label-text (translate :organizer.tournament.name)
+                           :value               value
+                           :error-text          (when (str/blank? value)
+                                                  (translate :organizer.tournament.name-error))}])]
+           [:div.field
+            (let [value (:format @tournament)]
+              [ui/select-field {:on-change           set-format
+                                :value               value
+                                :floating-label-text (translate :organizer.tournament.format)
+                                :error-text          (when-not value
+                                                       (translate :organizer.tournament.format-error))
+                                :style               {:width "128px"}}
+               [ui/menu-item {:value        :standard
+                              :primary-text "Standard"}]
+               [ui/menu-item {:value        :modern
+                              :primary-text "Modern"}]
+               [ui/menu-item {:value        :legacy
+                              :primary-text "Legacy"}]])]
+           [:div.field
+            (let [value (:date @tournament)]
+              [date-picker {:value               value
+                            :error-text          (when-not value
+                                                   (translate :organizer.tournament.date-error))
+                            :on-change           set-date
+                            :floating-label-text (translate :organizer.tournament.date)
+                            :min-date            (js/Date.)}])]
+           [:div.field
+            (let [value (:deadline @tournament)]
+              [date-picker {:value               value
+                            :error-text          (when-not value
+                                                   (translate :organizer.tournament.deadline-error))
+                            :on-change           set-deadline
+                            :floating-label-text (translate :organizer.tournament.deadline)
+                            :min-date            (js/Date.)}])]
+           [:div.field
+            (let [value (:deadline @tournament)]
+              [ui/time-picker {:value               value
+                               :floating-label-text (translate :organizer.tournament.deadline-time)
+                               :on-change           set-deadline
+                               :format              "24hr"
+                               :auto-ok             true
+                               :minutes-step        10
+                               :text-field-style    {:width "128px"}}])]]
+          [:div.link
+           (when id
+             [:p
+              (translate :organizer.submit-page)
+              ": "
+              [list-submit-link id]])]
+          [:div.buttons
+           [ui/raised-button {:label    (translate :organizer.save.title)
+                              :on-click save-tournament
+                              :primary  true
+                              :disabled (or @saving?
+                                            (str/blank? (:name @tournament))
+                                            (nil? (:format @tournament))
+                                            (nil? (:date @tournament))
+                                            (nil? (:deadline @tournament)))
+                              :style    {:width "200px"}}]
+           (if @saving?
+             [ui/circular-progress
+              {:size  36
+               :style {:margin-left    "24px"
+                       :margin-right   "24px"
+                       :vertical-align :top}}]
+             [:div.placeholder
+              {:style {:display        :inline-block
+                       :width          "84px"
+                       :height         "36px"
+                       :vertical-align :top}}])
+           [notices]
+           [:br]
+           [ui/raised-button {:label    (translate :organizer.print-lists)
+                              :href     (routes/organizer-print-path)
+                              :on-click load-selected-decklists
+                              :primary  true
+                              :disabled (empty? @selected-decklists)
+                              :style    {:margin-top "12px"
+                                         :width      "200px"}}]]]
+         [:div.decklists
+          (if (seq @decklists)
+            [decklist-table @decklists @selected-decklists on-select translate]
+            [:p (translate :organizer.no-lists)])]]))))
 
 (defn view-decklist []
   (let [decklist (subscribe [::subs/decklist-by-type])
@@ -349,20 +358,23 @@
 (defn ^:private no-op [])
 
 (defn login []
-  [:div#decklist-organizer-login
-   [:p "Kirjaudu sisään MtgSuomi-tunnuksillasi."]
-   [:form {:action (str "/login?next=" (oget js/window "location" "pathname"))
-           :method :post}
-    [:input {:type  :hidden
-             :name  :__anti-forgery-token
-             :value (oget js/window "csrf_token")}]
-    [text-field {:name                :username
-                 :floating-label-text "Käyttäjätunnus"
-                 :on-change           no-op}]
-    [text-field {:name                :password
-                 :type                :password
-                 :floating-label-text "Salasana"
-                 :on-change           no-op}]
-    [ui/raised-button {:type    :submit
-                       :label   "Kirjaudu"
-                       :primary true}]]])
+  (let [translate (subscribe [::subs/translate])]
+    (fn login-render []
+      (let [translate @translate]
+        [:div#decklist-organizer-login
+         [:p (translate :organizer.log-in.text)]
+         [:form {:action (str "/login?next=" (oget js/window "location" "pathname"))
+                 :method :post}
+          [:input {:type  :hidden
+                   :name  :__anti-forgery-token
+                   :value (oget js/window "csrf_token")}]
+          [text-field {:name                :username
+                       :floating-label-text (translate :organizer.log-in.username)
+                       :on-change           no-op}]
+          [text-field {:name                :password
+                       :type                :password
+                       :floating-label-text (translate :organizer.log-in.password)
+                       :on-change           no-op}]
+          [ui/raised-button {:type    :submit
+                             :label   (translate :organizer.log-in.button)
+                             :primary true}]]]))))

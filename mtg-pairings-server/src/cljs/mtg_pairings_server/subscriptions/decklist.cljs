@@ -2,6 +2,8 @@
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [clojure.string :as str]
             [cljs-time.coerce :as coerce]
+            [mtg-pairings-server.i18n.decklist :as i18n]
+            [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.util.decklist :refer [by-type]]))
 
 (reg-sub ::tournament
@@ -71,3 +73,8 @@
 (reg-sub ::loaded?
   (fn [db _]
     (get-in db [:decklist-editor :loaded])))
+
+(reg-sub ::translate
+  :<- [::common-subs/language]
+  (fn [language _]
+    (partial i18n/translate language)))
