@@ -20,7 +20,8 @@
             [mtg-pairings-server.util :refer [debounce dissoc-index format-date format-date-time index-where get-host valid-email?]]
             [mtg-pairings-server.util.decklist :refer [->text card-types type->header]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
-            [mtg-pairings-server.util.material-ui :refer [text-field]]))
+            [mtg-pairings-server.util.material-ui :refer [text-field]]
+            [mtg-pairings-server.util :as util]))
 
 (def basic? #{"Plains" "Island" "Swamp" "Mountain" "Forest" "Wastes"
               "Snow-Covered Plains" "Snow-Covered Island" "Snow-Covered Swamp"
@@ -473,7 +474,8 @@
                             (.setTimeout js/window update-deadline 1000)))]
     (update-deadline)
     (fn decklist-submit-render []
-      (let [translate @translate]
+      (let [translate @translate
+            until-deadline (util/interval (time/now) (:deadline @tournament))]
         [:div#decklist-submit
          [:div {:class (when @deadline-gone? :no-print)}
           [language-selector]
@@ -496,7 +498,9 @@
            (translate :submit.intro.3)
            [:span.tournament-deadline
             (format-date-time (:deadline @tournament))]
-           "."]
+           ". "
+           (translate :submit.time-until-deadline
+                      (:days until-deadline) (:hours until-deadline) (:minutes until-deadline))]
           (if-not @deadline-gone?
             [decklist-submit-form tournament decklist]
             [:div

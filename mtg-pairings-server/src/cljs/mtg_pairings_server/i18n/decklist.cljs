@@ -147,6 +147,8 @@
                                  :en " whose format is "}
                                 {:fi "Lista on lähetettävä viimeistään "
                                  :en "Deadline for submitting lists is at "}]
+               :time-until-deadline {:fi "Aikaa jäljellä %d pv %d h %d min."
+                                     :en "Time left %d d %d h %d min."}
                :deadline-gone  {:fi "Listojen lähetys tähän turnaukseen on päättynyt."
                                 :en "Submitting lists for this tournament has ended."}
                :your-decklist  {:fi "Lähettämäsi lista"
