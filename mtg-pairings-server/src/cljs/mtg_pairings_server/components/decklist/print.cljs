@@ -1,7 +1,6 @@
 (ns mtg-pairings-server.components.decklist.print
   (:require [reagent.core :as reagent :refer [atom]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
+            [reagent-material-ui.components :as ui]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.util :refer [format-date]]
             [mtg-pairings-server.util.decklist :refer [card-types]]))

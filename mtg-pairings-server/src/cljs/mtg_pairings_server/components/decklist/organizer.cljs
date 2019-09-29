@@ -1,9 +1,10 @@
 (ns mtg-pairings-server.components.decklist.organizer
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
-            [cljs-react-material-ui.icons :as icons]
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.add :refer [add]]
+            [reagent-material-ui.icons.keyboard-arrow-down :refer [keyboard-arrow-down]]
+            [reagent-material-ui.icons.keyboard-arrow-up :refer [keyboard-arrow-up]]
             [clojure.string :as str]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.date-picker :refer [date-picker date-time-picker]]
@@ -38,7 +39,7 @@
                       :style    button-style
                       :variant  :outlined
                       :disabled disabled?}
-           [icons/add]
+           [add]
            (translate :organizer.new-tournament)]
           [:div {:style {:flex "1 0 0"}}]
           [language-selector]
@@ -133,8 +134,8 @@
       (let [selected? (= column (:key @sort-data))
             icon (if (and selected?
                           (not (:ascending @sort-data)))
-                   icons/keyboard-arrow-up
-                   icons/keyboard-arrow-down)
+                   keyboard-arrow-up
+                   keyboard-arrow-down)
             style (cond-> (assoc table-header-style
                                  :cursor :pointer
                                  :position :relative)

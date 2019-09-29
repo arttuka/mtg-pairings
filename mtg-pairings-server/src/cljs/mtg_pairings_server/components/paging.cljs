@@ -1,8 +1,8 @@
 (ns mtg-pairings-server.components.paging
   (:require [re-frame.core :refer [dispatch subscribe]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
-            [cljs-react-material-ui.icons :as icons]))
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.chevron-left :refer [chevron-left]]
+            [reagent-material-ui.icons.chevron-right :refer [chevron-right]]))
 
 (def style {:width     "45px"
             :min-width "45px"})
@@ -39,7 +39,7 @@
                       :disabled   (zero? @selected-page)
                       :class-name :page-button
                       :style      style}
-           [icons/chevron-left]]
+           [chevron-left]]
           (doall
            (mapcat (fn [[prev cur]]
                      [(when (and (some? prev) (> (- cur prev) 1))
@@ -54,7 +54,7 @@
                       :disabled   (>= @selected-page (dec num-pages))
                       :class-name :page-button
                       :style      style}
-           [icons/chevron-right]]]]))))
+           [chevron-right]]]]))))
 
 (defn with-paging [page-event page-subscription data-subscription component]
   (let [page (subscribe page-subscription)

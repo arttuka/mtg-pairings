@@ -1,10 +1,8 @@
 (ns mtg-pairings-server.components.organizer
   (:require [reagent.core :refer [atom]]
             [re-frame.core :refer [dispatch subscribe]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.core]
-            [cljs-react-material-ui.reagent :as ui]
-            [cljs-react-material-ui.icons :as icons]
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.zoom-out-map :refer [zoom-out-map]]
             [goog.string :as gstring]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.subscriptions.pairings :as subs]
@@ -45,7 +43,7 @@
        [ui/toolbar
         [ui/icon-button
          {:on-click #(dispatch [::events/popup-organizer-menu])}
-         [icons/zoom-out-map]]
+         [zoom-out-map]]
         [ui/button
          {:on-click #(dispatch [::events/organizer-mode :pairings (js/parseInt @pairings-round)])
           :color    (when @new-pairings :primary)

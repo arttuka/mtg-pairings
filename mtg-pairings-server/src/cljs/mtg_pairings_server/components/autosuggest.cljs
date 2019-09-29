@@ -1,7 +1,6 @@
 (ns mtg-pairings-server.components.autosuggest
   (:require [reagent.core :as reagent :refer [atom]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
+            [reagent-material-ui.components :as ui]
             [cljsjs.react-autosuggest]
             [oops.core :refer [oget]]
             [mtg-pairings-server.util :refer [deep-merge]]))

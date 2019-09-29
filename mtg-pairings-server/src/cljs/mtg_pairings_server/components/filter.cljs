@@ -1,10 +1,10 @@
 (ns mtg-pairings-server.components.filter
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch dispatch]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.core]
-            [cljs-react-material-ui.reagent :as ui]
-            [cljs-react-material-ui.icons :as icons]
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.cancel :refer [cancel]]
+            [reagent-material-ui.icons.expand-more :refer [expand-more]]
+            [reagent-material-ui.icons.filter-list :refer [filter-list]]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.date-picker :as date-picker]
             [mtg-pairings-server.events.pairings :as events]
@@ -53,7 +53,7 @@
            :style    {:position :absolute
                       :right    "-8px"
                       :bottom   "-8px"}}
-          [icons/cancel
+          [cancel
            {:style {:color :grey}}]])])))
 
 (defn date-filter []
@@ -118,14 +118,14 @@
          :class  :card-header-expandable
          :style  {:height "56px"}
          :avatar (reagent/as-element
-                  [icons/filter-list {:color (if @filters-active?
-                                               :secondary
-                                               :primary)}])
+                  [filter-list {:color (if @filters-active?
+                                         :secondary
+                                         :primary)}])
          :action (reagent/as-element
                   [ui/icon-button {:class    [:card-header-button
                                               (when @expanded? :card-header-button-expanded)]
                                    :on-click on-expand}
-                   [icons/expand-more]])}]
+                   [expand-more]])}]
        [ui/collapse {:in @expanded?}
         [ui/card-content
          {:style {:padding-top 0}}

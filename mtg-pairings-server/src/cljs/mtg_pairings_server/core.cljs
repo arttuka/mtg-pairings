@@ -1,8 +1,6 @@
 (ns ^:figwheel-hooks mtg-pairings-server.core
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [dispatch-sync subscribe clear-subscription-cache!]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
             [mount.core :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
@@ -18,7 +16,8 @@
             [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu deck-construction-tables]]
             [mtg-pairings-server.pages.pairings :as pairings-pages :refer [main-page tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.components.organizer :as organizer]
-            [mtg-pairings-server.components.main :refer [header notification]]))
+            [mtg-pairings-server.components.main :refer [header notification]]
+            [mtg-pairings-server.theme :refer [theme-provider]]))
 
 (defn display-header? [page]
   (not (contains? #{::organizer-pages/main
@@ -61,7 +60,7 @@
             nil)]]))))
 
 (defn mount-root []
-  (reagent/render [current-page] (.getElementById js/document "app")))
+  (reagent/render [theme-provider [current-page]] (.getElementById js/document "app")))
 
 (defn ^:after-load figwheel-reload []
   (clear-subscription-cache!)

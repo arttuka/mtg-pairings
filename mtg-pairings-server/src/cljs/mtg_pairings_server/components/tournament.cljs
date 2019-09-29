@@ -1,10 +1,9 @@
 (ns mtg-pairings-server.components.tournament
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.core]
-            [cljs-react-material-ui.reagent :as ui]
-            [cljs-react-material-ui.icons :as icons]
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.expand-more :refer [expand-more]]
+            [reagent-material-ui.icons.keyboard-arrow-down :refer [keyboard-arrow-down]]
             [goog.string :as gstring]
             [goog.string.format]
             [mtg-pairings-server.events.pairings :as events]
@@ -36,7 +35,7 @@
                       [ui/icon-button {:class    [:card-header-button
                                                   (when expanded? :card-header-button-expanded)]
                                        :on-click on-expand}
-                       [icons/expand-more]]))}
+                       [expand-more]]))}
        (dissoc opts :on-expand :expanded?))])))
 
 (defn tournament [data]
@@ -116,7 +115,7 @@
   [:th {:class    class
         :style    (when (= column sort-key) {:color (:accent1-color styles/palette)})
         :on-click #(dispatch [dispatch-key column])}
-   [icons/keyboard-arrow-down
+   [keyboard-arrow-down
     {:style {:vertical-align :baseline
              :position       :absolute
              :left           0

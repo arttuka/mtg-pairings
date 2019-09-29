@@ -1,7 +1,6 @@
 (ns mtg-pairings-server.pages.pairings
   (:require [re-frame.core :refer [subscribe]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
+            [reagent-material-ui.components :as ui]
             [mtg-pairings-server.components.main :refer [own-tournament pairing]]
             [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list tournament-card-header tournament pairings standings pods seatings bracket]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))

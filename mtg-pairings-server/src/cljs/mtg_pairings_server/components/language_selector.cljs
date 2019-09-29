@@ -1,8 +1,7 @@
 (ns mtg-pairings-server.components.language-selector
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
+            [reagent-material-ui.components :as ui]
             [mtg-pairings-server.events.common :as common-events]
             [mtg-pairings-server.subscriptions.common :as common-subs]))
 

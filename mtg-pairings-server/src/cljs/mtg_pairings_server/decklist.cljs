@@ -1,15 +1,14 @@
 (ns mtg-pairings-server.decklist
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [dispatch-sync subscribe]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
             [mount.core :as m :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.pages.decklist :as decklist-pages :refer [decklist-organizer decklist-submit]]
             [mtg-pairings-server.routes.decklist :as routes]
-            [mtg-pairings-server.subscriptions.common :as subs]))
+            [mtg-pairings-server.subscriptions.common :as subs]
+            [mtg-pairings-server.theme :refer [theme-provider]]))
 
 (defn current-page []
   (let [page-data (subscribe [::subs/page])]
@@ -25,7 +24,7 @@
             nil)]]))))
 
 (defn mount-root []
-  (reagent/render [current-page] (.getElementById js/document "app")))
+  (reagent/render [theme-provider [current-page]] (.getElementById js/document "app")))
 
 (defn init! []
   (dispatch-sync [::events/initialize])

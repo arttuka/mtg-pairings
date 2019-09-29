@@ -3,9 +3,9 @@
             [reagent.ratom :refer [make-reaction]]
             [re-frame.core :refer [subscribe dispatch]]
             [clojure.string :as str]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
-            [cljs-react-material-ui.icons :as icons]
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.delete-icon :refer [delete]]
+            [reagent-material-ui.icons.warning :refer [warning]]
             [cljs-time.core :as time]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
@@ -94,9 +94,9 @@
         (decklist-errors decklist)))
 
 (defn error-icon [error]
-  (let [icon [icons/warning {:title error
-                             :style {:color          (:error-color styles/palette)
-                                     :vertical-align :top}}]]
+  (let [icon [warning {:title error
+                       :style {:color          (:error-color styles/palette)
+                               :vertical-align :top}}]]
     (if error
       [tooltip {:label error}
        icon]
@@ -128,7 +128,7 @@
             [error-icon (translate (str "submit.error." (name error)))]])
          [:div.table-cell.actions
           [ui/icon-button {:on-click on-delete}
-           [icons/delete]]]]))))
+           [delete]]]]))))
 
 (defn table-body-by-type [decklist board error-cards translate]
   (mapcat (fn [type]

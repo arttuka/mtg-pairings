@@ -1,8 +1,7 @@
 (ns mtg-pairings-server.pages.decklist
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.reagent :as ui]
+            [reagent-material-ui.components :as ui]
             [mtg-pairings-server.components.decklist.organizer :as organizer]
             [mtg-pairings-server.components.decklist.submit :as submit]
             [mtg-pairings-server.subscriptions.decklist :as subs]))

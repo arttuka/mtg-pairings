@@ -1,10 +1,9 @@
 (ns mtg-pairings-server.components.main
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
-            [cljsjs.material-ui]
-            [cljs-react-material-ui.core]
-            [cljs-react-material-ui.reagent :as ui]
-            [cljs-react-material-ui.icons :as icons]
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.list :refer [list] :rename {list list-icon}]
+            [reagent-material-ui.icons.menu :refer [menu] :rename {menu menu-icon}]
             [oops.core :refer [oget]]
             [accountant.core :as accountant]
             [mtg-pairings-server.components.tournament :refer [tournament-card-header]]
@@ -63,7 +62,7 @@
                    :position :static}
        [ui/toolbar {:style {:padding "0 16px"}}
         [ui/icon-button {:on-click on-menu-click}
-         [icons/menu]]
+         [menu-icon]]
         [ui/menu {:open      (some? @menu-anchor-el)
                   :anchor-el @menu-anchor-el
                   :on-close  on-menu-close}
@@ -120,7 +119,7 @@
           [ui/list-item {:button   true
                          :on-click #(accountant/navigate! (standings-path {:id (:id t), :round (:max_standings_round t)}))}
            [ui/list-item-icon
-            [icons/list]]
+            [list-icon]]
            [ui/list-item-text {:primary (str "Standings, kierros " (:max_standings_round t))}]]
           (for [p (combine-pairings-and-pods (:pairings t) (:pod-seats t))]
             ^{:key [(:id t) (:round_number p) (:id p)]}
