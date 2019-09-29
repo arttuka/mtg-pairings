@@ -8,12 +8,12 @@
             [clojure.string :as str]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
+            [mtg-pairings-server.components.language-selector :refer [language-selector]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.styles.common :refer [palette]]
             [mtg-pairings-server.util :refer [format-date format-date-time to-local-date indexed get-host]]
-            [mtg-pairings-server.util.decklist :refer [card-types type->header]]
             [mtg-pairings-server.util.material-ui :refer [text-field]]))
 
 (defn header []
@@ -42,6 +42,7 @@
                              :style    button-style
                              :disabled disabled?}]]
          [ui/toolbar-group {:last-child true}
+          [language-selector]
           [ui/raised-button {:href     "/logout"
                              :label    (translate :organizer.log-out)
                              :style    button-style
@@ -333,13 +334,15 @@
 
 (defn view-decklist []
   (let [decklist (subscribe [::subs/decklist-by-type])
-        tournament (subscribe [::subs/organizer-tournament])]
+        tournament (subscribe [::subs/organizer-tournament])
+        translate (subscribe [::subs/translate])]
     (fn view-decklist-render []
-      [render-decklist @decklist @tournament])))
+      [render-decklist @decklist @tournament @translate])))
 
 (defn view-decklists []
   (let [decklists (subscribe [::subs/decklists-by-type])
         tournament (subscribe [::subs/organizer-tournament])
+        translate (subscribe [::subs/translate])
         printed? (clojure.core/atom false)
         print-page #(when (and (seq @decklists)
                                @tournament
@@ -353,7 +356,7 @@
                               [:div
                                (doall (for [decklist @decklists]
                                         ^{:key (:id decklist)}
-                                        [render-decklist decklist @tournament]))])})))
+                                        [render-decklist decklist @tournament @translate]))])})))
 
 (defn ^:private no-op [])
 

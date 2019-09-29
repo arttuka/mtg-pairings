@@ -292,19 +292,24 @@
      [:.tournament-date :.tournament-name :.deck-name
       ellipsis-overflow
       [:.label
-       {:width      (px 72)
-        :text-align :right}]
+       {:text-align :right}]
       [:.value
        {:padding-left (px 6)
         :font-size    (px 20)}]]
      [:.tournament-date
-      {:width date-width}]
+      {:width date-width}
+      [:.label
+       {:width      (px 60)}]]
      [:.tournament-name
       {:width tournament-name-width}
       [:a
-       {:color :black}]]
+       {:color :black}]
+      [:.label
+       {:width      (px 96)}]]
      [:.deck-name
-      {:width deck-name-width}]])])
+      {:width deck-name-width}
+      [:.label
+       {:width      (px 60)}]]])])
 
 (defstyles print-decklist
   [:.print-decklist

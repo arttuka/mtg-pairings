@@ -129,6 +129,15 @@
 (defn dissoc-index [v index]
   (vec (concat (subvec v 0 index) (subvec v (inc index)))))
 
+(defn separate [pred coll]
+  (mapv persistent!
+        (reduce (fn [[yes no] x]
+                  (if (pred x)
+                    [(conj! yes x) no]
+                    [yes (conj! no x)]))
+                [(transient []) (transient [])]
+                coll)))
+
 #?(:clj
    (defn response [body]
      (if body

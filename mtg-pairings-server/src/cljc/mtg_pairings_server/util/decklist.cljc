@@ -1,5 +1,9 @@
 (ns mtg-pairings-server.util.decklist
-  (:require [clojure.string :as str]))
+  (:require [clojure.string :as str]
+            [mtg-pairings-server.util :as util]))
+
+(defn types->keyword-set [card]
+  (update card :types #(set (map (comp keyword str/lower-case) %))))
 
 (defn add-id-to-card
   ([card]
@@ -43,25 +47,16 @@
    :land
    :error])
 
-(def type->header
-  {:artifact     "Artifact"
-   :creature     "Creature"
-   :enchantment  "Enchantment"
-   :instant      "Instant"
-   :land         "Land"
-   :planeswalker "Planeswalker"
-   :sorcery      "Sorcery"
-   :error        "Virheelliset"})
-
 (defn by-type [decklist]
   (let [{:keys [main]} decklist
         cards-by-type (loop [cards main
                              parts {}
-                             [type & types] (map type->header card-types)]
-                        (if type
-                          (let [grouped-cards (group-by #(contains? (:types %) type) cards)]
-                            (recur (get grouped-cards false)
-                                   (assoc parts (keyword (str/lower-case type)) (get grouped-cards true))
-                                   types))
-                          (assoc parts :error cards)))]
+                             [type & types] card-types]
+                        (cond
+                          (empty? cards) parts
+                          (nil? type) (assoc parts :error cards)
+                          :else (let [[matching-cards other-cards] (util/separate #(contains? (:types %) type) cards)]
+                                  (recur other-cards
+                                         (assoc parts type (seq matching-cards))
+                                         types))))]
     (assoc decklist :main cards-by-type)))

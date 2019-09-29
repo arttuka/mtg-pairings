@@ -10,15 +10,15 @@
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
             [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
+            [mtg-pairings-server.components.language-selector :refer [language-selector]]
             [mtg-pairings-server.components.tooltip :refer [tooltip]]
-            [mtg-pairings-server.events.common :as common-events]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [debounce format-date format-date-time index-where get-host valid-email?]]
-            [mtg-pairings-server.util.decklist :refer [->text card-types type->header]]
+            [mtg-pairings-server.util.decklist :refer [->text card-types]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
             [mtg-pairings-server.util.material-ui :refer [text-field]]
             [mtg-pairings-server.util :as util]))
@@ -139,7 +139,7 @@
           [ui/icon-button {:on-click on-delete}
            [icons/action-delete]]]]))))
 
-(defn table-body-by-type [decklist board error-cards]
+(defn table-body-by-type [decklist board error-cards translate]
   (mapcat (fn [type]
             (when-let [cards (get-in decklist [board type])]
               (list*
@@ -147,19 +147,16 @@
                [:div.deck-table-container-row.deck-table-container-header
                 [:div.table-cell.quantity]
                 [:div.table-cell.card
-                 (type->header type)]]
+                 (translate (str "card-type." (name type)))]]
                (for [{:keys [id name error] :as card} cards]
                  ^{:key (str id "--tr")}
                  [decklist-table-row board card (or error (get error-cards name))]))))
           card-types))
 
 (defn decklist-table [decklist board]
-  (let [translate (subscribe [::subs/translate])
-        header-style {:color       :black
-                      :font-weight :bold
-                      :font-size   "16px"
-                      :height      "36px"}]
+  (let [translate (subscribe [::subs/translate])]
     (fn decklist-table-render [decklist board]
+      (.log js/console "rendering decklist-table" @decklist)
       (let [translate @translate
             error-cards (cards-with-error @decklist)]
         [:div.deck-table-container
@@ -173,7 +170,7 @@
            [:div.table-cell.card
             (translate :submit.card)]]
           (case board
-            :main (table-body-by-type @decklist :main error-cards)
+            :main (table-body-by-type @decklist :main error-cards translate)
             :side (for [{:keys [id name error] :as card} (:side @decklist)]
                     ^{:key (str id "--tr")}
                     [decklist-table-row :side card (or error (get error-cards name))]))]]))))
@@ -418,27 +415,6 @@
              (->text @decklist)]])
          [error-list errors]]))))
 
-(defn language-selector []
-  (let [language (subscribe [::common-subs/language])
-        button-style {:width     "60px"
-                      :min-width "60px"}
-        select-fi #(dispatch [::common-events/set-language :fi])
-        select-en #(dispatch [::common-events/set-language :en])]
-    (fn language-selector-render []
-      [:div.language-selector.no-print
-       [ui/raised-button
-        {:label        "FI"
-         :on-click     select-fi
-         :primary      (= :fi @language)
-         :style        button-style
-         :button-style {:border-radius "2px 0 0 2px"}}]
-       [ui/raised-button
-        {:label        "EN"
-         :on-click     select-en
-         :primary      (= :en @language)
-         :style        button-style
-         :button-style {:border-radius "0 2px 2px 0"}}]])))
-
 (defn decklist-submit []
   (let [tournament (subscribe [::subs/tournament])
         decklist (subscribe [::subs/decklist-by-type])
@@ -486,4 +462,4 @@
                [:h3
                 (translate :submit.your-decklist)])])]
          (when (and @deadline-gone? (:id @decklist))
-           [render-decklist @decklist @tournament])]))))
+           [render-decklist @decklist @tournament translate])]))))

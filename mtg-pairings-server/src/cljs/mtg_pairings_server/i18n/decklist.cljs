@@ -158,7 +158,37 @@
                :deadline-gone       {:fi "Listojen lähetys tähän turnaukseen on päättynyt."
                                      :en "Submitting lists for this tournament has ended."}
                :your-decklist       {:fi "Lähettämäsi lista"
-                                     :en "Your decklist"}}})
+                                     :en "Your decklist"}}
+   :card-type {:artifact     {:fi "Artifact"
+                              :en "Artifact"}
+               :creature     {:fi "Creature"
+                              :en "Creature"}
+               :enchantment  {:fi "Enchantment"
+                              :en "Enchantment"}
+               :instant      {:fi "Instant"
+                              :en "Instant"}
+               :land         {:fi "Land"
+                              :en "Land"}
+               :planeswalker {:fi "Planeswalker"
+                              :en "Planeswalker"}
+               :sorcery      {:fi "Sorcery"
+                              :en "Sorcery"}
+               :error        {:fi "Virheelliset"
+                              :en "Invalid"}}
+   :decklist {:first-letters {:fi "Alkukirjaimet"
+                         :en "Initials"}
+              :date {:fi "Päivä:"
+                     :en "Date:"}
+              :tournament-name {:fi "Turnaus:"
+                                :en "Tournament:"}
+              :deck-name {:fi "Pakka:"
+                          :en "Deck:"}
+              :first-name {:fi "Etunimi:"
+                           :en "First name:"}
+              :last-name {:fi "Sukunimi:"
+                          :en "Last name:"}
+              :dci {:fi "DCI:"
+                    :en "DCI:"}}})
 
 (defn translate [language key & args]
   (if-let [translation (get-in translations (concat (util/split-key key true) [language]))]

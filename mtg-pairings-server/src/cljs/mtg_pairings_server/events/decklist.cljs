@@ -6,7 +6,7 @@
             [mtg-pairings-server.styles.common :refer [mobile?]]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :as util]
-            [mtg-pairings-server.util.decklist :refer [add-id-to-card add-id-to-cards]]
+            [mtg-pairings-server.util.decklist :refer [add-id-to-card add-id-to-cards types->keyword-set]]
             [mtg-pairings-server.websocket :as ws]))
 
 (def empty-decklist {:main   []
@@ -151,7 +151,7 @@
   (if (some #(= (:name card) (:name %)) (get decklist board))
     decklist
     (let [new-card (-> card
-                       (update :types set)
+                       (types->keyword-set)
                        (assoc :quantity 1)
                        (add-id-to-card))]
       (-> decklist

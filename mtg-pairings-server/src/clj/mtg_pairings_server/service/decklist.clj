@@ -6,22 +6,24 @@
             [korma.db :refer [transaction]]
             [mtg-pairings-server.sql-db :as db]
             [mtg-pairings-server.util :refer [indexed]]
+            [mtg-pairings-server.util.decklist :refer [types->keyword-set]]
             [mtg-pairings-server.util.sql :as sql-util :refer [like]]))
 
 (defn search-cards [prefix format]
   (let [name-param (-> prefix
                        (str/replace "%" "")
                        (str/lower-case)
-                       (str \%))]
-    (cond-> (-> (sql/select* db/card)
-                (sql/fields :name :types)
-                (sql/where {(sql/sqlfn :lower :name) [like name-param]})
-                (sql/order :name :asc)
-                (sql/limit 10))
-      (= :standard format) (sql/where {:standard true})
-      (= :modern format) (sql/where {:modern true})
-      (= :legacy format) (sql/where {:legacy true})
-      true (sql/exec))))
+                       (str \%))
+        query (cond-> (-> (sql/select* db/card)
+                          (sql/fields :name :types)
+                          (sql/where {(sql/sqlfn :lower :name) [like name-param]})
+                          (sql/order :name :asc)
+                          (sql/limit 10))
+                (= :standard format) (sql/where {:standard true})
+                (= :modern format) (sql/where {:modern true})
+                (= :legacy format) (sql/where {:legacy true}))]
+    (->> (sql/exec query)
+         (map types->keyword-set))))
 
 (defn generate-card->id [cards]
   (into {}
@@ -42,7 +44,7 @@
 (defn format-cards [cards maindeck?]
   (->> cards
        ((if maindeck? filter remove) :maindeck)
-       (map #(update % :types set))
+       (map types->keyword-set)
        (mapv #(select-keys % [:name :quantity :types]))))
 
 (defn get-decklist [id]
