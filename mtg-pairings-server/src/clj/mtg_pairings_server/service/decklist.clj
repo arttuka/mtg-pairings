@@ -111,7 +111,8 @@
                         (sql/fields :id :name :date :format :deadline)
                         (sql/with db/decklist
                           (sql/fields :id))
-                        (sql/where {:user user-id}))]
+                        (sql/where {:user user-id})
+                        (sql/order :date :DESC))]
       (map #(update % :decklist count) tournaments))))
 
 (defn get-organizer-tournament [id]

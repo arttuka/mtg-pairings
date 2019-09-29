@@ -84,12 +84,27 @@
                            :style      {:font-size "14px"}}
       [list-submit-link (:id tournament)]]]))
 
+(defn only-upcoming-toggle []
+  (let [value (subscribe [::subs/only-upcoming?])
+        translate (subscribe [::subs/translate])
+        on-toggle (fn [_ value]
+                    (dispatch [::events/set-only-upcoming value]))]
+    (fn only-upcoming-toggle-render []
+      (let [translate @translate]
+        [ui/toggle {:toggled        @value
+                    :on-toggle      on-toggle
+                    :label          (translate :organizer.show-only-upcoming)
+                    :label-position :right
+                    :thumb-style    {:background-color (palette :light-grey)}
+                    :track-style    {:background-color (palette :grey)}}]))))
+
 (defn all-tournaments []
-  (let [tournaments (subscribe [::subs/organizer-tournaments])
+  (let [tournaments (subscribe [::subs/filtered-organizer-tournaments])
         translate (subscribe [::subs/translate])]
     (fn all-tournaments-render []
       (let [translate @translate]
         [:div#decklist-organizer-tournaments
+         [only-upcoming-toggle]
          [ui/table {:selectable false
                     :class-name :tournaments}
           [ui/table-header {:display-select-all  false

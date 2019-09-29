@@ -5,64 +5,66 @@
             [mtg-pairings-server.util :as util]))
 
 (def ^:private translations
-  {:organizer {:all-tournaments {:fi "Kaikki turnaukset"
-                                 :en "All tournaments"}
-               :new-tournament  {:fi "Uusi turnaus"
-                                 :en "New tournament"}
-               :log-out         {:fi "Kirjaudu ulos"
-                                 :en "Log out"}
-               :date            {:fi "Päivä"
-                                 :en "Date"}
-               :deadline        {:fi "Deadline"
-                                 :en "Deadline"}
-               :tournament      {:title          {:fi "Turnaus"
-                                                  :en "Tournament"}
-                                 :name           {:fi "Turnauksen nimi"
-                                                  :en "Name of tournament"}
-                                 :name-error     {:fi "Nimi on pakollinen"
-                                                  :en "Name is required"}
-                                 :format         {:fi "Formaatti"
-                                                  :en "Format"}
-                                 :format-error   {:fi "Formaatti on pakollinen"
-                                                  :en "Format is required"}
-                                 :date           {:fi "Päivämäärä"
-                                                  :en "Date"}
-                                 :date-error     {:fi "Päivämäärä on pakollinen"
-                                                  :en "Date is required"}
-                                 :deadline       {:fi "Deadline"
-                                                  :en "Deadline"}
-                                 :deadline-error {:fi "Listojen lähettämisen deadline on pakollinen"
-                                                  :en "Deadline for submitting lists is required"}
-                                 :deadline-time  {:fi "Deadline klo"
-                                                  :en "Deadline time"}}
-               :decklists       {:fi "Dekkilistoja"
-                                 :en "Decklists"}
-               :submit-page     {:fi "Listojen lähetyssivu"
-                                 :en "Page for submitting lists"}
-               :dci             {:fi "DCI"
-                                 :en "DCI"}
-               :name            {:fi "Nimi"
-                                 :en "Name"}
-               :sent            {:fi "Lähetetty"
-                                 :en "Sent"}
-               :save            {:title   {:fi "Tallenna"
-                                           :en "Save"}
-                                 :success {:fi "Tallennus onnistui"
-                                           :en "Saving successful"}
-                                 :fail    {:fi "Tallennus epäonnistui"
-                                           :en "Saving failed"}}
-               :print-lists     {:fi "Tulosta valitut listat"
-                                 :en "Print selected lists"}
-               :no-lists        {:fi "Ei lähetettyjä listoja"
-                                 :en "No submitted decklists"}
-               :log-in          {:text     {:fi "Kirjaudu sisään MtgSuomi-tunnuksillasi"
-                                            :en "Login with your MtgSuomi account"}
-                                 :username {:fi "Käyttäjätunnus"
-                                            :en "Username"}
-                                 :password {:fi "Salasana"
-                                            :en "Password"}
-                                 :button   {:fi "Kirjaudu"
-                                            :en "Log in"}}}
+  {:organizer {:all-tournaments    {:fi "Kaikki turnaukset"
+                                    :en "All tournaments"}
+               :new-tournament     {:fi "Uusi turnaus"
+                                    :en "New tournament"}
+               :log-out            {:fi "Kirjaudu ulos"
+                                    :en "Log out"}
+               :date               {:fi "Päivä"
+                                    :en "Date"}
+               :deadline           {:fi "Deadline"
+                                    :en "Deadline"}
+               :tournament         {:title          {:fi "Turnaus"
+                                                     :en "Tournament"}
+                                    :name           {:fi "Turnauksen nimi"
+                                                     :en "Name of tournament"}
+                                    :name-error     {:fi "Nimi on pakollinen"
+                                                     :en "Name is required"}
+                                    :format         {:fi "Formaatti"
+                                                     :en "Format"}
+                                    :format-error   {:fi "Formaatti on pakollinen"
+                                                     :en "Format is required"}
+                                    :date           {:fi "Päivämäärä"
+                                                     :en "Date"}
+                                    :date-error     {:fi "Päivämäärä on pakollinen"
+                                                     :en "Date is required"}
+                                    :deadline       {:fi "Deadline"
+                                                     :en "Deadline"}
+                                    :deadline-error {:fi "Listojen lähettämisen deadline on pakollinen"
+                                                     :en "Deadline for submitting lists is required"}
+                                    :deadline-time  {:fi "Deadline klo"
+                                                     :en "Deadline time"}}
+               :decklists          {:fi "Dekkilistoja"
+                                    :en "Decklists"}
+               :submit-page        {:fi "Listojen lähetyssivu"
+                                    :en "Page for submitting lists"}
+               :show-only-upcoming {:fi "Näytä vain tulevat turnaukset"
+                                    :en "Show only upcoming tournaments"}
+               :dci                {:fi "DCI"
+                                    :en "DCI"}
+               :name               {:fi "Nimi"
+                                    :en "Name"}
+               :sent               {:fi "Lähetetty"
+                                    :en "Sent"}
+               :save               {:title   {:fi "Tallenna"
+                                              :en "Save"}
+                                    :success {:fi "Tallennus onnistui"
+                                              :en "Saving successful"}
+                                    :fail    {:fi "Tallennus epäonnistui"
+                                              :en "Saving failed"}}
+               :print-lists        {:fi "Tulosta valitut listat"
+                                    :en "Print selected lists"}
+               :no-lists           {:fi "Ei lähetettyjä listoja"
+                                    :en "No submitted decklists"}
+               :log-in             {:text     {:fi "Kirjaudu sisään MtgSuomi-tunnuksillasi"
+                                               :en "Login with your MtgSuomi account"}
+                                    :username {:fi "Käyttäjätunnus"
+                                               :en "Username"}
+                                    :password {:fi "Salasana"
+                                               :en "Password"}
+                                    :button   {:fi "Kirjaudu"
+                                               :en "Log in"}}}
    :submit    {:add-card            {:fi "Lisää kortti..."
                                      :en "Add card..."}
                :error               {:missing-player-data   {:fi "Osa pelaajan tiedoista puuttuu"
@@ -175,20 +177,20 @@
                               :en "Sorcery"}
                :error        {:fi "Virheelliset"
                               :en "Invalid"}}
-   :decklist {:first-letters {:fi "Alkukirjaimet"
-                         :en "Initials"}
-              :date {:fi "Päivä:"
-                     :en "Date:"}
-              :tournament-name {:fi "Turnaus:"
-                                :en "Tournament:"}
-              :deck-name {:fi "Pakka:"
-                          :en "Deck:"}
-              :first-name {:fi "Etunimi:"
-                           :en "First name:"}
-              :last-name {:fi "Sukunimi:"
-                          :en "Last name:"}
-              :dci {:fi "DCI:"
-                    :en "DCI:"}}})
+   :decklist  {:first-letters   {:fi "Alkukirjaimet"
+                                 :en "Initials"}
+               :date            {:fi "Päivä:"
+                                 :en "Date:"}
+               :tournament-name {:fi "Turnaus:"
+                                 :en "Tournament:"}
+               :deck-name       {:fi "Pakka:"
+                                 :en "Deck:"}
+               :first-name      {:fi "Etunimi:"
+                                 :en "First name:"}
+               :last-name       {:fi "Sukunimi:"
+                                 :en "Last name:"}
+               :dci             {:fi "DCI:"
+                                 :en "DCI:"}}})
 
 (defn translate [language key & args]
   (if-let [translation (get-in translations (concat (util/split-key key true) [language]))]

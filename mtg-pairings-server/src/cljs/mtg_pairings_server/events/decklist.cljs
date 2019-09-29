@@ -22,6 +22,7 @@
 
 (defn initial-db []
   (util/deep-merge {:decklist-editor {:organizer-tournaments []
+                                      :tournament-sort       {:only-upcoming true}
                                       :decklist              empty-decklist
                                       :sort                  {:key       :submitted
                                                               :ascending true}}
@@ -79,6 +80,10 @@
 (reg-event-db :server/decklist-organizer-tournaments
   (fn [db [_ tournaments]]
     (assoc-in db [:decklist-editor :organizer-tournaments] tournaments)))
+
+(reg-event-db ::set-only-upcoming
+  (fn [db [_ value]]
+    (assoc-in db [:decklist-editor :tournament-sort :only-upcoming] value)))
 
 (reg-event-fx ::save-tournament
   (fn [{:keys [db]} [_ tournament]]
