@@ -1,8 +1,35 @@
 (ns mtg-pairings-server.styles.decklist
   (:require [garden.def :refer [defstyles]]
-            [garden.selectors :refer [after & first-child last-child]]
+            [garden.selectors :as sel :refer [after & nth-child first-child last-child]]
             [garden.units :refer [mm px px- px+ px* px-div percent vh]]
             [mtg-pairings-server.styles.common :refer [calc color ellipsis-overflow when-desktop when-mobile when-screen when-print]]))
+
+(defstyles decklist-table
+  [:.deck-table-container
+   [:.deck-table-container-rows
+    [:.deck-table-container-row
+     {:display :flex
+      :border-bottom {:color (color :light-grey)
+                      :style :solid
+                      :width (px 1)}}
+     [:&.deck-table-container-header
+      {:font-weight :bold}
+      [:.table-cell
+       {:line-height (px 48)}]]
+     [:.table-cell
+      {:height      (px 48)}
+      [:&.quantity
+       {:flex       "0 0 60px"
+        :text-align :center}]
+      [:&.card
+       {:flex :auto
+        :line-height (px 48)}
+       ellipsis-overflow]
+      [:&.error
+       {:flex "0 0 48px"
+        :padding (px 12)}]
+      [:&.actions
+       {:flex "0 0 48px"}]]]]])
 
 (defstyles submit
   [:#decklist-submit
@@ -68,7 +95,8 @@
       {:width (px 48)}]]]
    [:.decklist-import
     [:.decklist-import-error
-     {:color (color :error-color)}]]])
+     {:color (color :error-color)}]]
+   decklist-table])
 
 (def grey-border {:style :solid
                   :width (px 1)

@@ -17,7 +17,7 @@
             [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as subs]
-            [mtg-pairings-server.util :refer [debounce dissoc-index format-date format-date-time index-where get-host valid-email?]]
+            [mtg-pairings-server.util :refer [debounce format-date format-date-time index-where get-host valid-email?]]
             [mtg-pairings-server.util.decklist :refer [->text card-types type->header]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
             [mtg-pairings-server.util.material-ui :refer [text-field]]
@@ -103,18 +103,14 @@
       icon)))
 
 (defn decklist-table-row [board card error]
-  (let [mobile? (subscribe [::common-subs/mobile?])
-        translate (subscribe [::subs/translate])
+  (let [translate (subscribe [::subs/translate])
         on-change (fn [_ _ quantity]
                     (dispatch [::events/set-quantity board (:id card) quantity]))
         on-delete #(dispatch [::events/remove-card board (:id card)])]
     (fn decklist-table-row-render [_ card error]
       (let [translate @translate]
-        [ui/table-row
-         [ui/table-row-column {:class-name :quantity
-                               :style      {:padding    "0 12px"
-                                            :text-align :center
-                                            :font-size  "16px"}}
+        [:div.deck-table-container-row
+         [:div.table-cell.quantity
           (when (:quantity card)
             (into [ui/select-field {:value           (:quantity card)
                                     :on-change       on-change
@@ -125,55 +121,40 @@
                                                       :padding-right 0
                                                       :width         "24px"
                                                       :fill          "rgba(0, 0, 0, 0.54)"}
-                                    :underline-style {:border-color "rgba(0, 0, 0, 0.24)"}}]
+                                    :underline-style {:border-color "rgba(0, 0, 0, 0.24)"}
+                                    :label-style     {:padding-right "30px"
+                                                      :text-align    :right}}]
                   (for [i (range 1 (if (basic? (:name card))
                                      31
                                      5))]
                     [ui/menu-item {:value           i
                                    :primary-text    i
                                    :inner-div-style {:padding "0 6px"}}])))]
-         [ui/table-row-column {:class-name :card
-                               :style      {:font-size    "16px"
-                                            :padding-left (if @mobile? 0 "24px")}}
+         [:div.table-cell.card
           (:name card)]
-         [ui/table-row-column {:class-name :actions
-                               :style      {:font-size "16px"
-                                            :padding   0}}
+         (when error
+           [:div.table-cell.error
+            [error-icon (translate (str "submit.error." (name error)))]])
+         [:div.table-cell.actions
           [ui/icon-button {:on-click on-delete}
-           [icons/action-delete]]]
-         [ui/table-row-column {:class-name :error
-                               :style      {:padding  "12px"
-                                            :overflow :visible}}
-          (when error
-            [error-icon (translate (str "submit.error." (name error)))])]]))))
-
-(defn decklist-header-row [type]
-  (let [mobile? (subscribe [::common-subs/mobile?])]
-    (fn decklist-header-row-render [type]
-      [ui/table-row
-       [ui/table-row-column {:class-name :quantity}]
-       [ui/table-row-column {:class-name :card
-                             :style      {:font-size    "16px"
-                                          :font-weight  :bold
-                                          :padding-left (if @mobile? 0 "24px")}}
-        (type->header type)]
-       [ui/table-row-column {:class-name :actions}]
-       [ui/table-row-column {:class-name :error}]])))
+           [icons/action-delete]]]]))))
 
 (defn table-body-by-type [decklist board error-cards]
   (mapcat (fn [type]
             (when-let [cards (get-in decklist [board type])]
               (list*
                ^{:key (str (name type) "--header")}
-               [decklist-header-row type]
+               [:div.deck-table-container-row.deck-table-container-header
+                [:div.table-cell.quantity]
+                [:div.table-cell.card
+                 (type->header type)]]
                (for [{:keys [id name error] :as card} cards]
                  ^{:key (str id "--tr")}
                  [decklist-table-row board card (or error (get error-cards name))]))))
           card-types))
 
 (defn decklist-table [decklist board]
-  (let [mobile? (subscribe [::common-subs/mobile?])
-        translate (subscribe [::subs/translate])
+  (let [translate (subscribe [::subs/translate])
         header-style {:color       :black
                       :font-weight :bold
                       :font-size   "16px"
@@ -185,30 +166,17 @@
          [:h3 (if (= :main board)
                 (str "Main deck (" (get-in @decklist [:count :main]) ")")
                 (str "Sideboard (" (get-in @decklist [:count :side]) ")"))]
-         [ui/table {:selectable    false
-                    :class-name    :deck-table
-                    :wrapper-style {:overflow :visible}
-                    :body-style    {:overflow :visible}}
-          [ui/table-header {:display-select-all  false
-                            :adjust-for-checkbox false}
-           [ui/table-row {:style {:height "24px"}}
-            [ui/table-header-column {:class-name :quantity
-                                     :style      (merge header-style
-                                                        {:padding "0 12px"})}
-             (translate :submit.quantity)]
-            [ui/table-header-column {:class-name :card
-                                     :style      (merge header-style
-                                                        (when @mobile?
-                                                          {:padding-left 0}))}
-             (translate :submit.card)]
-            [ui/table-header-column {:class-name :actions}]
-            [ui/table-header-column {:class-name :error}]]]
-          [ui/table-body
-           (case board
-             :main (table-body-by-type @decklist :main error-cards)
-             :side (for [{:keys [id name error] :as card} (:side @decklist)]
-                     ^{:key (str id "--tr")}
-                     [decklist-table-row :side card (or error (get error-cards name))]))]]]))))
+         [:div.deck-table-container-rows
+          [:div.deck-table-container-row.deck-table-container-header
+           [:div.table-cell.quantity
+            (translate :submit.quantity)]
+           [:div.table-cell.card
+            (translate :submit.card)]]
+          (case board
+            :main (table-body-by-type @decklist :main error-cards)
+            :side (for [{:keys [id name error] :as card} (:side @decklist)]
+                    ^{:key (str id "--tr")}
+                    [decklist-table-row :side card (or error (get error-cards name))]))]]))))
 
 (defn player-info [player]
   (let [set-first-name #(dispatch [::events/update-player-info :first-name %])
