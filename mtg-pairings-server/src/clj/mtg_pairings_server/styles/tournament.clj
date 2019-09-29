@@ -5,42 +5,38 @@
 
 (defstyles mobile-filters
   [:.mobile-filters
-   [:.filter
-    [:.organizer-filter
-     {:width      "100% !important"
-      :margin-top "-14px"}]]
+   [:.organizer-filter :.date-filter :.player-filter
+    {:width         (percent 100)
+     :margin-bottom (px 8)}]
    [:.date-filter
-    {:width "100% !important"}
-    [:.date-picker
-     [:>div
-      [:>div:first-child
-       {:width "calc(50vw - 26px) !important"}]]]]
+    {:width (percent 100)}]
    [:.player-filter
-    {:width (percent 100)}
-    [:.rc-slider
-     {:width  "calc(100% - 14px)"
-      :margin {:left  (px 7)
-               :right (px 7)}}]]
+    {:width   (percent 100)
+     :padding {:left  (px 6)
+               :right (px 6)}}]
    [:.filter-button
-    {:width "calc(100vw - 32px) !important"}]])
+    {:width "calc(100vw - 32px)"}]])
 
 (defstyles desktop-filters
   [:.desktop-filters
    {:margin {:left  (px 16)
-             :right (px 16)}}
+             :right (px 16)
+             :top   (px 16)}}
    [:.filter
     {:display        :inline-block
      :margin-right   (px 10)
-     :vertical-align :bottom}]
+     :vertical-align :top}]
+   [:.organizer-filter
+    {:width        (px 256)
+     :margin-right (px 10)}]
    [:.player-filter
-    {:width (px 200)}]
+    {:width   (px 220)
+     :padding {:left  (px 10)
+               :right (px 10)}}]
    [:.date-filter
     {:width (px 280)}]
    [:.filter-button
-    {:position       :relative
-     :vertical-align :bottom
-     :margin         {:left   (px 16)
-                      :bottom (px 8)}}]])
+    {:margin-top (px 8)}]])
 
 (defstyles filters
   [:.filters
@@ -53,12 +49,11 @@
       :color     "#b3b3b3"
       :font-size (px 12)}]]
    [:.player-filter
-    {:height      (px 60)
-     :padding-top (px 24)}]
+    {:height      (px 48)
+     :padding-top (px 20)}]
    [:.date-filter
-    {:height     (px 58)
-     :margin-top (px 14)
-     :padding-top (px 8)}
+    {:height      (px 48)
+     :padding-top (px 16)}
     [:.date-picker
      {:position :relative
       :display  :inline-block}]

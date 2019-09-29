@@ -7,13 +7,19 @@
 (def style {:width     "45px"
             :min-width "45px"})
 
-(defn page-button [on-click selected-page num]
-  [ui/raised-button {:on-click   (when (not= selected-page num)
-                                   on-click)
-                     :secondary  (= selected-page num)
-                     :label      (inc num)
-                     :class-name :page-button
-                     :style      style}])
+(defn page-button [on-click selected-page num key]
+  ^{:key key}
+  [ui/button {:on-click   (when (not= selected-page num)
+                            on-click)
+              :variant    (if (= selected-page num)
+                            :contained
+                            :outlined)
+              :color      (if (= selected-page num)
+                            :secondary
+                            :default)
+              :class-name :page-button
+              :style      style}
+   (inc num)])
 
 (defn pager [id event subscription num-pages]
   (let [selected-page (subscribe subscription)]
@@ -27,28 +33,28 @@
                                     :else [(dec @selected-page) @selected-page (inc @selected-page)])
                                   [(dec num-pages)]))]
         [:div.pager
-         [ui/raised-button {:icon       (icons/navigation-chevron-left)
-                            :on-click   (when (pos? @selected-page)
-                                          #(dispatch [event (dec @selected-page)]))
-                            :disabled   (zero? @selected-page)
-                            :class-name :page-button
-                            :style      style}]
-         (doall
-          (mapcat (fn [[prev cur]]
-                    [(when (and (some? prev) (> (- cur prev) 1))
-                       ^{:key (str id "separator-" cur)}
-                       [ui/raised-button {:label      "···"
-                                          :class-name :page-button
-                                          :style      style}])
-                     ^{:key (str id "button-" cur)}
-                     [page-button #(dispatch [event cur]) @selected-page cur]])
-                  (partition 2 1 (cons nil shown-pages))))
-         [ui/raised-button {:icon       (icons/navigation-chevron-right)
-                            :on-click   (when (< @selected-page (dec num-pages))
-                                          #(dispatch [event (inc @selected-page)]))
-                            :disabled   (>= @selected-page (dec num-pages))
-                            :class-name :page-button
-                            :style      style}]]))))
+         [ui/button-group {:variant :outlined}
+          [ui/button {:on-click   (when (pos? @selected-page)
+                                    #(dispatch [event (dec @selected-page)]))
+                      :disabled   (zero? @selected-page)
+                      :class-name :page-button
+                      :style      style}
+           [icons/chevron-left]]
+          (doall
+           (mapcat (fn [[prev cur]]
+                     [(when (and (some? prev) (> (- cur prev) 1))
+                        ^{:key (str id "separator-" cur)}
+                        [ui/button {:class-name :page-button
+                                    :style      style}
+                         "···"])
+                      (page-button #(dispatch [event cur]) @selected-page cur (str id "button-" cur))])
+                   (partition 2 1 (cons nil shown-pages))))
+          [ui/button {:on-click   (when (< @selected-page (dec num-pages))
+                                    #(dispatch [event (inc @selected-page)]))
+                      :disabled   (>= @selected-page (dec num-pages))
+                      :class-name :page-button
+                      :style      style}
+           [icons/chevron-right]]]]))))
 
 (defn with-paging [page-event page-subscription data-subscription component]
   (let [page (subscribe page-subscription)

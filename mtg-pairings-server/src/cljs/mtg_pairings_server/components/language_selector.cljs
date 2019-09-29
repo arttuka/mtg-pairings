@@ -14,15 +14,24 @@
         select-en #(dispatch [::common-events/set-language :en])]
     (fn language-selector-render []
       [:div.language-selector.no-print
-       [ui/raised-button
-        {:label        "FI"
-         :on-click     select-fi
-         :primary      (= :fi @language)
-         :style        button-style
-         :button-style {:border-radius "2px 0 0 2px"}}]
-       [ui/raised-button
-        {:label        "EN"
-         :on-click     select-en
-         :primary      (= :en @language)
-         :style        button-style
-         :button-style {:border-radius "0 2px 2px 0"}}]])))
+       [ui/button-group
+        [ui/button
+         {:on-click select-fi
+          :color    (if (= :fi @language)
+                      :primary
+                      :default)
+          :variant  (if (= :fi @language)
+                      :contained
+                      :outlined)
+          :style    button-style}
+         "FI"]
+        [ui/button
+         {:on-click select-en
+          :color    (if (= :en @language)
+                      :primary
+                      :default)
+          :variant  (if (= :en @language)
+                      :contained
+                      :outlined)
+          :style    button-style}
+         "EN"]]])))

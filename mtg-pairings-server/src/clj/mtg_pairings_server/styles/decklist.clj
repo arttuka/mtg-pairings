@@ -8,7 +8,7 @@
   [:.deck-table-container
    [:.deck-table-container-rows
     [:.deck-table-container-row
-     {:display :flex
+     {:display       :flex
       :border-bottom {:color (color :light-grey)
                       :style :solid
                       :width (px 1)}}
@@ -17,16 +17,16 @@
       [:.table-cell
        {:line-height (px 48)}]]
      [:.table-cell
-      {:height      (px 48)}
+      {:height (px 48)}
       [:&.quantity
        {:flex       "0 0 60px"
         :text-align :center}]
       [:&.card
-       {:flex :auto
+       {:flex        :auto
         :line-height (px 48)}
        ellipsis-overflow]
       [:&.error
-       {:flex "0 0 48px"
+       {:flex    "0 0 48px"
         :padding (px 12)}]
       [:&.actions
        {:flex "0 0 48px"}]]]]])
@@ -56,6 +56,9 @@
        {:margin-left (px 24)}]]]
     [:.decklist-import
      {:margin "12px 0"}
+     [:.tab-content-container
+      [:&.tab-content-container-active
+       {:height (px 300)}]]
      [:.info :.form
       {:display        :inline-block
        :vertical-align :top
@@ -69,6 +72,11 @@
       {:width   "100%"
        :display :block}]]
     [:.decklist-import
+     [:.tab-content-container
+      [:&.tab-content-container-active
+       {:border {:left  :none
+                 :right :none}
+        :height (px 500)}]]
      [:.form
       {:padding-bottom (px 12)}]])
    (when-print
@@ -94,6 +102,15 @@
      [:th.error :td.error
       {:width (px 48)}]]]
    [:.decklist-import
+    [:.tab-content-container
+     {:height     0
+      :transition "height 0.5s ease-in-out"
+      :overflow   :hidden}
+     [:&.tab-content-container-active
+      {:border {:style :solid
+                :width (px 1)
+                :color (color :light-grey)
+                :top   :none}}]]
     [:.decklist-import-error
      {:color (color :error-color)}]]
    decklist-table])
@@ -299,17 +316,17 @@
      [:.tournament-date
       {:width date-width}
       [:.label
-       {:width      (px 60)}]]
+       {:width (px 60)}]]
      [:.tournament-name
       {:width tournament-name-width}
       [:a
        {:color :black}]
       [:.label
-       {:width      (px 96)}]]
+       {:width (px 96)}]]
      [:.deck-name
       {:width deck-name-width}
       [:.label
-       {:width      (px 60)}]]])])
+       {:width (px 60)}]]])])
 
 (defstyles print-decklist
   [:.print-decklist
@@ -353,8 +370,7 @@
 (def table-row-link {:color       :black
                      :display     :block
                      :height      (px 48)
-                     :line-height (px 48)
-                     :padding     "0 24px"})
+                     :line-height (px 48)})
 
 (defstyles organizer
   [:#decklist-organizer

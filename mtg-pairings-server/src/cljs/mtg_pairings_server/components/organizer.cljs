@@ -9,23 +9,21 @@
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [cls indexed]]
+            [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
             [mtg-pairings-server.util.mtg :refer [bye? duplicate-pairings]]
             [mtg-pairings-server.components.tournament :refer [standing-table]]))
 
 (defn round-select [type a rounds]
-  [ui/select-field
-   {:on-change (fn [_ _ new-value]
-                 (dispatch [::events/organizer-mode type new-value]))
+  [ui/select
+   {:on-change (wrap-on-change #(dispatch [::events/organizer-mode type %]))
     :value     @a
-    :style     {:vertical-align :bottom
-                :width          "60px"
-                :margin-left    "10px"
-                :margin-right   "10px"}}
+    :style     {:width        "60px"
+                :margin-left  "10px"
+                :margin-right "10px"}}
    (for [round @rounds]
      ^{:key (str type round)}
-     [ui/menu-item
-      {:value        (str round)
-       :primary-text (str round)}])])
+     [ui/menu-item {:value (str round)}
+      (str round)])])
 
 (defn menu []
   (let [new-pairings (subscribe [::subs/organizer :new-pairings])
@@ -41,64 +39,72 @@
         pods-round (subscribe [::subs/organizer :selected-pods])
         minutes (atom 50)]
     (fn menu-render []
-      [ui/paper
-       {:style {:padding-bottom "6px"
-                :margin-bottom  "12px"}}
-       [ui/icon-button
-        {:on-click #(dispatch [::events/popup-organizer-menu])
-         :style    {:vertical-align :bottom}}
-        [icons/maps-zoom-out-map]]
-       [ui/raised-button
-        {:label    "Pairings"
-         :on-click #(dispatch [::events/organizer-mode :pairings (js/parseInt @pairings-round)])
-         :primary  @new-pairings}]
-       [round-select :select-pairings pairings-round pairings-rounds]
-       [ui/raised-button
-        {:label    "Standings"
-         :on-click #(dispatch [::events/organizer-mode :standings (js/parseInt @standings-round)])
-         :primary  @new-standings}]
-       [round-select :select-standings standings-round standings-rounds]
-       [ui/raised-button
-        {:label    "Pods"
-         :on-click #(dispatch [::events/organizer-mode :pods (js/parseInt @pods-round)])
-         :primary  @new-pods}]
-       [round-select :select-pods pods-round pods-rounds]
-       [ui/raised-button
-        {:label    "Seatings"
-         :on-click #(dispatch [::events/organizer-mode :seatings])
-         :primary  @new-seatings}]
-       [ui/raised-button
-        {:label    "Kello"
-         :on-click #(dispatch [::events/organizer-mode :clock])
-         :style    {:margin-left  "10px"
-                    :margin-right "10px"}}]
-       [ui/text-field
-        {:type      :number
-         :value     @minutes
-         :min       0
-         :max       100
-         :on-change (fn [_ new-value]
-                      (reset! minutes new-value))
-         :style     {:width        "40px"
-                     :margin-left  "10px"
-                     :margin-right "10px"}
-         :id        :clock-minutes}]
-       [ui/raised-button
-        {:label    "Aseta"
-         :on-click #(dispatch [::events/organizer-mode :set-clock @minutes])
-         :disabled @clock-running}]
-       [ui/raised-button
-        {:label    "Käynnistä"
-         :on-click #(dispatch [::events/organizer-mode :start-clock])
-         :primary  true
-         :disabled @clock-running
-         :style    {:margin-left  "10px"
-                    :margin-right "10px"}}]
-       [ui/raised-button
-        {:label     "Pysäytä"
-         :on-click  #(dispatch [::events/organizer-mode :stop-clock])
-         :secondary true
-         :disabled  (not @clock-running)}]])))
+      [ui/app-bar {:color    :default
+                   :position :static
+                   :style    {:margin-bottom  "12px"}}
+       [ui/toolbar
+        [ui/icon-button
+         {:on-click #(dispatch [::events/popup-organizer-menu])}
+         [icons/zoom-out-map]]
+        [ui/button
+         {:on-click #(dispatch [::events/organizer-mode :pairings (js/parseInt @pairings-round)])
+          :color    (when @new-pairings :primary)
+          :variant  :outlined}
+         "Pairings"]
+        [round-select :select-pairings pairings-round pairings-rounds]
+        [ui/button
+         {:on-click #(dispatch [::events/organizer-mode :standings (js/parseInt @standings-round)])
+          :color    (when @new-standings :primary)
+          :variant  :outlined}
+         "Standings"]
+        [round-select :select-standings standings-round standings-rounds]
+        [ui/button
+         {:on-click #(dispatch [::events/organizer-mode :pods (js/parseInt @pods-round)])
+          :color    (when @new-pods :primary)
+          :variant  :outlined}
+         "Pods"]
+        [round-select :select-pods pods-round pods-rounds]
+        [ui/button
+         {:on-click #(dispatch [::events/organizer-mode :seatings])
+          :color    (when @new-seatings :primary)
+          :variant  :outlined}
+         "Seatings"]
+        [ui/button
+         {:on-click #(dispatch [::events/organizer-mode :clock])
+          :variant  :outlined
+          :style    {:margin-left  "10px"
+                     :margin-right "10px"}}
+         "Kello"]
+        [ui/text-field
+         {:type      :number
+          :value     @minutes
+          :min       0
+          :max       100
+          :on-change (fn [_ new-value]
+                       (reset! minutes new-value))
+          :style     {:width        "40px"
+                      :margin-left  "10px"
+                      :margin-right "10px"}
+          :id        :clock-minutes}]
+        [ui/button
+         {:on-click #(dispatch [::events/organizer-mode :set-clock @minutes])
+          :variant  :outlined
+          :disabled @clock-running}
+         "Aseta"]
+        [ui/button
+         {:on-click #(dispatch [::events/organizer-mode :start-clock])
+          :variant  :outlined
+          :color    :primary
+          :disabled @clock-running
+          :style    {:margin-left  "10px"
+                     :margin-right "10px"}}
+         "Käynnistä"]
+        [ui/button
+         {:on-click #(dispatch [::events/organizer-mode :stop-clock])
+          :variant  :outlined
+          :color    :secondary
+          :disabled (not @clock-running)}
+         "Pysäytä"]]])))
 
 (defn pairing [data]
   (let [bye (bye? data)]

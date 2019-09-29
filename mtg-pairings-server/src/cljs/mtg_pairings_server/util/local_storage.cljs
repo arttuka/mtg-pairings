@@ -22,7 +22,7 @@
   (.removeItem js/localStorage (stringify-key key)))
 
 (defn listener [event]
-  (dispatch [:mtg-pairings-server.events/local-storage-updated
+  (dispatch [:mtg-pairings-server.events.pairings/local-storage-updated
              (split-key (oget event "key"))
              (-> (oget event "newValue")
                  js/JSON.parse

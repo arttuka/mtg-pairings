@@ -18,8 +18,7 @@
             [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu deck-construction-tables]]
             [mtg-pairings-server.pages.pairings :as pairings-pages :refer [main-page tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.components.organizer :as organizer]
-            [mtg-pairings-server.components.main :refer [header notification]]
-            [mtg-pairings-server.util.material-ui :refer [theme]]))
+            [mtg-pairings-server.components.main :refer [header notification]]))
 
 (defn display-header? [page]
   (not (contains? #{::organizer-pages/main
@@ -34,33 +33,32 @@
         hide-organizer-menu? (subscribe [::pairings-subs/organizer :menu])]
     (fn []
       (let [{:keys [page id round]} @page-data]
-        [ui/mui-theme-provider
-         {:mui-theme theme}
-         [:div
-          (when (and (= ::organizer-pages/main page)
-                     (not @hide-organizer-menu?))
-            [organizer/menu])
-          (when (display-header? page)
-            [header])
-          [notification]
-          [:div#main-container
-           (case page
-             ::pairings-pages/main [#'main-page]
-             ::pairings-pages/tournaments [#'tournaments-page]
-             ::pairings-pages/tournament [#'tournament-page id]
-             (::pairings-pages/pairings
-              ::pairings-pages/standings
-              ::pairings-pages/pods
-              ::pairings-pages/seatings
-              ::pairings-pages/bracket) [#'tournament-subpage id page round]
-             ::organizer-pages/main [#'organizer-page]
-             ::organizer-pages/menu [#'organizer-menu]
-             ::organizer-pages/deck-construction [#'deck-construction-tables]
-             ::decklist-pages/submit [#'decklist-submit]
-             (::decklist-pages/organizer
-              ::decklist-pages/organizer-tournament
-              ::decklist-pages/organizer-view) [#'decklist-organizer id page]
-             nil)]]]))))
+        [:div
+         (when (and (= ::organizer-pages/main page)
+                    (not @hide-organizer-menu?))
+           [organizer/menu])
+         (when (display-header? page)
+           [header])
+         [notification]
+         ;; TODO theme
+         [:div#main-container
+          (case page
+            ::pairings-pages/main [#'main-page]
+            ::pairings-pages/tournaments [#'tournaments-page]
+            ::pairings-pages/tournament [#'tournament-page id]
+            (::pairings-pages/pairings
+             ::pairings-pages/standings
+             ::pairings-pages/pods
+             ::pairings-pages/seatings
+             ::pairings-pages/bracket) [#'tournament-subpage id page round]
+            ::organizer-pages/main [#'organizer-page]
+            ::organizer-pages/menu [#'organizer-menu]
+            ::organizer-pages/deck-construction [#'deck-construction-tables]
+            ::decklist-pages/submit [#'decklist-submit]
+            (::decklist-pages/organizer
+             ::decklist-pages/organizer-tournament
+             ::decklist-pages/organizer-view) [#'decklist-organizer id page]
+            nil)]]))))
 
 (defn mount-root []
   (reagent/render [current-page] (.getElementById js/document "app")))

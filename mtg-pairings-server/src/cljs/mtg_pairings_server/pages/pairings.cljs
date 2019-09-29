@@ -30,10 +30,10 @@
            (let [latest-pairing (get-latest-pairing @player-tournaments)]
              [ui/card
               [ui/card-header
-               {:title    "Uusin pairing"
-                :subtitle (:tournament latest-pairing)
-                :style    {:padding-bottom 0}}]
-              [ui/card-text
+               {:title     "Uusin pairing"
+                :subheader (:tournament latest-pairing)
+                :style     {:padding-bottom 0}}]
+              [ui/card-content
                {:style {:padding-top    0
                         :padding-bottom 0}}
                [pairing latest-pairing (some? (:team2_name latest-pairing))]]])
@@ -59,7 +59,7 @@
     (fn tournament-subpage-render [id type round]
       [ui/card
        [tournament-card-header @tournament]
-       [ui/card-text
+       [ui/card-content
         {:style {:padding-top 0}}
         (case type
           ::pairings [pairings id round]

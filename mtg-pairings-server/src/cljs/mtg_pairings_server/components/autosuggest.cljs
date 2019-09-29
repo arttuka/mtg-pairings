@@ -8,11 +8,11 @@
 
 (defn ^:private suggestion [suggestion->string suggestion opts]
   (reagent/as-element
-   [ui/menu-item {:primary-text (reagent/as-element
-                                 [:div {:style {:white-space   :nowrap
-                                                :text-overflow :ellipsis
-                                                :overflow      :hidden}}
-                                  (suggestion->string (js->clj suggestion :keywordize-keys true))])}]))
+   [ui/menu-item {:component :div}
+    [:div {:style {:white-space   :nowrap
+                   :text-overflow :ellipsis
+                   :overflow      :hidden}}
+     (suggestion->string (js->clj suggestion :keywordize-keys true))]]))
 
 (defn ^:private suggestion-container [props]
   (reagent/as-element

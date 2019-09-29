@@ -41,9 +41,7 @@
                         :content "width=device-width, initial-scale=1"}]
                 (include-css (if (env :dev)
                                "/css/main.css"
-                               (str \/ (@asset-manifest "css/main.min.css"))))
-                (when (env :dev)
-                  (include-css "/css/slider.css"))]
+                               (str \/ (@asset-manifest "css/main.min.css"))))]
                [:body {:class "body-container"}
                 [:div#app]
                 [:script (str "var csrf_token = '" *anti-forgery-token* "'; "

@@ -9,23 +9,20 @@
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.pages.decklist :as decklist-pages :refer [decklist-organizer decklist-submit]]
             [mtg-pairings-server.routes.decklist :as routes]
-            [mtg-pairings-server.subscriptions.common :as subs]
-            [mtg-pairings-server.util.material-ui :refer [theme]]))
+            [mtg-pairings-server.subscriptions.common :as subs]))
 
 (defn current-page []
   (let [page-data (subscribe [::subs/page])]
     (fn []
       (let [{:keys [page id]} @page-data]
-        [ui/mui-theme-provider
-         {:mui-theme theme}
-         [:div
-          [:div#main-container
-           (case page
-             ::decklist-pages/submit [#'decklist-submit]
-             (::decklist-pages/organizer
-              ::decklist-pages/organizer-tournament
-              ::decklist-pages/organizer-view) [#'decklist-organizer id page]
-             nil)]]]))))
+        [:div
+         [:div#main-container
+          (case page
+            ::decklist-pages/submit [#'decklist-submit]
+            (::decklist-pages/organizer
+             ::decklist-pages/organizer-tournament
+             ::decklist-pages/organizer-view) [#'decklist-organizer id page]
+            nil)]]))))
 
 (defn mount-root []
   (reagent/render [current-page] (.getElementById js/document "app")))

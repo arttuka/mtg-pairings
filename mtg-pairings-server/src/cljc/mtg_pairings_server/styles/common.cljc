@@ -36,7 +36,9 @@
             :picker-header-color  (hex->rgb "4ba3c7")
             :text-color           (rgba 0 0 0 0.87)
             :secondary-text-color (rgba 0 0 0 0.54)
-            :alternate-text-color (hex->rgb "ffffff")})
+            :alternate-text-color (hex->rgb "ffffff")
+            :white-0.15 (rgba 255 255 255 0.15)
+            :white-0.25 (rgba 255 255 255 0.25)})
 
 (def palette (into {} (for [[k c] color]
                         [k (->str c)])))

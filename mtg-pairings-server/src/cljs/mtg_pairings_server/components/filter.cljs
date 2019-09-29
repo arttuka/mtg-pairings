@@ -1,63 +1,60 @@
 (ns mtg-pairings-server.components.filter
-  (:require [reagent.core :as reagent]
+  (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch dispatch]]
             [cljsjs.material-ui]
             [cljs-react-material-ui.core]
             [cljs-react-material-ui.reagent :as ui]
             [cljs-react-material-ui.icons :as icons]
-            [cljs-time.coerce :as coerce]
             [oops.core :refer [oget]]
-            [mtg-pairings-server.components.slider :refer [slider]]
+            [mtg-pairings-server.components.date-picker :as date-picker]
             [mtg-pairings-server.events.pairings :as events]
-            [mtg-pairings-server.styles.common :as styles]
+            [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [to-local-date]]))
 
 (defn organizer-filter []
   (let [organizers (subscribe [::subs/organizers])
-        value (subscribe [::subs/tournament-filter :organizer])]
-    [:div.filter
-     [ui/select-field
-      {:on-change            (fn [_ _ new-value]
-                               (dispatch [::events/tournament-filter [:organizer new-value]]))
-       :value                @value
-       :floating-label-text  "Turnausjärjestäjä"
-       :floating-label-fixed true
-       :floating-label-style {:color "#b3b3b3"}
-       :class-name           :organizer-filter}
-      [ui/menu-item {:value        ""
-                     :primary-text "Kaikki järjestäjät"}]
-      (for [organizer @organizers
-            :when (not= organizer "")]
-        ^{:key organizer}
-        [ui/menu-item {:value        organizer
-                       :primary-text organizer}])]]))
+        value (subscribe [::subs/tournament-filter :organizer])
+        on-change (wrap-on-change #(dispatch [::events/tournament-filter [:organizer %]]))]
+    (fn organizer-filter-render []
+      [ui/form-control {:class :organizer-filter}
+       [ui/input-label {:html-for "organizer-filter"}
+        "Turnausjärjestäjä"]
+       [ui/select {:value       @value
+                   :on-change   on-change
+                   :input-props {:name  "organizer-filter"
+                                 :id    "organizer-filter"
+                                 :style {:width "100%"}}}
+        [ui/menu-item {:value :all-organizers}
+         "Kaikki järjestäjät"]
+        (for [organizer @organizers
+              :when (not= organizer "")]
+          ^{:key organizer}
+          [ui/menu-item {:value organizer}
+           organizer])]])))
 
-(defn date-picker [{:keys [hint-text on-change on-clear value]}]
-  (let [handler (fn [_ new-value]
-                  (on-change (to-local-date new-value)))
-        v (when value (js/Date. (coerce/to-long value)))]
-    [:div.date-picker
-     [ui/date-picker
-      {:hint-text              hint-text
-       :container              :inline
-       :dialog-container-style {:left "-9999px"}
-       :auto-ok                true
-       :locale                 "fi-FI"
-       :DateTimeFormat         (oget js/Intl "DateTimeFormat")
-       :style                  {:display :inline-block}
-       :text-field-style       {:width "128px"}
-       :on-change              handler
-       :value                  v
-       :cancel-label           "Peruuta"}]
-     (when v
-       [ui/icon-button
-        {:on-click on-clear
-         :style    {:position :absolute
-                    :right    0}}
-        [icons/navigation-cancel
-         {:style {:color :grey}}]])]))
+(defn date-picker [props]
+  (let [mobile? (subscribe [::common-subs/mobile?])]
+    (fn date-picker-render [{:keys [label on-change on-clear value]}]
+      [:div.date-picker
+       [date-picker/date-picker {:value       value
+                                 :placeholder label
+                                 :on-change   on-change
+                                 :variant     :inline
+                                 :auto-ok     true
+                                 :format      "DD.MM.YYYY"
+                                 :style       {:width (if @mobile?
+                                                        "calc(50vw - 26px)"
+                                                        "128px")}}]
+       (when value
+         [ui/icon-button
+          {:on-click on-clear
+           :style    {:position :absolute
+                      :right    "-8px"
+                      :bottom   "-8px"}}
+          [icons/cancel
+           {:style {:color :grey}}]])])))
 
 (defn date-filter []
   (let [from (subscribe [::subs/tournament-filter :date-from])
@@ -66,13 +63,13 @@
       [:div.filter.date-filter
        [:label.filter-label "Päivämäärä"]
        [date-picker
-        {:hint-text "Alkaen"
+        {:label     "Alkaen"
          :on-change #(dispatch [::events/tournament-filter [:date-from %]])
          :on-clear  #(dispatch [::events/tournament-filter [:date-from nil]])
          :value     @from}]
        [:span.separator "–"]
        [date-picker
-        {:hint-text "Asti"
+        {:label     "Asti"
          :on-change #(dispatch [::events/tournament-filter [:date-to %]])
          :on-clear  #(dispatch [::events/tournament-filter [:date-to nil]])
          :value     @to}]])))
@@ -83,22 +80,24 @@
     (fn player-filter-render []
       [:div.filter.player-filter
        [:label.filter-label "Pelaajamäärä"]
-       [slider {:min       (atom 0)
-                :max       max-players
-                :value     players
-                :step      10
-                :color     (:accent1-color styles/palette)
-                :on-change #(dispatch [::events/tournament-filter [:players %]])}]])))
+       [ui/slider {:value               @players
+                   :min                 0
+                   :max                 @max-players
+                   :step                10
+                   :value-label-display :auto
+                   :on-change           (fn [_ new-value]
+                                          (dispatch [::events/tournament-filter [:players new-value]]))}]])))
 
 (defn clear-filters []
   (let [filters-active? (subscribe [::subs/filters-active])]
     (fn clear-filters-render []
-      [ui/raised-button
-       {:label      "Poista valinnat"
-        :on-click   #(dispatch [::events/reset-tournament-filter])
+      [ui/button
+       {:on-click   #(dispatch [::events/reset-tournament-filter])
         :disabled   (not @filters-active?)
-        :secondary  true
-        :class-name :filter-button}])))
+        :variant    :contained
+        :color      :secondary
+        :class-name :filter-button}
+       "Poista valinnat"])))
 
 (defn desktop-filters []
   [:div.filters.desktop-filters.hidden-mobile
@@ -108,29 +107,32 @@
    [clear-filters]])
 
 (defn mobile-filters []
-  (let [filters-active? (subscribe [::subs/filters-active])]
+  (let [filters-active? (subscribe [::subs/filters-active])
+        expanded? (atom false)
+        on-expand #(swap! expanded? not)]
     (fn mobile-filters-render []
       [ui/card
-       {:class-name "filters mobile-filters hidden-desktop"}
+       {:class [:filters :mobile-filters :hidden-desktop]}
        [ui/card-header
-        {:title                  "Hakutyökalut"
-         :title-style            {:line-height "24px"}
-         :act-as-expander        true
-         :show-expandable-button true
-         :avatar                 (reagent/as-element
-                                  [ui/avatar
-                                   {:icon             (icons/content-filter-list)
-                                    :size             24
-                                    :background-color (if @filters-active?
-                                                        (:accent1-color styles/palette)
-                                                        (:primary1-color styles/palette))}])}]
-       [ui/card-text
-        {:expandable true
-         :style      {:padding-top 0}}
-        [organizer-filter]
-        [date-filter]
-        [player-filter]
-        [clear-filters]]])))
+        {:title  "Hakutyökalut"
+         :class  :card-header-expandable
+         :style  {:height "56px"}
+         :avatar (reagent/as-element
+                  [icons/filter-list {:color (if @filters-active?
+                                               :secondary
+                                               :primary)}])
+         :action (reagent/as-element
+                  [ui/icon-button {:class    [:card-header-button
+                                              (when @expanded? :card-header-button-expanded)]
+                                   :on-click on-expand}
+                   [icons/expand-more]])}]
+       [ui/collapse {:in @expanded?}
+        [ui/card-content
+         {:style {:padding-top 0}}
+         [organizer-filter]
+         [date-filter]
+         [player-filter]
+         [clear-filters]]]])))
 
 (defn filters []
   (let [mobile? (subscribe [::common-subs/mobile?])]

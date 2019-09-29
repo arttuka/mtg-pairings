@@ -22,7 +22,7 @@ RUN lein do \
     && lein with-profile provided,prod do \
          clean, \
          garden once \
-    && uglifycss target/public/css/main.css resources/private/slider.css > target/public/css/main.min.css \
+    && uglifycss target/public/css/main.css > target/public/css/main.min.css \
     && lein with-profile provided,prod do \
          fig:min pairings, \
          fig:min decklist, \

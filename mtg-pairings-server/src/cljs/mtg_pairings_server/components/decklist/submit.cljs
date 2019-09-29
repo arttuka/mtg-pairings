@@ -20,7 +20,7 @@
             [mtg-pairings-server.util :refer [debounce format-date format-date-time index-where get-host valid-email?]]
             [mtg-pairings-server.util.decklist :refer [->text card-types]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
-            [mtg-pairings-server.util.material-ui :refer [text-field]]
+            [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change]]
             [mtg-pairings-server.util :as util]))
 
 (def basic? #{"Plains" "Island" "Swamp" "Mountain" "Forest" "Wastes"
@@ -51,7 +51,7 @@
                       :on-suggestions-clear-requested clear-suggestions
                       :suggestion->string             :name
                       :id                             :decklist-autosuggest
-                      :floating-label-text            (translate :submit.add-card)
+                      :label                          (translate :submit.add-card)
                       :styles                         {:container {:width width}
                                                        :input     {:width width}}}]))))
 
@@ -94,9 +94,9 @@
         (decklist-errors decklist)))
 
 (defn error-icon [error]
-  (let [icon [icons/alert-warning {:title error
-                                   :style {:color          (:error-color styles/palette)
-                                           :vertical-align :top}}]]
+  (let [icon [icons/warning {:title error
+                             :style {:color          (:error-color styles/palette)
+                                     :vertical-align :top}}]]
     (if error
       [tooltip {:label error}
        icon]
@@ -104,32 +104,23 @@
 
 (defn decklist-table-row [board card error]
   (let [translate (subscribe [::subs/translate])
-        on-change (fn [_ _ quantity]
-                    (dispatch [::events/set-quantity board (:id card) quantity]))
+        on-change (wrap-on-change #(dispatch [::events/set-quantity board (:id card) %]))
         on-delete #(dispatch [::events/remove-card board (:id card)])]
     (fn decklist-table-row-render [_ card error]
       (let [translate @translate]
         [:div.deck-table-container-row
          [:div.table-cell.quantity
           (when (:quantity card)
-            (into [ui/select-field {:value           (:quantity card)
-                                    :on-change       on-change
-                                    :style           {:width          "48px"
-                                                      :vertical-align :top}
-                                    :menu-style      {:width "48px"}
-                                    :icon-style      {:padding-left  0
-                                                      :padding-right 0
-                                                      :width         "24px"
-                                                      :fill          "rgba(0, 0, 0, 0.54)"}
-                                    :underline-style {:border-color "rgba(0, 0, 0, 0.24)"}
-                                    :label-style     {:padding-right "30px"
-                                                      :text-align    :right}}]
+            (into [ui/select {:value     (:quantity card)
+                              :on-change on-change
+                              :style     {:width      "48px"
+                                          :margin-top "6px"}}]
                   (for [i (range 1 (if (basic? (:name card))
                                      31
                                      5))]
-                    [ui/menu-item {:value           i
-                                   :primary-text    i
-                                   :inner-div-style {:padding "0 6px"}}])))]
+                    [ui/menu-item {:value i
+                                   :style {:min-height "32px"}}
+                     (str i)])))]
          [:div.table-cell.card
           (:name card)]
          (when error
@@ -137,7 +128,7 @@
             [error-icon (translate (str "submit.error." (name error)))]])
          [:div.table-cell.actions
           [ui/icon-button {:on-click on-delete}
-           [icons/action-delete]]]]))))
+           [icons/delete]]]]))))
 
 (defn table-body-by-type [decklist board error-cards translate]
   (mapcat (fn [type]
@@ -156,7 +147,6 @@
 (defn decklist-table [decklist board]
   (let [translate (subscribe [::subs/translate])]
     (fn decklist-table-render [decklist board]
-      (.log js/console "rendering decklist-table" @decklist)
       (let [translate @translate
             error-cards (cards-with-error @decklist)]
         [:div.deck-table-container
@@ -186,51 +176,51 @@
       (let [translate @translate]
         [:div#player-info
          [:div.full-width
-          [text-field {:on-change           set-deck-name
-                       :floating-label-text (translate :submit.deck-name)
-                       :full-width          true
-                       :value               (:deck-name @player)
-                       :style               {:vertical-align :top}}]]
+          [text-field {:on-change  set-deck-name
+                       :label      (translate :submit.deck-name)
+                       :full-width true
+                       :value      (:deck-name @player)
+                       :style      {:vertical-align :top}}]]
          [:div.half-width.left
           (let [value (:first-name @player)]
-            [text-field {:on-change           set-first-name
-                         :floating-label-text (translate :submit.first-name)
-                         :full-width          true
-                         :value               value
-                         :error-text          (when (str/blank? value)
-                                                (translate :submit.error.first-name))
-                         :style               {:vertical-align :top}}])]
+            [text-field {:on-change  set-first-name
+                         :label      (translate :submit.first-name)
+                         :full-width true
+                         :value      value
+                         :error-text (when (str/blank? value)
+                                       (translate :submit.error.first-name))
+                         :style      {:vertical-align :top}}])]
          [:div.half-width.right
           (let [value (:last-name @player)]
-            [text-field {:on-change           set-last-name
-                         :floating-label-text (translate :submit.last-name)
-                         :full-width          true
-                         :value               value
-                         :error-text          (when (str/blank? value)
-                                                (translate :submit.error.last-name))
-                         :style               {:vertical-align :top}}])]
+            [text-field {:on-change  set-last-name
+                         :label      (translate :submit.last-name)
+                         :full-width true
+                         :value      value
+                         :error-text (when (str/blank? value)
+                                       (translate :submit.error.last-name))
+                         :style      {:vertical-align :top}}])]
          [:div.half-width.left
           (let [value (:dci @player)]
-            [text-field {:on-change           set-dci
-                         :floating-label-text (translate :submit.dci)
-                         :full-width          true
-                         :value               value
-                         :error-text          (when-not (valid-dci? value)
-                                                (translate :submit.error.dci))
-                         :style               {:vertical-align :top}}])]
+            [text-field {:on-change  set-dci
+                         :label      (translate :submit.dci)
+                         :full-width true
+                         :value      value
+                         :error-text (when-not (valid-dci? value)
+                                       (translate :submit.error.dci))
+                         :style      {:vertical-align :top}}])]
          [:div.half-width.right
           (let [value (:email @player)]
-            [text-field {:on-change           set-email
-                         :floating-label-text (translate :submit.email)
-                         :full-width          true
-                         :value               value
-                         :error-text          (when-not (or (str/blank? value)
-                                                            (valid-email? value))
-                                                (translate :submit.error.email))
-                         :style               {:vertical-align :top}
-                         :disabled            (:email-disabled? @player)
-                         :title               (when (:email-disabled? @player)
-                                                (translate :submit.email-disabled))}])]]))))
+            [text-field {:on-change  set-email
+                         :label      (translate :submit.email)
+                         :full-width true
+                         :value      value
+                         :error-text (when-not (or (str/blank? value)
+                                                   (valid-email? value))
+                                       (translate :submit.error.email))
+                         :style      {:vertical-align :top}
+                         :disabled   (:email-disabled? @player)
+                         :title      (when (:email-disabled? @player)
+                                       (translate :submit.email-disabled))}])]]))))
 
 (defn valid-code [address]
   (when address
@@ -238,14 +228,13 @@
       code)))
 
 (defn decklist-import []
-  (let [mobile? (subscribe [::common-subs/mobile?])
-        loaded? (subscribe [::subs/loaded?])
+  (let [loaded? (subscribe [::subs/loaded?])
         translate (subscribe [::subs/translate])
-        selected (atom nil)
-        on-active (fn [tab]
-                    (let [value (oget tab "props" "value")]
-                      (reset! selected (when (not= value @selected)
-                                         value))))
+        selected (atom false)
+        on-select (fn [_ value]
+                    (swap! selected #(if (not= value %)
+                                       value
+                                       false)))
         address (atom "")
         code (make-reaction #(valid-code @address))
         address-on-change #(reset! address %)
@@ -257,26 +246,32 @@
         decklist-on-change #(reset! decklist %)
         import-decklist (fn []
                           (dispatch [::events/import-text @decklist])
-                          (reset! selected nil))
+                          (reset! selected false))
         import-error (subscribe [::subs/error :import-address])
-        border (styles/border "1px" :solid (styles/palette :light-grey))]
+        tab-panel (fn [props & children]
+                    (into [ui/typography {:component :div
+                                          :role      :tabpanel
+                                          :hidden    (not= @selected (:value props))}]
+                          children))]
     (add-watch loaded? ::decklist-import
                (fn [_ _ _ new]
                  (when new
-                   (reset! selected nil)
+                   (reset! selected false)
                    (reset! address ""))))
     (fn decklist-import-render []
       (let [translate @translate]
         [:div.decklist-import
-         [ui/tabs {:value                   @selected
-                   :content-container-style (when @selected
-                                              {:border-bottom border
-                                               :border-left   (when-not @mobile? border)
-                                               :border-right  (when-not @mobile? border)})}
-          [ui/tab {:label     (translate :submit.load-previous.label)
-                   :value     "load-previous"
-                   :on-active on-active
-                   :style     {:color :black}}
+         [ui/app-bar {:position :static}
+          [ui/tabs {:value     @selected
+                    :on-change on-select
+                    :variant   :fullWidth}
+           [ui/tab {:label (translate :submit.load-previous.label)
+                    :value "load-previous"}]
+           [ui/tab {:label (translate :submit.load-text.label)
+                    :value "load-text"}]]]
+         [:div.tab-content-container {:class (when @selected
+                                               :tab-content-container-active)}
+          [tab-panel {:value "load-previous"}
            [:div.info
             [:h3
              (translate :submit.load-previous.label)]
@@ -286,26 +281,23 @@
              (translate :submit.load-previous.text.1)]]
            [:div.form
             [:div.text-field-container
-             [text-field {:on-change           address-on-change
-                          :on-key-press        address-on-key-press
-                          :floating-label-text (translate :submit.load-previous.address)
-                          :full-width          true
-                          :error-text          (when-not (or (str/blank? @address)
-                                                             @code)
-                                                 (translate :submit.error.address))}]]
-            [:br]
-            [ui/raised-button {:label    (translate :submit.load)
-                               :disabled (nil? @code)
-                               :on-click import-from-address}]
+             [text-field {:on-change    address-on-change
+                          :on-key-press address-on-key-press
+                          :label        (translate :submit.load-previous.address)
+                          :full-width   true
+                          :error-text   (when-not (or (str/blank? @address)
+                                                      @code)
+                                          (translate :submit.error.address))}]]
+            [ui/button {:disabled (nil? @code)
+                        :variant  :outlined
+                        :on-click import-from-address}
+             (translate :submit.load)]
             (when @import-error
               [:p.decklist-import-error
                (translate (case @import-error
                             :not-found :submit.error.not-found
                             :submit.error.decklist-import-error))])]]
-          [ui/tab {:label     (translate :submit.load-text.label)
-                   :value     "load-text"
-                   :on-active on-active
-                   :style     {:color :black}}
+          [tab-panel {:value "load-text"}
            [:div.info
             [:h3
              (translate :submit.load-text.header)]
@@ -316,17 +308,18 @@
             [:p
              (translate :submit.load-text.info.1)]]
            [:div.form
-            [text-field {:on-change      decklist-on-change
-                         :multi-line     true
-                         :rows           7
-                         :rows-max       7
-                         :textarea-style {:background-color "rgba(0, 0, 0, 0.05)"}
-                         :full-width     true
-                         :name           :text-decklist}]
-            [:br]
-            [ui/raised-button {:label    (translate :submit.load)
-                               :disabled (str/blank? @decklist)
-                               :on-click import-decklist}]]]]]))))
+            [text-field {:on-change   decklist-on-change
+                         :multiline   true
+                         :rows        8
+                         :full-width  true
+                         :name        :text-decklist
+                         :input-props {:style {:background-color "rgba(0, 0, 0, 0.05)"
+                                               :line-height      "24px"}}}]
+            [ui/button {:disabled (str/blank? @decklist)
+                        :variant  :outlined
+                        :on-click import-decklist
+                        :style    {:margin-top "8px"}}
+             (translate :submit.load)]]]]]))))
 
 (defn error-list [errors]
   (let [translate (subscribe [::subs/translate])]
@@ -338,20 +331,17 @@
                                   text
                                   (translate (str "submit.error." (name (or text id)))))]]
            ^{:key (str "error--" (name (:id error)))}
-           [ui/list-item {:primary-text (str error-text
-                                             (when card
-                                               (str ": " card)))
-                          :left-icon    (reagent/as-element [:div
-                                                             [error-icon nil]])}])]))))
+           [ui/list-item
+            [ui/list-item-icon
+             [error-icon nil]]
+            [ui/list-item-text {:primary (str error-text
+                                              (when card
+                                                (str ": " card)))}]])]))))
 
 (defn decklist-submit-form [tournament decklist]
   (let [player (reagent/cursor decklist [:player])
         select-main #(dispatch [::events/select-board :main])
         select-side #(dispatch [::events/select-board :side])
-        button-style {:position  :relative
-                      :top       "-5px"
-                      :width     "70px"
-                      :min-width "70px"}
         saving? (subscribe [::subs/saving?])
         saved? (subscribe [::subs/saved?])
         error? (subscribe [::subs/error :save-decklist])
@@ -365,18 +355,21 @@
          [:h3
           (translate :submit.decklist)]
          [input]
-         [ui/raised-button
-          {:label        "Main"
-           :on-click     select-main
-           :primary      (= :main (:board @decklist))
-           :style        button-style
-           :button-style {:border-radius "2px 0 0 2px"}}]
-         [ui/raised-button
-          {:label        "Side"
-           :on-click     select-side
-           :primary      (= :side (:board @decklist))
-           :style        button-style
-           :button-style {:border-radius "0 2px 2px 0"}}]
+         [ui/button-group {:variant :outlined
+                           :style   {:width          "140px"
+                                     :vertical-align :bottom}}
+          [ui/button {:on-click select-main
+                      :color    (when (= :main (:board @decklist))
+                                  :primary)
+                      :variant  (when (= :main (:board @decklist))
+                                  :contained)}
+           "Main"]
+          [ui/button {:on-click select-side
+                      :color    (when (= :side (:board @decklist))
+                                  :primary)
+                      :variant  (when (= :side (:board @decklist))
+                                  :contained)}
+           "Side"]]
          [:div
           [decklist-table decklist :main]
           [decklist-table decklist :side]]
@@ -384,12 +377,12 @@
          [:h3
           (translate :submit.player-info)]
          [player-info player]
-         [ui/raised-button
-          {:label    (translate :submit.save.button)
-           :on-click save-decklist
-           :primary  true
-           :disabled (boolean (or @saving? (seq errors)))
-           :style    {:margin-top "24px"}}]
+         [ui/button {:on-click save-decklist
+                     :variant  :contained
+                     :color    :primary
+                     :disabled (boolean (or @saving? (seq errors)))
+                     :style    {:margin-top "24px"}}
+          (translate :submit.save.button)]
          (when @saving?
            [ui/circular-progress
             {:size  36

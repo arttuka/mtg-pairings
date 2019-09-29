@@ -14,8 +14,7 @@
             [mtg-pairings-server.routes.pairings]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.pairings :as subs]
-            [mtg-pairings-server.util.event-listener]
-            [mtg-pairings-server.util.material-ui :refer [theme]]))
+            [mtg-pairings-server.util.event-listener]))
 
 (defn display-header? [page]
   (not (contains? #{::organizer-pages/main} page)))
@@ -25,29 +24,27 @@
         hide-organizer-menu? (subscribe [::subs/organizer :menu])]
     (fn []
       (let [{:keys [page id round]} @page-data]
-        [ui/mui-theme-provider
-         {:mui-theme theme}
-         [:div
-          (when (and (= ::organizer-pages/main page)
-                     (not @hide-organizer-menu?))
-            [organizer/menu])
-          (when (display-header? page)
-            [header])
-          [notification]
-          [:div#main-container
-           (case page
-             ::pairings-pages/main [#'main-page]
-             ::pairings-pages/tournaments [#'tournaments-page]
-             ::pairings-pages/tournament [#'tournament-page id]
-             (::pairings-pages/pairings
-              ::pairings-pages/standings
-              ::pairings-pages/pods
-              ::pairings-pages/seatings
-              ::pairings-pages/bracket) [#'tournament-subpage id page round]
-             ::organizer-pages/main [#'organizer-page]
-             ::organizer-pages/menu [#'organizer-menu]
-             ::organizer-pages/deck-construction [#'deck-construction-tables]
-             nil)]]]))))
+        [:div
+         (when (and (= ::organizer-pages/main page)
+                    (not @hide-organizer-menu?))
+           [organizer/menu])
+         (when (display-header? page)
+           [header])
+         [notification]
+         [:div#main-container
+          (case page
+            ::pairings-pages/main [#'main-page]
+            ::pairings-pages/tournaments [#'tournaments-page]
+            ::pairings-pages/tournament [#'tournament-page id]
+            (::pairings-pages/pairings
+             ::pairings-pages/standings
+             ::pairings-pages/pods
+             ::pairings-pages/seatings
+             ::pairings-pages/bracket) [#'tournament-subpage id page round]
+            ::organizer-pages/main [#'organizer-page]
+            ::organizer-pages/menu [#'organizer-menu]
+            ::organizer-pages/deck-construction [#'deck-construction-tables]
+            nil)]]))))
 
 (defn mount-root []
   (reagent/render [current-page] (.getElementById js/document "app")))

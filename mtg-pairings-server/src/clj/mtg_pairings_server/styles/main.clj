@@ -54,9 +54,30 @@
     [:.points
      {:float :right}]]])
 
+(defstyles expandable-card
+  [:.card-header-expandable
+   {:cursor :pointer}
+   [:.card-header-button
+    {:transform  "rotate(0deg)"
+     :transition "transform 300ms ease-in-out"}
+    [:&.card-header-button-expanded
+     {:transform "rotate(180deg)"}]]])
+
+(defstyles header
+  [:#header
+   [:.dci-container
+    {:background-color (color :white-0.25)
+     :border-radius    (px 4)
+     :width            (px 160)
+     :margin-right     (px 8)}
+    [:input
+     {:height (px 23)}]]])
+
 (defstyles main
   base
   own-tournaments
+  expandable-card
+  header
   table/styles
   bracket/styles
   decklist/styles

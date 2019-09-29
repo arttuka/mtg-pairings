@@ -13,87 +13,93 @@
             [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [format-date indexed]]
+            [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
             [mtg-pairings-server.util.mtg :refer [bye?]]))
 
 (defn pairing [data pairing?]
   (let [bye (bye? data)]
     [ui/list-item
-     {:class                :mui-pairing
-      :left-avatar          (reagent/as-element [ui/avatar
-                                                 {:background-color (if bye
-                                                                      (:accent3-color styles/palette)
-                                                                      (:primary1-color styles/palette))
-                                                  :color            (:text-color styles/palette)}
-                                                 (when-not bye
-                                                   (or (:table_number data) (:pod data)))])
-      :primary-text         (if pairing?
-                              (str "Kierros " (:round_number data))
-                              (if (:pod data)
-                                (str "Pod " (:pod data))
-                                "Seating"))
-      :secondary-text       (reagent/as-element
-                             (if pairing?
-                               [:div
-                                [:span.names
-                                 [:span {:style {:color (:text-color styles/palette)}}
-                                  (str (:team1_name data) " (" (:team1_points data) ")")]
-                                 [:span.hidden-mobile " - "]
-                                 [:br.hidden-desktop]
-                                 [:span (if bye
-                                          (:team2_name data)
-                                          (str (:team2_name data) " (" (:team2_points data) ")"))]]
-                                (when-not bye
-                                  [:span.points
-                                   [:span (:team1_wins data)]
-                                   [:span.hidden-mobile " - "]
-                                   [:br.hidden-desktop]
-                                   [:span (:team2_wins data)]])]
-                               [:span.names (or (:team1_name data)
-                                                (str "Seat " (:seat data)))]))
-      :secondary-text-lines 2}]))
+     [ui/list-item-icon
+      [ui/avatar
+       (when-not bye
+         (or (:table_number data) (:pod data)))]]
+     [ui/list-item-text {:class     :mui-pairing
+                         :primary   (if pairing?
+                                      (str "Kierros " (:round_number data))
+                                      (if (:pod data)
+                                        (str "Pod " (:pod data))
+                                        "Seating"))
+                         :secondary (reagent/as-element
+                                     (if pairing?
+                                       [:<>
+                                        [:span.names
+                                         [:span {:style {:color (:text-color styles/palette)}}
+                                          (str (:team1_name data) " (" (:team1_points data) ")")]
+                                         [:span.hidden-mobile " - "]
+                                         [:br.hidden-desktop]
+                                         [:span (if bye
+                                                  (:team2_name data)
+                                                  (str (:team2_name data) " (" (:team2_points data) ")"))]]
+                                        (when-not bye
+                                          [:span.points
+                                           [:span (:team1_wins data)]
+                                           [:span.hidden-mobile " - "]
+                                           [:br.hidden-desktop]
+                                           [:span (:team2_wins data)]])]
+                                       [:span.names (or (:team1_name data)
+                                                        (str "Seat " (:seat data)))]))}]]))
 
 (defn header []
   (let [user (subscribe [::subs/logged-in-user])
         dci-number (atom "")
+        menu-anchor-el (atom nil)
+        on-menu-click #(reset! menu-anchor-el (.-currentTarget %))
+        on-menu-close #(reset! menu-anchor-el nil)
         login! (fn []
                  (dispatch [::events/login @dci-number])
                  (reset! dci-number ""))]
     (fn header-render []
-      [ui/app-bar
-       {:id                 :header
-        :title              (when @user (:name @user))
-        :title-style        {:color (:text-color styles/palette)}
-        :icon-element-right (when-not @user
-                              (reagent/as-element [:div
-                                                   [ui/text-field
-                                                    {:floating-label-text        "DCI-numero"
-                                                     :value                      @dci-number
-                                                     :on-change                  (fn [_ new-value]
-                                                                                   (reset! dci-number new-value))
-                                                     :on-key-down                (fn [e]
-                                                                                   (when (= 13 (oget e "keyCode"))
-                                                                                     (login!)))
-                                                     :underline-focus-style      {:border-color (:accent3-color styles/palette)}
-                                                     :floating-label-focus-style {:color (:accent3-color styles/palette)}
-                                                     :style                      {:margin-top "-24px"
-                                                                                  :width      "160px"}}]
-                                                   [ui/raised-button
-                                                    {:label         "Kirjaudu"
-                                                     :on-click      login!
-                                                     :overlay-style {:background-color :white}
-                                                     :style         {:margin-left "12px"}}]]))
-        :icon-element-left  (reagent/as-element
-                             [ui/icon-menu
-                              {:icon-button-element (reagent/as-element
-                                                     [ui/icon-button
-                                                      [icons/navigation-menu]])}
-                              [ui/menu-item {:primary-text "Etusivu"
-                                             :on-click     #(accountant/navigate! "/")}]
-                              [ui/menu-item {:primary-text "Turnausarkisto"
-                                             :on-click     #(accountant/navigate! (tournaments-path))}]
-                              (when @user
-                                [ui/menu-item {:primary-text "Kirjaudu ulos"
-                                               :on-click     #(dispatch [::events/logout])}])])}])))
+      [ui/app-bar {:id       :header
+                   :position :static}
+       [ui/toolbar {:style {:padding "0 16px"}}
+        [ui/icon-button {:on-click on-menu-click}
+         [icons/menu]]
+        [ui/menu {:open      (some? @menu-anchor-el)
+                  :anchor-el @menu-anchor-el
+                  :on-close  on-menu-close}
+         [ui/menu-item {:on-click #(do
+                                     (on-menu-close)
+                                     (accountant/navigate! "/"))}
+          "Etusivu"]
+         [ui/menu-item {:on-click #(do
+                                     (on-menu-close)
+                                     (accountant/navigate! (tournaments-path)))}
+          "Turnausarkisto"]
+         (when @user
+           [ui/menu-item {:on-click #(do
+                                       (on-menu-close)
+                                       (dispatch [::events/logout]))}
+            "Kirjaudu ulos"])]
+        (when @user
+          [ui/typography
+           {:variant :h6}
+           (:name @user)])
+        [:div {:style {:flex "1 0 0"}}]
+        (when-not @user
+          [:<>
+           [:div.dci-container
+            [ui/input-base {:placeholder "DCI-numero"
+                            :value       @dci-number
+                            :on-change   (wrap-on-change #(reset! dci-number %))
+                            :on-key-down (fn [e]
+                                           (when (= "Enter" (.-key e))
+                                             (login!)))
+                            :full-width  true
+                            :style       {:color   :white
+                                          :padding "0 8px"}}]]
+           [ui/button {:on-click login!
+                       :variant  :contained}
+            "Kirjaudu"]])]])))
 
 (defn combine-pairings-and-pods [pairings pods]
   (->> (concat pairings pods)
@@ -101,24 +107,26 @@
        (reverse)))
 
 (defn own-tournament [t]
-  [ui/card
-   (tournament-card-header t {:act-as-expander        true
-                              :show-expandable-button true})
-   [ui/card-text
-    {:expandable true
-     :style      {:padding-top 0}}
-    [ui/list
-     [ui/list-item
-      {:primary-text (str "Standings, kierros " (:max_standings_round t))
-       :left-avatar  (reagent/as-element [ui/avatar
-                                          {:icon             (reagent/as-element [icons/action-list])
-                                           :background-color (:primary1-color styles/palette)}])
-       :on-click     #(accountant/navigate! (standings-path {:id (:id t), :round (:max_standings_round t)}))}]
-     (for [p (combine-pairings-and-pods (:pairings t) (:pod-seats t))]
-       ^{:key [(:id t) (:round_number p) (:id p)]}
-       [pairing p (boolean (:team1_name p))])
-     (when (:seating t)
-       [pairing (:seating t) false])]]])
+  (let [expanded? (atom false)
+        on-expand #(swap! expanded? not)]
+    (fn own-tournament-render [t]
+      [ui/card
+       (tournament-card-header t {:on-expand on-expand
+                                  :expanded? @expanded?})
+       [ui/collapse {:in @expanded?}
+        [ui/card-content
+         {:style {:padding-top 0}}
+         [ui/list
+          [ui/list-item {:button   true
+                         :on-click #(accountant/navigate! (standings-path {:id (:id t), :round (:max_standings_round t)}))}
+           [ui/list-item-icon
+            [icons/list]]
+           [ui/list-item-text {:primary (str "Standings, kierros " (:max_standings_round t))}]]
+          (for [p (combine-pairings-and-pods (:pairings t) (:pod-seats t))]
+            ^{:key [(:id t) (:round_number p) (:id p)]}
+            [pairing p (boolean (:team1_name p))])
+          (when (:seating t)
+            [pairing (:seating t) false])]]]])))
 
 (defn notification []
   (let [text (subscribe [::subs/notification])]
