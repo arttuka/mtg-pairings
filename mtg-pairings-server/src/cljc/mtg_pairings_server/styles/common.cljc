@@ -40,12 +40,6 @@
             :white-0.15 (rgba 255 255 255 0.15)
             :white-0.25 (rgba 255 255 255 0.25)})
 
-(def palette (into {} (for [[k c] color]
-                        [k (->str c)])))
-
-(defn border [width style color]
-  (str width " " (name style) " " color))
-
 (def mobile-max-width 767)
 
 #?(:clj (defn when-mobile [& styles]

@@ -9,7 +9,6 @@
             [mtg-pairings-server.components.tournament :refer [tournament-card-header]]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.routes.pairings :refer [tournaments-path standings-path]]
-            [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [format-date indexed]]
             [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
@@ -32,7 +31,7 @@
                                      (if pairing?
                                        [:<>
                                         [:span.names
-                                         [:span {:style {:color (:text-color styles/palette)}}
+                                         [:span.MuiTypography-colorTextPrimary
                                           (str (:team1_name data) " (" (:team1_points data) ")")]
                                          [:span.hidden-mobile " - "]
                                          [:br.hidden-desktop]

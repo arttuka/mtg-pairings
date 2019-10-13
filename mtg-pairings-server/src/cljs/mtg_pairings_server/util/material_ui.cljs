@@ -1,8 +1,7 @@
 (ns mtg-pairings-server.util.material-ui
   (:require [reagent.core :as reagent :refer [atom]]
             [reagent-material-ui.components :as ui]
-            [oops.core :refer [oget]]
-            [mtg-pairings-server.styles.common :refer [palette]]))
+            [oops.core :refer [oget]]))
 
 (defn wrap-on-change [f]
   (fn [event]
@@ -17,6 +16,3 @@
                               :error (some? error-text)
                               :helper-text error-text)
                        (dissoc :error-text))]))
-
-(defn make-styles [styles]
-  (.makeStyles js/MaterialUIStyles styles))

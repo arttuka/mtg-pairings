@@ -4,6 +4,7 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.icons.expand-more :refer [expand-more]]
             [reagent-material-ui.icons.keyboard-arrow-down :refer [keyboard-arrow-down]]
+            [reagent-material-ui.styles :as styles]
             [goog.string :as gstring]
             [goog.string.format]
             [mtg-pairings-server.events.pairings :as events]
@@ -11,7 +12,6 @@
             [mtg-pairings-server.routes.pairings :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
             [mtg-pairings-server.components.filter :refer [filters]]
-            [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.util :refer [format-date indexed]]
             [mtg-pairings-server.util.mtg :refer [bye?]]))
 
@@ -111,15 +111,20 @@
          ^{:key (:id t)}
          [tournament t])])]])
 
+(def sortable-header-cell (styles/styled :th (fn [{:keys [theme selected]}]
+                                               {:color  (get-in theme (if selected
+                                                                        [:palette :secondary :main]
+                                                                        [:palette :text :primary]))
+                                                :cursor :pointer})))
+
+(def arrow-down (styles/styled keyboard-arrow-down {:vertical-align :baseline
+                                                    :position       :absolute
+                                                    :left           0}))
 (defn sortable-header [{:keys [class column sort-key dispatch-key]} & children]
-  [:th {:class    class
-        :style    (when (= column sort-key) {:color (:accent1-color styles/palette)})
-        :on-click #(dispatch [dispatch-key column])}
-   [keyboard-arrow-down
-    {:style {:vertical-align :baseline
-             :position       :absolute
-             :left           0
-             :color          nil}}]
+  [sortable-header-cell {:class    class
+                         :selected (= column sort-key)
+                         :on-click #(dispatch [dispatch-key column])}
+   [arrow-down]
    children])
 
 (defn pairing-row [pairing]

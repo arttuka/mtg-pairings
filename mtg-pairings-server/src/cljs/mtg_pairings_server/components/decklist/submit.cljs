@@ -6,6 +6,7 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.icons.delete-icon :refer [delete]]
             [reagent-material-ui.icons.warning :refer [warning]]
+            [reagent-material-ui.styles :as styles]
             [cljs-time.core :as time]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
@@ -14,7 +15,6 @@
             [mtg-pairings-server.components.tooltip :refer [tooltip]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
-            [mtg-pairings-server.styles.common :as styles]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [debounce format-date format-date-time index-where get-host valid-email?]]
@@ -93,10 +93,12 @@
               (map (juxt :card :text)))
         (decklist-errors decklist)))
 
+(def warning-icon (styles/styled warning (fn [{:keys [theme]}]
+                                           {:color          (get-in theme [:palette :error :main])
+                                            :vertical-align :top})))
+
 (defn error-icon [error]
-  (let [icon [warning {:title error
-                       :style {:color          (:error-color styles/palette)
-                               :vertical-align :top}}]]
+  (let [icon [warning-icon {:title error}]]
     (if error
       [tooltip {:label error}
        icon]

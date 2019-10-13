@@ -5,6 +5,7 @@
             [reagent-material-ui.icons.add :refer [add]]
             [reagent-material-ui.icons.keyboard-arrow-down :refer [keyboard-arrow-down]]
             [reagent-material-ui.icons.keyboard-arrow-up :refer [keyboard-arrow-up]]
+            [reagent-material-ui.styles :as styles]
             [clojure.string :as str]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.date-picker :refer [date-picker date-time-picker]]
@@ -13,45 +14,37 @@
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]
-            [mtg-pairings-server.styles.common :refer [palette]]
             [mtg-pairings-server.util :refer [format-date format-date-time to-local-date indexed get-host]]
             [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change]]))
 
+(def header-button (styles/styled ui/button {:margin-left  "12px"
+                                             :margin-right "12px"
+                                             :width        "200px"}))
+
 (defn header []
   (let [logged-in? (subscribe [::subs/user])
-        translate (subscribe [::subs/translate])
-        button-style {:margin-left  "12px"
-                      :margin-right "12px"
-                      :width        "180px"}]
-
+        translate (subscribe [::subs/translate])]
     (fn header-render []
       (let [disabled? (not @logged-in?)
             translate @translate]
         [ui/app-bar {:color    :default
                      :position :static}
          [ui/toolbar {:class-name :decklist-organizer-header}
-          [ui/button {:href     (routes/organizer-path)
-                      :style    button-style
-                      :variant  :outlined
-                      :disabled disabled?}
+          [header-button {:href     (routes/organizer-path)
+                          :variant  :outlined
+                          :disabled disabled?}
            (translate :organizer.all-tournaments)]
-          [ui/button {:href     (routes/organizer-new-tournament-path)
-                      :style    button-style
-                      :variant  :outlined
-                      :disabled disabled?}
+          [header-button {:href     (routes/organizer-new-tournament-path)
+                          :variant  :outlined
+                          :disabled disabled?}
            [add]
            (translate :organizer.new-tournament)]
           [:div {:style {:flex "1 0 0"}}]
           [language-selector]
-          [ui/button {:href     "/logout"
-                      :style    button-style
-                      :variant  :outlined
-                      :disabled disabled?}
+          [header-button {:href     "/logout"
+                          :variant  :outlined
+                          :disabled disabled?}
            (translate :organizer.log-out)]]]))))
-
-(def table-header-style {:color       :black
-                         :font-weight :bold
-                         :font-size   "16px"})
 
 (defn list-submit-link [tournament-id]
   (let [submit-url (routes/new-decklist-path {:id tournament-id})]
@@ -59,29 +52,25 @@
          :target :_blank}
      (str (get-host) submit-url)]))
 
+(def table-cell (styles/styled ui/table-cell {:font-size "14px"
+                                              :padding   0}))
+
 (defn tournament-row [tournament]
-  (let [column-style {:font-size "14px"
-                      :padding   0}
-        link-props {:href (routes/organizer-tournament-path {:id (:id tournament)})}]
+  (let [link-props {:href (routes/organizer-tournament-path {:id (:id tournament)})}]
     [ui/table-row
-     [ui/table-cell {:class-name :date
-                     :style      column-style}
+     [table-cell {:class-name :date}
       [:a.tournament-link link-props
        (format-date (:date tournament))]]
-     [ui/table-cell {:class-name :deadline
-                     :style      column-style}
+     [table-cell {:class-name :deadline}
       [:a.tournament-link link-props
        (format-date-time (:deadline tournament))]]
-     [ui/table-cell {:class-name :name
-                     :style      column-style}
+     [table-cell {:class-name :name}
       [:a.tournament-link link-props
        (:name tournament)]]
-     [ui/table-cell {:class-name :decklists
-                     :style      column-style}
+     [table-cell {:class-name :decklists}
       [:a.tournament-link link-props
        (:decklist tournament)]]
-     [ui/table-cell {:class-name :submit-page
-                     :style      {:font-size "14px"}}
+     [table-cell {:class-name :submit-page}
       [list-submit-link (:id tournament)]]]))
 
 (defn only-upcoming-toggle []
@@ -98,6 +87,11 @@
                                 :on-change on-change
                                 :color     :primary}])}]))))
 
+(def table-header-cell (styles/styled ui/table-cell (fn [{:keys [theme]}]
+                                                      {:color       (get-in theme [:palette :text :primary])
+                                                       :font-weight :bold
+                                                       :font-size   "16px"})))
+
 (defn all-tournaments []
   (let [tournaments (subscribe [::subs/filtered-organizer-tournaments])
         translate (subscribe [::subs/translate])]
@@ -108,45 +102,49 @@
          [ui/table {:class :tournaments}
           [ui/table-head
            [ui/table-row {:style {:height "24px"}}
-            [ui/table-cell {:class :date
-                            :style table-header-style}
+            [table-header-cell {:class :date}
              (translate :organizer.date)]
-            [ui/table-cell {:class :deadline
-                            :style table-header-style}
+            [table-header-cell {:class :deadline}
              (translate :organizer.deadline)]
-            [ui/table-cell {:class :name
-                            :style table-header-style}
+            [table-header-cell {:class :name}
              (translate :organizer.tournament.title)]
-            [ui/table-cell {:class :decklists
-                            :style table-header-style}
+            [table-header-cell {:class :decklists}
              (translate :organizer.decklists)]
-            [ui/table-cell {:class :submit-page
-                            :style table-header-style}
+            [table-header-cell {:class :submit-page}
              (translate :organizer.submit-page)]]]
           [ui/table-body
            (for [tournament @tournaments]
              ^{:key (str (:id tournament) "--row")}
              [tournament-row tournament])]]]))))
 
+(def sortable-header-cell (styles/styled ui/table-cell
+                                         (fn [{:keys [theme selected]}]
+                                           {:color       (get-in theme (if selected
+                                                                         [:palette :secondary :main]
+                                                                         [:palette :text :primary]))
+                                            :font-weight :bold
+                                            :font-size   "16px"
+                                            :cursor      :pointer
+                                            :position    :relative})))
+
+(def icon-style {:width    "20px"
+                 :height   "20px"
+                 :position :absolute
+                 :left     "-4px"})
+(def arrow-down (styles/styled keyboard-arrow-down icon-style))
+(def arrow-up (styles/styled keyboard-arrow-up icon-style))
+
 (defn sortable-header [{:keys [class-name column]} & children]
   (let [sort-data (subscribe [::subs/decklist-sort])]
     (fn sortable-header-render [{:keys [class-name column]} & children]
-      (let [selected? (= column (:key @sort-data))
-            icon (if (and selected?
-                          (not (:ascending @sort-data)))
-                   keyboard-arrow-up
-                   keyboard-arrow-down)
-            style (cond-> (assoc table-header-style
-                                 :cursor :pointer
-                                 :position :relative)
-                    selected? (assoc :color (:accent1-color palette)))]
-        [ui/table-cell {:class    class-name
-                        :style    style
-                        :on-click #(dispatch [::events/sort-decklists column])}
-         [icon {:style {:width    "20px"
-                        :height   "20px"
-                        :position :absolute
-                        :left     "-4px"}}]
+      (let [selected? (= column (:key @sort-data))]
+        [sortable-header-cell {:class    class-name
+                               :selected selected?
+                               :on-click #(dispatch [::events/sort-decklists column])}
+         [(if (and selected?
+                   (not (:ascending @sort-data)))
+            arrow-up
+            arrow-down)]
          children]))))
 
 (defn decklist-table [decklists selected-decklists on-select on-select-all translate]
@@ -158,8 +156,7 @@
                                         (< (count selected-decklists) (count decklists)))
                     :checked       (= (count decklists) (count selected-decklists))
                     :on-change     on-select-all}]]
-     [ui/table-cell {:class :dci
-                     :style table-header-style}
+     [table-header-cell {:class :dci}
       (translate :organizer.dci)]
      [sortable-header {:class  :name
                        :column :name}
@@ -255,7 +252,7 @@
                            :error-text (when (str/blank? value)
                                          (translate :organizer.tournament.name-error))}])]
            [:div.field
-            (let [value (:format @tournament)]
+            (let [value (:format @tournament "")]
               [ui/form-control {:error (not value)}
                [ui/input-label {:html-for :tournament-format}
                 (translate :organizer.tournament.format)]
