@@ -6,7 +6,7 @@
             [reagent-material-ui.icons.menu :refer [menu] :rename {menu menu-icon}]
             [oops.core :refer [oget]]
             [accountant.core :as accountant]
-            [mtg-pairings-server.components.tournament :refer [tournament-card-header]]
+            [mtg-pairings-server.components.pairings.tournament :refer [tournament-header]]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.routes.pairings :refer [tournaments-path standings-path]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
@@ -57,8 +57,9 @@
         on-expand #(swap! expanded? not)]
     (fn own-tournament-render [t]
       [ui/card
-       (tournament-card-header t {:on-expand on-expand
-                                  :expanded? @expanded?})
+       [tournament-header {:data      t
+                           :on-expand on-expand
+                           :expanded? @expanded?}]
        [ui/collapse {:in @expanded?}
         [ui/card-content
          {:style {:padding-top 0}}

@@ -4,7 +4,8 @@
             [mtg-pairings-server.components.main :refer [own-tournament pairing]]
             [mtg-pairings-server.components.pairings.pairings-table :refer [pairings-table]]
             [mtg-pairings-server.components.pairings.standings-table :refer [standings-table]]
-            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list tournament-card-header tournament standings pods seatings bracket]]
+            [mtg-pairings-server.components.pairings.tournament :refer [tournament tournament-header]]
+            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list pods seatings bracket]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (defn get-latest-pairing [player-tournaments]
@@ -53,13 +54,13 @@
 (defn tournament-page [id]
   (let [data (subscribe [::subs/tournament id])]
     (fn tournament-page-render [id]
-      [tournament @data])))
+      [tournament {:data @data}])))
 
 (defn tournament-subpage [id type round]
   (let [tournament (subscribe [::subs/tournament id])]
     (fn tournament-subpage-render [id type round]
       [ui/card
-       [tournament-card-header @tournament]
+       [tournament-header {:data @tournament}]
        [ui/card-content
         {:style {:padding-top 0}}
         (case type

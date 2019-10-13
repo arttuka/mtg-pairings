@@ -12,81 +12,10 @@
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.routes.pairings :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
+            [mtg-pairings-server.components.pairings.tournament :refer [tournament]]
             [mtg-pairings-server.components.filter :refer [filters]]
             [mtg-pairings-server.util :refer [format-date indexed]]
             [mtg-pairings-server.util.mtg :refer [bye?]]))
-
-;; TODO withStyles
-(defn tournament-card-header
-  ([data]
-   (tournament-card-header data {}))
-  ([data opts]
-   (let [{:keys [expanded? on-expand]} opts]
-     [ui/card-header
-      (merge
-       {:class     (when on-expand :card-header-expandable)
-        :title     (reagent/as-element
-                    [:a {:href  (tournament-path {:id (:id data)})
-                         :style {:font-size "20px"}}
-                     (:name data)])
-        :subheader (str (format-date (:day data)) " — " (:organizer data))
-        :on-click  on-expand
-        :action    (when on-expand
-                     (reagent/as-element
-                      [ui/icon-button {:class    [:card-header-button
-                                                  (when expanded? :card-header-button-expanded)]
-                                       :on-click on-expand}
-                       [expand-more]]))}
-       (dissoc opts :on-expand :expanded?))])))
-
-(defn tournament [data]
-  (when data
-    [ui/card
-     {:class "tournament"}
-     [tournament-card-header data]
-     [ui/card-content
-      {:style {:padding-top 0}}
-      (when (:playoff data)
-        [:div.tournament-row
-         [ui/button
-          {:href       (bracket-path {:id (:id data)})
-           :variant    :outlined
-           :class-name :tournament-button-wide
-           :style      {:width "260px"}}
-          "Playoff bracket"]])
-      (for [r (:round-nums data)]
-        ^{:key [(:id data) r]}
-        [:div.tournament-row
-         [ui/button-group {:variant :outlined}
-          (when (contains? (:pairings data) r)
-            [ui/button
-             {:href       (pairings-path {:id (:id data), :round r})
-              :class-name :tournament-button
-              :style      {:width "130px"}}
-             (str "Pairings " r)])
-          (when (contains? (:standings data) r)
-            [ui/button
-             {:href       (standings-path {:id (:id data), :round r})
-              :class-name :tournament-button
-              :style      {:width "130px"}}
-             (str "Standings " r)])]])
-      (when (or (:seatings data)
-                (seq (:pods data)))
-        [:div.tournament-row
-         [ui/button-group {:variant :outlined}
-          (when (:seatings data)
-            [ui/button
-             {:href       (seatings-path {:id (:id data)})
-              :class-name :tournament-button
-              :style      {:width "130px"}}
-             "Seatings"])
-          (for [n (:pods data)]
-            ^{:key [(:id data) :pods n]}
-            [ui/button
-             {:href       (pods-path {:id (:id data), :round n})
-              :class-name :tournament-button
-              :style      {:width "130px"}}
-             (str "Pods " n)])]])]]))
 
 (defn newest-tournaments-list []
   (let [tournaments (subscribe [::subs/newest-tournaments])]
@@ -99,7 +28,8 @@
        (if-let [ts (seq @tournaments)]
          (for [t ts]
            ^{:key (:id t)}
-           [tournament t])
+           [tournament {:data       t
+                        :list-item? true}])
          [:h3.no-active "Ei aktiivisia turnauksia."])])))
 
 (defn tournament-list []
@@ -110,7 +40,8 @@
       [:div#tournaments
        (for [t tournaments]
          ^{:key (:id t)}
-         [tournament t])])]])
+         [tournament {:data       t
+                      :list-item? true}])])]])
 
 (def sortable-header-cell (styles/styled :th (fn [{:keys [theme selected]}]
                                                {:color  (get-in theme (if selected

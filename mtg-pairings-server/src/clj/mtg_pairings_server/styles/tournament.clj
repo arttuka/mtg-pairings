@@ -68,14 +68,6 @@
   [:#tournaments :div#main-container
    [:.newest-header :.no-active
     {:margin-left (px 16)}]
-   [:.tournament
-    [:.tournament-row
-     {:margin-bottom (px 16)}
-     (when-mobile
-      [:.tournament-button
-       {:width "calc(50vw - 16px) !important"}]
-      [:.tournament-button-wide
-       {:width "calc(100vw - 32px) !important"}])]]
    [:.pager
     {:margin (px 16)}
     (when-mobile

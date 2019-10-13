@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.util.material-ui
   (:require [reagent.core :as reagent :refer [atom]]
             [reagent-material-ui.components :as ui]
+            [reagent-material-ui.util :refer [clj->js']]
             [oops.core :refer [oget]]))
 
 (defn wrap-on-change [f]
@@ -22,3 +23,6 @@
 
 (defn on-desktop [theme]
   ((get-in theme [:breakpoints :up]) "sm"))
+
+(defn create-transition [theme type styles]
+  ((get-in theme [:transitions :create]) (name type) (clj->js' styles)))
