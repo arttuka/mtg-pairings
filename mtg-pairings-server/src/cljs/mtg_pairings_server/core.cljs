@@ -16,7 +16,8 @@
             [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu deck-construction-tables]]
             [mtg-pairings-server.pages.pairings :as pairings-pages :refer [main-page tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.components.organizer :as organizer]
-            [mtg-pairings-server.components.main :refer [header notification]]
+            [mtg-pairings-server.components.main :refer [notification]]
+            [mtg-pairings-server.components.pairings.header :refer [header]]
             [mtg-pairings-server.theme :refer [theme-provider]]))
 
 (defn display-header? [page]

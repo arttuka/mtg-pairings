@@ -9,6 +9,7 @@
             [goog.string.format]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.subscriptions.pairings :as subs]
+            [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.routes.pairings :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
             [mtg-pairings-server.components.filter :refer [filters]]
@@ -152,7 +153,8 @@
 
 (defn pairings [id round]
   (let [data (subscribe [::subs/sorted-pairings id round])
-        sort-key (subscribe [::subs/pairings-sort])]
+        sort-key (subscribe [::subs/pairings-sort])
+        mobile? (subscribe [::common-subs/mobile?])]
     (fn pairings-render [id round]
       (when (seq @data)
         [:table.pairings-table
@@ -168,8 +170,7 @@
                              :column       :team1_name
                              :sort-key     @sort-key
                              :dispatch-key ::events/sort-pairings}
-            ^{:key "player-1-heading"} [:span.hidden-mobile "Pelaaja 1"]
-            ^{:key "players-heading"} [:span.hidden-desktop "Pelaajat"]]
+            (if @mobile? "Pelaajat" "Pelaaja 1")]
            [:th.players2.hidden-mobile "Pelaaja 2"]
            [:th.points "Pist."]
            [:th.result "Tulos"]]]

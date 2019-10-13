@@ -47,58 +47,6 @@
                                        [:span.names (or (:team1_name data)
                                                         (str "Seat " (:seat data)))]))}]]))
 
-(defn header []
-  (let [user (subscribe [::subs/logged-in-user])
-        dci-number (atom "")
-        menu-anchor-el (atom nil)
-        on-menu-click #(reset! menu-anchor-el (.-currentTarget %))
-        on-menu-close #(reset! menu-anchor-el nil)
-        login! (fn []
-                 (dispatch [::events/login @dci-number])
-                 (reset! dci-number ""))]
-    (fn header-render []
-      [ui/app-bar {:id       :header
-                   :position :static}
-       [ui/toolbar {:style {:padding "0 16px"}}
-        [ui/icon-button {:on-click on-menu-click}
-         [menu-icon]]
-        [ui/menu {:open      (some? @menu-anchor-el)
-                  :anchor-el @menu-anchor-el
-                  :on-close  on-menu-close}
-         [ui/menu-item {:on-click #(do
-                                     (on-menu-close)
-                                     (accountant/navigate! "/"))}
-          "Etusivu"]
-         [ui/menu-item {:on-click #(do
-                                     (on-menu-close)
-                                     (accountant/navigate! (tournaments-path)))}
-          "Turnausarkisto"]
-         (when @user
-           [ui/menu-item {:on-click #(do
-                                       (on-menu-close)
-                                       (dispatch [::events/logout]))}
-            "Kirjaudu ulos"])]
-        (when @user
-          [ui/typography
-           {:variant :h6}
-           (:name @user)])
-        [:div {:style {:flex "1 0 0"}}]
-        (when-not @user
-          [:<>
-           [:div.dci-container
-            [ui/input-base {:placeholder "DCI-numero"
-                            :value       @dci-number
-                            :on-change   (wrap-on-change #(reset! dci-number %))
-                            :on-key-down (fn [e]
-                                           (when (= "Enter" (.-key e))
-                                             (login!)))
-                            :full-width  true
-                            :style       {:color   :white
-                                          :padding "0 8px"}}]]
-           [ui/button {:on-click login!
-                       :variant  :contained}
-            "Kirjaudu"]])]])))
-
 (defn combine-pairings-and-pods [pairings pods]
   (->> (concat pairings pods)
        (sort-by (juxt :round_number :team1_name))
