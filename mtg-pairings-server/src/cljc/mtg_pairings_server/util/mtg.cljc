@@ -90,4 +90,5 @@
     (re-matches #"[0-9]+" dci-number)))
 
 (defn bye? [pairing]
-  (zero? (:table_number pairing)))
+  (zero? (or (:table_number pairing)
+             (:table-number pairing))))

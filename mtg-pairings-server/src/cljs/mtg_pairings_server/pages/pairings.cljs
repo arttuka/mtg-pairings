@@ -1,8 +1,8 @@
 (ns mtg-pairings-server.pages.pairings
   (:require [re-frame.core :refer [subscribe]]
             [reagent-material-ui.components :as ui]
-            [mtg-pairings-server.components.main :refer [own-tournament pairing]]
             [mtg-pairings-server.components.pairings.pairings-table :refer [pairings-table]]
+            [mtg-pairings-server.components.pairings.player :refer [own-tournament pairing]]
             [mtg-pairings-server.components.pairings.standings-table :refer [standings-table]]
             [mtg-pairings-server.components.pairings.tournament :refer [tournament tournament-header]]
             [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list pods seatings bracket]]
@@ -26,27 +26,29 @@
   (let [user (subscribe [::subs/logged-in-user])
         player-tournaments (subscribe [::subs/player-tournaments])]
     (fn main-page-render []
-      (if @user
-        [:div#own-tournaments
-         (if (seq @player-tournaments)
-           (let [latest-pairing (get-latest-pairing @player-tournaments)]
-             [ui/card
-              [ui/card-header
-               {:title     "Uusin pairing"
-                :subheader (:tournament latest-pairing)
-                :style     {:padding-bottom 0}}]
-              [ui/card-content
-               {:style {:padding-top    0
-                        :padding-bottom 0}}
-               [pairing latest-pairing (some? (:team2_name latest-pairing))]]])
-           [ui/circular-progress {:style     {:margin  "48px auto 0"
-                                              :display :block}
-                                  :size      100
-                                  :thickness 5}])
+      (cond
+        (not @user)
+        [newest-tournaments-list]
+
+        (seq @player-tournaments)
+        [ui/list
+         (let [latest-pairing (get-latest-pairing @player-tournaments)]
+           [:<>
+            [ui/list-item
+             [ui/list-item-text {:primary                  "Uusin pairing"
+                                 :secondary                (:tournament latest-pairing)
+                                 :primary-typography-props {:variant "h5"}}]]
+            [pairing {:data    latest-pairing
+                      :divider true}]])
          (for [t @player-tournaments]
            ^{:key [:tournament (:id t)]}
-           [own-tournament t])]
-        [newest-tournaments-list]))))
+           [own-tournament {:tournament t}])]
+
+        :else
+        [ui/circular-progress {:style     {:margin  "48px auto 0"
+                                           :display :block}
+                               :size      100
+                               :thickness 5}]))))
 
 (defn tournaments-page []
   [tournament-list])

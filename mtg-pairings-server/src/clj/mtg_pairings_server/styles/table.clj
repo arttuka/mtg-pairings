@@ -4,37 +4,6 @@
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.common :refer [ellipsis-overflow color when-mobile when-desktop]]))
 
-(defstyles pairings-table
-  [:table.pairings-table
-   [:th.players
-    {:padding-left (px 30)}]
-   [:.table :.points :.result
-    {:text-align :center}]
-   (when-desktop
-    [:.table
-     {:width (px 100)}]
-    [:.points :.result
-     {:width (px 60)}]
-    [:.players :.players2
-     {:min-width (px 300)}])
-   (when-mobile
-    [:th.table
-     {:text-align :right}]
-    [:.table
-     {:width (px 65)}]
-    [:.points :.result
-     {:width (px 50)}]
-    [:.players
-     {:max-width "calc(100vw - 197px)"}]
-    [:.player1 :.player2 :.team1-points :.team2-points :.team1-wins :.team2-wins
-     (merge
-      {:display :block
-       :width   (percent 100)}
-      ellipsis-overflow)]
-    [:&.player-sorted
-     [:.player2 :.team2-points :.team2-wins
-      {:color (color :grey)}]])])
-
 (defstyles seatings-table
   [:table.seatings-table
    [:th.player

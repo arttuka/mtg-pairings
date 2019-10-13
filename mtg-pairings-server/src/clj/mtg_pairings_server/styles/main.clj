@@ -46,27 +46,9 @@
    [:.hidden-desktop
     {:display "none !important"}]))
 
-(defstyles own-tournaments
-  [:#own-tournaments
-   [:.mui-pairing
-    [:.names
-     {:display :inline-block}]
-    [:.points
-     {:float :right}]]])
-
-(defstyles expandable-card
-  [:.card-header-expandable
-   {:cursor :pointer}
-   [:.card-header-button
-    {:transform  "rotate(0deg)"
-     :transition "transform 300ms ease-in-out"}
-    [:&.card-header-button-expanded
-     {:transform "rotate(180deg)"}]]])
 
 (defstyles main
   base
-  own-tournaments
-  expandable-card
   table/styles
   bracket/styles
   decklist/styles
