@@ -16,3 +16,9 @@
                               :error (some? error-text)
                               :helper-text error-text)
                        (dissoc :error-text))]))
+
+(defn on-mobile [theme]
+  ((get-in theme [:breakpoints :down]) "sm"))
+
+(defn on-desktop [theme]
+  ((get-in theme [:breakpoints :up]) "sm"))

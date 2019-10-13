@@ -104,15 +104,17 @@
       ellipsis-overflow)])])
 
 (defstyles styles
-  [:table.pairings-table :table.seatings-table :table.standings-table :table.pods-table
+  [:table
    {:border-spacing 0}
+   [:th :td
+    {:padding         0
+     :border-collapse :collapse}]]
+  [:table.seatings-table :table.standings-table :table.pods-table
    [:th
     {:text-align :left
      :position   :relative}]
    [:th :td
-    {:padding         0
-     :border-collapse :collapse
-     :font-size       (px 16)
+    {:font-size       (px 16)
      :line-height     (px 24)}]
    [:tbody
     [:tr
@@ -121,7 +123,6 @@
    (when-mobile
     [:&
      {:width (percent 100)}])]
-  pairings-table
   seatings-table
   standings-table
   pods-table)

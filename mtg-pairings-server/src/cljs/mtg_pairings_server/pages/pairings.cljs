@@ -2,7 +2,8 @@
   (:require [re-frame.core :refer [subscribe]]
             [reagent-material-ui.components :as ui]
             [mtg-pairings-server.components.main :refer [own-tournament pairing]]
-            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list tournament-card-header tournament pairings standings pods seatings bracket]]
+            [mtg-pairings-server.components.pairings.pairings-table :refer [pairings-table]]
+            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list tournament-card-header tournament standings pods seatings bracket]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (defn get-latest-pairing [player-tournaments]
@@ -61,7 +62,8 @@
        [ui/card-content
         {:style {:padding-top 0}}
         (case type
-          ::pairings [pairings id round]
+          ::pairings [pairings-table {:tournament-id id
+                                      :round         round}]
           ::standings [standings id round]
           ::pods [pods id round]
           ::seatings [seatings id]

@@ -128,57 +128,6 @@
    [arrow-down]
    children])
 
-(defn pairing-row [pairing]
-  (let [bye (bye? pairing)]
-    [:tr
-     [:td.table (when-not bye (:table_number pairing))]
-     [:td.players
-      [:span.player1 (:team1_name pairing)]
-      [:span.player2.hidden-desktop
-       (:team2_name pairing)]]
-     [:td.players2.hidden-mobile (:team2_name pairing)]
-     (if bye
-       [:td.points
-        [:span.team1-points (:team1_points pairing)]]
-       [:td.points
-        [:span.team1-points (:team1_points pairing)]
-        [:span.hidden-mobile " - "]
-        [:span.team2-points (:team2_points pairing)]])
-     (if bye
-       [:td.result]
-       [:td.result
-        [:span.team1-wins (:team1_wins pairing)]
-        [:span.hidden-mobile " - "]
-        [:span.team2-wins (:team2_wins pairing)]])]))
-
-(defn pairings [id round]
-  (let [data (subscribe [::subs/sorted-pairings id round])
-        sort-key (subscribe [::subs/pairings-sort])
-        mobile? (subscribe [::common-subs/mobile?])]
-    (fn pairings-render [id round]
-      (when (seq @data)
-        [:table.pairings-table
-         {:class (when (= @sort-key :team1_name) :player-sorted)}
-         [:thead
-          [:tr
-           [sortable-header {:class        :table
-                             :column       :table_number
-                             :sort-key     @sort-key
-                             :dispatch-key ::events/sort-pairings}
-            "Pöytä"]
-           [sortable-header {:class        :players
-                             :column       :team1_name
-                             :sort-key     @sort-key
-                             :dispatch-key ::events/sort-pairings}
-            (if @mobile? "Pelaajat" "Pelaaja 1")]
-           [:th.players2.hidden-mobile "Pelaaja 2"]
-           [:th.points "Pist."]
-           [:th.result "Tulos"]]]
-         [:tbody
-          (for [pairing @data]
-            ^{:key [(:team1_name pairing)]}
-            [pairing-row pairing])]]))))
-
 (defn percentage [n]
   (gstring/format "%.3f" (* 100 n)))
 
