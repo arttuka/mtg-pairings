@@ -128,39 +128,6 @@
    [arrow-down]
    children])
 
-(defn percentage [n]
-  (gstring/format "%.3f" (* 100 n)))
-
-(defn standing-row [standing]
-  [:tr
-   [:td.rank (:rank standing)]
-   [:td.player (:team_name standing)]
-   [:td.points (:points standing)]
-   [:td.omw (percentage (:omw standing))]
-   [:td.ogw (percentage (:pgw standing))]
-   [:td.pgw (percentage (:ogw standing))]])
-
-(defn standing-table [data]
-  (when (seq data)
-    [:table.standings-table
-     [:thead
-      [:tr
-       [:th.rank]
-       [:th.players "Pelaaja"]
-       [:th.points "Pist."]
-       [:th.omw "OMW"]
-       [:th.ogw "PGW"]
-       [:th.pgw "OGW"]]]
-     [:tbody
-      (for [standing data]
-        ^{:key (:team_name standing)}
-        [standing-row standing])]]))
-
-(defn standings [id round]
-  (let [data (subscribe [::subs/standings id round])]
-    (fn standings-render [id round]
-      [standing-table @data])))
-
 (defn pod-row [seat]
   [:tr
    [:td.pod (:pod seat)]

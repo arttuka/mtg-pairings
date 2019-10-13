@@ -3,6 +3,7 @@
             [reagent-material-ui.components :as ui]
             [mtg-pairings-server.components.main :refer [own-tournament pairing]]
             [mtg-pairings-server.components.pairings.pairings-table :refer [pairings-table]]
+            [mtg-pairings-server.components.pairings.standings-table :refer [standings-table]]
             [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list tournament-card-header tournament standings pods seatings bracket]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))
 
@@ -64,7 +65,8 @@
         (case type
           ::pairings [pairings-table {:tournament-id id
                                       :round         round}]
-          ::standings [standings id round]
+          ::standings [standings-table {:tournament-id id
+                                        :round         round}]
           ::pods [pods id round]
           ::seatings [seatings id]
           ::bracket [bracket id])]])))

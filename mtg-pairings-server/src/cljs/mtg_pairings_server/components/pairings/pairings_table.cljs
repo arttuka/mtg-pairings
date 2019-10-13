@@ -4,55 +4,53 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.icons.keyboard-arrow-down :refer [keyboard-arrow-down]]
             [reagent-material-ui.styles :refer [styled with-styles]]
+            [mtg-pairings-server.components.pairings.table :as table]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.util.material-ui :as mui-util]
             [mtg-pairings-server.util.mtg :refer [bye?]]))
 
-(def styles (fn [{:keys [palette] :as theme}]
-              (let [on-mobile (mui-util/on-mobile theme)
-                    on-desktop (mui-util/on-desktop theme)]
-                {:table           {:line-height "24px"
-                                   on-mobile    {:width "100%"}}
-                 :table-header    {:line-height "36px"}
-                 :table-row       {"&:nth-child(odd)" {:background-color (get-in palette [:primary :100])}}
-                 :table-column    {:text-align :center
-                                   on-desktop  {:width "100px"}
-                                   on-mobile   {:width "65px"}}
-                 :player-1-column {:text-align :left
-                                   on-desktop  {:min-width "300px"}
-                                   on-mobile   {:max-width "calc(100vw - 197px)"}}
-                 :player-2-column {:min-width  "300px"
-                                   :text-align :left}
-                 :points-column   {:text-align :center
-                                   on-desktop  {:width "60px"}
-                                   on-mobile   {:width "50px"}}
-                 :result-column   {:text-align :center
-                                   on-desktop  {:width "60px"}
-                                   on-mobile   {:width "50px"}}
-                 :mobile-cell     {on-mobile {:white-space    :nowrap
-                                              :text-overflow  :ellipsis
-                                              :overflow       :hidden
-                                              :vertical-align :bottom
-                                              :display        :block
-                                              :width          "100%"}}
-                 :player-2-cell   {on-mobile {:color (get-in palette [:text :secondary])}}})))
+(defn styles [{:keys [palette] :as theme}]
+  (merge (table/table-styles theme)
+         (let [on-mobile (mui-util/on-mobile theme)
+               on-desktop (mui-util/on-desktop theme)]
+           {:table-column    {:text-align :center
+                              on-desktop  {:width "100px"}
+                              on-mobile   {:width "65px"}}
+            :player-1-column {:text-align :left
+                              on-desktop  {:min-width "300px"}
+                              on-mobile   {:max-width "calc(100vw - 197px)"}}
+            :player-2-column {:min-width  "300px"
+                              :text-align :left}
+            :points-column   {:text-align :center
+                              on-desktop  {:width "60px"}
+                              on-mobile   {:width "50px"}}
+            :result-column   {:text-align :center
+                              on-desktop  {:width "60px"}
+                              on-mobile   {:width "50px"}}
+            :mobile-cell     {on-mobile {:white-space    :nowrap
+                                         :text-overflow  :ellipsis
+                                         :overflow       :hidden
+                                         :vertical-align :bottom
+                                         :display        :block
+                                         :width          "100%"}}
+            :player-2-cell   {on-mobile {:color (get-in palette [:text :secondary])}}})))
 
 (def arrow-down (styled keyboard-arrow-down (fn [{:keys [theme]}]
                                               {(mui-util/on-mobile theme) {:margin-left  "-3px"
                                                                            :margin-right "-3px"}})))
 
-(def button-styles (fn [theme]
-                     {:root  {:padding-top               "4px"
-                              :padding-bottom            "4px"
-                              (mui-util/on-mobile theme) {:padding-left  0
-                                                          :padding-right 0}
-                              :text-align                :left}
-                      :label {:justify-content "flex-start"
-                              :text-transform  :none
-                              :font-weight     :bold
-                              :font-size       "16px"}}))
+(defn button-styles [theme]
+  {:root  {:padding-top               "4px"
+           :padding-bottom            "4px"
+           (mui-util/on-mobile theme) {:padding-left  0
+                                       :padding-right 0}
+           :text-align                :left}
+   :label {:justify-content "flex-start"
+           :text-transform  :none
+           :font-weight     :bold
+           :font-size       "16px"}})
 
 (def sortable-header-button ((with-styles button-styles) ui/button))
 
@@ -108,8 +106,8 @@
         mobile? (subscribe [::common-subs/mobile?])]
     (fn pairings-render [{:keys [classes]}]
       (when (seq @data)
-        [:table.pairings-table
-         {:class [(:table classes) (when (= @sort-key :team1_name) :player-sorted)]}
+        [:table
+         {:class (:table classes)}
          [:thead {:class (:table-header classes)}
           [:tr
            [sortable-header {:class        (:table-column classes)

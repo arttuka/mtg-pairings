@@ -35,32 +35,6 @@
      [:.player2 :.team2-points :.team2-wins
       {:color (color :grey)}]])])
 
-(defstyles standings-table
-  [:table.standings-table
-   [:.points :.omw :.pgw :.ogw
-    {:text-align :center}]
-   [:.rank
-    {:text-align  :center
-     :font-weight 700
-     :color       (color :dark-grey)}]
-   (when-desktop
-    [:.player
-     {:min-width (px 300)}]
-    [:.points :.rank
-     {:width (px 50)}]
-    [:.omw :.pgw :.ogw
-     {:width (px 70)}])
-   (when-mobile
-    [:.points :.rank
-     {:width (px 40)}]
-    [:.player
-     (merge
-      {:max-width "calc(100vw - 262px)"}
-      ellipsis-overflow)]
-    [:.omw :.pgw :.ogw
-     {:width     (px 50)
-      :font-size (px 14)}])])
-
 (defstyles seatings-table
   [:table.seatings-table
    [:th.player
@@ -124,5 +98,4 @@
     [:&
      {:width (percent 100)}])]
   seatings-table
-  standings-table
   pods-table)

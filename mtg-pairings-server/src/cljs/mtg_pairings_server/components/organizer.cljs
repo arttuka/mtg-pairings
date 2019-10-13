@@ -8,8 +8,7 @@
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [cls indexed]]
             [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
-            [mtg-pairings-server.util.mtg :refer [bye? duplicate-pairings]]
-            [mtg-pairings-server.components.tournament :refer [standing-table]]))
+            [mtg-pairings-server.util.mtg :refer [bye? duplicate-pairings]]))
 
 (defn round-select [type a rounds]
   [ui/select
