@@ -12,8 +12,8 @@
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.routes.pairings :refer [tournaments-path tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.components.paging :refer [with-paging]]
+            [mtg-pairings-server.components.pairings.filter :refer [filters]]
             [mtg-pairings-server.components.pairings.tournament :refer [tournament]]
-            [mtg-pairings-server.components.filter :refer [filters]]
             [mtg-pairings-server.util :refer [format-date indexed]]
             [mtg-pairings-server.util.mtg :refer [bye?]]))
 

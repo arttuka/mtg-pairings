@@ -30,7 +30,7 @@
     (map (:tournaments db) (:tournament-ids db))))
 
 (defn ^:private org-filter [organizer]
-  (filter #(or (= organizer :all-organizers)
+  (filter #(or (= organizer "all-organizers")
                (= organizer (:organizer %)))))
 
 (defn ^:private date-filter [min max]

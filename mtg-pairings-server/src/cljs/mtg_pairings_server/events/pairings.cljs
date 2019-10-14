@@ -15,7 +15,7 @@
                :tournament-count   0
                :tournaments-page   0
                :tournament-ids     []
-               :tournament-filter  {:organizer :all-organizers
+               :tournament-filter  {:organizer "all-organizers"
                                     :date-from nil
                                     :date-to   nil
                                     :players   [0 100]}
@@ -82,7 +82,7 @@
   (fn [db _]
     (assoc db
            :tournaments-page 0
-           :tournament-filter {:organizer ""
+           :tournament-filter {:organizer "all-organizers"
                                :date-from nil
                                :date-to   nil
                                :players   [0 (:max-players db)]}
