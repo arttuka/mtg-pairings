@@ -203,3 +203,6 @@
                                  part)
        keywordize? (keyword part)
        :else part))))
+
+(defn keyword->str [k]
+  (subs (str k) 1))

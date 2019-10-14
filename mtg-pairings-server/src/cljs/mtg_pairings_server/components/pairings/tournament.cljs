@@ -64,7 +64,8 @@
                               (for [group (partition-all 2 pod-buttons)]
                                 (into [button-group] group))))]]]]
       (if list-item?
-        [ui/list-item {:divider true}
+        [ui/list-item {:divider         true
+                       :disable-gutters true}
          rendered]
         rendered))))
 

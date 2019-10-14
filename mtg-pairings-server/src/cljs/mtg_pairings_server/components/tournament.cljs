@@ -35,7 +35,7 @@
 (defn tournament-list []
   [:div
    [filters]
-   [with-paging ::events/tournaments-page [::subs/tournaments-page] [::subs/filtered-tournaments]
+   [with-paging ::events/tournaments-page ::subs/tournaments-page ::subs/filtered-tournaments
     (fn tournament-list-render [tournaments]
       [:div#tournaments
        (for [t tournaments]
