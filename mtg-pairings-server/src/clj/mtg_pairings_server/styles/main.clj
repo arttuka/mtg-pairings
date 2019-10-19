@@ -6,9 +6,7 @@
             [mtg-pairings-server.styles.common :refer [color when-desktop when-mobile when-print]]
             [mtg-pairings-server.styles.decklist :as decklist]
             [mtg-pairings-server.styles.organizer :as organizer]
-            [mtg-pairings-server.styles.table :as table]
-            [mtg-pairings-server.styles.tooltip :as tooltip]
-            [mtg-pairings-server.styles.tournament :as tournament]))
+            [mtg-pairings-server.styles.tooltip :as tooltip]))
 
 (defstyles base
   (at-import "https://fonts.googleapis.com/css?family=Lato:700")
@@ -48,11 +46,9 @@
 
 (defstyles main
   base
-  table/styles
   decklist/styles
   organizer/styles
   tooltip/styles
-  tournament/styles
   mobile)
 
 (def css (garden/css main))

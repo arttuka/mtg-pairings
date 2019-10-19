@@ -8,7 +8,7 @@
             [mtg-pairings-server.components.pairings.seatings-table :refer [seatings-table]]
             [mtg-pairings-server.components.pairings.standings-table :refer [standings-table]]
             [mtg-pairings-server.components.pairings.tournament :refer [tournament tournament-header]]
-            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list]]
+            [mtg-pairings-server.components.pairings.tournament-list :refer [newest-tournaments-list tournament-list]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (defn get-latest-pairing [player-tournaments]
