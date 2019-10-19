@@ -10,7 +10,7 @@
                   :border-spacing            0
                   (mui-util/on-mobile theme) {:width "100%"}}
    :table-header {:line-height "36px"}
-   :table-row    {"&:nth-child(odd)" {:background-color (get-in palette [:primary :100])}}})
+   :table-row    {"&:nth-child(odd)" {:background-color (get-in palette [:primary 100])}}})
 
 (def arrow-down (styled keyboard-arrow-down (fn [{:keys [theme]}]
                                               {:margin-top                "2px"

@@ -34,30 +34,6 @@
    [:.seating
     ellipsis-overflow]])
 
-(defstyles standings
-  [:.organizer-standings
-   [:.row
-    {:overflow :hidden}
-    [:.rank :.player :.points :.omw :.pgw :.ogw
-     {:display :inline-block}]
-    [:.points :.omw :.pgw :.ogw
-     {:text-align :center}]
-    [:.rank
-     {:text-align  :center
-      :font-weight 700
-      :color       (color :dark-grey)}]
-    [:.points :.rank
-     {:width (px 40)}]
-    [:.player
-     (merge
-      {:width (px 198)}
-      ellipsis-overflow)]
-    [:.omw
-     {:width (px 70)}]
-    [:.pgw :.ogw
-     {:width     (px 60)
-      :font-size (px 14)}]]])
-
 (defstyles table
   [:.row
    {:line-height (px 22)
@@ -120,6 +96,5 @@
    pairings
    pods
    seatings
-   standings
    clock]
   deck-construction)

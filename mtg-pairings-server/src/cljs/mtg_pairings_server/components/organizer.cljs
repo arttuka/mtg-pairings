@@ -38,27 +38,6 @@
            [:span.seat-number (:seat p)]
            [:span.name (:team_name p)]])]])))
 
-(defn percentage [n]
-  (gstring/format "%.3f" (* 100 n)))
-
-(defn standings []
-  (let [standings (subscribe [::subs/organizer :standings])
-        tournament (subscribe [::subs/organizer :tournament])
-        standings-round (subscribe [::subs/organizer :standings-round])]
-    (fn standings-render []
-      [:div.organizer-standings
-       [:h2 (str (:name @tournament) " - kierros " @standings-round)]
-       [:div.column
-        (for [{:keys [rank team_name points omw pgw ogw]} @standings]
-          ^{:key (str "standings-" rank)}
-          [:div.row.standing
-           [:span.rank rank]
-           [:span.player team_name]
-           [:span.points points]
-           [:span.omw (percentage omw)]
-           [:span.pgw (percentage pgw)]
-           [:span.ogw (percentage ogw)]])]])))
-
 (defn clock []
   (let [c (subscribe [::subs/organizer :clock])]
     (fn clock-render []

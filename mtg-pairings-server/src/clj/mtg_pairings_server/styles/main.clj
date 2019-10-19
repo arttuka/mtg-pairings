@@ -25,15 +25,7 @@
    {:font-family "Roboto, sans-serif"
     :box-sizing  :border-box}
    [:&:before :&:after
-    {:box-sizing :border-box}]]
-  [:h1 :h2 :h3 :h4 :h5
-   {:font-weight 500
-    :line-height 1.1}]
-  [:a
-   {:text-decoration :none
-    :color           (color :primary2-color)}]
-  [:#main-container
-   {:margin-bottom (px 10)}])
+    {:box-sizing :border-box}]])
 
 (defstyles mobile
   (when-mobile
