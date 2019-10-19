@@ -1,13 +1,14 @@
 (ns mtg-pairings-server.pages.pairings
   (:require [re-frame.core :refer [subscribe]]
             [reagent-material-ui.components :as ui]
+            [mtg-pairings-server.components.pairings.bracket :refer [bracket]]
             [mtg-pairings-server.components.pairings.pairings-table :refer [pairings-table]]
             [mtg-pairings-server.components.pairings.player :refer [own-tournament pairing]]
             [mtg-pairings-server.components.pairings.pods-table :refer [pods-table]]
             [mtg-pairings-server.components.pairings.seatings-table :refer [seatings-table]]
             [mtg-pairings-server.components.pairings.standings-table :refer [standings-table]]
             [mtg-pairings-server.components.pairings.tournament :refer [tournament tournament-header]]
-            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list bracket]]
+            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (defn get-latest-pairing [player-tournaments]
@@ -75,4 +76,4 @@
           ::pods [pods-table {:tournament-id id
                               :round         round}]
           ::seatings [seatings-table {:tournament-id id}]
-          ::bracket [bracket id])]])))
+          ::bracket [bracket {:tournament-id id}])]])))

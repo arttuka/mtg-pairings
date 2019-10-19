@@ -3,7 +3,6 @@
             [garden.def :refer [defstyles]]
             [garden.stylesheet :refer [at-import]]
             [garden.units :refer [px percent]]
-            [mtg-pairings-server.styles.bracket :as bracket]
             [mtg-pairings-server.styles.common :refer [color when-desktop when-mobile when-print]]
             [mtg-pairings-server.styles.decklist :as decklist]
             [mtg-pairings-server.styles.organizer :as organizer]
@@ -50,7 +49,6 @@
 (defstyles main
   base
   table/styles
-  bracket/styles
   decklist/styles
   organizer/styles
   tooltip/styles

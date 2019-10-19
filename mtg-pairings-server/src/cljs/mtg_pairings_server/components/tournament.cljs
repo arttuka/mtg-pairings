@@ -42,36 +42,3 @@
          ^{:key (:id t)}
          [tournament {:data       t
                       :list-item? true}])])]])
-
-(defn bracket-match [match]
-  [:div.bracket-match
-   [:div.team.team1
-    {:class (when (> (:team1_wins match) (:team2_wins match))
-              :winner)}
-    (when (:team1_rank match)
-      [:span.rank (str \( (:team1_rank match) \))])
-    [:span.name (:team1_name match)]
-    [:span.wins (:team1_wins match)]]
-   [:div.team.team2
-    {:class (when (< (:team1_wins match) (:team2_wins match))
-              :winner)}
-    (when (:team2_rank match)
-      [:span.rank (str \( (:team2_rank match) \))])
-    [:span.name (:team2_name match)]
-    [:span.wins (:team2_wins match)]]])
-
-(defn bracket [id]
-  (let [data (subscribe [::subs/bracket id])]
-    (fn bracket-render [id]
-      [:div.bracket
-       (for [round @data
-             :let [num-matches (count round)
-                   k (str id "-bracket-" num-matches)]]
-         ^{:key k}
-         [:div.bracket-round
-          {:class (str "matches-" num-matches)}
-          [:h3.hidden-desktop
-           (str "Top " (* 2 num-matches))]
-          (for [match round]
-            ^{:key (str k "-table-" (:table_number match))}
-            [bracket-match match])])])))
