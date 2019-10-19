@@ -369,8 +369,6 @@
 
 (defstyles organizer
   [:#decklist-organizer
-   [:#decklist-organizer-login
-    {:margin "12px 24px"}]
    (when-print
     [:.decklist-organizer-header
      {:display "none !important"}])])

@@ -2,11 +2,10 @@
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent-material-ui.components :as ui]
-            [reagent-material-ui.styles :refer [styled with-styles]]
+            [reagent-material-ui.styles :refer [with-styles]]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
-            [mtg-pairings-server.subscriptions.decklist :as subs]
-            [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change]]))
+            [mtg-pairings-server.subscriptions.decklist :as subs]))
 
 (defn view-decklist []
   (let [decklist (subscribe [::subs/decklist-by-type])
@@ -34,31 +33,36 @@
                                         ^{:key (:id decklist)}
                                         [render-decklist decklist @tournament @translate]))])})))
 
-(defn ^:private no-op [])
+(defn login-styles [{:keys [spacing]}]
+  {:root-container  {:padding (spacing 2)}
+   :field-container {:display     :flex
+                     :align-items "flex-end"}
+   :field           {:margin         (spacing 0 1)
+                     "&:first-child" {:margin-left 0}}})
 
-(defn login []
+(defn login* [props]
   (let [translate (subscribe [::subs/translate])]
-    (fn login-render []
+    (fn login-render [{:keys [classes]}]
       (let [translate @translate]
-        [:div#decklist-organizer-login
+        [:div {:class (:root-container classes)}
          [:p (translate :organizer.log-in.text)]
          [:form {:action (str "/login?next=" (oget js/window "location" "pathname"))
                  :method :post}
           [:input {:type  :hidden
                    :name  :__anti-forgery-token
                    :value (oget js/window "csrf_token")}]
-          [text-field {:name      :username
-                       :label     (translate :organizer.log-in.username)
-                       :on-change no-op
-                       :style     {:margin "0 8px"}}]
-          [text-field {:name      :password
-                       :type      :password
-                       :label     (translate :organizer.log-in.password)
-                       :on-change no-op
-                       :style     {:margin "0 8px"}}]
-          [ui/button {:type    :submit
-                      :variant :outlined
-                      :color   :primary
-                      :style   {:margin         "0 8px"
-                                :vertical-align :bottom}}
-           (translate :organizer.log-in.button)]]]))))
+          [:div {:class (:field-container classes)}
+           [ui/text-field {:class (:field classes)
+                           :name  :username
+                           :label (translate :organizer.log-in.username)}]
+           [ui/text-field {:class (:field classes)
+                           :name  :password
+                           :type  :password
+                           :label (translate :organizer.log-in.password)}]
+           [ui/button {:class   (:field classes)
+                       :type    :submit
+                       :variant :contained
+                       :color   :primary}
+            (translate :organizer.log-in.button)]]]]))))
+
+(def login ((with-styles login-styles) login*))
