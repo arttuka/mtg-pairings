@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.pages.organizer
   (:require [re-frame.core :refer [subscribe]]
-            [mtg-pairings-server.components.organizer :refer [clock]]
+            [mtg-pairings-server.components.organizer.clock :refer [clock]]
             [mtg-pairings-server.components.organizer.menu :refer [menu]]
             [mtg-pairings-server.components.organizer.pairings :refer [pairings]]
             [mtg-pairings-server.components.organizer.pods :refer [pods]]
