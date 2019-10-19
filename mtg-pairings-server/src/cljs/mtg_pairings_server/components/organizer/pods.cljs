@@ -2,16 +2,12 @@
   (:require [reagent.core :refer [atom]]
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.styles :refer [with-styles]]
-            [mtg-pairings-server.components.organizer.common :refer [column header row]]
+            [mtg-pairings-server.components.organizer.common :refer [column header row number-style player-style]]
             [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))
 
-(def pod-styles {:number {:text-align  :center
-                          :font-weight :bold
-                          :font-size   20
-                          :flex        "0 0 40px"}
-                 :player (merge {:flex 1}
-                                ellipsis-overflow)})
+(def pod-styles {:number number-style
+                 :player player-style})
 
 (defn pod* [{:keys [classes data]}]
   [row

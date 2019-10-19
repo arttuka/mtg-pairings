@@ -3,7 +3,7 @@
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [styled with-styles]]
-            [mtg-pairings-server.components.organizer.common :refer [column header row]]
+            [mtg-pairings-server.components.organizer.common :refer [column header row number-style player-style]]
             [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util.mtg :refer [bye? duplicate-pairings]]))
@@ -12,12 +12,8 @@
   {:bye-row      (let [color (get-in palette [:primary 100])]
                    {:background-color  color
                     "&:nth-child(odd)" {:background-color color}})
-   :table-number {:font-weight :bold
-                  :font-size   20
-                  :flex        "0 0 40px"
-                  :text-align  :center}
-   :player       (merge {:flex 1}
-                        ellipsis-overflow)
+   :table-number number-style
+   :player       player-style
    :points       {:flex       "0 0 25px"
                   :text-align :center}})
 

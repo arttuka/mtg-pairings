@@ -4,11 +4,6 @@
             [garden.units :refer [px vh vw percent]]
             [mtg-pairings-server.styles.common :refer [color ellipsis-overflow]]))
 
-(defstyles seatings
-  [:.organizer-seatings
-   [:.seating
-    ellipsis-overflow]])
-
 (defstyles table
   [:.row
    {:line-height (px 22)
@@ -68,6 +63,5 @@
     [(& (nth-child "even"))
      {:background-color (color :light-grey)}]]
    table
-   seatings
    clock]
   deck-construction)

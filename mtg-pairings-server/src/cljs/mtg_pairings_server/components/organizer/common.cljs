@@ -1,6 +1,15 @@
 (ns mtg-pairings-server.components.organizer.common
   (:require [reagent-material-ui.components :as ui]
-            [reagent-material-ui.styles :refer [with-styles]]))
+            [reagent-material-ui.styles :refer [with-styles]]
+            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]))
+
+(def number-style {:text-align  :center
+                   :font-weight :bold
+                   :font-size   20
+                   :flex        "0 0 40px"})
+
+(def player-style (merge {:flex 1}
+                         ellipsis-overflow))
 
 (def column ((with-styles {:root        {:display        :flex
                                          :flex-direction :column
