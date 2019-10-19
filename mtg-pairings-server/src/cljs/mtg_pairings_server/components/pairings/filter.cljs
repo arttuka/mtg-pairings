@@ -154,6 +154,8 @@
 
 (def player-filter ((with-styles player-filter-styles) player-filter*))
 
+
+
 (defn clear-filters []
   (let [filters-active? (subscribe [::subs/filters-active])]
     (fn clear-filters-render []
@@ -167,7 +169,7 @@
 (def desktop-filter-container (styled :div
                                       (fn [{{spacing :spacing} :theme}]
                                         {:display     :flex
-                                         :align-items "flex-start"
+                                         :align-items "flex-end"
                                          :padding     (spacing 2)})))
 
 (defn desktop-filters []

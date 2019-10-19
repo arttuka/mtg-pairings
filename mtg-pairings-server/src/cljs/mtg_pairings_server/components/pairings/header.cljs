@@ -23,9 +23,10 @@
 (defn ^:private header* [{:keys [classes]}]
   (let [user (subscribe [::subs/logged-in-user])
         dci-number (atom "")
-        menu-anchor-el (atom nil)
-        on-menu-click #(reset! menu-anchor-el (.-currentTarget %))
-        on-menu-close #(reset! menu-anchor-el nil)
+        menu-anchor-ref (.createRef js/React)
+        menu-open? (atom false)
+        on-menu-click #(reset! menu-open? true)
+        on-menu-close #(reset! menu-open? false)
         login! (fn []
                  (dispatch [::events/login @dci-number])
                  (reset! dci-number ""))]
@@ -34,10 +35,11 @@
                    :position :static}
        [ui/toolbar
         [ui/icon-button {:on-click on-menu-click
-                         :color    :inherit}
+                         :color    :inherit
+                         :ref      menu-anchor-ref}
          [menu-icon]]
-        [ui/menu {:open      (some? @menu-anchor-el)
-                  :anchor-el @menu-anchor-el
+        [ui/menu {:open      @menu-open?
+                  :anchor-el (.-current menu-anchor-ref)
                   :on-close  on-menu-close}
          [ui/menu-item {:on-click #(do
                                      (on-menu-close)
