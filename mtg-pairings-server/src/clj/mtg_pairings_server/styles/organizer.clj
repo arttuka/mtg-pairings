@@ -4,31 +4,6 @@
             [garden.units :refer [px vh vw percent]]
             [mtg-pairings-server.styles.common :refer [color ellipsis-overflow]]))
 
-(defstyles pairings
-  [:.organizer-pairings
-   [:.player
-    (merge
-     {:display       :inline-block
-      :position      :relative
-      :width         (px 214)
-      :padding-right (px 25)}
-     ellipsis-overflow)
-    [:&.opponent
-     {:color (color :grey)}]]
-   [:.points
-    {:display    :inline-block
-     :width      (px 25)
-     :text-align :center
-     :position   :absolute
-     :right      0}]
-   [:.bye
-    {:background-color (color :light-green)}]])
-
-(defstyles pods
-  [:.organizer-pods
-   [:.seat
-    ellipsis-overflow]])
-
 (defstyles seatings
   [:.organizer-seatings
    [:.seating
@@ -93,8 +68,6 @@
     [(& (nth-child "even"))
      {:background-color (color :light-grey)}]]
    table
-   pairings
-   pods
    seatings
    clock]
   deck-construction)

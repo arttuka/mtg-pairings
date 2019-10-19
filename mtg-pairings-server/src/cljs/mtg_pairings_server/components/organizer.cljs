@@ -24,20 +24,6 @@
            [:span.table-number (:table_number s)]
            [:span.name (:name s)]])]])))
 
-(defn pods []
-  (let [pods (subscribe [::subs/organizer :pods])
-        tournament (subscribe [::subs/organizer :tournament])]
-    (fn pods-render []
-      [:div.organizer-pods
-       [:h2 (str (:name @tournament) " - pods")]
-       [:div.column
-        (for [p @pods]
-          ^{:key (:team_name p)}
-          [:div.row.seat
-           [:span.pod-number (:pod p)]
-           [:span.seat-number (:seat p)]
-           [:span.name (:team_name p)]])]])))
-
 (defn clock []
   (let [c (subscribe [::subs/organizer :clock])]
     (fn clock-render []
