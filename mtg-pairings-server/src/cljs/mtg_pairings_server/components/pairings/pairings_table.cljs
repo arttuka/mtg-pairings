@@ -2,10 +2,10 @@
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent-material-ui.components :as ui]
-            [reagent-material-ui.icons.keyboard-arrow-down :refer [keyboard-arrow-down]]
             [reagent-material-ui.styles :refer [styled with-styles]]
             [mtg-pairings-server.components.pairings.table :as table]
             [mtg-pairings-server.events.pairings :as events]
+            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.util.material-ui :as mui-util]
@@ -29,40 +29,10 @@
             :result-column   {:text-align :center
                               on-desktop  {:width "60px"}
                               on-mobile   {:width "50px"}}
-            :mobile-cell     {on-mobile {:white-space    :nowrap
-                                         :text-overflow  :ellipsis
-                                         :overflow       :hidden
-                                         :vertical-align :bottom
-                                         :display        :block
-                                         :width          "100%"}}
+            :mobile-cell     {on-mobile (merge {:display :block
+                                                :width   "100%"}
+                                               ellipsis-overflow)}
             :player-2-cell   {on-mobile {:color (get-in palette [:text :secondary])}}})))
-
-(def arrow-down (styled keyboard-arrow-down (fn [{:keys [theme]}]
-                                              {(mui-util/on-mobile theme) {:margin-left  "-3px"
-                                                                           :margin-right "-3px"}})))
-
-(defn button-styles [theme]
-  {:root  {:padding-top               "4px"
-           :padding-bottom            "4px"
-           (mui-util/on-mobile theme) {:padding-left  0
-                                       :padding-right 0}
-           :text-align                :left}
-   :label {:justify-content "flex-start"
-           :text-transform  :none
-           :font-weight     :bold
-           :font-size       "16px"}})
-
-(def sortable-header-button ((with-styles button-styles) ui/button))
-
-(defn sortable-header [{:keys [class column sort-key dispatch-key label]}]
-  [:th {:class class}
-   [sortable-header-button {:color      (if (= column sort-key)
-                                          :secondary
-                                          :default)
-                            :full-width true
-                            :on-click   #(dispatch [dispatch-key column])}
-    [arrow-down]
-    label]])
 
 (defn pairing-row [{:keys [classes pairing mobile?]}]
   (let [bye (bye? pairing)
@@ -111,16 +81,16 @@
          {:class (:table classes)}
          [:thead {:class (:table-header classes)}
           [:tr
-           [sortable-header {:class        (:table-column classes)
-                             :column       :table_number
-                             :sort-key     @sort-key
-                             :dispatch-key ::events/sort-pairings
-                             :label        "Pöytä"}]
-           [sortable-header {:class        (:player-1-column classes)
-                             :column       :team1_name
-                             :sort-key     @sort-key
-                             :dispatch-key ::events/sort-pairings
-                             :label        (if @mobile? "Pelaajat" "Pelaaja 1")}]
+           [table/sortable-header {:class        (:table-column classes)
+                                   :column       :table_number
+                                   :sort-key     @sort-key
+                                   :dispatch-key ::events/sort-pairings
+                                   :label        "Pöytä"}]
+           [table/sortable-header {:class        (:player-1-column classes)
+                                   :column       :team1_name
+                                   :sort-key     @sort-key
+                                   :dispatch-key ::events/sort-pairings
+                                   :label        (if @mobile? "Pelaajat" "Pelaaja 1")}]
            (when-not @mobile?
              [:th {:class (:player-2-column classes)} "Pelaaja 2"])
            [:th {:class (:points-column classes)} "Pist."]

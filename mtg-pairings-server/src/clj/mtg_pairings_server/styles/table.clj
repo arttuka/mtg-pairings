@@ -25,27 +25,6 @@
       {:max-width "calc(100vw - 97px)"}
       ellipsis-overflow)])])
 
-(defstyles pods-table
-  [:table.pods-table
-   [:.pod :.seat
-    {:text-align :center}]
-   [:th.player
-    {:padding-left (px 30)}]
-   (when-desktop
-    [:.pod :.seat
-     {:width (px 100)}]
-    [:.player
-     {:min-width (px 300)}])
-   (when-mobile
-    [:.pod :.seat
-     {:width (px 65)}]
-    [:th.pod
-     {:text-align :right}]
-    [:.player
-     (merge
-      {:max-width "calc(100vw - 162px)"}
-      ellipsis-overflow)])])
-
 (defstyles styles
   [:table
    {:border-spacing 0}
@@ -66,5 +45,4 @@
    (when-mobile
     [:&
      {:width (percent 100)}])]
-  seatings-table
-  pods-table)
+  seatings-table)

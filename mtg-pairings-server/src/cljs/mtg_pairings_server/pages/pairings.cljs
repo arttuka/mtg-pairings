@@ -3,9 +3,10 @@
             [reagent-material-ui.components :as ui]
             [mtg-pairings-server.components.pairings.pairings-table :refer [pairings-table]]
             [mtg-pairings-server.components.pairings.player :refer [own-tournament pairing]]
+            [mtg-pairings-server.components.pairings.pods-table :refer [pods-table]]
             [mtg-pairings-server.components.pairings.standings-table :refer [standings-table]]
             [mtg-pairings-server.components.pairings.tournament :refer [tournament tournament-header]]
-            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list pods seatings bracket]]
+            [mtg-pairings-server.components.tournament :refer [newest-tournaments-list tournament-list seatings bracket]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (defn get-latest-pairing [player-tournaments]
@@ -70,6 +71,7 @@
                                       :round         round}]
           ::standings [standings-table {:tournament-id id
                                         :round         round}]
-          ::pods [pods id round]
+          ::pods [pods-table {:tournament-id id
+                              :round         round}]
           ::seatings [seatings id]
           ::bracket [bracket id])]])))

@@ -59,36 +59,6 @@
    [arrow-down]
    children])
 
-(defn pod-row [seat]
-  [:tr
-   [:td.pod (:pod seat)]
-   [:td.seat (:seat seat)]
-   [:td.player (:team_name seat)]])
-
-(defn pods [id round]
-  (let [data (subscribe [::subs/sorted-pods id round])
-        sort-key (subscribe [::subs/pods-sort])]
-    (fn pods-render [id round]
-      (when (seq @data)
-        [:table.pods-table
-         [:thead
-          [:tr
-           [sortable-header {:class        :pod
-                             :column       :pod
-                             :sort-key     @sort-key
-                             :dispatch-key ::events/sort-pods}
-            "Pöytä"]
-           [:th.seat "Paikka"]
-           [sortable-header {:class        :player
-                             :column       :team_name
-                             :sort-key     @sort-key
-                             :dispatch-key ::events/sort-pods}
-            "Pelaaja"]]]
-         [:tbody
-          (for [seat @data]
-            ^{:key [(:team_name seat)]}
-            [pod-row seat])]]))))
-
 (defn seating-row [seat]
   [:tr
    [:td.table (:table_number seat)]

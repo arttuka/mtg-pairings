@@ -5,6 +5,7 @@
             [goog.string :as gstring]
             [goog.string.format]
             [mtg-pairings-server.components.pairings.table :as table]
+            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util.material-ui :as mui-util]))
 
@@ -18,11 +19,8 @@
                                 on-mobile    {:width "40px"}}
             :player-column     {:text-align :left
                                 on-desktop  {:min-width "300px"}
-                                on-mobile   {:max-width      "calc(100vw - 262px)"
-                                             :white-space    :nowrap
-                                             :text-overflow  :ellipsis
-                                             :overflow       :hidden
-                                             :vertical-align :bottom}}
+                                on-mobile   (merge {:max-width "calc(100vw - 262px)"}
+                                                   ellipsis-overflow)}
             :points-column     {:text-align :center
                                 on-desktop  {:width "50px"}
                                 on-mobile   {:width "40px"}}
