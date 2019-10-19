@@ -4,27 +4,26 @@
             [mount.core :as m :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
+            [mtg-pairings-server.components.providers :refer [providers]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.pages.decklist :as decklist-pages :refer [decklist-organizer decklist-submit]]
             [mtg-pairings-server.routes.decklist :as routes]
-            [mtg-pairings-server.subscriptions.common :as subs]
-            [mtg-pairings-server.theme :refer [theme-provider]]))
+            [mtg-pairings-server.subscriptions.common :as subs]))
 
 (defn current-page []
   (let [page-data (subscribe [::subs/page])]
     (fn []
       (let [{:keys [page id]} @page-data]
-        [:div
-         [:div#main-container
-          (case page
-            ::decklist-pages/submit [#'decklist-submit]
-            (::decklist-pages/organizer
-             ::decklist-pages/organizer-tournament
-             ::decklist-pages/organizer-view) [#'decklist-organizer id page]
-            nil)]]))))
+        [:div#main-container
+         (case page
+           ::decklist-pages/submit [#'decklist-submit]
+           (::decklist-pages/organizer
+            ::decklist-pages/organizer-tournament
+            ::decklist-pages/organizer-view) [#'decklist-organizer id page]
+           nil)]))))
 
 (defn mount-root []
-  (reagent/render [theme-provider [current-page]] (.getElementById js/document "app")))
+  (reagent/render [providers [current-page]] (.getElementById js/document "app")))
 
 (defn init! []
   (dispatch-sync [::events/initialize])

@@ -5,9 +5,9 @@
             [reagent-material-ui.icons.cancel :refer [cancel]]
             [reagent-material-ui.icons.expand-more :refer [expand-more]]
             [reagent-material-ui.icons.filter-list :refer [filter-list]]
+            [reagent-material-ui.pickers :as pickers]
             [reagent-material-ui.styles :refer [styled with-styles]]
             [oops.core :refer [oget]]
-            [mtg-pairings-server.components.date-picker :as date-picker]
             [mtg-pairings-server.components.pairings.expandable :refer [expandable-header]]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
@@ -75,12 +75,13 @@
 
 (defn date-picker [{:keys [label on-change on-clear value classes]}]
   [:div {:class (:date-picker-container classes)}
-   [date-picker/date-picker {:class       (:date-picker classes)
-                             :value       value
-                             :placeholder label
-                             :on-change   on-change
-                             :auto-ok     true
-                             :format      "DD.MM.YYYY"}]
+   [pickers/date-picker {:class       (:date-picker classes)
+                         :value       value
+                         :placeholder label
+                         :on-change   on-change
+                         :auto-ok     true
+                         :format      "dd.MM.yyyy"
+                         :variant     :inline}]
    (when value
      [ui/icon-button
       {:class    (:clear-icon classes)

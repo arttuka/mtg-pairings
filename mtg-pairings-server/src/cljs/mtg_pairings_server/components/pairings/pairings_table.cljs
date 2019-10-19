@@ -56,8 +56,9 @@
 
 (defn sortable-header [{:keys [class column sort-key dispatch-key label]}]
   [:th {:class class}
-   [sortable-header-button {:color      (when (= column sort-key)
-                                          :secondary)
+   [sortable-header-button {:color      (if (= column sort-key)
+                                          :secondary
+                                          :default)
                             :full-width true
                             :on-click   #(dispatch [dispatch-key column])}
     [arrow-down]

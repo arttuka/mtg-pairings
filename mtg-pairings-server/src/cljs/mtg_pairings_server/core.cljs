@@ -18,7 +18,7 @@
             [mtg-pairings-server.components.organizer :as organizer]
             [mtg-pairings-server.components.main :refer [notification]]
             [mtg-pairings-server.components.pairings.header :refer [header]]
-            [mtg-pairings-server.theme :refer [theme-provider]]))
+            [mtg-pairings-server.components.providers :refer [providers]]))
 
 (defn display-header? [page]
   (not (contains? #{::organizer-pages/main
@@ -33,7 +33,7 @@
         hide-organizer-menu? (subscribe [::pairings-subs/organizer :menu])]
     (fn []
       (let [{:keys [page id round]} @page-data]
-        [:div
+        [:<>
          (when (and (= ::organizer-pages/main page)
                     (not @hide-organizer-menu?))
            [organizer/menu])
@@ -61,7 +61,7 @@
             nil)]]))))
 
 (defn mount-root []
-  (reagent/render [theme-provider [current-page]] (.getElementById js/document "app")))
+  (reagent/render [providers [current-page]] (.getElementById js/document "app")))
 
 (defn ^:after-load figwheel-reload []
   (clear-subscription-cache!)
@@ -87,3 +87,4 @@
 
 (defstate core
   :start (init!))
+

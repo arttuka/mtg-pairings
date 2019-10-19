@@ -7,13 +7,13 @@
             [mtg-pairings-server.components.main :refer [notification]]
             [mtg-pairings-server.components.organizer :as organizer]
             [mtg-pairings-server.components.pairings.header :refer [header]]
+            [mtg-pairings-server.components.providers :refer [providers]]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.pages.pairings :as pairings-pages :refer [main-page tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu deck-construction-tables]]
             [mtg-pairings-server.routes.pairings]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.pairings :as subs]
-            [mtg-pairings-server.theme :refer [theme-provider]]
             [mtg-pairings-server.util.event-listener]))
 
 (defn display-header? [page]
@@ -24,7 +24,7 @@
         hide-organizer-menu? (subscribe [::subs/organizer :menu])]
     (fn []
       (let [{:keys [page id round]} @page-data]
-        [:div
+        [:<>
          (when (and (= ::organizer-pages/main page)
                     (not @hide-organizer-menu?))
            [organizer/menu])
@@ -47,7 +47,7 @@
             nil)]]))))
 
 (defn mount-root []
-  (reagent/render [theme-provider [current-page]] (.getElementById js/document "app")))
+  (reagent/render [providers [current-page]] (.getElementById js/document "app")))
 
 (defn init! []
   (dispatch-sync [::events/initialize])

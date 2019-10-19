@@ -114,10 +114,7 @@
                                        [cljsjs/react-dom "16.9.0-0"]
                                        [cljsjs/react-dom-server "16.9.0-0"]
                                        [cljsjs/react-transition-group "4.3.0-0"]
-                                       [arttuka/reagent-material-ui "4.4.3-0"]
-                                       [cljsjs/material-ui-pickers "3.2.0-0"]
-                                       [cljsjs/date-io "1.3.8-0"]
-                                       [cljsjs/moment "2.24.0-0"]
+                                       [arttuka/reagent-material-ui "4.5.1-0"]
                                        [cljsjs/react-autosuggest "9.4.3-0"]]}
              :uberjar  {:source-paths       ["env/prod/cljs"]
                         :main               mtg-pairings-server.main

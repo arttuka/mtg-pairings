@@ -5,10 +5,10 @@
             [reagent-material-ui.icons.add :refer [add]]
             [reagent-material-ui.icons.keyboard-arrow-down :refer [keyboard-arrow-down]]
             [reagent-material-ui.icons.keyboard-arrow-up :refer [keyboard-arrow-up]]
+            [reagent-material-ui.pickers :as pickers]
             [reagent-material-ui.styles :as styles]
             [clojure.string :as str]
             [oops.core :refer [oget]]
-            [mtg-pairings-server.components.date-picker :refer [date-picker date-time-picker]]
             [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
             [mtg-pairings-server.components.language-selector :refer [language-selector]]
             [mtg-pairings-server.events.decklist :as events]
@@ -219,9 +219,7 @@
         tournament (atom nil)
         set-name #(swap! tournament assoc :name %)
         set-date #(swap! tournament assoc :date %)
-        set-deadline (fn [dl]
-                       (.log js/console dl)
-                       (swap! tournament assoc :deadline dl))
+        set-deadline #(swap! tournament assoc :deadline %)
         set-format (wrap-on-change #(swap! tournament assoc :format (keyword %)))
         save-tournament #(dispatch [::events/save-tournament (select-keys @tournament [:id :name :format :date :deadline])])
         selected-decklists (atom #{})
@@ -273,21 +271,21 @@
                   (translate :organizer.tournament.format-error))]])]
            [:div.field
             (let [value (:date @tournament)]
-              [date-picker {:value     value
-                            :label     (translate :organizer.tournament.date)
-                            :on-change set-date
-                            :variant   :inline
-                            :auto-ok   true
-                            :format    "DD.MM.YYYY"}])]
+              [pickers/date-picker {:value     value
+                                    :label     (translate :organizer.tournament.date)
+                                    :on-change set-date
+                                    :variant   :inline
+                                    :auto-ok   true
+                                    :format    "dd.MM.yyyy"}])]
            [:div.field
             (let [value (:deadline @tournament)]
-              [date-time-picker {:value     value
-                                 :label     (translate :organizer.tournament.deadline)
-                                 :on-change set-deadline
-                                 :variant   :inline
-                                 :auto-ok   true
-                                 :format    "DD.MM.YYYY HH:mm"
-                                 :ampm      false}])]]
+              [pickers/date-time-picker {:value     value
+                                         :label     (translate :organizer.tournament.deadline)
+                                         :on-change set-deadline
+                                         :variant   :inline
+                                         :auto-ok   true
+                                         :format    "dd.MM.yyyy HH:mm"
+                                         :ampm      false}])]]
           [:div.link
            (when id
              [:p
