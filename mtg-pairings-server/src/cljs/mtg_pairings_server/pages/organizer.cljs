@@ -1,7 +1,8 @@
 (ns mtg-pairings-server.pages.organizer
   (:require [re-frame.core :refer [subscribe]]
-            [mtg-pairings-server.components.organizer :refer [pairings seatings pods standings clock]]
+            [mtg-pairings-server.components.organizer :refer [seatings pods standings clock]]
             [mtg-pairings-server.components.organizer.menu :refer [menu]]
+            [mtg-pairings-server.components.organizer.pairings :refer [pairings]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (defn organizer-page []
@@ -11,7 +12,7 @@
       [:div#organizer-page
        (when-not @hide-organizer-menu? [menu])
        (case @organizer-mode
-         :pairings [pairings]
+         :pairings [pairings @hide-organizer-menu?]
          :seatings [seatings]
          :pods [pods]
          :standings [standings]

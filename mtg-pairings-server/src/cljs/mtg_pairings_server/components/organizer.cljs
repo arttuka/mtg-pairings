@@ -11,25 +11,6 @@
             [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
             [mtg-pairings-server.util.mtg :refer [bye? duplicate-pairings]]))
 
-(defn pairing [data]
-  (let [bye (bye? data)]
-    [:div.row.pairing.no-round {:class (when bye :bye)}
-     [:span.table-number (when-not bye (or (:table_number data) (:pod data)))]
-     [:span.player (:team1_name data) [:span.points (:team1_points data)]]
-     [:span.player.opponent (:team2_name data) [:span.points (when-not bye (:team2_points data))]]]))
-
-(defn pairings []
-  (let [pairings (subscribe [::subs/organizer :pairings])
-        pairings-round (subscribe [::subs/organizer :pairings-round])
-        tournament (subscribe [::subs/organizer :tournament])]
-    (fn pairings-render []
-      [:div.organizer-pairings
-       [:h2 (str (:name @tournament) " - kierros " @pairings-round)]
-       [:div.column
-        (for [p (sort-by :team1_name (duplicate-pairings @pairings))]
-          ^{:key (:team1_name p)}
-          [pairing p])]])))
-
 (defn seatings []
   (let [seatings (subscribe [::subs/organizer :seatings])
         tournament (subscribe [::subs/organizer :tournament])]
