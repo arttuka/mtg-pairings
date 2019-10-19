@@ -25,7 +25,7 @@
                :pairings           {:sort-key :table_number}
                :pods               {:sort-key :pod}
                :seatings           {:sort-key :table_number}
-               :page               {:page  :mtg-pairings-server.pages.pairings/main
+               :page               {:page  nil
                                     :id    nil
                                     :round nil}
                :logged-in-user     (local-storage/fetch :user)

@@ -16,7 +16,8 @@
             [mtg-pairings-server.util.event-listener]))
 
 (defn display-header? [page]
-  (not (contains? #{::organizer-pages/main} page)))
+  (and page
+       (not (contains? #{::organizer-pages/main} page))))
 
 (defn current-page []
   (let [page-data (subscribe [::common-subs/page])]

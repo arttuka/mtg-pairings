@@ -20,12 +20,13 @@
             [mtg-pairings-server.components.providers :refer [providers]]))
 
 (defn display-header? [page]
-  (not (contains? #{::organizer-pages/main
-                    ::decklist-pages/submit
-                    ::decklist-pages/organizer
-                    ::decklist-pages/organizer-tournament
-                    ::decklist-pages/organizer-view}
-                  page)))
+  (and page
+       (not (contains? #{::organizer-pages/main
+                         ::decklist-pages/submit
+                         ::decklist-pages/organizer
+                         ::decklist-pages/organizer-tournament
+                         ::decklist-pages/organizer-view}
+                       page))))
 
 (defn current-page []
   (let [page-data (subscribe [::common-subs/page])]
@@ -80,6 +81,5 @@
   (accountant/dispatch-current!)
   (mount-root))
 
-(defstate core
+(defstate ^{:on-reload :noop} core
   :start (init!))
-
