@@ -10,6 +10,7 @@
             [cljs-time.core :as time]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
+            [mtg-pairings-server.components.decklist.player-info :refer [player-info]]
             [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
             [mtg-pairings-server.components.language-selector :refer [language-selector]]
             [mtg-pairings-server.components.tooltip :refer [tooltip]]
@@ -167,63 +168,6 @@
                     ^{:key (str id "--tr")}
                     [decklist-table-row :side card (or error (get error-cards name))]))]]))))
 
-(defn player-info [player]
-  (let [set-first-name #(dispatch [::events/update-player-info :first-name %])
-        set-last-name #(dispatch [::events/update-player-info :last-name %])
-        set-deck-name #(dispatch [::events/update-player-info :deck-name %])
-        set-email #(dispatch [::events/update-player-info :email %])
-        set-dci #(dispatch [::events/update-player-info :dci %])
-        translate (subscribe [::subs/translate])]
-    (fn player-info-render [_]
-      (let [translate @translate]
-        [:div#player-info
-         [:div.full-width
-          [text-field {:on-change  set-deck-name
-                       :label      (translate :submit.deck-name)
-                       :full-width true
-                       :value      (:deck-name @player)
-                       :style      {:vertical-align :top}}]]
-         [:div.half-width.left
-          (let [value (:first-name @player)]
-            [text-field {:on-change  set-first-name
-                         :label      (translate :submit.first-name)
-                         :full-width true
-                         :value      value
-                         :error-text (when (str/blank? value)
-                                       (translate :submit.error.first-name))
-                         :style      {:vertical-align :top}}])]
-         [:div.half-width.right
-          (let [value (:last-name @player)]
-            [text-field {:on-change  set-last-name
-                         :label      (translate :submit.last-name)
-                         :full-width true
-                         :value      value
-                         :error-text (when (str/blank? value)
-                                       (translate :submit.error.last-name))
-                         :style      {:vertical-align :top}}])]
-         [:div.half-width.left
-          (let [value (:dci @player)]
-            [text-field {:on-change  set-dci
-                         :label      (translate :submit.dci)
-                         :full-width true
-                         :value      value
-                         :error-text (when-not (valid-dci? value)
-                                       (translate :submit.error.dci))
-                         :style      {:vertical-align :top}}])]
-         [:div.half-width.right
-          (let [value (:email @player)]
-            [text-field {:on-change  set-email
-                         :label      (translate :submit.email)
-                         :full-width true
-                         :value      value
-                         :error-text (when-not (or (str/blank? value)
-                                                   (valid-email? value))
-                                       (translate :submit.error.email))
-                         :style      {:vertical-align :top}
-                         :disabled   (:email-disabled? @player)
-                         :title      (when (:email-disabled? @player)
-                                       (translate :submit.email-disabled))}])]]))))
-
 (defn valid-code [address]
   (when address
     (let [[_ code] (re-find #"/([A-z0-9_-]{22})$" address)]
@@ -341,8 +285,7 @@
                                                 (str ": " card)))}]])]))))
 
 (defn decklist-submit-form [tournament decklist]
-  (let [player (reagent/cursor decklist [:player])
-        select-main #(dispatch [::events/select-board :main])
+  (let [select-main #(dispatch [::events/select-board :main])
         select-side #(dispatch [::events/select-board :side])
         saving? (subscribe [::subs/saving?])
         saved? (subscribe [::subs/saved?])
@@ -378,7 +321,7 @@
          [decklist-import]
          [:h3
           (translate :submit.player-info)]
-         [player-info player]
+         [player-info]
          [ui/button {:on-click save-decklist
                      :variant  :contained
                      :color    :primary

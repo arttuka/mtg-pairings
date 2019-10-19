@@ -42,18 +42,6 @@
      {:width          "50%"
       :display        :inline-block
       :vertical-align :top}]
-    [:#player-info
-     [:.full-width :.half-width
-      {:height (px 72)}]
-     [:.full-width
-      {:width "100%"}]
-     [:.half-width
-      {:width   "calc(50% - 24px)"
-       :display :inline-block}
-      [:&.left
-       {:margin-right (px 24)}]
-      [:&.right
-       {:margin-left (px 24)}]]]
     [:.decklist-import
      {:margin "12px 0"}
      [:.tab-content-container
@@ -67,10 +55,6 @@
       [:.text-field-container
        {:height (px 72)}]]])
    (when-mobile
-    [:#player-info
-     [:.full-width :.half-width
-      {:width   "100%"
-       :display :block}]]
     [:.decklist-import
      [:.tab-content-container
       [:&.tab-content-container-active

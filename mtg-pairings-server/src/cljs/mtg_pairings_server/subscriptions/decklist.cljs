@@ -28,6 +28,11 @@
   (fn [decklist _]
     (by-type decklist)))
 
+(reg-sub ::player-info
+  :<- [::decklist]
+  (fn [decklist _]
+    (:player decklist)))
+
 (reg-sub ::decklists
   (fn [db _]
     (get-in db [:decklist-editor :decklists])))
