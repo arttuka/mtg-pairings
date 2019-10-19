@@ -4,27 +4,6 @@
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.common :refer [ellipsis-overflow color when-mobile when-desktop]]))
 
-(defstyles seatings-table
-  [:table.seatings-table
-   [:th.player
-    {:padding-left (px 30)}]
-   [:.table
-    {:text-align :center}]
-   (when-desktop
-    [:.table
-     {:width (px 100)}]
-    [:.player
-     {:min-width (px 300)}])
-   (when-mobile
-    [:th.table
-     {:text-align :right}]
-    [:.table
-     {:width (px 65)}]
-    [:.player
-     (merge
-      {:max-width "calc(100vw - 97px)"}
-      ellipsis-overflow)])])
-
 (defstyles styles
   [:table
    {:border-spacing 0}
@@ -44,5 +23,4 @@
       {:background-color (color :light-blue)}]]]
    (when-mobile
     [:&
-     {:width (percent 100)}])]
-  seatings-table)
+     {:width (percent 100)}])])

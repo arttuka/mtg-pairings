@@ -43,50 +43,6 @@
          [tournament {:data       t
                       :list-item? true}])])]])
 
-(def sortable-header-cell (styles/styled :th (fn [{:keys [theme selected]}]
-                                               {:color  (get-in theme (if selected
-                                                                        [:palette :secondary :main]
-                                                                        [:palette :text :primary]))
-                                                :cursor :pointer})))
-
-(def arrow-down (styles/styled keyboard-arrow-down {:vertical-align :baseline
-                                                    :position       :absolute
-                                                    :left           0}))
-(defn sortable-header [{:keys [class column sort-key dispatch-key]} & children]
-  [sortable-header-cell {:class    class
-                         :selected (= column sort-key)
-                         :on-click #(dispatch [dispatch-key column])}
-   [arrow-down]
-   children])
-
-(defn seating-row [seat]
-  [:tr
-   [:td.table (:table_number seat)]
-   [:td.player (:name seat)]])
-
-(defn seatings [id round]
-  (let [data (subscribe [::subs/sorted-seatings id round])
-        sort-key (subscribe [::subs/seatings-sort])]
-    (fn seatings-render [id round]
-      (when (seq @data)
-        [:table.seatings-table
-         [:thead
-          [:tr
-           [sortable-header {:class        :table
-                             :column       :table_number
-                             :sort-key     @sort-key
-                             :dispatch-key ::events/sort-seatings}
-            "Pöytä"]
-           [sortable-header {:class        :player
-                             :column       :name
-                             :sort-key     @sort-key
-                             :dispatch-key ::events/sort-seatings}
-            "Pelaaja"]]]
-         [:tbody
-          (for [seat @data]
-            ^{:key [(:name seat)]}
-            [seating-row seat])]]))))
-
 (defn bracket-match [match]
   [:div.bracket-match
    [:div.team.team1
