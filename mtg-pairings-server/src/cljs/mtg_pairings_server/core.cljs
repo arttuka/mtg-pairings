@@ -15,7 +15,6 @@
             [mtg-pairings-server.pages.decklist :as decklist-pages :refer [decklist-organizer decklist-submit]]
             [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu deck-construction-tables]]
             [mtg-pairings-server.pages.pairings :as pairings-pages :refer [main-page tournament-page tournament-subpage tournaments-page]]
-            [mtg-pairings-server.components.organizer :as organizer]
             [mtg-pairings-server.components.main :refer [notification]]
             [mtg-pairings-server.components.pairings.header :refer [header]]
             [mtg-pairings-server.components.providers :refer [providers]]))
@@ -29,14 +28,10 @@
                   page)))
 
 (defn current-page []
-  (let [page-data (subscribe [::common-subs/page])
-        hide-organizer-menu? (subscribe [::pairings-subs/organizer :menu])]
+  (let [page-data (subscribe [::common-subs/page])]
     (fn []
       (let [{:keys [page id round]} @page-data]
         [:<>
-         (when (and (= ::organizer-pages/main page)
-                    (not @hide-organizer-menu?))
-           [organizer/menu])
          (when (display-header? page)
            [header])
          [notification]
