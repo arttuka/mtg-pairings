@@ -5,7 +5,7 @@
             [reagent-material-ui.pickers :as pickers]
             [reagent-material-ui.styles :refer [with-styles]]
             [clojure.string :as str]
-            [mtg-pairings-server.components.decklist.decklist-table :refer [decklist-table]]
+            [mtg-pairings-server.components.decklist.submitted-decklists-table :refer [submitted-decklists-table]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]
@@ -171,11 +171,11 @@
                            :classes            classes
                            :selected-decklists @selected-decklists}]
          (if (seq @decklists)
-           [decklist-table {:decklists          @decklists
-                            :selected-decklists @selected-decklists
-                            :on-select          on-select
-                            :on-select-all      on-select-all
-                            :translate          translate}]
+           [submitted-decklists-table {:decklists          @decklists
+                                       :selected-decklists @selected-decklists
+                                       :on-select          on-select
+                                       :on-select-all      on-select-all
+                                       :translate          translate}]
            [:p (translate :organizer.no-lists)])]))))
 
 (def tournament ((with-styles tournament-styles) tournament*))

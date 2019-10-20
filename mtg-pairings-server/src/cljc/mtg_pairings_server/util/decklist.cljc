@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.util.decklist
   (:require [clojure.string :as str]
-            [mtg-pairings-server.util :as util]))
+            [mtg-pairings-server.util :as util]
+            [mtg-pairings-server.util.mtg :refer [valid-dci?]]))
 
 (defn types->keyword-set [card]
   (update card :types #(set (map (comp keyword str/lower-case) %))))
@@ -37,6 +38,10 @@
                           (str (pad quantity) " " name)))
          "\n")))
 
+(def basic? #{"Plains" "Island" "Swamp" "Mountain" "Forest" "Wastes"
+              "Snow-Covered Plains" "Snow-Covered Island" "Snow-Covered Swamp"
+              "Snow-Covered Mountain" "Snow-Covered Forest"})
+
 (def card-types
   [:creature
    :artifact
@@ -60,3 +65,35 @@
                                          (assoc parts type (seq matching-cards))
                                          types))))]
     (assoc decklist :main cards-by-type)))
+
+(defn valid-player-data? [{:keys [first-name last-name dci]}]
+  (and (valid-dci? dci)
+       (not (str/blank? first-name))
+       (not (str/blank? last-name))))
+
+(defn decklist-errors [decklist]
+  (let [all-cards (concat (mapcat (:main decklist) card-types) (:side decklist))
+        cards (reduce (fn [acc {:keys [name quantity]}]
+                        (merge-with + acc {name quantity}))
+                      {}
+                      all-cards)
+        errors (concat [(when-not (valid-player-data? (:player decklist)) {:type :player-data
+                                                                           :id   :missing-player-data})
+                        (when (< (get-in decklist [:count :main]) 60) {:type :maindeck
+                                                                       :id   :deck-error-maindeck})
+                        (when (> (get-in decklist [:count :side]) 15) {:type :sideboard
+                                                                       :id   :deck-error-sideboard})]
+                       (for [[card quantity] cards
+                             :when (not (basic? card))
+                             :when (> quantity 4)]
+                         {:type :card-over-4
+                          :id   (str "deck-error-card--" card)
+                          :card card
+                          :text :card-over-4})
+                       (for [{:keys [error name]} all-cards
+                             :when error]
+                         {:type :other
+                          :id   (str "other-error-card--" name)
+                          :text error
+                          :card name}))]
+    (filter some? errors)))

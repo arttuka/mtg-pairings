@@ -4,44 +4,13 @@
             [garden.units :refer [mm px px- px+ px* px-div percent vh]]
             [mtg-pairings-server.styles.common :refer [calc color ellipsis-overflow when-desktop when-mobile when-screen when-print]]))
 
-(defstyles decklist-table
-  [:.deck-table-container
-   [:.deck-table-container-rows
-    [:.deck-table-container-row
-     {:display       :flex
-      :border-bottom {:color (color :light-grey)
-                      :style :solid
-                      :width (px 1)}}
-     [:&.deck-table-container-header
-      {:font-weight :bold}
-      [:.table-cell
-       {:line-height (px 48)}]]
-     [:.table-cell
-      {:height (px 48)}
-      [:&.quantity
-       {:flex       "0 0 60px"
-        :text-align :center}]
-      [:&.card
-       {:flex        :auto
-        :line-height (px 48)}
-       ellipsis-overflow]
-      [:&.error
-       {:flex    "0 0 48px"
-        :padding (px 12)}]
-      [:&.actions
-       {:flex "0 0 48px"}]]]]])
-
 (defstyles submit
   [:#decklist-submit
    {:position :relative}
    (when-desktop
     [:&
      {:max-width (px 880)
-      :margin    "0 auto"}]
-    [:.deck-table-container
-     {:width          "50%"
-      :display        :inline-block
-      :vertical-align :top}])
+      :margin    "0 auto"}])
    (when-print
     [:.no-print
      {:display :none}])
@@ -55,16 +24,7 @@
     [:.tournament-date :.tournament-name :.tournament-format :.tournament-deadline
      {:font-weight :bold}]]
    [:h3
-    {:margin-bottom 0}]
-   [:.deck-table-container
-    [:.deck-table
-     [:th.quantity :td.quantity
-      {:width (px 72)}]
-     [:th.actions :td.actions
-      {:width (px 48)}]
-     [:th.error :td.error
-      {:width (px 48)}]]]
-   decklist-table])
+    {:margin-bottom 0}]])
 
 (def grey-border {:style :solid
                   :width (px 1)
