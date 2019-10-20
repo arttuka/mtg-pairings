@@ -1,0 +1,139 @@
+(ns mtg-pairings-server.components.decklist.decklist-import
+  (:require [reagent.core :as reagent :refer [atom]]
+            [reagent.ratom :refer [make-reaction]]
+            [re-frame.core :refer [subscribe dispatch]]
+            [clojure.string :as str]
+            [reagent-material-ui.colors :as colors]
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.styles :refer [with-styles]]
+            [oops.core :refer [oget]]
+            [mtg-pairings-server.events.decklist :as events]
+            [mtg-pairings-server.subscriptions.decklist :as subs]
+            [mtg-pairings-server.util.decklist :refer [->text card-types]]
+            [mtg-pairings-server.util.material-ui :as mui-util :refer [text-field wrap-on-change]]))
+
+(defn valid-code [address]
+  (when address
+    (let [[_ code] (re-find #"/([A-z0-9_-]{22})$" address)]
+      code)))
+
+(defn styles [{:keys [palette spacing] :as theme}]
+  (let [on-desktop (mui-util/on-desktop theme)]
+    {:root              {}
+     :tab-panel-half    {:padding   (spacing 1)
+                         on-desktop {:width          "50%"
+                                     :display        "inline-block"
+                                     :vertical-align :top}}
+     :address-import    {:height 68
+                         :margin (spacing 1 0)}
+     :error             {:color (get-in palette [:error :main])}
+     :text-import       {:margin-bottom (spacing 1)}
+     :text-import-input {:background-color (get colors/grey 100)}}))
+
+(defn subheader [text]
+  [ui/typography {:variant :h6}
+   text])
+
+(defn tab-panel [props & children]
+  (into [ui/paper {:role   :tabpanel
+                   :hidden (:hidden? props)}]
+        children))
+
+(defn previous-panel [props]
+  (let [address (atom "")
+        code (make-reaction #(valid-code @address))
+        address-on-change #(reset! address %)
+        import-from-address #(dispatch [::events/import-address @code])
+        address-on-key-press (fn [e]
+                               (when (= "Enter" (.-key e))
+                                 (import-from-address)))
+        import-error (subscribe [::subs/error :import-address])
+        translate (subscribe [::subs/translate])]
+    (fn [{:keys [classes hidden?]}]
+      (let [translate @translate]
+        [tab-panel {:hidden? hidden?}
+         [:div {:class (:tab-panel-half classes)}
+          [subheader (translate :submit.load-previous.label)]
+          [:p
+           (translate :submit.load-previous.text.0)
+           "https://decklist.pairings.fi/abcd..."
+           (translate :submit.load-previous.text.1)]]
+         [:div {:class (:tab-panel-half classes)}
+          [text-field {:classes      {:root (:address-import classes)}
+                       :on-change    address-on-change
+                       :on-key-press address-on-key-press
+                       :label        (translate :submit.load-previous.address)
+                       :full-width   true
+                       :error-text   (when-not (or (str/blank? @address)
+                                                   @code)
+                                       (translate :submit.error.address))}]
+          [ui/button {:disabled (nil? @code)
+                      :variant  :contained
+                      :color    :primary
+                      :on-click import-from-address}
+           (translate :submit.load)]
+          (when @import-error
+            [:p {:class (:error classes)}
+             (translate (case @import-error
+                          :not-found :submit.error.not-found
+                          :submit.error.decklist-import-error))])]]))))
+
+(defn text-panel [{:keys [close-panel]}]
+  (let [decklist (atom "")
+        decklist-on-change #(reset! decklist %)
+        import-decklist (fn []
+                          (dispatch [::events/import-text @decklist])
+                          (close-panel))
+        translate (subscribe [::subs/translate])]
+    (fn [{:keys [classes hidden?]}]
+      (let [translate @translate]
+        [tab-panel {:hidden? hidden?}
+         [:div {:class (:tab-panel-half classes)}
+          [subheader (translate :submit.load-text.header)]
+          [:p (translate :submit.load-text.info.0)]
+          [:pre "4 Lightning Bolt\n4 Chain Lightning\n..."]
+          [:p (translate :submit.load-text.info.1)]]
+         [:div {:class (:tab-panel-half classes)}
+          [text-field {:class       (:text-import classes)
+                       :input-props {:class (:text-import-input classes)}
+                       :on-change   decklist-on-change
+                       :multiline   true
+                       :rows        8
+                       :full-width  true}]
+          [ui/button {:disabled (str/blank? @decklist)
+                      :variant  :outlined
+                      :on-click import-decklist}
+           (translate :submit.load)]]]))))
+
+(defn decklist-import* [props]
+  (let [loaded? (subscribe [::subs/loaded?])
+        translate (subscribe [::subs/translate])
+        selected (atom false)
+        close-panel #(reset! selected false)
+        on-select (fn [_ value]
+                    (swap! selected #(if (not= value %)
+                                       value
+                                       false)))]
+    (add-watch loaded? ::decklist-import
+               (fn [_ _ _ new]
+                 (when new
+                   (close-panel))))
+    (fn decklist-import-render [{:keys [classes]}]
+      (let [translate @translate]
+        [:<>
+         [ui/app-bar {:position :static}
+          [ui/tabs {:value     @selected
+                    :on-change on-select
+                    :variant   :fullWidth}
+           [ui/tab {:label (translate :submit.load-previous.label)
+                    :value "load-previous"}]
+           [ui/tab {:label (translate :submit.load-text.label)
+                    :value "load-text"}]]]
+         [ui/collapse {:in (boolean @selected)}
+          [previous-panel {:classes classes
+                           :hidden? (not= "load-previous" @selected)}]
+          [text-panel {:classes     classes
+                       :hidden?     (not= "load-text" @selected)
+                       :close-panel close-panel}]]]))))
+
+(def decklist-import ((with-styles styles) decklist-import*))

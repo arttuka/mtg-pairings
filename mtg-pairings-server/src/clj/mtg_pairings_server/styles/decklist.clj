@@ -41,28 +41,7 @@
     [:.deck-table-container
      {:width          "50%"
       :display        :inline-block
-      :vertical-align :top}]
-    [:.decklist-import
-     {:margin "12px 0"}
-     [:.tab-content-container
-      [:&.tab-content-container-active
-       {:height (px 300)}]]
-     [:.info :.form
-      {:display        :inline-block
-       :vertical-align :top
-       :width          (percent 50)
-       :padding        (px 12)}
-      [:.text-field-container
-       {:height (px 72)}]]])
-   (when-mobile
-    [:.decklist-import
-     [:.tab-content-container
-      [:&.tab-content-container-active
-       {:border {:left  :none
-                 :right :none}
-        :height (px 500)}]]
-     [:.form
-      {:padding-bottom (px 12)}]])
+      :vertical-align :top}])
    (when-print
     [:.no-print
      {:display :none}])
@@ -85,18 +64,6 @@
       {:width (px 48)}]
      [:th.error :td.error
       {:width (px 48)}]]]
-   [:.decklist-import
-    [:.tab-content-container
-     {:height     0
-      :transition "height 0.5s ease-in-out"
-      :overflow   :hidden}
-     [:&.tab-content-container-active
-      {:border {:style :solid
-                :width (px 1)
-                :color (color :light-grey)
-                :top   :none}}]]
-    [:.decklist-import-error
-     {:color (color :error-color)}]]
    decklist-table])
 
 (def grey-border {:style :solid

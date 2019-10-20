@@ -10,6 +10,7 @@
             [cljs-time.core :as time]
             [oops.core :refer [oget]]
             [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
+            [mtg-pairings-server.components.decklist.decklist-import :refer [decklist-import]]
             [mtg-pairings-server.components.decklist.player-info :refer [player-info]]
             [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
             [mtg-pairings-server.components.language-selector :refer [language-selector]]
@@ -167,105 +168,6 @@
             :side (for [{:keys [id name error] :as card} (:side @decklist)]
                     ^{:key (str id "--tr")}
                     [decklist-table-row :side card (or error (get error-cards name))]))]]))))
-
-(defn valid-code [address]
-  (when address
-    (let [[_ code] (re-find #"/([A-z0-9_-]{22})$" address)]
-      code)))
-
-(defn decklist-import []
-  (let [loaded? (subscribe [::subs/loaded?])
-        translate (subscribe [::subs/translate])
-        selected (atom false)
-        on-select (fn [_ value]
-                    (swap! selected #(if (not= value %)
-                                       value
-                                       false)))
-        address (atom "")
-        code (make-reaction #(valid-code @address))
-        address-on-change #(reset! address %)
-        import-from-address #(dispatch [::events/import-address @code])
-        address-on-key-press (fn [e]
-                               (when (= "Enter" (.-key e))
-                                 (import-from-address)))
-        decklist (atom "")
-        decklist-on-change #(reset! decklist %)
-        import-decklist (fn []
-                          (dispatch [::events/import-text @decklist])
-                          (reset! selected false))
-        import-error (subscribe [::subs/error :import-address])
-        tab-panel (fn [props & children]
-                    (into [ui/typography {:component :div
-                                          :role      :tabpanel
-                                          :hidden    (not= @selected (:value props))}]
-                          children))]
-    (add-watch loaded? ::decklist-import
-               (fn [_ _ _ new]
-                 (when new
-                   (reset! selected false)
-                   (reset! address ""))))
-    (fn decklist-import-render []
-      (let [translate @translate]
-        [:div.decklist-import
-         [ui/app-bar {:position :static}
-          [ui/tabs {:value     @selected
-                    :on-change on-select
-                    :variant   :fullWidth}
-           [ui/tab {:label (translate :submit.load-previous.label)
-                    :value "load-previous"}]
-           [ui/tab {:label (translate :submit.load-text.label)
-                    :value "load-text"}]]]
-         [:div.tab-content-container {:class (when @selected
-                                               :tab-content-container-active)}
-          [tab-panel {:value "load-previous"}
-           [:div.info
-            [:h3
-             (translate :submit.load-previous.label)]
-            [:p
-             (translate :submit.load-previous.text.0)
-             [:span.address "https://decklist.pairings.fi/abcd..."]
-             (translate :submit.load-previous.text.1)]]
-           [:div.form
-            [:div.text-field-container
-             [text-field {:on-change    address-on-change
-                          :on-key-press address-on-key-press
-                          :label        (translate :submit.load-previous.address)
-                          :full-width   true
-                          :error-text   (when-not (or (str/blank? @address)
-                                                      @code)
-                                          (translate :submit.error.address))}]]
-            [ui/button {:disabled (nil? @code)
-                        :variant  :outlined
-                        :on-click import-from-address}
-             (translate :submit.load)]
-            (when @import-error
-              [:p.decklist-import-error
-               (translate (case @import-error
-                            :not-found :submit.error.not-found
-                            :submit.error.decklist-import-error))])]]
-          [tab-panel {:value "load-text"}
-           [:div.info
-            [:h3
-             (translate :submit.load-text.header)]
-            [:p
-             (translate :submit.load-text.info.0)]
-            [:pre
-             "4 Lightning Bolt\n4 Chain Lightning\n..."]
-            [:p
-             (translate :submit.load-text.info.1)]]
-           [:div.form
-            [text-field {:on-change   decklist-on-change
-                         :multiline   true
-                         :rows        8
-                         :full-width  true
-                         :name        :text-decklist
-                         :input-props {:style {:background-color "rgba(0, 0, 0, 0.05)"
-                                               :line-height      "24px"}}}]
-            [ui/button {:disabled (str/blank? @decklist)
-                        :variant  :outlined
-                        :on-click import-decklist
-                        :style    {:margin-top "8px"}}
-             (translate :submit.load)]]]]]))))
 
 (defn error-list [errors]
   (let [translate (subscribe [::subs/translate])]
