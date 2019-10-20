@@ -20,3 +20,5 @@ pom.xml.asc
 /resources/public/js
 /resources/public/css
 /resources/manifest.json
+node_modules
+/dist

@@ -1,0 +1,14 @@
+{
+  "dependencies": {
+    "downshift": "3.3.5"
+  },
+  "devDependencies": {
+    "webpack": "4.41.2",
+    "webpack-cli": "3.3.9",
+    "react": "16.9.0"
+  },
+  "scripts": {
+    "build:dev": "webpack --mode development",
+    "build:prod": "webpack --mode production --output-filename downshift.min.inc.js"
+  }
+}

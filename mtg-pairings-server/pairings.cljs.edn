@@ -1,4 +1,10 @@
 {:main          mtg-pairings-server.pairings
  :output-to     "target/public/js/pairings-main.js"
  :output-dir    "target/public/js/compiled/pairings"
- :optimizations :advanced}
+ :optimizations :advanced
+ :npm-deps      false
+ :foreign-libs  [{:file           "dist/downshift.inc.js"
+                  :file-min       "dist/downshift.min.inc.js"
+                  :provides       ["downshift"]
+                  :global-exports {downshift Downshift}}]
+ :externs       ["src/js/downshift.ext.js"]}
