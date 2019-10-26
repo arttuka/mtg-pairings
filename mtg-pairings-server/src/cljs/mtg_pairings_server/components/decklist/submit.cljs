@@ -2,12 +2,10 @@
   (:require [reagent.core :as reagent :refer [atom]]
             [reagent.ratom :refer [make-reaction]]
             [re-frame.core :refer [subscribe dispatch]]
-            [clojure.string :as str]
             [reagent-material-ui.components :as ui]
-            [reagent-material-ui.styles :as styles]
+            [reagent-material-ui.styles :refer [with-styles]]
             [cljs-time.core :as time]
-            [oops.core :refer [oget]]
-            [mtg-pairings-server.components.autosuggest :refer [autosuggest]]
+            [mtg-pairings-server.components.autocomplete :refer [autocomplete]]
             [mtg-pairings-server.components.decklist.decklist-import :refer [decklist-import]]
             [mtg-pairings-server.components.decklist.decklist-table :refer [decklist-table]]
             [mtg-pairings-server.components.decklist.icons :refer [error-icon]]
@@ -18,39 +16,66 @@
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as subs]
-            [mtg-pairings-server.util :refer [debounce format-date format-date-time index-where get-host valid-email?]]
+            [mtg-pairings-server.util :refer [debounce format-date format-date-time get-host]]
             [mtg-pairings-server.util.decklist :refer [->text card-types decklist-errors]]
-            [mtg-pairings-server.util.mtg :refer [valid-dci?]]
-            [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change]]
+            [mtg-pairings-server.util.material-ui :as mui-util]
             [mtg-pairings-server.util :as util]))
 
-(defn input []
+(defn input-styles [{:keys [spacing] :as theme}]
+  (let [on-desktop (mui-util/on-desktop theme)
+        on-mobile (mui-util/on-mobile theme)]
+    {:autocomplete-container {:flex 1}
+     :menu-container         {:z-index 2}
+     :button-group           {:flex "0 0 140px"}
+     :container              {:display     :flex
+                              :align-items "flex-end"
+                              :padding     (spacing 0 1)
+                              on-mobile    {:width "100%"}
+                              on-desktop   {:width 400}}}))
+
+(defn board-button [{:keys [label on-click selected?]}]
+  [ui/button {:on-click on-click
+              :color    (if selected? :primary :default)
+              :variant  (if selected? :contained :outlined)}
+   label])
+
+(defn input* [props]
   (let [tournament (subscribe [::subs/tournament])
-        mobile? (subscribe [::common-subs/mobile?])
         translate (subscribe [::subs/translate])
-        on-change #(dispatch [::events/add-card %])
         suggestions (atom [])
+        on-select #(do (dispatch [::events/add-card %])
+                       (reset! suggestions []))
         fetch-suggestions (debounce (fn [prefix]
                                       (dispatch [::events/card-suggestions
                                                  prefix
                                                  (:format @tournament)
                                                  #(reset! suggestions %)]))
                                     250)
-        clear-suggestions #(reset! suggestions [])]
-    (fn input-render [_ _]
-      (let [width (if @mobile?
-                    "calc(100vw - 140px)"
-                    256)
-            translate @translate]
-        [autosuggest {:suggestions                    suggestions
-                      :on-change                      on-change
-                      :on-suggestions-fetch-requested fetch-suggestions
-                      :on-suggestions-clear-requested clear-suggestions
-                      :suggestion->string             :name
-                      :id                             :decklist-autosuggest
-                      :label                          (translate :submit.add-card)
-                      :styles                         {:container {:width width}
-                                                       :input     {:width width}}}]))))
+        clear-suggestions #(reset! suggestions [])
+        select-main #(dispatch [::events/select-board :main])
+        select-side #(dispatch [::events/select-board :side])]
+    (fn input-render [{:keys [classes selected-board]}]
+      (let [translate @translate]
+        [:div {:class (:container classes)}
+         [autocomplete {:classes            {:container      (:autocomplete-container classes)
+                                             :menu-container (:menu-container classes)}
+                        :fetch-suggestions  fetch-suggestions
+                        :clear-suggestions  clear-suggestions
+                        :label              (translate :submit.add-card)
+                        :suggestion->string (fn [item] (:name item ""))
+                        :suggestions        suggestions
+                        :on-select          on-select}]
+         [ui/button-group {:classes    {:root (:button-group classes)}
+                           :variant    :outlined
+                           :full-width true}
+          (board-button {:on-click  select-main
+                         :selected? (= "main" selected-board)
+                         :label     "Main"})
+          (board-button {:on-click  select-side
+                         :selected? (= "side" selected-board)
+                         :label     "Side"})]]))))
+
+(def input ((with-styles input-styles) input*))
 
 (defn error-list [errors]
   (let [translate (subscribe [::subs/translate])]
@@ -70,9 +95,7 @@
                                                 (str ": " card)))}]])]))))
 
 (defn decklist-submit-form [tournament decklist]
-  (let [select-main #(dispatch [::events/select-board :main])
-        select-side #(dispatch [::events/select-board :side])
-        saving? (subscribe [::subs/saving?])
+  (let [saving? (subscribe [::subs/saving?])
         saved? (subscribe [::subs/saved?])
         error? (subscribe [::subs/error :save-decklist])
         page (subscribe [::common-subs/page])
@@ -84,22 +107,8 @@
         [:div
          [:h3
           (translate :submit.decklist)]
-         [input]
-         [ui/button-group {:variant :outlined
-                           :style   {:width          "140px"
-                                     :vertical-align :bottom}}
-          [ui/button {:on-click select-main
-                      :color    (when (= :main (:board @decklist))
-                                  :primary)
-                      :variant  (when (= :main (:board @decklist))
-                                  :contained)}
-           "Main"]
-          [ui/button {:on-click select-side
-                      :color    (when (= :side (:board @decklist))
-                                  :primary)
-                      :variant  (when (= :side (:board @decklist))
-                                  :contained)}
-           "Side"]]
+         [input {:selected-board (:board @decklist)}]
+
          [:div
           [decklist-table {:board :main}]
           [decklist-table {:board :side}]]

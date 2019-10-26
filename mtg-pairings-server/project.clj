@@ -100,7 +100,7 @@
                         :resource-paths ["test-resources"]}
              :prod     {:source-paths ["env/prod/cljs"]}
              :provided {:dependencies [[org.clojure/clojurescript "1.10.520"]
-                                       [reagent "0.9.0-rc1"]
+                                       [reagent "0.9.0-rc2"]
                                        [com.google.errorprone/error_prone_annotations "2.3.3"]
                                        [com.google.code.findbugs/jsr305 "3.0.2"]
                                        [com.bhauman/figwheel-main "0.2.3" :exclusions [org.clojure/clojurescript]]
@@ -114,8 +114,7 @@
                                        [cljsjs/react-dom "16.9.0-0"]
                                        [cljsjs/react-dom-server "16.9.0-0"]
                                        [cljsjs/react-transition-group "4.3.0-0"]
-                                       [arttuka/reagent-material-ui "4.5.1-0"]
-                                       [cljsjs/react-autosuggest "9.4.3-0"]]}
+                                       [arttuka/reagent-material-ui "4.5.1-0"]]}
              :uberjar  {:source-paths       ["env/prod/cljs"]
                         :main               mtg-pairings-server.main
                         :aot                :all

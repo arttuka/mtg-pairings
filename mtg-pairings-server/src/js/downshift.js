@@ -1,3 +1,3 @@
 (function () {
-  window['Downshift'] = require('downshift');
+  window['Downshift'] = require('downshift').default;
 })();
