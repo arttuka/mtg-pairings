@@ -26,7 +26,6 @@
     :on-expand on-expand
     :expanded? expanded?}])
 
-
 (defn tournament* [{:keys [classes data list-item?]}]
   (when data
     (let [pairings (set (:pairings data))

@@ -1,16 +1,26 @@
 (ns mtg-pairings-server.components.decklist.icons
-  (:require [reagent-material-ui.icons.delete-icon :refer [delete]]
+  (:require [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.delete-icon :refer [delete]]
             [reagent-material-ui.icons.warning :refer [warning]]
-            [reagent-material-ui.styles :refer [styled]]
-            [mtg-pairings-server.components.tooltip :refer [tooltip]]))
+            [reagent-material-ui.styles :refer [with-styles]]))
 
-(def warning-icon (styled warning (fn [{:keys [theme]}]
-                                    {:color          (get-in theme [:palette :error :main])
-                                     :vertical-align :top})))
+(def warning-icon ((with-styles (fn [theme]
+                                  {:root {:color          (get-in theme [:palette :error :main])
+                                          :vertical-align :top}}))
+                   warning))
 
-(defn error-icon [error]
-  (let [icon [warning-icon {:title error}]]
+(defn styles [theme]
+  (let [px->rem (get-in theme [:typography :px-to-rem])]
+    {:warning-icon {:color          (get-in theme [:palette :error :main])
+                    :vertical-align :top}
+     :tooltip      {:font-size (px->rem 14)}}))
+
+(defn error-icon* [{:keys [classes error]}]
+  (let [icon [warning-icon {:class (:warning-icon classes)}]]
     (if error
-      [tooltip {:label error}
+      [ui/tooltip {:classes {:tooltip (:tooltip classes)}
+                   :title   error}
        icon]
       icon)))
+
+(def error-icon ((with-styles styles) error-icon*))

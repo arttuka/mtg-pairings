@@ -5,15 +5,16 @@
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.common :refer [color when-desktop when-mobile when-print]]
             [mtg-pairings-server.styles.decklist :as decklist]
-            [mtg-pairings-server.styles.organizer :as organizer]
-            [mtg-pairings-server.styles.tooltip :as tooltip]))
+            [mtg-pairings-server.styles.organizer :as organizer]))
 
 (defstyles base
   (at-import "https://fonts.googleapis.com/css?family=Lato:700")
   (at-import "https://fonts.googleapis.com/css?family=Roboto:400,500,700")
   (when-print
    ["@page"
-    {:size "A4"}])
+    {:size "A4"}]
+   [:.no-print
+    {:display :none}])
   [:html
    {:-webkit-text-size-adjust "100%"
     :-ms-text-size-adjust     "100%"}]
@@ -27,20 +28,9 @@
    [:&:before :&:after
     {:box-sizing :border-box}]])
 
-(defstyles mobile
-  (when-mobile
-   [:.hidden-mobile
-    {:display "none !important"}])
-  (when-desktop
-   [:.hidden-desktop
-    {:display "none !important"}]))
-
-
 (defstyles main
   base
   decklist/styles
-  organizer/styles
-  tooltip/styles
-  mobile)
+  organizer/styles)
 
 (def css (garden/css main))

@@ -154,8 +154,6 @@
 
 (def player-filter ((with-styles player-filter-styles) player-filter*))
 
-
-
 (defn clear-filters []
   (let [filters-active? (subscribe [::subs/filters-active])]
     (fn clear-filters-render []

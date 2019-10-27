@@ -54,7 +54,7 @@
         clear-suggestions #(reset! suggestions [])
         select-main #(dispatch [::events/select-board :main])
         select-side #(dispatch [::events/select-board :side])]
-    (fn input-render [{:keys [classes selected-board]}]
+    (fn [{:keys [classes selected-board]}]
       (let [translate @translate]
         [:div {:class (:container classes)}
          [autocomplete {:classes            {:container      (:autocomplete-container classes)
@@ -79,7 +79,7 @@
 
 (defn error-list [errors]
   (let [translate (subscribe [::subs/translate])]
-    (fn error-list-render [errors]
+    (fn [errors]
       (let [translate @translate]
         [ui/list
          (for [{:keys [id text card] :as error} errors
@@ -89,7 +89,7 @@
            ^{:key (str "error--" (name (:id error)))}
            [ui/list-item
             [ui/list-item-icon
-             [error-icon nil]]
+             [error-icon {:error nil}]]
             [ui/list-item-text {:primary (str error-text
                                               (when card
                                                 (str ": " card)))}]])]))))
@@ -101,11 +101,11 @@
         page (subscribe [::common-subs/page])
         translate (subscribe [::subs/translate])
         save-decklist #(dispatch [::events/save-decklist (:id @tournament)])]
-    (fn decklist-submit-form-render [tournament decklist]
+    (fn [tournament decklist]
       (let [translate @translate
             errors (decklist-errors @decklist)]
-        [:div
-         [:h3
+        [:<>
+         [ui/typography {:variant :h6}
           (translate :submit.decklist)]
          [input {:selected-board (:board @decklist)}]
 
@@ -113,33 +113,31 @@
           [decklist-table {:board :main}]
           [decklist-table {:board :side}]]
          [decklist-import]
-         [:h3
+         [ui/typography {:variant :h6}
           (translate :submit.player-info)]
          [player-info]
          [ui/button {:on-click save-decklist
                      :variant  :contained
                      :color    :primary
                      :disabled (boolean (or @saving? (seq errors)))
-                     :style    {:margin-top "24px"}}
+                     :end-icon (when @saving?
+                                 (reagent/as-element [ui/circular-progress
+                                                      {:size  24
+                                                       :color :inherit}]))}
           (translate :submit.save.button)]
-         (when @saving?
-           [ui/circular-progress
-            {:size  36
-             :style {:margin         "24px 0 0 24px"
-                     :vertical-align :top}}])
          (when @saved?
            (let [url (str (get-host) (routes/old-decklist-path {:id (:id @page)}))]
-             [:div.success-notice
-              [:h4
+             [:<>
+              [ui/typography {:variant :h6}
                (translate :submit.save.success.header)]
               [:p
                (translate :submit.save.success.info.0)
-               [:a {:href url}
+               [ui/link {:href url}
                 url]
                (translate :submit.save.success.info.1)]]))
          (when @error?
-           [:div.error-notice
-            [:h4
+           [:<>
+            [ui/typography {:variant :h6}
              (translate :submit.save.error.header)]
             [:p
              (translate :submit.save.error.info)]
@@ -147,7 +145,14 @@
              (->text @decklist)]])
          [error-list errors]]))))
 
-(defn decklist-submit []
+(defn styles [{:keys [spacing] :as theme}]
+  (let [on-desktop (mui-util/on-desktop theme)]
+    {:root {:padding-top (spacing 2)
+            on-desktop   {:max-width 880
+                          :margin    "0 auto"}}
+     :bold {:font-weight :bold}}))
+
+(defn decklist-submit* [props]
   (let [tournament (subscribe [::subs/tournament])
         decklist (subscribe [::subs/decklist-by-type])
         translate (subscribe [::subs/translate])
@@ -157,41 +162,44 @@
                             (reset! deadline-gone? true)
                             (.setTimeout js/window update-deadline 1000)))]
     (update-deadline)
-    (fn decklist-submit-render []
+    (fn [{:keys [classes]}]
       (let [translate @translate
             until-deadline (util/interval (time/now) (:deadline @tournament))]
-        [:div#decklist-submit
+        [:div {:class (:root classes)}
          [:div {:class (when @deadline-gone? :no-print)}
           [language-selector]
-          [:h2.top-header (translate :submit.header)]
-          [:p.intro
+          [ui/typography {:variant :h4}
+           (translate :submit.header)]
+          [:p
            (translate :submit.intro.0)
-           [:span.tournament-name
+           [:span {:class (:bold classes)}
             (:name @tournament)]
            (translate :submit.intro.1)
-           [:span.tournament-date
+           [:span {:class (:bold classes)}
             (format-date (:date @tournament))]
            (translate :submit.intro.2)
-           [:span.tournament-format
+           [:span {:class (:bold classes)}
             (case (:format @tournament)
               :standard "Standard"
               :modern "Modern"
               :legacy "Legacy")]
            "."]
-          [:p.intro
+          [:p
            (translate :submit.intro.3)
-           [:span.tournament-deadline
+           [:span {:class (:bold classes)}
             (format-date-time (:deadline @tournament))]
            ". "
            (translate :submit.time-until-deadline
                       (:days until-deadline) (:hours until-deadline) (:minutes until-deadline))]
           (if-not @deadline-gone?
             [decklist-submit-form tournament decklist]
-            [:div
-             [:p.deadline-gone
+            [:<>
+             [:p
               (translate :submit.deadline-gone)]
              (when (:id @decklist)
-               [:h3
+               [ui/typography {:variant :h6}
                 (translate :submit.your-decklist)])])]
          (when (and @deadline-gone? (:id @decklist))
            [render-decklist @decklist @tournament translate])]))))
+
+(def decklist-submit ((with-styles styles) decklist-submit*))

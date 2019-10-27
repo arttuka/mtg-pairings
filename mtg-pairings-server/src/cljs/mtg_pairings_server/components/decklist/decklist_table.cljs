@@ -5,17 +5,14 @@
             [reagent-material-ui.icons.delete-icon :refer [delete]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.decklist.icons :refer [error-icon]]
-            [mtg-pairings-server.components.tooltip :refer [tooltip]]
             [mtg-pairings-server.events.decklist :as events]
-            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util.decklist :refer [->text card-types decklist-errors basic?]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
             [mtg-pairings-server.util.material-ui :as mui-util :refer [wrap-on-change]]))
 
 (defn styles [{:keys [spacing] :as theme}]
-  (let [on-mobile (mui-util/on-mobile theme)
-        on-desktop (mui-util/on-desktop theme)
+  (let [on-desktop (mui-util/on-desktop theme)
         table-cell-style #(apply merge {:padding   0
                                         :font-size 16}
                                  %&)]
@@ -64,7 +61,7 @@
           (:name card)]
          [ui/table-cell {:class (:error-column classes)}
           (when error
-            [error-icon (translate (str "submit.error." (name error)))])]
+            [error-icon {:error (translate (str "submit.error." (name error)))}])]
          [ui/table-cell {:class (:action-column classes)}
           [ui/icon-button {:on-click on-delete}
            [delete]]]]))))

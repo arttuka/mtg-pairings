@@ -31,7 +31,8 @@
 (defn ->text [decklist]
   (let [{:keys [main side]} decklist]
     (str "Maindeck (" (get-in decklist [:count :main]) ")\n"
-         (str/join "\n" (for [{:keys [name quantity]} main]
+         (str/join "\n" (for [[type cards] main
+                              {:keys [name quantity]} cards]
                           (str (pad quantity) " " name)))
          "\n\nSideboard (" (get-in decklist [:count :side]) ")\n"
          (str/join "\n" (for [{:keys [name quantity]} side]

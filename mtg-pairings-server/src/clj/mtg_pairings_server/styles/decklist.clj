@@ -4,28 +4,6 @@
             [garden.units :refer [mm px px- px+ px* px-div percent vh]]
             [mtg-pairings-server.styles.common :refer [calc color ellipsis-overflow when-desktop when-mobile when-screen when-print]]))
 
-(defstyles submit
-  [:#decklist-submit
-   {:position :relative}
-   (when-desktop
-    [:&
-     {:max-width (px 880)
-      :margin    "0 auto"}])
-   (when-print
-    [:.no-print
-     {:display :none}])
-   [:.language-selector
-    {:float :right}]
-   [:.top-header
-    {:line-height   (px 36)
-     :margin-top    (px 15)
-     :margin-bottom (px 15)}]
-   [:.intro
-    [:.tournament-date :.tournament-name :.tournament-format :.tournament-deadline
-     {:font-weight :bold}]]
-   [:h3
-    {:margin-bottom 0}]])
-
 (def grey-border {:style :solid
                   :width (px 1)
                   :color (color :grey)})
@@ -239,7 +217,7 @@
       [:.label
        {:width (px 60)}]]])])
 
-(defstyles print-decklist
+(defstyles styles
   [:.print-decklist
    {:position :relative
     :width    (percent 100)}
@@ -277,14 +255,3 @@
    cardlists
    player-info
    deck-info])
-
-(defstyles organizer
-  [:#decklist-organizer
-   (when-print
-    [:.decklist-organizer-header
-     {:display "none !important"}])])
-
-(defstyles styles
-  organizer
-  print-decklist
-  submit)
