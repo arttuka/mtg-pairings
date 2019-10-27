@@ -36,7 +36,7 @@
 (defn login-styles [{:keys [spacing]}]
   {:root-container  {:padding (spacing 2)}
    :field-container {:display     :flex
-                     :align-items "flex-end"}
+                     :align-items :flex-end}
    :field           {:margin         (spacing 0 1)
                      "&:first-child" {:margin-left 0}}})
 

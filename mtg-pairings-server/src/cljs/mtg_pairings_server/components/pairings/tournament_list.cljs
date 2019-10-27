@@ -27,7 +27,7 @@
                          :list-item? true}])]
          [ui/list-item
           [ui/list-item-text {:primary                  "Ei aktiivisia turnauksia."
-                              :primary-typography-props {:variatn :h6}}]])])))
+                              :primary-typography-props {:variant :h6}}]])])))
 
 (defn tournament-list []
   [:<>

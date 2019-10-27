@@ -15,7 +15,7 @@
             [mtg-pairings-server.pages.decklist :as decklist-pages :refer [decklist-organizer decklist-submit]]
             [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu deck-construction-tables]]
             [mtg-pairings-server.pages.pairings :as pairings-pages :refer [main-page tournament-page tournament-subpage tournaments-page]]
-            [mtg-pairings-server.components.main :refer [notification]]
+            [mtg-pairings-server.components.notification :refer [notification]]
             [mtg-pairings-server.components.pairings.header :refer [header]]
             [mtg-pairings-server.components.providers :refer [providers]]))
 

@@ -17,7 +17,7 @@
                                         :font-size 16}
                                  %&)]
     {:root            {on-desktop {:width          "50%"
-                                   :display        "inline-block"
+                                   :display        :inline-block
                                    :vertical-align :top}}
      :header-cell     {:font-size 16
                        :padding   (spacing 1 0)}

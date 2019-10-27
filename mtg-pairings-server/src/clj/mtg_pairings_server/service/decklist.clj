@@ -22,8 +22,7 @@
                 (= :standard format) (sql/where {:standard true})
                 (= :modern format) (sql/where {:modern true})
                 (= :legacy format) (sql/where {:legacy true}))]
-    (->> (sql/exec query)
-         (map types->keyword-set))))
+    (map types->keyword-set (sql/exec query))))
 
 (defn generate-card->id [cards]
   (into {}

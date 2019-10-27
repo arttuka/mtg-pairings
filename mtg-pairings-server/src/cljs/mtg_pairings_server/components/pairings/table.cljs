@@ -24,7 +24,7 @@
            (mui-util/on-mobile theme) {:padding-left  0
                                        :padding-right 0}
            :text-align                :left}
-   :label {:justify-content "flex-start"
+   :label {:justify-content :flex-start
            :text-transform  :none
            :font-weight     :bold
            :font-size       "16px"}})

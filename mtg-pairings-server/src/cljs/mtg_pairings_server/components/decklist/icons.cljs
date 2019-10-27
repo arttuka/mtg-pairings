@@ -4,11 +4,6 @@
             [reagent-material-ui.icons.warning :refer [warning]]
             [reagent-material-ui.styles :refer [with-styles]]))
 
-(def warning-icon ((with-styles (fn [theme]
-                                  {:root {:color          (get-in theme [:palette :error :main])
-                                          :vertical-align :top}}))
-                   warning))
-
 (defn styles [theme]
   (let [px->rem (get-in theme [:typography :px-to-rem])]
     {:warning-icon {:color          (get-in theme [:palette :error :main])
@@ -16,7 +11,7 @@
      :tooltip      {:font-size (px->rem 14)}}))
 
 (defn error-icon* [{:keys [classes error]}]
-  (let [icon [warning-icon {:class (:warning-icon classes)}]]
+  (let [icon [warning {:class (:warning-icon classes)}]]
     (if error
       [ui/tooltip {:classes {:tooltip (:tooltip classes)}
                    :title   error}

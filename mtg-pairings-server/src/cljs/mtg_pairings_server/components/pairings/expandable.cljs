@@ -9,12 +9,9 @@
   {:expand      {:transform  "rotate(0deg)"
                  :transition (mui-util/create-transition theme
                                                          :transform
-                                                         {:duration (get-in theme [:transitions :duration :shortest])})
-                 :width      "40px"
-                 :height     "40px"
-                 :padding    "8px"}
+                                                         {:duration (get-in theme [:transitions :duration :shortest])})}
    :expand-open {:transform "rotate(180deg)"}
-   :expandable  {:cursor :pointer}})
+   :expandable  {(mui-util/on-desktop theme) {:cursor :pointer}}})
 
 (defn expandable-header* [{:keys [classes expanded? on-expand] :as props}]
   (let [other-props (dissoc props :classes :expanded? :on-expand)]
@@ -23,9 +20,10 @@
                             :on-click on-expand
                             :action   (when on-expand
                                         (reagent/as-element
-                                         [ui/icon-button {:class [(:expand classes)
-                                                                  (when expanded?
-                                                                    (:expand-open classes))]}
+                                         [ui/icon-button {:class    [(:expand classes)
+                                                                     (when expanded?
+                                                                       (:expand-open classes))]
+                                                          :on-click on-expand}
                                           [expand-more]]))})]))
 
 (def expandable-header ((with-styles expandable-styles) expandable-header*))

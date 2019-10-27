@@ -1,5 +1,5 @@
 (ns mtg-pairings-server.components.decklist.decklist-import
-  (:require [reagent.core :as reagent :refer [atom]]
+  (:require [reagent.core :as reagent :refer [atom with-let]]
             [reagent.ratom :refer [make-reaction]]
             [re-frame.core :refer [subscribe dispatch]]
             [clojure.string :as str]
@@ -19,10 +19,9 @@
 
 (defn styles [{:keys [palette spacing] :as theme}]
   (let [on-desktop (mui-util/on-desktop theme)]
-    {:root              {}
-     :tab-panel-half    {:padding   (spacing 1)
+    {:tab-panel-half    {:padding   (spacing 1)
                          on-desktop {:width          "50%"
-                                     :display        "inline-block"
+                                     :display        :inline-block
                                      :vertical-align :top}}
      :address-import    {:height 68
                          :margin (spacing 1 0)}
@@ -105,35 +104,36 @@
                       :on-click import-decklist}
            (translate :submit.load)]]]))))
 
-(defn decklist-import* [props]
-  (let [loaded? (subscribe [::subs/loaded?])
-        translate (subscribe [::subs/translate])
-        selected (atom false)
-        close-panel #(reset! selected false)
-        on-select (fn [_ value]
-                    (swap! selected #(if (not= value %)
-                                       value
-                                       false)))]
-    (add-watch loaded? ::decklist-import
-               (fn [_ _ _ new]
-                 (when new
-                   (close-panel))))
-    (fn decklist-import-render [{:keys [classes]}]
-      (let [translate @translate]
-        [:<>
-         [ui/app-bar {:position :static}
-          [ui/tabs {:value     @selected
-                    :on-change on-select
-                    :variant   :fullWidth}
-           [ui/tab {:label (translate :submit.load-previous.label)
-                    :value "load-previous"}]
-           [ui/tab {:label (translate :submit.load-text.label)
-                    :value "load-text"}]]]
-         [ui/collapse {:in (boolean @selected)}
-          [previous-panel {:classes classes
-                           :hidden? (not= "load-previous" @selected)}]
-          [text-panel {:classes     classes
-                       :hidden?     (not= "load-text" @selected)
-                       :close-panel close-panel}]]]))))
+(defn decklist-import* [{:keys [classes]}]
+  (with-let [loaded? (subscribe [::subs/loaded?])
+             translate (subscribe [::subs/translate])
+             selected (atom false)
+             close-panel #(reset! selected false)
+             on-select (fn [_ value]
+                         (swap! selected #(if (not= value %)
+                                            value
+                                            false)))
+             _ (add-watch loaded? ::decklist-import
+                          (fn [_ _ _ new]
+                            (when new
+                              (close-panel))))]
+    (let [translate @translate]
+      [:<>
+       [ui/app-bar {:position :static}
+        [ui/tabs {:value     @selected
+                  :on-change on-select
+                  :variant   :fullWidth}
+         [ui/tab {:label (translate :submit.load-previous.label)
+                  :value "load-previous"}]
+         [ui/tab {:label (translate :submit.load-text.label)
+                  :value "load-text"}]]]
+       [ui/collapse {:in (boolean @selected)}
+        [previous-panel {:classes classes
+                         :hidden? (not= "load-previous" @selected)}]
+        [text-panel {:classes     classes
+                     :hidden?     (not= "load-text" @selected)
+                     :close-panel close-panel}]]])
+    (finally
+      (remove-watch loaded? ::decklist-import))))
 
 (def decklist-import ((with-styles styles) decklist-import*))

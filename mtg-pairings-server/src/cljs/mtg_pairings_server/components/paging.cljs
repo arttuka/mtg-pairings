@@ -23,12 +23,12 @@
       (<= (- num-pages selected-page) 4) (concat [0 :separator-1] (range (- num-pages 5) num-pages))
       :else [0 :separator-1 (dec selected-page) selected-page (inc selected-page) :separator-2 (dec num-pages)])))
 
-(defn pager [{:keys [id event subscription num-pages]}]
+(defn pager [{:keys [event subscription num-pages]}]
   (let [selected-page (subscribe [subscription])
         dispatch-page (fn [page]
                         (.scrollTo js/window 0 0)
                         (dispatch [event page]))]
-    (fn pager-render [{:keys [id event subscription num-pages]}]
+    (fn pager-render [{:keys [event subscription num-pages]}]
       (let [selected-page @selected-page
             shown-pages (get-shown-pages selected-page num-pages)]
         [button-group {:variant :outlined}
@@ -39,12 +39,12 @@
          (for [[index page] (indexed shown-pages)]
            (if (number? page)
              (let [selected? (= selected-page page)]
-               ^{:key (str id "-" index)}
+               ^{:key (str  "pager-" index)}
                [ui/button {:on-click (when-not selected? #(dispatch-page page))
                            :variant  (if selected? :contained :outlined)
                            :color    (if selected? :secondary :default)}
                 (inc page)])
-             ^{:key (str id "-" index)}
+             ^{:key (str "pager-" index)}
              [ui/button {}
               "···"]))
          [ui/button {:on-click (when (< selected-page (dec num-pages))
@@ -66,10 +66,10 @@
                          :num-pages    num-pages}]
         (if (seq @data)
           [:div
-           [pager (assoc pager-props :id (str "pager-" page-event "-1"))]
+           [pager pager-props]
            [component (->> @data
                            (drop (* @page items-per-page))
                            (take items-per-page))]
-           [pager (assoc pager-props :id (str "pager-" page-event "-2"))]]
+           [pager pager-props]]
           [circular-progress {:size      100
                               :thickness 5}])))))

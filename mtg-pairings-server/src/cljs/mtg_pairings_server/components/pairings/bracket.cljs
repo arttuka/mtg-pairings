@@ -67,29 +67,27 @@
 
 (defn bracket* [{:keys [tournament-id]}]
   (let [data (subscribe [::subs/bracket tournament-id])]
-    (fn bracket-render [{:keys [classes]}]
-      [:div {:class (:container classes)}
-       (into [:<>]
-             (for [round @data
-                   :let [num-matches (count round)]]
-               [ui/list {:class (:round classes)}
-                (into [:<>
-                       [ui/list-item {:class           (:round-header classes)
-                                      :disable-gutters true}
-                        [ui/list-item-text {:primary                  (str "Top " (* 2 num-matches))
-                                            :primary-typography-props {:variant :h6}}]]]
-                      (for [{:keys [team1_name team1_rank team1_wins
-                                    team2_name team2_rank team2_wins]} round]
-                        [:<>
-                         [bracket-player {:name    team1_name
-                                          :rank    team1_rank
-                                          :wins    team1_wins
-                                          :winner? (> team1_wins team2_wins)
-                                          :matches num-matches}]
-                         [bracket-player {:name    team2_name
-                                          :rank    team2_rank
-                                          :wins    team2_wins
-                                          :winner? (< team1_wins team2_wins)
-                                          :matches num-matches}]]))]))])))
+    (fn [{:keys [classes]}]
+      (into [:div {:class (:container classes)}]
+            (for [round @data
+                  :let [num-matches (count round)]]
+              (into [ui/list {:class (:round classes)}
+                     [ui/list-item {:class           (:round-header classes)
+                                    :disable-gutters true}
+                      [ui/list-item-text {:primary                  (str "Top " (* 2 num-matches))
+                                          :primary-typography-props {:variant :h6}}]]]
+                    (for [{:keys [team1_name team1_rank team1_wins
+                                  team2_name team2_rank team2_wins]} round]
+                      [:<>
+                       [bracket-player {:name    team1_name
+                                        :rank    team1_rank
+                                        :wins    team1_wins
+                                        :winner? (> team1_wins team2_wins)
+                                        :matches num-matches}]
+                       [bracket-player {:name    team2_name
+                                        :rank    team2_rank
+                                        :wins    team2_wins
+                                        :winner? (< team1_wins team2_wins)
+                                        :matches num-matches}]])))))))
 
 (def bracket ((with-styles bracket-styles) bracket*))

@@ -6,6 +6,7 @@
             [reagent-material-ui.styles :refer [with-styles]]
             [cljs-time.core :as time]
             [mtg-pairings-server.components.autocomplete :refer [autocomplete]]
+            [mtg-pairings-server.components.button-toggle :refer [button-toggle]]
             [mtg-pairings-server.components.decklist.decklist-import :refer [decklist-import]]
             [mtg-pairings-server.components.decklist.decklist-table :refer [decklist-table]]
             [mtg-pairings-server.components.decklist.icons :refer [error-icon]]
@@ -28,16 +29,10 @@
      :menu-container         {:z-index 2}
      :button-group           {:flex "0 0 140px"}
      :container              {:display     :flex
-                              :align-items "flex-end"
+                              :align-items :flex-end
                               :padding     (spacing 0 1)
                               on-mobile    {:width "100%"}
                               on-desktop   {:width 400}}}))
-
-(defn board-button [{:keys [label on-click selected?]}]
-  [ui/button {:on-click on-click
-              :color    (if selected? :primary :default)
-              :variant  (if selected? :contained :outlined)}
-   label])
 
 (defn input* [props]
   (let [tournament (subscribe [::subs/tournament])
@@ -65,15 +60,14 @@
                         :suggestion->string (fn [item] (:name item ""))
                         :suggestions        suggestions
                         :on-select          on-select}]
-         [ui/button-group {:classes    {:root (:button-group classes)}
-                           :variant    :outlined
-                           :full-width true}
-          (board-button {:on-click  select-main
-                         :selected? (= "main" selected-board)
-                         :label     "Main"})
-          (board-button {:on-click  select-side
-                         :selected? (= "side" selected-board)
-                         :label     "Side"})]]))))
+         [button-toggle {:classes {:root (:button-group classes)}
+                         :value   selected-board
+                         :options [{:on-click select-main
+                                    :value    "main"
+                                    :label    "Main"}
+                                   {:on-click select-side
+                                    :value    "side"
+                                    :label    "Side"}]}]]))))
 
 (def input ((with-styles input-styles) input*))
 

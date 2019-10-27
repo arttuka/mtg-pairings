@@ -4,7 +4,7 @@
             [mount.core :as m :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
-            [mtg-pairings-server.components.main :refer [notification]]
+            [mtg-pairings-server.components.notification :refer [notification]]
             [mtg-pairings-server.components.pairings.header :refer [header]]
             [mtg-pairings-server.components.providers :refer [providers]]
             [mtg-pairings-server.events.pairings :as events]

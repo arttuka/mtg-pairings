@@ -10,17 +10,18 @@
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]))
 
-(def styles (fn [{:keys [spacing shape]}]
-              {:dci-container {:background-color "rgba(255, 255, 255, 0.2)"
-                               "&:hover"         {:background-color "rgba(255, 255, 255, 0.3)"}
-                               :width            "120px"
-                               :margin-right     (spacing 2)
-                               :border-radius    (:border-radius shape)}
-               :input         {:height  "20px"
-                               :color   :white
-                               :padding (spacing 1)}}))
+(defn styles [{:keys [spacing shape]}]
+  {:dci-container {:background-color "rgba(255, 255, 255, 0.2)"
+                   "&:hover"         {:background-color "rgba(255, 255, 255, 0.3)"}
+                   :width            120
+                   :margin-right     (spacing 2)
+                   :border-radius    (:border-radius shape)}
+   :input         {:height  "20px"
+                   :color   :white
+                   :padding (spacing 1)}
+   :separator     {:flex "1 0 0"}})
 
-(defn ^:private header* [{:keys [classes]}]
+(defn ^:private header* [props]
   (let [user (subscribe [::subs/logged-in-user])
         dci-number (atom "")
         menu-anchor-ref (.createRef js/React)
@@ -30,7 +31,7 @@
         login! (fn []
                  (dispatch [::events/login @dci-number])
                  (reset! dci-number ""))]
-    (fn header-render []
+    (fn [{:keys [classes]}]
       [ui/app-bar {:id       :header
                    :position :static}
        [ui/toolbar
@@ -57,7 +58,7 @@
         (when @user
           [ui/typography {:variant :h6}
            (:name @user)])
-        [:div {:style {:flex "1 0 0"}}]
+        [:div {:class (:separator classes)}]
         (when-not @user
           [:<>
            [:div {:class (:dci-container classes)}

@@ -10,11 +10,13 @@
             [mtg-pairings-server.util.material-ui :as mui-util]))
 
 (defn tournament-styles [{:keys [spacing] :as theme}]
-  {:card-content     {:padding-top 0}
-   :button-container {(mui-util/on-desktop theme) {:width "300px"}
-                      (mui-util/on-mobile theme)  {:width "100%"}}
-   :button-group     {:margin-bottom (spacing 1)}
-   :half-width       {:width "50%"}})
+  {:card         {:width "100%"}
+   :card-content {:padding                    (spacing 0 2)
+                  (mui-util/on-desktop theme) {:width 340}
+                  (mui-util/on-mobile theme)  {:width "100%"}}
+   :button-group {:margin-bottom (spacing 1)
+                  :display       :flex}
+   :half-width   {:width "50%"}})
 
 (defn tournament-header
   [{:keys [data expanded? on-expand]}]
@@ -35,33 +37,32 @@
                                                  :variant    :outlined
                                                  :full-width true}]
                                children))
-          rendered [:div
+          rendered [:div {:class (:card classes)}
                     [tournament-header {:data data}]
                     [ui/card-content {:class (:card-content classes)}
-                     [:div {:class (:button-container classes)}
-                      (when (:playoff data)
-                        [button-group
-                         [ui/button {:href (bracket-path {:id (:id data)})}
-                          "Playoff bracket"]])
-                      (for [r (:round-nums data)]
-                        ^{:key [(:id data) r]}
-                        [button-group
-                         (when (contains? pairings r)
-                           [ui/button {:class (:half-width classes)
-                                       :href  (pairings-path {:id (:id data), :round r})}
-                            (str "Pairings " r)])
-                         (when (contains? standings r)
-                           [ui/button {:class (:half-width classes)
-                                       :href  (standings-path {:id (:id data), :round r})}
-                            (str "Standings " r)])])
-                      (let [pod-buttons (cond->> (for [n (:pods data)]
-                                                   [ui/button {:href (pods-path {:id (:id data), :round n})}
-                                                    (str "Pods " n)])
-                                          (:seatings data) (cons [ui/button {:href (seatings-path {:id (:id data)})}
-                                                                  "Seatings"]))]
-                        (into [:<>]
-                              (for [group (partition-all 2 pod-buttons)]
-                                (into [button-group] group))))]]]]
+                     (when (:playoff data)
+                       [button-group
+                        [ui/button {:href (bracket-path {:id (:id data)})}
+                         "Playoff bracket"]])
+                     (for [r (:round-nums data)]
+                       ^{:key [(:id data) r]}
+                       [button-group
+                        (when (contains? pairings r)
+                          [ui/button {:class (:half-width classes)
+                                      :href  (pairings-path {:id (:id data), :round r})}
+                           (str "Pairings " r)])
+                        (when (contains? standings r)
+                          [ui/button {:class (:half-width classes)
+                                      :href  (standings-path {:id (:id data), :round r})}
+                           (str "Standings " r)])])
+                     (let [pod-buttons (cond->> (for [n (:pods data)]
+                                                  [ui/button {:href (pods-path {:id (:id data), :round n})}
+                                                   (str "Pods " n)])
+                                         (:seatings data) (cons [ui/button {:href (seatings-path {:id (:id data)})}
+                                                                 "Seatings"]))]
+                       (into [:<>]
+                             (for [group (partition-all 2 pod-buttons)]
+                               (into [button-group] group))))]]]
       (if list-item?
         [ui/list-item {:divider         true
                        :disable-gutters true}
