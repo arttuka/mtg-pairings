@@ -2,7 +2,6 @@
   (:require [reagent.core :as reagent :refer [atom]]
             [reagent-material-ui.components :as ui]
             [clojure.string :as str]
-            [goog.object :as obj]
             [mtg-pairings-server.components.downshift :as downshift]))
 
 (defn input [{:keys [input-props] :as props}]
@@ -25,7 +24,7 @@
                                                               :input-value ""
                                                               :selected-item nil)
                           changes))
-        popper-anchor (.createRef js/React)]
+        ^js/React.Ref popper-anchor (.createRef js/React)]
     (fn [{:keys [classes label suggestion->string suggestions]}]
       [downshift/component {:item-to-string        suggestion->string
                             :on-input-value-change on-input-value-change
@@ -54,7 +53,7 @@
                          :placement      :bottom-start
                          :disable-portal true
                          :class          (:menu-container classes)}
-              [ui/paper {:style {:width (obj/get anchor-el "clientWidth")}}
+              [ui/paper {:style {:width (some-> anchor-el (.-clientWidth))}}
                [ui/menu-list (if menu-open? (get-menu-props {} {:suppress-ref-error true}) {})
                 (for [[index item] (map-indexed vector @suggestions)
                       :let [name (suggestion->string item)]]

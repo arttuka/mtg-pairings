@@ -4,10 +4,9 @@
             [reagent-material-ui.colors :as colors]
             [reagent-material-ui.pickers :as pickers]
             [reagent-material-ui.styles :as styles]
-            [goog.i18n.DateTimeSymbols_fi]
-            [goog.i18n.DateTimeSymbols_en]
             [mtg-pairings-server.subscriptions.common :as subs]
-            [mtg-pairings-server.theme :refer [theme-provider]]))
+            [mtg-pairings-server.theme :refer [theme-provider]])
+  (:import (goog.i18n DateTimeSymbols_fi DateTimeSymbols_en)))
 
 (def theme (styles/create-mui-theme
             {:palette {:primary   colors/blue
@@ -19,7 +18,7 @@
       [styles/theme-provider theme
        [pickers/mui-pickers-utils-provider {:utils  cljs-time-utils
                                             :locale (case @language
-                                                      :fi goog.i18n.DateTimeSymbols_fi
-                                                      :en goog.i18n.DateTimeSymbols_en
-                                                      goog.i18n.DateTimeSymbols_fi)}
+                                                      :fi DateTimeSymbols_fi
+                                                      :en DateTimeSymbols_en
+                                                      DateTimeSymbols_fi)}
         app]])))

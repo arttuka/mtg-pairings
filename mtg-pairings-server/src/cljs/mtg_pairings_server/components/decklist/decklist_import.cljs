@@ -6,7 +6,6 @@
             [reagent-material-ui.colors :as colors]
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
-            [oops.core :refer [oget]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util.decklist :refer [->text card-types]]
@@ -43,7 +42,7 @@
         code (make-reaction #(valid-code @address))
         address-on-change #(reset! address %)
         import-from-address #(dispatch [::events/import-address @code])
-        address-on-key-press (fn [e]
+        address-on-key-press (fn [^js/KeyboardEvent e]
                                (when (= "Enter" (.-key e))
                                  (import-from-address)))
         import-error (subscribe [::subs/error :import-address])

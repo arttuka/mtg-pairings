@@ -24,7 +24,7 @@
 (defn ^:private header* [props]
   (let [user (subscribe [::subs/logged-in-user])
         dci-number (atom "")
-        menu-anchor-ref (.createRef js/React)
+        ^js/React.Ref menu-anchor-ref (.createRef js/React)
         menu-open? (atom false)
         on-menu-click #(reset! menu-open? true)
         on-menu-close #(reset! menu-open? false)
@@ -65,7 +65,7 @@
             [ui/input-base {:placeholder "DCI-numero"
                             :value       @dci-number
                             :on-change   (wrap-on-change #(reset! dci-number %))
-                            :on-key-down (fn [e]
+                            :on-key-down (fn [^js/KeyboardEvent e]
                                            (when (= "Enter" (.-key e))
                                              (login!)))
                             :full-width  true

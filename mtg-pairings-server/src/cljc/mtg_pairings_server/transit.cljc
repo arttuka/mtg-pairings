@@ -6,12 +6,14 @@
   #?(:clj
      (:import (org.joda.time LocalDate DateTime)
               (clojure.lang Ratio)
-              (java.io ByteArrayInputStream ByteArrayOutputStream))))
+              (java.io ByteArrayInputStream ByteArrayOutputStream))
+     :cljs
+     (:import (goog.date Date UtcDateTime))))
 
 (def writers
-  {#?(:clj LocalDate, :cljs goog.date.Date)
+  {#?(:clj LocalDate, :cljs Date)
    (transit/write-handler (constantly "Date") format-iso-date)
-   #?(:clj DateTime, :cljs goog.date.UtcDateTime)
+   #?(:clj DateTime, :cljs UtcDateTime)
    (transit/write-handler (constantly "DateTime") format-iso-date-time)
    #?@(:clj [Ratio
              (transit/write-handler (constantly "d") double)])})

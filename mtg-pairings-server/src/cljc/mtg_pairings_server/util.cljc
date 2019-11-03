@@ -1,7 +1,5 @@
 (ns mtg-pairings-server.util
-  (:require #?(:clj  [clojure.core.async :refer [<! alts! chan go-loop put! timeout sliding-buffer]]
-               :cljs [cljs.core.async :refer [<! alts! chan put! timeout sliding-buffer] :refer-macros [go-loop]])
-            [#?(:clj  clj-time.format
+  (:require [#?(:clj  clj-time.format
                 :cljs cljs-time.format)
              :as format]
             [#?(:clj  clj-time.core
@@ -14,8 +12,7 @@
                [ring.util.response :as ring])
             #?@(:cljs
                 [[goog.string :as gstring]
-                 [goog.string.format]
-                 [oops.core :refer [oget]]])
+                 [goog.string.format]])
             [clojure.string :as str]))
 
 (defn map-values
@@ -144,11 +141,6 @@
        (ring/response body)
        (ring/not-found body))))
 
-(defn cls [class-defs]
-  (str/join " " (for [[c used?] class-defs
-                      :when used?]
-                  (name c))))
-
 #?(:cljs
    (defn round [num]
      (if (neg? num)
@@ -163,23 +155,20 @@
            seconds (mod (Math/abs seconds) 60)]
        (gstring/format "%s%02d:%02d" sign minutes seconds))))
 
-(defn debounce [f ms]
-  (let [c (chan (sliding-buffer 1))]
-    (go-loop [args (<! c)]
-      (let [[val port] (alts! [c (timeout ms)])]
-        (if (= port c)
-          (recur val)
-          (do
-            (apply f args)
-            (recur (<! c))))))
-    (fn [& args]
-      (put! c (or args [])))))
+#?(:cljs
+   (defn debounce [f ms]
+     (let [timeout (volatile! nil)
+           ret (fn [& args]
+                 (js/clearTimeout @timeout)
+                 (vreset! timeout (js/setTimeout #(apply f args) ms)))]
+       (set! (.-clear ret) #(js/clearTimeout @timeout))
+       ret)))
 
 #?(:cljs
    (defn get-host []
-     (str (oget js/window "location" "protocol")
+     (str (.. js/window -location -protocol)
           "//"
-          (oget js/window "location" "host"))))
+          (.. js/window -location -host))))
 
 (defn valid-email? [email]
   (some->> email

@@ -1,12 +1,15 @@
 (ns mtg-pairings-server.util.material-ui
   (:require [reagent.core :as reagent :refer [atom]]
             [reagent-material-ui.components :as ui]
-            [reagent-material-ui.util :refer [clj->js']]
-            [oops.core :refer [oget]]))
+            [reagent-material-ui.util :refer [clj->js']]))
 
 (defn wrap-on-change [f]
-  (fn [event]
-    (f (oget event "target" "value"))))
+  (fn [^js/Event event]
+    (f (.. event -target -value))))
+
+(defn wrap-on-checked [f]
+  (fn [^js/Event event]
+    (f (.. event -target -checked))))
 
 (defn text-field [props]
   (let [original-on-change (:on-change props)

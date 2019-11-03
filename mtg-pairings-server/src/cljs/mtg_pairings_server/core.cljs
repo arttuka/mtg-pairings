@@ -36,7 +36,6 @@
          (when (display-header? page)
            [header])
          [notification]
-         ;; TODO theme
          [:div#main-container
           (case page
             ::pairings-pages/main [#'main-page]

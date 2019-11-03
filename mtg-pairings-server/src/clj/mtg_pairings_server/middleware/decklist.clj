@@ -4,7 +4,8 @@
 (def rewrite-blacklist [#"^.*\.(ico|png|jpg|js|css|woff2|txt|map)$"
                         #"^/chsk$"
                         #"^robots.txt$"
-                        #"^/login$"])
+                        #"^/login$"
+                        #"^/logout$"])
 
 (defn rewrite? [uri]
   (not-any? #(re-matches % uri) rewrite-blacklist))

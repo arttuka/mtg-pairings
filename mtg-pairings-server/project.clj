@@ -2,8 +2,7 @@
   :license {:name "MIT License"
             :url  "http://www.opensource.org/licenses/mit-license.php"}
   :dependencies [[org.clojure/clojure "1.10.1"]
-                 [org.clojure/core.async "0.4.500" :exclusions [org.clojure/core.memoize]]
-                 [org.clojure/core.memoize "0.7.2"]
+                 [org.clojure/core.memoize "0.8.2"]
                  [org.clojure/tools.logging "0.5.0"]
                  [ring/ring-core "1.7.1"]
                  [ring/ring-defaults "0.3.2"]
@@ -16,8 +15,7 @@
                  [mount "0.1.16"]
                  [org.postgresql/postgresql "42.2.8"]
                  [hikari-cp "2.9.0"]
-                 [metosin/compojure-api "1.1.12"]
-                 [org.flatland/ordered "1.5.7"]
+                 [metosin/compojure-api "1.1.13"]
                  [cheshire "5.9.0"]
                  [ring.middleware.jsonp "0.1.6"]
                  [com.taoensso/sente "1.14.0"]
@@ -109,12 +107,11 @@
                                        [com.cognitect/transit-cljs "0.8.256"]
                                        [com.andrewmcveigh/cljs-time "0.5.2"]
                                        [re-frame "0.10.9" :exclusions [cljsjs/react org.clojure/clojurescript]]
-                                       [binaryage/oops "0.7.0"]
-                                       [cljsjs/react "16.9.0-0"]
-                                       [cljsjs/react-dom "16.9.0-0"]
-                                       [cljsjs/react-dom-server "16.9.0-0"]
+                                       [cljsjs/react "16.11.0-0"]
+                                       [cljsjs/react-dom "16.11.0-0"]
+                                       [cljsjs/react-dom-server "16.11.0-0"]
                                        [cljsjs/react-transition-group "4.3.0-0"]
-                                       [arttuka/reagent-material-ui "4.5.1-0"]]}
+                                       [arttuka/reagent-material-ui "4.5.1-1"]]}
              :uberjar  {:source-paths       ["env/prod/cljs"]
                         :main               mtg-pairings-server.main
                         :aot                :all

@@ -7,7 +7,6 @@
             [reagent-material-ui.icons.filter-list :refer [filter-list]]
             [reagent-material-ui.pickers :as pickers]
             [reagent-material-ui.styles :refer [styled with-styles]]
-            [oops.core :refer [oget]]
             [mtg-pairings-server.components.pairings.expandable :refer [expandable-header]]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
@@ -61,7 +60,7 @@
      :date-picker {:flex 1}}))
 
 (defn date-picker [{:keys [label on-change on-clear value classes]}]
-  (let [on-click (fn [e]
+  (let [on-click (fn [^js/Event e]
                    (.stopPropagation e)
                    (on-clear))
         clear-button (reagent/as-element

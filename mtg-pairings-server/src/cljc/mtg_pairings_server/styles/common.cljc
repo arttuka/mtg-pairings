@@ -4,8 +4,7 @@
             [garden.color :refer [hex->rgb rgb? rgba rgb->hex]]
             [garden.compiler :refer [CSSRenderer]]
             #?(:clj [garden.stylesheet :refer [at-media]])
-            #?(:clj [garden.units :refer [px percent]])
-            #?(:cljs [oops.core :refer [oget]])))
+            #?(:clj [garden.units :refer [px percent]])))
 
 (def ellipsis-overflow {:white-space    :nowrap
                         :text-overflow  :ellipsis
@@ -55,7 +54,7 @@
           (apply at-media {:print true} styles)))
 
 #?(:cljs (defn mobile? []
-           (<= (oget js/window "innerWidth") mobile-max-width)))
+           (<= (.-innerWidth js/window) mobile-max-width)))
 
 (declare calc*)
 

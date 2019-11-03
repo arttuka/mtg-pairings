@@ -1,6 +1,5 @@
 (ns mtg-pairings-server.events.decklist
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
-            [oops.core :refer [oget]]
             [mtg-pairings-server.i18n.common :as i18n]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.styles.common :refer [mobile?]]
@@ -27,7 +26,7 @@
                                       :sort                  {:key       :submitted
                                                               :ascending true}}
                     :language        (i18n/language :en)}
-                   (transit/read (oget js/window "initial_db"))))
+                   (transit/read js/initialDb)))
 
 (reg-event-db ::initialize
   (fn [db _]

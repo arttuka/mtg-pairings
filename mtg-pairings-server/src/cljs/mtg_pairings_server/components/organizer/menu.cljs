@@ -30,8 +30,8 @@
 (defn round-select* [{:keys [on-change]}]
   (let [open? (atom false)
         toggle-open #(swap! open? not)
-        anchor-ref (.createRef js/React)
-        on-close (fn [event]
+        ^js/React.Ref anchor-ref (.createRef js/React)
+        on-close (fn [^js/Event event]
                    (when-not (some-> (.-current anchor-ref)
                                      (.contains (.-target event)))
                      (reset! open? false)))

@@ -2,14 +2,12 @@
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
             [clojure.string :as str]
-            [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [valid-email?]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
-            [mtg-pairings-server.util.material-ui :as mui-util :refer [text-field]]
-            [mtg-pairings-server.util :as util]))
+            [mtg-pairings-server.util.material-ui :as mui-util :refer [text-field]]))
 
 (defn player-info-styles [{:keys [spacing] :as theme}]
   (let [on-desktop (mui-util/on-desktop theme)

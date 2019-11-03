@@ -1,6 +1,5 @@
 (ns mtg-pairings-server.websocket
-  (:require #?(:cljs [cljs.core.async :as async :include-macros true])
-            [taoensso.sente :as sente]
+  (:require [taoensso.sente :as sente]
             [taoensso.timbre :as log]
             #?(:clj  [mount.core :refer [defstate]]
                :cljs [mount.core :refer-macros [defstate]])
@@ -8,8 +7,7 @@
             [mtg-pairings-server.transit :refer [writers readers]]
             [mtg-pairings-server.util :refer [parse-iso-date format-iso-date]]
             #?(:clj [taoensso.sente.server-adapters.aleph :refer [get-sch-adapter]])
-            #?(:clj [compojure.core :refer [defroutes GET POST]])
-            #?(:cljs [oops.core :refer [oget]])))
+            #?(:clj [compojure.core :refer [defroutes GET POST]])))
 
 ;; Transit communication
 
@@ -33,8 +31,8 @@
         :ajax-get-or-ws-handshake-fn ajax-get-or-ws-handshake-fn})
      :cljs
      (let [{:keys [ch-recv send-fn chsk state]}
-           (sente/make-channel-socket-client! path (oget js/window "csrf_token") {:packer packer
-                                                                                  :type   :auto})]
+           (sente/make-channel-socket-client! path js/csrfToken {:packer packer
+                                                                 :type   :auto})]
        {:receive ch-recv
         :send!   send-fn
         :state   state
@@ -67,33 +65,23 @@
   (some-> router deref :state deref))
 
 #?(:cljs
-   (def send-ch (atom (async/chan 10))))
+   (defonce stored-events (atom [])))
+
 #?(:cljs
-   (defn start-send-loop []
-     (when-not @send-ch
-       (reset! send-ch (async/chan 10)))
-     (async/go-loop [[event timeout callback :as data] (async/<! @send-ch)]
-       (when data
-         (if (:open? (ws-state))
-           (do
-             ((:send! @router) event timeout callback)
-             (recur (async/<! @send-ch)))
-           (do
-             (async/<! (async/timeout 10))
-             (recur data)))))))
-#?(:cljs
-   (defn stop-send-loop []
-     (when @send-ch
-       (async/close! @send-ch))))
+   (defmethod event-handler :chsk/state
+     [{:keys [?data]}]
+     (let [[_ new-state] ?data]
+       (when (:open? new-state)
+         (let [[events _] (swap-vals! stored-events (constantly []))]
+           (doseq [[event timeout callback] events]
+             ((:send! @router) event timeout callback)))))))
 
 (defn start-router []
   (let [conn (init-ws)]
-    #?(:cljs (start-send-loop))
     (assoc conn :router (sente/start-chsk-router! (:receive conn) event-handler*))))
 
 (defn stop-router [r]
   #?(:cljs (sente/chsk-disconnect! (:chsk r)))
-  #?(:cljs (stop-send-loop))
   ((:router r)))
 
 (defstate router
@@ -108,7 +96,9 @@
      ([event]
       (send! event nil nil))
      ([event timeout callback]
-      (async/put! @send-ch [event timeout callback]))))
+      (if (:open? (ws-state))
+        ((:send! @router) event timeout callback)
+        (swap! stored-events conj [event timeout callback])))))
 
 #?(:clj (defroutes routes
           (GET path request ((:ajax-get-or-ws-handshake-fn @router) request))

@@ -1,7 +1,6 @@
 (ns mtg-pairings-server.util.local-storage
   (:refer-clojure :exclude [remove])
   (:require [re-frame.core :refer [dispatch]]
-            [oops.core :refer [oget]]
             [mtg-pairings-server.util :refer [stringify-key split-key]]))
 
 (defn store [key obj]
@@ -15,15 +14,15 @@
      (-> item
          (or (js-obj))
          (js/JSON.parse)
-         (js->clj :keywordize-keys true?))
+         (js->clj :keywordize-keys true))
      default)))
 
 (defn remove [key]
   (.removeItem js/localStorage (stringify-key key)))
 
-(defn listener [event]
+(defn listener [^js/StorageEvent event]
   (dispatch [:mtg-pairings-server.events.pairings/local-storage-updated
-             (split-key (oget event "key"))
-             (-> (oget event "newValue")
+             (split-key (.-key event))
+             (-> (.-newValue event)
                  js/JSON.parse
                  (js->clj :keywordize-keys true))]))

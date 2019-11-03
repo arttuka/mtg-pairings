@@ -1,8 +1,6 @@
 (ns mtg-pairings-server.events.pairings
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
-            [cljs.core.async :refer [<! timeout] :refer-macros [go-loop]]
             [cljs-time.core :as time]
-            [oops.core :refer [oget]]
             [mtg-pairings-server.styles.common :refer [mobile?]]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in
@@ -31,7 +29,7 @@
                :logged-in-user     (local-storage/fetch :user)
                :notification       nil
                :mobile?            (mobile?)}
-              (transit/read (oget js/window "initial_db"))))
+              (transit/read js/initialDb)))
 
 (defn update-filters-active [db]
   (assoc db :filters-active (not= {:organizer ""
@@ -222,18 +220,13 @@
                                                 :start   now}))
       db)))
 
-(defonce ^:private running (atom false))
+(defonce ^:private clock-interval (atom nil))
 
 (reg-fx :clock
   (fn [action]
     (case action
-      :start (do
-               (reset! running true)
-               (go-loop []
-                 (<! (timeout 200))
-                 (dispatch [::update-clock])
-                 (when @running (recur))))
-      :stop (reset! running false))))
+      :start (reset! clock-interval (js/setInterval #(dispatch [::update-clock]) 200))
+      :stop (swap! clock-interval #(js/clearInterval %)))))
 
 (defn resolve-organizer-action [db id action value]
   (case action

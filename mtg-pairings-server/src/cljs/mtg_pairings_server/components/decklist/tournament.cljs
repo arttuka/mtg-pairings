@@ -10,7 +10,7 @@
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [format-date-time get-host]]
-            [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change]]))
+            [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change wrap-on-checked]]))
 
 (defn notice [type text]
   (let [display? (atom true)
@@ -158,15 +158,17 @@
         translate (subscribe [::subs/translate])
         selected-decklists (atom #{})
         on-select (fn [decklist-id]
-                    (fn [e]
-                      (swap! selected-decklists
-                             (if (.. e -target -checked) conj disj)
-                             decklist-id)))
-        on-select-all (fn [e]
-                        (reset! selected-decklists
-                                (if (.. e -target -checked)
-                                  (set (map :id @decklists))
-                                  #{})))]
+                    (wrap-on-checked
+                     (fn [checked?]
+                       (swap! selected-decklists
+                              (if checked? conj disj)
+                              decklist-id))))
+        on-select-all (wrap-on-checked
+                       (fn [checked?]
+                         (reset! selected-decklists
+                                 (if checked?
+                                   (set (map :id @decklists))
+                                   #{}))))]
     (fn tournament-render [{:keys [id classes]}]
       (let [translate @translate]
         [:div#decklist-organizer-tournament {:class (:root-container classes)}

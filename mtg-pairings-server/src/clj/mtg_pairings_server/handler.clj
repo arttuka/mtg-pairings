@@ -44,8 +44,8 @@
                                (str \/ (@asset-manifest "css/main.min.css"))))]
                [:body {:class "body-container"}
                 [:div#app]
-                [:script (str "var csrf_token = '" *anti-forgery-token* "'; "
-                              "var initial_db = '" (escape-quotes (transit/write initial-db)) "'; ")]
+                [:script (str "var csrfToken = '" *anti-forgery-token* "'; "
+                              "var initialDb = '" (escape-quotes (transit/write initial-db)) "'; ")]
                 (include-js (if (env :dev)
                               "/js/dev-main.js"
                               (str \/ (@asset-manifest js-file))))])]

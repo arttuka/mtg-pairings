@@ -3,7 +3,6 @@
             [re-frame.core :refer [subscribe dispatch]]
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
-            [oops.core :refer [oget]]
             [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
             [mtg-pairings-server.subscriptions.decklist :as subs]))
 
@@ -46,11 +45,11 @@
       (let [translate @translate]
         [:div {:class (:root-container classes)}
          [:p (translate :organizer.log-in.text)]
-         [:form {:action (str "/login?next=" (oget js/window "location" "pathname"))
+         [:form {:action (str "/login?next=" (.. js/window -location -pathname))
                  :method :post}
           [:input {:type  :hidden
                    :name  :__anti-forgery-token
-                   :value (oget js/window "csrf_token")}]
+                   :value js/csrfToken}]
           [:div {:class (:field-container classes)}
            [ui/text-field {:class (:field classes)
                            :name  :username
@@ -66,3 +65,4 @@
             (translate :organizer.log-in.button)]]]]))))
 
 (def login ((with-styles login-styles) login*))
+
