@@ -1,7 +1,7 @@
 (ns mtg-pairings-server.components.organizer.common
   (:require [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
-            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]))
+            [mtg-pairings-server.util.styles :refer [ellipsis-overflow]]))
 
 (def number-style {:text-align  :center
                    :font-weight :bold

@@ -2,10 +2,10 @@
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [mtg-pairings-server.i18n.common :as i18n]
             [mtg-pairings-server.routes.decklist :as routes]
-            [mtg-pairings-server.styles.common :refer [mobile?]]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :as util]
             [mtg-pairings-server.util.decklist :refer [add-id-to-card add-id-to-cards types->keyword-set]]
+            [mtg-pairings-server.util.styles :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
 
 (def empty-decklist {:main   []

@@ -2,8 +2,8 @@
   (:require [re-frame.core :refer [subscribe]]
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
-            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
-            [mtg-pairings-server.subscriptions.pairings :as subs]))
+            [mtg-pairings-server.subscriptions.pairings :as subs]
+            [mtg-pairings-server.util.styles :refer [ellipsis-overflow]]))
 
 (def styles
   {:root   {:display         :flex
@@ -33,8 +33,6 @@
       (let [name->seating (into {} (map (juxt :name :table_number) @seatings))
             pods (into (sorted-map) (group-by :pod (sort-by :team_name @pods)))]
         [:div {:class (:root classes)}
-         [:style {:type "text/css"}
-          "#header { display: none !important; }"]
          (for [[pod-number seats] pods]
            [deck-construction-table {:classes       classes
                                      :pod           pod-number

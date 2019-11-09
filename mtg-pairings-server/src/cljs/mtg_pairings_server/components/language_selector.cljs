@@ -6,7 +6,7 @@
             [mtg-pairings-server.components.button-toggle :refer [button-toggle]]
             [mtg-pairings-server.events.common :as common-events]
             [mtg-pairings-server.subscriptions.common :as common-subs]
-            [mtg-pairings-server.util.material-ui :refer [on-print]]))
+            [mtg-pairings-server.util.styles :refer [on-print]]))
 
 (def styles {:root {:float   :right
                     :width   120

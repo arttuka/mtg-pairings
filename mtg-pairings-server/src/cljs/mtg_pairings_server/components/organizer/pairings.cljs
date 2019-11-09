@@ -2,11 +2,11 @@
   (:require [reagent.core :refer [atom]]
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.components :as ui]
-            [reagent-material-ui.styles :refer [styled with-styles]]
+            [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.organizer.common :refer [column header row number-style player-style]]
-            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
-            [mtg-pairings-server.util.mtg :refer [bye? duplicate-pairings]]))
+            [mtg-pairings-server.util.mtg :refer [bye? duplicate-pairings]]
+            [mtg-pairings-server.util.styles :refer [ellipsis-overflow]]))
 
 (defn pairing-styles [{:keys [palette]}]
   {:bye-row      (let [color (get-in palette [:primary 100])]

@@ -9,24 +9,24 @@
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util.decklist :refer [->text card-types]]
-            [mtg-pairings-server.util.material-ui :as mui-util :refer [text-field wrap-on-change]]))
+            [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change]]
+            [mtg-pairings-server.util.styles :refer [on-desktop]]))
 
 (defn valid-code [address]
   (when address
     (let [[_ code] (re-find #"/([A-z0-9_-]{22})$" address)]
       code)))
 
-(defn styles [{:keys [palette spacing] :as theme}]
-  (let [on-desktop (mui-util/on-desktop theme)]
-    {:tab-panel-half    {:padding   (spacing 1)
-                         on-desktop {:width          "50%"
-                                     :display        :inline-block
-                                     :vertical-align :top}}
-     :address-import    {:height 68
-                         :margin (spacing 1 0)}
-     :error             {:color (get-in palette [:error :main])}
-     :text-import       {:margin-bottom (spacing 1)}
-     :text-import-input {:background-color (get colors/grey 100)}}))
+(defn styles [{:keys [palette spacing]}]
+  {:tab-panel-half    {:padding   (spacing 1)
+                       on-desktop {:width          "50%"
+                                   :display        :inline-block
+                                   :vertical-align :top}}
+   :address-import    {:height 68
+                       :margin (spacing 1 0)}
+   :error             {:color (get-in palette [:error :main])}
+   :text-import       {:margin-bottom (spacing 1)}
+   :text-import-input {:background-color (get colors/grey 100)}})
 
 (defn subheader [text]
   [ui/typography {:variant :h6}

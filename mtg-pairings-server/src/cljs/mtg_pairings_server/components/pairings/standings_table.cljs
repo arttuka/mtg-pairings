@@ -5,29 +5,26 @@
             [goog.string :as gstring]
             [goog.string.format]
             [mtg-pairings-server.components.pairings.table :as table]
-            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
-            [mtg-pairings-server.util.material-ui :as mui-util]))
+            [mtg-pairings-server.util.styles :refer [ellipsis-overflow on-desktop on-mobile]]))
 
 (defn styles [theme]
   (merge (table/table-styles theme)
-         (let [on-mobile (mui-util/on-mobile theme)
-               on-desktop (mui-util/on-desktop theme)]
-           {:rank-column       {:text-align  :center
-                                :font-weight 700
-                                on-desktop   {:width "50px"}
-                                on-mobile    {:width "40px"}}
-            :player-column     {:text-align :left
-                                on-desktop  {:min-width "300px"}
-                                on-mobile   (merge {:max-width "calc(100vw - 262px)"}
-                                                   ellipsis-overflow)}
-            :points-column     {:text-align :center
-                                on-desktop  {:width "50px"}
-                                on-mobile   {:width "40px"}}
-            :tiebreaker-column {:text-align :center
-                                on-desktop  {:width "70px"}
-                                on-mobile   {:width     "50px"
-                                             :font-size "14px"}}})))
+         {:rank-column       {:text-align  :center
+                              :font-weight 700
+                              on-desktop   {:width "50px"}
+                              on-mobile    {:width "40px"}}
+          :player-column     {:text-align :left
+                              on-desktop  {:min-width "300px"}
+                              on-mobile   (merge {:max-width "calc(100vw - 262px)"}
+                                                 ellipsis-overflow)}
+          :points-column     {:text-align :center
+                              on-desktop  {:width "50px"}
+                              on-mobile   {:width "40px"}}
+          :tiebreaker-column {:text-align :center
+                              on-desktop  {:width "70px"}
+                              on-mobile   {:width     "50px"
+                                           :font-size "14px"}}}))
 
 (defn percentage [n]
   (gstring/format "%.3f" (* 100 n)))

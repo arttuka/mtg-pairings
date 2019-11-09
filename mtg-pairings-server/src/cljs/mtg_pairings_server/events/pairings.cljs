@@ -1,11 +1,11 @@
 (ns mtg-pairings-server.events.pairings
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [cljs-time.core :as time]
-            [mtg-pairings-server.styles.common :refer [mobile?]]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in
                                               index-where dissoc-index]]
             [mtg-pairings-server.util.local-storage :as local-storage]
+            [mtg-pairings-server.util.styles :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
 
 (defn initial-db []
@@ -32,7 +32,7 @@
               (transit/read js/initialDb)))
 
 (defn update-filters-active [db]
-  (assoc db :filters-active (not= {:organizer ""
+  (assoc db :filters-active (not= {:organizer "all-organizers"
                                    :date-from nil
                                    :date-to   nil
                                    :players   [0 (:max-players db)]}

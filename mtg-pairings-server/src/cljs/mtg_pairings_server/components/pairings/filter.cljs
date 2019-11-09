@@ -6,22 +6,20 @@
             [reagent-material-ui.icons.expand-more :refer [expand-more]]
             [reagent-material-ui.icons.filter-list :refer [filter-list]]
             [reagent-material-ui.pickers :as pickers]
-            [reagent-material-ui.styles :refer [styled with-styles]]
+            [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.pairings.expandable :refer [expandable-header]]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [debounce to-local-date]]
-            [mtg-pairings-server.util.material-ui :as mui-util]))
+            [mtg-pairings-server.util.styles :refer [on-desktop on-mobile]]))
 
-(defn organizer-filter-styles [{:keys [spacing] :as theme}]
-  (let [on-desktop (mui-util/on-desktop theme)
-        on-mobile (mui-util/on-mobile theme)]
-    {:container {on-desktop {:flex         "0 1 256px"
-                             :margin-right (spacing 2)}
-                 on-mobile  {:width         "100%"
-                             :margin-bottom (spacing 1)}}}))
+(defn organizer-filter-styles [{:keys [spacing]}]
+  {:container {on-desktop {:flex         "0 1 256px"
+                           :margin-right (spacing 2)}
+               on-mobile  {:width         "100%"
+                           :margin-bottom (spacing 1)}}})
 
 (defn organizer-filter* [props]
   (let [organizers (subscribe [::subs/organizers])
@@ -45,19 +43,17 @@
 
 (def organizer-filter ((with-styles organizer-filter-styles) organizer-filter*))
 
-(defn date-filter-styles [{:keys [spacing] :as theme}]
-  (let [on-desktop (mui-util/on-desktop theme)
-        on-mobile (mui-util/on-mobile theme)]
-    {:container   {:height         48
-                   :align-items    :flex-end
-                   :flex-direction :row
-                   on-desktop      {:flex         "0 1 280px"
-                                    :margin-right (spacing 2)}
-                   on-mobile       {:width         "100%"
-                                    :margin-bottom (spacing 1)}}
-     :separator   {:flex   "0 0 auto"
-                   :margin (spacing 0 1)}
-     :date-picker {:flex 1}}))
+(defn date-filter-styles [{:keys [spacing]}]
+  {:container   {:height         48
+                 :align-items    :flex-end
+                 :flex-direction :row
+                 on-desktop      {:flex         "0 1 280px"
+                                  :margin-right (spacing 2)}
+                 on-mobile       {:width         "100%"
+                                  :margin-bottom (spacing 1)}}
+   :separator   {:flex   "0 0 auto"
+                 :margin (spacing 0 1)}
+   :date-picker {:flex 1}})
 
 (defn date-picker [{:keys [label on-change on-clear value classes]}]
   (let [on-click (fn [^js/Event e]
@@ -100,14 +96,13 @@
 
 (def date-filter ((with-styles date-filter-styles) date-filter*))
 
-(defn player-filter-styles [{:keys [spacing] :as theme}]
-  (let [on-desktop (mui-util/on-desktop theme)
-        on-mobile (mui-util/on-mobile theme)]
-    {:container {on-desktop {:flex         "0 1 220px"
-                             :margin-right (spacing 2)}
-                 on-mobile  {:width         "100%"
-                             :margin-bottom (spacing 1)}}
-     :slider    {:margin-top (spacing 3)}}))
+(defn player-filter-styles [{:keys [spacing]}]
+  {:container {on-desktop {:flex         "0 1 220px"
+                           :margin-right (spacing 2)}
+               on-mobile  {:width         "100%"
+                           :margin-bottom (spacing 1)}}
+   :slider    {:margin-top (spacing 3)
+               :padding    [[11 0]]}})
 
 (defn player-filter* [{:keys [classes]}]
   (with-let [players (subscribe [::subs/tournament-filter :players])
@@ -117,8 +112,9 @@
                                       200)
              value (atom @players)
              on-change (fn [_ new-value]
-                         (reset! value new-value)
-                         (dispatch-event new-value))
+                         (let [v (js->clj new-value)]
+                           (reset! value v)
+                           (dispatch-event v)))
              _ (add-watch players :player-filter-watch
                           (fn [_ _ _ new]
                             (reset! value new)))]
@@ -153,10 +149,10 @@
         :color    :secondary}
        "Poista valinnat"])))
 
-(def desktop-filter-container (styled ui/toolbar
-                                      (fn [{{spacing :spacing} :theme}]
-                                        {:align-items :flex-end
-                                         :padding     (spacing 2)})))
+(def desktop-filter-container ((with-styles (fn [{:keys [spacing]}]
+                                              {:root {:align-items :flex-end
+                                                      :padding     (spacing 2)}}))
+                               ui/toolbar))
 
 (defn desktop-filters []
   [desktop-filter-container

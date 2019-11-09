@@ -19,20 +19,18 @@
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [debounce format-date format-date-time get-host]]
             [mtg-pairings-server.util.decklist :refer [->text card-types decklist-errors]]
-            [mtg-pairings-server.util.material-ui :as mui-util]
+            [mtg-pairings-server.util.styles :refer [on-desktop on-mobile on-print]]
             [mtg-pairings-server.util :as util]))
 
-(defn input-styles [{:keys [palette spacing] :as theme}]
-  (let [on-desktop (mui-util/on-desktop theme)
-        on-mobile (mui-util/on-mobile theme)]
-    {:autocomplete-container {:flex 1}
-     :menu-item              {"&[data-focus=\"true\"]" {:background-color (get-in palette [:action :selected])}}
-     :button-group           {:flex "0 0 140px"}
-     :container              {:display     :flex
-                              :align-items :flex-end
-                              :padding     (spacing 0 1)
-                              on-mobile    {:width "100%"}
-                              on-desktop   {:width 400}}}))
+(defn input-styles [{:keys [palette spacing]}]
+  {:autocomplete-container {:flex 1}
+   :menu-item              {"&[data-focus=\"true\"]" {:background-color (get-in palette [:action :selected])}}
+   :button-group           {:flex "0 0 140px"}
+   :container              {:display     :flex
+                            :align-items :flex-end
+                            :padding     (spacing 0 1)
+                            on-mobile    {:width "100%"}
+                            on-desktop   {:width 400}}})
 
 (defn input* [props]
   (let [tournament (subscribe [::subs/tournament])
@@ -139,13 +137,12 @@
              (->text @decklist)]])
          [error-list errors]]))))
 
-(defn styles [{:keys [spacing] :as theme}]
-  (let [on-desktop (mui-util/on-desktop theme)]
-    {:root {:padding-top (spacing 2)
-            on-desktop   {:max-width 880
-                          :margin    "0 auto"}}
-     :bold {:font-weight :bold}
-     :no-print {mui-util/on-print {:display :none}}}))
+(defn styles [{:keys [spacing]}]
+  {:root     {:padding-top (spacing 2)
+              on-desktop   {:max-width 880
+                            :margin    "0 auto"}}
+   :bold     {:font-weight :bold}
+   :no-print {on-print {:display :none}}})
 
 (defn decklist-submit* [props]
   (let [tournament (subscribe [::subs/tournament])

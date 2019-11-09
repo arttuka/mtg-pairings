@@ -3,10 +3,9 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.routes.decklist :as routes]
-            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
             [mtg-pairings-server.util :refer [format-date]]
             [mtg-pairings-server.util.decklist :refer [card-types]]
-            [mtg-pairings-server.util.material-ui :refer [on-screen on-print]]))
+            [mtg-pairings-server.util.styles :refer [ellipsis-overflow on-screen on-print]]))
 
 (defn div* [classes]
   (fn div [cls & children]
@@ -138,9 +137,8 @@
                                         "& $value" {:width "calc(100% - 90px)"}
                                         "& $label" {:width 90}}}
                  :dci        {:display :inline-block
-                              on-print {
-                                        :width     420
-                                        "& $label" {:width        40}}}
+                              on-print {:width     420
+                                        "& $label" {:width 40}}}
                  :digit      {:display :inline-block
                               on-print {:text-align     :center
                                         :vertical-align :bottom

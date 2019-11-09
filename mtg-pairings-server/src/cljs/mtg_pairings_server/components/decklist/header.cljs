@@ -8,7 +8,7 @@
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]))
 
-(defn styles [{:keys [spacing] :as theme}]
+(defn styles [{:keys [spacing]}]
   {:button    {:margin (spacing 0 1)
                :width  200}
    :root      {"@media print" {:display :none}}

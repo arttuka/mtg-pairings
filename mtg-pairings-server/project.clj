@@ -21,11 +21,9 @@
                  [com.taoensso/sente "1.14.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [com.cognitect/transit-clj "0.8.319"]
-                 [com.fzakaria/slf4j-timbre "0.3.14"]
-                 [garden "1.3.9"]]
+                 [com.fzakaria/slf4j-timbre "0.3.14"]]
   :plugins [[lein-ancient "0.6.15"]
             [lein-cljfmt "0.6.4"]
-            [lein-garden "0.3.0" :exclusions [org.apache.commons/commons-compress]]
             [lein-kibit "0.1.7"]
             [jonase/eastwood "0.3.6"]
             [no.terjedahl/lein-buster "0.2.0"]]
@@ -34,22 +32,14 @@
 
   :clean-targets ^{:protect false} ["target"
                                     "resources/public/js"
-                                    "resources/public/css"
                                     "resources/manifest.json"]
 
   :source-paths ["src/clj" "src/cljc" "src/cljs"]
   :resource-paths ["resources"]
   :test-paths []
 
-  :garden {:builds [{:id           "main"
-                     :source-paths ["src/clj" "src/cljc"]
-                     :stylesheet   mtg-pairings-server.styles.main/main
-                     :compiler     {:output-to     "target/public/css/main.css"
-                                    :pretty-print? true}}]}
-
   :buster {:files       ["target/public/js/pairings-main.js"
-                         "target/public/js/decklist-main.js"
-                         "target/public/css/main.min.css"]
+                         "target/public/js/decklist-main.js"]
            :files-base  "target/public"
            :output-base "resources/public"
            :manifest    "resources/manifest.json"}
@@ -91,7 +81,6 @@
                                          [ring/ring-mock "0.4.0"]
                                          [ring/ring-devel "1.7.1"]
                                          [prone "2019-07-08"]
-                                         [hawk "0.2.11"]
                                          [cider/piggieback "0.4.2" :exclusions [org.clojure/clojurescript]]
                                          [re-frisk "0.5.4.1" :exclusions [org.clojure/clojurescript]]]}
              :test     {:source-paths   ^:replace ["src/clj" "src/cljc" "src/cljs"]

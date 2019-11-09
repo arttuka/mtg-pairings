@@ -1,9 +1,8 @@
 FROM adoptopenjdk/openjdk12-openj9:alpine AS builder
 ENV LEIN_ROOT true
-RUN apk --no-cache add curl bash nodejs npm \
+RUN apk --no-cache add curl bash \
     && curl -Lo /usr/bin/lein https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein \
-    && chmod +x /usr/bin/lein \
-    && npm i -g uglifycss
+    && chmod +x /usr/bin/lein
 WORKDIR /app
 COPY project.clj .
 RUN lein deps
@@ -21,9 +20,6 @@ RUN lein do \
          cljfmt check \
     && lein with-profile provided,prod do \
          clean, \
-         garden once \
-    && uglifycss target/public/css/main.css > target/public/css/main.min.css \
-    && lein with-profile provided,prod do \
          fig:min pairings, \
          fig:min decklist, \
          buster, \

@@ -3,8 +3,8 @@
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.organizer.common :refer [column header row number-style player-style]]
-            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
-            [mtg-pairings-server.subscriptions.pairings :as subs]))
+            [mtg-pairings-server.subscriptions.pairings :as subs]
+            [mtg-pairings-server.util.styles :refer [ellipsis-overflow]]))
 
 (def pod-styles {:number number-style
                  :player player-style})

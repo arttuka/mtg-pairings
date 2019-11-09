@@ -18,7 +18,9 @@
 
 (defn display-header? [page]
   (and page
-       (not (contains? #{::organizer-pages/main} page))))
+       (not (contains? #{::organizer-pages/main
+                         ::organizer-pages/menu
+                         ::organizer-pages/deck-construction} page))))
 
 (defn current-page []
   (let [page-data (subscribe [::common-subs/page])]

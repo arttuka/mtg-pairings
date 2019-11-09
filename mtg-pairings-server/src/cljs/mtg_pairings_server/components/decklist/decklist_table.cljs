@@ -9,11 +9,11 @@
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util.decklist :refer [->text card-types decklist-errors basic?]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
-            [mtg-pairings-server.util.material-ui :as mui-util :refer [wrap-on-change]]))
+            [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
+            [mtg-pairings-server.util.styles :refer [on-desktop]]))
 
-(defn styles [{:keys [spacing] :as theme}]
-  (let [on-desktop (mui-util/on-desktop theme)
-        table-cell-style #(apply merge {:padding   0
+(defn styles [{:keys [spacing]}]
+  (let [table-cell-style #(apply merge {:padding   0
                                         :font-size 16}
                                  %&)]
     {:root            {on-desktop {:width          "50%"

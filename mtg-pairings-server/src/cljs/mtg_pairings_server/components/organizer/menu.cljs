@@ -4,7 +4,7 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.icons.arrow-drop-down :refer [arrow-drop-down]]
             [reagent-material-ui.icons.zoom-out-map :refer [zoom-out-map]]
-            [reagent-material-ui.styles :refer [styled with-styles]]
+            [reagent-material-ui.styles :refer [with-styles]]
             [goog.object :as obj]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.subscriptions.pairings :as subs]
@@ -77,10 +77,10 @@
                                    :menu-root   {:width 160}}))
                    round-select*))
 
-(def button (styled ui/button (fn [{:keys [theme]}]
-                                (let [spacing (:spacing theme)]
-                                  {:flex   "0 1 120px"
-                                   :margin (spacing 0 1)}))))
+(def button ((with-styles (fn [{:keys [spacing]}]
+                            {:root {:flex   "0 1 120px"
+                                    :margin (spacing 0 1)}}))
+             ui/button))
 
 (def button-group ((with-styles (fn [{:keys [spacing]}]
                                   {:root    {:margin (spacing 0 1)
@@ -88,18 +88,17 @@
                                    :grouped {:flex 1}}))
                    ui/button-group))
 
-(defn time-field* [{:keys [class-name value on-change]}]
-  [ui/text-field {:class     class-name
-                  :type      :number
-                  :min       0
-                  :max       100
-                  :value     value
-                  :on-change (wrap-on-change on-change)}])
+(def time-field* ((with-styles (fn [{:keys [spacing]}]
+                                 {:root {:width  40
+                                         :margin (spacing 0 1)}}))
+                  ui/text-field))
 
-(def time-field (styled time-field* (fn [{:keys [theme]}]
-                                      (let [spacing (:spacing theme)]
-                                        {:width  40
-                                         :margin (spacing 0 1)}))))
+(defn time-field [{:keys [value on-change]}]
+  [time-field* {:type      :number
+                :min       0
+                :max       100
+                :value     value
+                :on-change (wrap-on-change on-change)}])
 
 (defn menu []
   (let [new-pairings (subscribe [::subs/organizer :new-pairings])

@@ -7,12 +7,11 @@
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [valid-email?]]
             [mtg-pairings-server.util.mtg :refer [valid-dci?]]
-            [mtg-pairings-server.util.material-ui :as mui-util :refer [text-field]]))
+            [mtg-pairings-server.util.material-ui :refer [text-field]]
+            [mtg-pairings-server.util.styles :refer [on-desktop on-mobile]]))
 
-(defn player-info-styles [{:keys [spacing] :as theme}]
-  (let [on-desktop (mui-util/on-desktop theme)
-        on-mobile (mui-util/on-mobile theme)
-        text-field-style #(merge {:margin-bottom (spacing 2)
+(defn player-info-styles [{:keys [spacing]}]
+  (let [text-field-style #(merge {:margin-bottom (spacing 2)
                                   :height        68}
                                  %)]
     {:full-width (text-field-style {:width "100%"})

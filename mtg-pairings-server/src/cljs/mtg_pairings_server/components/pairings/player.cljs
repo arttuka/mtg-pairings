@@ -7,22 +7,20 @@
             [accountant.core :as accountant]
             [mtg-pairings-server.components.pairings.tournament :refer [tournament-header]]
             [mtg-pairings-server.routes.pairings :refer [standings-path]]
-            [mtg-pairings-server.util.material-ui :as mui-util]
-            [mtg-pairings-server.util.mtg :refer [bye?]]))
+            [mtg-pairings-server.util.mtg :refer [bye?]]
+            [mtg-pairings-server.util.styles :refer [on-desktop on-mobile]]))
 
-(defn styles [{:keys [palette] :as theme}]
-  (let [on-mobile (mui-util/on-mobile theme)
-        on-desktop (mui-util/on-desktop theme)]
-    {:names-container {:display :flex}
-     :names           {:flex "1"}
-     :points          {:flex "0 0 auto"}
-     :mobile-block    {on-desktop {:display :inline-block}
-                       on-mobile  {:display :block}}
-     :hidden-mobile   {on-mobile {:display :none}}
-     :avatar          {:background-color (get-in palette [:primary :main])}
-     :box             {:flex "1"}
-     :card-content    {:padding-top    0
-                       :padding-bottom 0}}))
+(defn styles [{:keys [palette]}]
+  {:names-container {:display :flex}
+   :names           {:flex "1"}
+   :points          {:flex "0 0 auto"}
+   :mobile-block    {on-desktop {:display :inline-block}
+                     on-mobile  {:display :block}}
+   :hidden-mobile   {on-mobile {:display :none}}
+   :avatar          {:background-color (get-in palette [:primary :main])}
+   :box             {:flex "1"}
+   :card-content    {:padding-top    0
+                     :padding-bottom 0}})
 
 (defn pairing* [{:keys [data classes] :as props}]
   (let [bye (bye? data)

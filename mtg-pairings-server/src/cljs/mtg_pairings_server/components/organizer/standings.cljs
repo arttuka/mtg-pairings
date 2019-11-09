@@ -4,8 +4,8 @@
             [reagent-material-ui.styles :refer [with-styles]]
             [goog.string :as gstring]
             [mtg-pairings-server.components.organizer.common :refer [column header row]]
-            [mtg-pairings-server.styles.common :refer [ellipsis-overflow]]
-            [mtg-pairings-server.subscriptions.pairings :as subs]))
+            [mtg-pairings-server.subscriptions.pairings :as subs]
+            [mtg-pairings-server.util.styles :refer [ellipsis-overflow]]))
 
 (def standing-styles {:rank    {:text-align  :center
                                 :font-weight :bold

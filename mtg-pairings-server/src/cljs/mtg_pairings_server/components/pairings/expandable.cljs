@@ -3,15 +3,15 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.icons.expand-more :refer [expand-more]]
             [reagent-material-ui.styles :refer [with-styles]]
-            [mtg-pairings-server.util.material-ui :as mui-util]))
+            [mtg-pairings-server.util.styles :refer [on-desktop create-transition]]))
 
 (defn expandable-styles [theme]
   {:expand      {:transform  "rotate(0deg)"
-                 :transition (mui-util/create-transition theme
-                                                         :transform
-                                                         {:duration (get-in theme [:transitions :duration :shortest])})}
+                 :transition (create-transition theme
+                                                :transform
+                                                {:duration (get-in theme [:transitions :duration :shortest])})}
    :expand-open {:transform "rotate(180deg)"}
-   :expandable  {(mui-util/on-desktop theme) {:cursor :pointer}}})
+   :expandable  {on-desktop {:cursor :pointer}}})
 
 (defn expandable-header* [{:keys [classes expanded? on-expand] :as props}]
   (let [other-props (dissoc props :classes :expanded? :on-expand)]

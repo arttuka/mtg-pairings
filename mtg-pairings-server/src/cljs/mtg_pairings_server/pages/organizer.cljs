@@ -24,6 +24,4 @@
 
 (defn organizer-menu []
   [:div#organizer-page
-   [:style {:type "text/css"}
-    "#header { display: none !important; }"]
    [menu]])

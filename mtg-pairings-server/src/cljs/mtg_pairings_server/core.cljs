@@ -23,6 +23,8 @@
 (defn display-header? [page]
   (and page
        (not (contains? #{::organizer-pages/main
+                         ::organizer-pages/menu
+                         ::organizer-pages/deck-construction
                          ::decklist-pages/submit
                          ::decklist-pages/organizer
                          ::decklist-pages/organizer-tournament

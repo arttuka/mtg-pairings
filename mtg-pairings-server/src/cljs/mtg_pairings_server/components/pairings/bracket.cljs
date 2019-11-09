@@ -3,12 +3,10 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
-            [mtg-pairings-server.util.material-ui :as mui-util]))
+            [mtg-pairings-server.util.styles :refer [on-desktop on-mobile]]))
 
-(defn bracket-player-styles [{:keys [palette spacing] :as theme}]
-  (let [on-desktop (mui-util/on-desktop theme)
-        on-mobile (mui-util/on-mobile theme)
-        border [[1 :solid (get-in palette [:text :primary])]]]
+(defn bracket-player-styles [{:keys [palette spacing]}]
+  (let [border [[1 :solid (get-in palette [:text :primary])]]]
     {:player         (fn [{:keys [matches]}]
                        {on-desktop {:border-bottom     border
                                     :padding-top       (spacing (case matches
@@ -57,13 +55,11 @@
 
 (def bracket-player ((with-styles bracket-player-styles) bracket-player*))
 
-(defn bracket-styles [theme]
-  (let [on-mobile (mui-util/on-mobile theme)
-        on-desktop (mui-util/on-desktop theme)]
-    {:container    {:display  :flex
-                    on-mobile {:flex-direction :column}}
-     :round        {on-desktop {:width 300}}
-     :round-header {on-desktop {:display :none}}}))
+(def bracket-styles
+  {:container    {:display  :flex
+                  on-mobile {:flex-direction :column}}
+   :round        {on-desktop {:width 300}}
+   :round-header {on-desktop {:display :none}}})
 
 (defn bracket* [{:keys [tournament-id]}]
   (let [data (subscribe [::subs/bracket tournament-id])]

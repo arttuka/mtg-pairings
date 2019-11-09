@@ -7,13 +7,13 @@
             [mtg-pairings-server.components.pairings.expandable :refer [expandable-header]]
             [mtg-pairings-server.routes.pairings :refer [tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.util :refer [format-date]]
-            [mtg-pairings-server.util.material-ui :as mui-util]))
+            [mtg-pairings-server.util.styles :refer [on-desktop on-mobile]]))
 
-(defn tournament-styles [{:keys [spacing] :as theme}]
+(defn tournament-styles [{:keys [spacing]}]
   {:card         {:width "100%"}
-   :card-content {:padding                    (spacing 0 2)
-                  (mui-util/on-desktop theme) {:width 340}
-                  (mui-util/on-mobile theme)  {:width "100%"}}
+   :card-content {:padding   (spacing 0 2)
+                  on-desktop {:width 340}
+                  on-mobile  {:width "100%"}}
    :button-group {:margin-bottom (spacing 1)
                   :display       :flex}
    :half-width   {:width "50%"}})
