@@ -13,9 +13,10 @@
             [mtg-pairings-server.events.decklist :as decklist-events]
             [mtg-pairings-server.events.pairings :as pairings-events]
             [mtg-pairings-server.pages.decklist :as decklist-pages :refer [decklist-organizer decklist-submit]]
-            [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu deck-construction-tables]]
+            [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu]]
             [mtg-pairings-server.pages.pairings :as pairings-pages :refer [main-page tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.components.notification :refer [notification]]
+            [mtg-pairings-server.components.organizer.deck-construction :refer [deck-construction-tables]]
             [mtg-pairings-server.components.pairings.header :refer [header]]
             [mtg-pairings-server.components.providers :refer [providers]]))
 
@@ -48,7 +49,7 @@
              ::pairings-pages/bracket) [#'tournament-subpage id page round]
             ::organizer-pages/main [#'organizer-page]
             ::organizer-pages/menu [#'organizer-menu]
-            ::organizer-pages/deck-construction [#'deck-construction-tables]
+            ::organizer-pages/deck-construction [deck-construction-tables]
             ::decklist-pages/submit [#'decklist-submit]
             (::decklist-pages/organizer
              ::decklist-pages/organizer-tournament

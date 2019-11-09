@@ -4,8 +4,7 @@
             [garden.stylesheet :refer [at-import]]
             [garden.units :refer [px percent]]
             [mtg-pairings-server.styles.common :refer [color when-desktop when-mobile when-print]]
-            [mtg-pairings-server.styles.decklist :as decklist]
-            [mtg-pairings-server.styles.organizer :as organizer]))
+            [mtg-pairings-server.styles.decklist :as decklist]))
 
 (defstyles base
   (at-import "https://fonts.googleapis.com/css?family=Lato:700")
@@ -30,7 +29,6 @@
 
 (defstyles main
   base
-  decklist/styles
-  organizer/styles)
+  decklist/styles)
 
 (def css (garden/css main))
