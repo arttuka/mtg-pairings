@@ -1,66 +1,66 @@
 (ns mtg-pairings-server.components.autocomplete
   (:require [reagent.core :as reagent :refer [atom]]
-            [reagent-material-ui.components :as ui]
             [clojure.string :as str]
-            [mtg-pairings-server.components.downshift :as downshift]))
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.util :refer [adapt-react-class js->clj' use-ref]]
+            [reagent-material-ui.lab.use-autocomplete :refer [use-autocomplete]]
+            [reagent-material-ui.lab.create-filter-options :refer [create-filter-options]]))
 
 (defn input [{:keys [input-props] :as props}]
-  (let [{:keys [on-blur on-change on-key-down]} input-props]
-    [ui/text-field (merge props {:InputProps  {:on-blur     on-blur
-                                               :on-change   on-change
-                                               :on-key-down on-key-down}
-                                 :input-props (dissoc input-props :on-blur :on-change :on-key-down)})]))
+  (let [{:keys [on-blur on-change on-focus ref]} input-props]
+    [ui/text-field (merge props {:InputProps  {:on-blur   on-blur
+                                               :on-change on-change
+                                               :on-focus  on-focus}
+                                 :input-props (dissoc input-props :on-blur :on-change :on-focus :ref)
+                                 :input-ref   ref})]))
 
-(defn autocomplete [{:keys [clear-suggestions fetch-suggestions on-select]}]
-  (let [{:keys [key-down-enter click-item]} downshift/state-change-types
-        on-input-value-change (fn [value {:keys [type]}]
-                                (when-not (contains? #{click-item key-down-enter} type)
-                                  (if (str/blank? value)
-                                    (clear-suggestions)
-                                    (fetch-suggestions value))))
-        state-reducer (fn [state changes]
-                        (condp contains? (:type changes)
-                          #{click-item key-down-enter} (assoc changes
-                                                              :input-value ""
-                                                              :selected-item nil)
-                          changes))
-        ^js/React.Ref popper-anchor (.createRef js/React)]
-    (fn [{:keys [classes label suggestion->string suggestions]}]
-      [downshift/component {:item-to-string        suggestion->string
-                            :on-input-value-change on-input-value-change
-                            :on-select             on-select
-                            :item-count            (count @suggestions)
-                            :selected-item         nil
-                            :state-reducer         state-reducer}
-       (fn downshift-render [downshift-props]
-         (let [{:keys [get-input-props
-                       get-label-props
-                       get-menu-props
-                       get-item-props
-                       highlighted-index
-                       open?]} downshift-props
-               anchor-el (.-current popper-anchor)
-               menu-open? (boolean (and open? (seq @suggestions)))]
-           (reagent/as-element
-            [:div {:class (:container classes)}
-             [input {:full-width      true
-                     :input-props     (get-input-props)
-                     :InputLabelProps (get-label-props)
-                     :input-ref       popper-anchor
-                     :label           label}]
-             [ui/popper {:open           menu-open?
-                         :anchor-el      anchor-el
-                         :placement      :bottom-start
-                         :disable-portal true
-                         :class          (:menu-container classes)}
-              [ui/paper {:style {:width (some-> anchor-el (.-clientWidth))}}
-               [ui/menu-list (if menu-open? (get-menu-props {} {:suppress-ref-error true}) {})
-                (for [[index item] (map-indexed vector @suggestions)
-                      :let [name (suggestion->string item)]]
-                  ^{:key name}
-                  [ui/menu-item (get-item-props {:index    index
-                                                 :item     item
-                                                 :selected (= highlighted-index index)})
-                   [ui/typography {:variant :inherit
-                                   :no-wrap true}
-                    name]])]]]])))])))
+(defn react-autocomplete [params]
+  (let [{:keys [classes label on-select get-option-label
+                fetch-suggestions clear-suggestions options]} (js->clj' params)
+        on-change (fn [_ v]
+                    (on-select (js->clj' (first v))))
+        value (use-ref #js [])
+        {:keys [anchor-el
+                get-input-label-props
+                get-input-props
+                get-listbox-props
+                get-option-props
+                get-root-props
+                grouped-options
+                popup-open
+                set-anchor-el]} (use-autocomplete {:options          options
+                                                   :on-change        on-change
+                                                   :on-close         clear-suggestions
+                                                   :get-option-label get-option-label
+                                                   :multiple         true
+                                                   :value            (.-current value)})
+        input-props (get-input-props)
+        on-input-change (fn [e]
+                          (let [v (.. e -target -value)]
+                            (if (str/blank? v)
+                              (clear-suggestions)
+                              (fetch-suggestions v)))
+                          ((:on-change input-props) e))]
+    (reagent/as-element
+     [:div (merge (get-root-props)
+                  {:class (:root classes)
+                   :ref   set-anchor-el})
+      [input {:full-width      true
+              :InputLabelProps (get-input-label-props)
+              :input-props     (assoc input-props :on-change on-input-change)
+              :label           label}]
+      [ui/popper {:open      (and popup-open (boolean (seq options)))
+                  :anchor-el anchor-el
+                  :placement :bottom-start}
+       [ui/paper {:style {:width (some-> anchor-el (.-clientWidth))}}
+        [ui/menu-list (get-listbox-props)
+         (for [[index option] (map-indexed vector grouped-options)]
+           ^{:key option}
+           (let [option-props (get-option-props {:index  index
+                                                 :option option})]
+             [ui/menu-item (assoc option-props :class (:menu-item classes))
+              [ui/typography {:variant :inherit
+                              :no-wrap true}
+               (get-option-label option)]]))]]]])))
+
+(def autocomplete (adapt-react-class react-autocomplete))

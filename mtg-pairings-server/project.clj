@@ -111,7 +111,7 @@
                                        [cljsjs/react-dom "16.11.0-0"]
                                        [cljsjs/react-dom-server "16.11.0-0"]
                                        [cljsjs/react-transition-group "4.3.0-0"]
-                                       [arttuka/reagent-material-ui "4.5.1-1"]]}
+                                       [arttuka/reagent-material-ui "4.6.0-0"]]}
              :uberjar  {:source-paths       ["env/prod/cljs"]
                         :main               mtg-pairings-server.main
                         :aot                :all

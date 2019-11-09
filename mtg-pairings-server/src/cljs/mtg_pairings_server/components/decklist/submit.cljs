@@ -22,11 +22,11 @@
             [mtg-pairings-server.util.material-ui :as mui-util]
             [mtg-pairings-server.util :as util]))
 
-(defn input-styles [{:keys [spacing] :as theme}]
+(defn input-styles [{:keys [palette spacing] :as theme}]
   (let [on-desktop (mui-util/on-desktop theme)
         on-mobile (mui-util/on-mobile theme)]
     {:autocomplete-container {:flex 1}
-     :menu-container         {:z-index 2}
+     :menu-item              {"&[data-focus=\"true\"]" {:background-color (get-in palette [:action :selected])}}
      :button-group           {:flex "0 0 140px"}
      :container              {:display     :flex
                               :align-items :flex-end
@@ -52,14 +52,14 @@
     (fn [{:keys [classes selected-board]}]
       (let [translate @translate]
         [:div {:class (:container classes)}
-         [autocomplete {:classes            {:container      (:autocomplete-container classes)
-                                             :menu-container (:menu-container classes)}
-                        :fetch-suggestions  fetch-suggestions
-                        :clear-suggestions  clear-suggestions
-                        :label              (translate :submit.add-card)
-                        :suggestion->string (fn [item] (:name item ""))
-                        :suggestions        suggestions
-                        :on-select          on-select}]
+         [autocomplete {:classes           {:root      (:autocomplete-container classes)
+                                            :menu-item (:menu-item classes)}
+                        :fetch-suggestions fetch-suggestions
+                        :clear-suggestions clear-suggestions
+                        :label             (translate :submit.add-card)
+                        :get-option-label  (fn [item] (:name item ""))
+                        :options           @suggestions
+                        :on-select         on-select}]
          [button-toggle {:classes {:root (:button-group classes)}
                          :value   selected-board
                          :options [{:on-click select-main
