@@ -1,12 +1,7 @@
 ^{:watch-dirs ["src/cljs" "src/cljc" "env/dev/cljs"]
   :css-dirs   ["target/public/css"]
   :open-url   false}
-{:main         mtg-pairings-server.dev
- :preloads     [re-frisk.preload]
- :output-to    "target/public/js/dev-main.js"
- :output-dir   "target/public/js/dev"
- :npm-deps     false
- :foreign-libs [{:file           "dist/downshift.inc.js"
-                 :file-min       "dist/downshift.min.inc.js"
-                 :provides       ["downshift"]
-                 :global-exports {downshift Downshift}}]}
+{:main       mtg-pairings-server.dev
+ :preloads   [re-frisk.preload]
+ :output-to  "target/public/js/dev-main.js"
+ :output-dir "target/public/js/dev"}

@@ -13,11 +13,8 @@ COPY ./dev-resources ./dev-resources
 COPY ./resources ./resources
 COPY ./test ./test
 COPY ./test-resources ./test-resources
-COPY decklist.cljs.edn pairings.cljs.edn package.json package-lock.json webpack.config.js ./
-RUN npm i \
-    && npm run build:dev \
-    && npm run build:prod \
-    && lein do \
+COPY decklist.cljs.edn pairings.cljs.edn ./
+RUN lein do \
          test, \
          kibit, \
          eastwood, \
