@@ -29,13 +29,15 @@
           [ui/list-item-text {:primary                  "Ei aktiivisia turnauksia."
                               :primary-typography-props {:variant :h6}}]])])))
 
+(defn tournament-list-render [tournaments]
+  [ui/list
+   (for [t tournaments]
+     ^{:key (:id t)}
+     [tournament {:data       t
+                  :list-item? true}])])
+
 (defn tournament-list []
   [:<>
    [filters]
    [with-paging ::events/tournaments-page ::subs/tournaments-page ::subs/filtered-tournaments
-    (fn tournament-list-render [tournaments]
-      [ui/list
-       (for [t tournaments]
-         ^{:key (:id t)}
-         [tournament {:data       t
-                      :list-item? true}])])]])
+    tournament-list-render]])

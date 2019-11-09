@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [dispatch]]
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.icons.keyboard-arrow-down :refer [keyboard-arrow-down]]
-            [reagent-material-ui.styles :refer [styled with-styles]]
+            [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.util.styles :refer [on-mobile]]))
 
 (defn table-styles [{:keys [palette]}]
@@ -13,10 +13,11 @@
    :table-header {:line-height "36px"}
    :table-row    {"&:nth-child(odd)" {:background-color (get-in palette [:primary 100])}}})
 
-(def arrow-down (styled keyboard-arrow-down {:margin-top    "2px"
-                                             :margin-bottom "2px"
-                                             on-mobile      {:margin-left  "-3px"
-                                                             :margin-right "-3px"}}))
+(def arrow-down ((with-styles {:root {:margin-top    "2px"
+                                      :margin-bottom "2px"
+                                      on-mobile      {:margin-left  "-3px"
+                                                      :margin-right "-3px"}}})
+                 keyboard-arrow-down))
 
 (def sortable-header-button-styles
   {:root  {:padding-top    "4px"

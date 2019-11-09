@@ -3,25 +3,30 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.icons.chevron-left :refer [chevron-left]]
             [reagent-material-ui.icons.chevron-right :refer [chevron-right]]
-            [reagent-material-ui.styles :refer [styled with-styles]]
-            [mtg-pairings-server.util :refer [indexed]]))
+            [reagent-material-ui.styles :refer [with-styles]]
+            [mtg-pairings-server.util :refer [indexed]]
+            [mtg-pairings-server.util.styles :refer [on-desktop]]))
 
 (def button-group ((with-styles (fn [{:keys [spacing]}]
                                   {:root    {:display   :flex
-                                             :max-width "405px"
-                                             :margin    (spacing 2)}
-                                   :grouped {:flex       "1 0 0"
-                                             :min-width  0
-                                             :box-shadow :none}}))
+                                             :margin    (spacing 2)
+                                             on-desktop {:width 405}}
+                                   :grouped {:box-shadow :none
+                                             :flex       "1 0 11.1%"}}))
                    ui/button-group))
 
+(def empty-separator [ui/button {:disabled true
+                                 :style    {:flex 1000}
+                                 :key      "empty-separator"}
+                      ""])
+
 (defn get-shown-pages [selected-page num-pages]
-  (if (<= num-pages 7)
-    (range num-pages)
-    (cond
-      (<= selected-page 3) (concat (range 0 5) [:separator-2 (dec num-pages)])
-      (<= (- num-pages selected-page) 4) (concat [0 :separator-1] (range (- num-pages 5) num-pages))
-      :else [0 :separator-1 (dec selected-page) selected-page (inc selected-page) :separator-2 (dec num-pages)])))
+  (cond
+    (< num-pages 7) (concat (range num-pages) [:empty-separator])
+    (= num-pages 7) (range num-pages)
+    (<= selected-page 3) (concat (range 0 5) [:separator-2 (dec num-pages)])
+    (<= (- num-pages selected-page) 4) (concat [0 :separator-1] (range (- num-pages 5) num-pages))
+    :else [0 :separator-1 (dec selected-page) selected-page (inc selected-page) :separator-2 (dec num-pages)]))
 
 (defn pager [{:keys [event subscription num-pages]}]
   (let [selected-page (subscribe [subscription])
@@ -37,23 +42,30 @@
                      :disabled (zero? selected-page)}
           [chevron-left]]
          (for [[index page] (indexed shown-pages)]
-           (if (number? page)
+           (cond
+             (number? page)
              (let [selected? (= selected-page page)]
-               ^{:key (str  "pager-" index)}
+               ^{:key (str "pager-" index)}
                [ui/button {:on-click (when-not selected? #(dispatch-page page))
                            :variant  (if selected? :contained :outlined)
                            :color    (if selected? :secondary :default)}
                 (inc page)])
+
+             (= :empty-separator page)
+             empty-separator
+
+             :else
              ^{:key (str "pager-" index)}
-             [ui/button {}
+             [ui/button {:disabled true}
               "···"]))
          [ui/button {:on-click (when (< selected-page (dec num-pages))
                                  #(dispatch-page (inc selected-page)))
                      :disabled (>= selected-page (dec num-pages))}
           [chevron-right]]]))))
 
-(def circular-progress (styled ui/circular-progress {:margin  "48px auto 0"
-                                                     :display :block}))
+(def no-results ((with-styles (fn [{:keys [spacing]}]
+                                {:root {:margin (spacing 2)}}))
+                 ui/typography))
 
 (defn with-paging [page-event page-subscription data-subscription component]
   (let [page (subscribe [page-subscription])
@@ -64,12 +76,12 @@
             pager-props {:event        page-event
                          :subscription page-subscription
                          :num-pages    num-pages}]
-        (if (seq @data)
-          [:div
-           [pager pager-props]
+        [:<>
+         [pager pager-props]
+         (if (seq @data)
            [component (->> @data
                            (drop (* @page items-per-page))
                            (take items-per-page))]
-           [pager pager-props]]
-          [circular-progress {:size      100
-                              :thickness 5}])))))
+           [no-results {:variant :h6}
+            "Ei hakutuloksia"])
+         [pager pager-props]]))))

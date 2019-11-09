@@ -107,11 +107,14 @@
   (with-let [loaded? (subscribe [::subs/loaded?])
              translate (subscribe [::subs/translate])
              selected (atom false)
+             selected-panel (atom nil)
              close-panel #(reset! selected false)
              on-select (fn [_ value]
                          (swap! selected #(if (not= value %)
                                             value
-                                            false)))
+                                            false))
+                         (when value
+                           (reset! selected-panel value)))
              _ (add-watch loaded? ::decklist-import
                           (fn [_ _ _ new]
                             (when new
@@ -128,9 +131,9 @@
                   :value "load-text"}]]]
        [ui/collapse {:in (boolean @selected)}
         [previous-panel {:classes classes
-                         :hidden? (not= "load-previous" @selected)}]
+                         :hidden? (not= "load-previous" @selected-panel)}]
         [text-panel {:classes     classes
-                     :hidden?     (not= "load-text" @selected)
+                     :hidden?     (not= "load-text" @selected-panel)
                      :close-panel close-panel}]]])
     (finally
       (remove-watch loaded? ::decklist-import))))

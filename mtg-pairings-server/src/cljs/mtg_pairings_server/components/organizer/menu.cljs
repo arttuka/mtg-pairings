@@ -16,17 +16,6 @@
                                            :margin-right     (spacing 1)}}))
                     ui/icon-button))
 
-(defn round-dropdown [{:keys [class value label rounds on-close on-menu-item-click]}]
-  (reagent/as-element
-   [ui/paper {:class class}
-    [ui/click-away-listener {:on-click-away on-close}
-     [ui/menu-list
-      (for [round rounds]
-        ^{:key (str label "-option-" round)}
-        [ui/menu-item {:selected (= value (str round))
-                       :on-click #(on-menu-item-click (str round))}
-         (str label " " round)])]]]))
-
 (defn round-select* [{:keys [on-change]}]
   (let [open? (atom false)
         toggle-open #(swap! open? not)
@@ -63,12 +52,15 @@
           (fn [props]
             (reagent/as-element
              [ui/grow (assoc (js->clj (obj/get props "TransitionProps"))
-                             :children (round-dropdown {:class              (:menu-root classes)
-                                                        :value              value
-                                                        :label              label
-                                                        :rounds             rounds
-                                                        :on-close           on-close
-                                                        :on-menu-item-click on-menu-item-click}))]))]]))))
+                             :style {:transform-origin "center top"})
+              [ui/paper {:class (:menu-root classes)}
+               [ui/click-away-listener {:on-click-away on-close}
+                [ui/menu-list
+                 (for [round rounds]
+                   ^{:key (str label "-option-" round)}
+                   [ui/menu-item {:selected (= value (str round))
+                                  :on-click #(on-menu-item-click (str round))}
+                    (str label " " round)])]]]]))]]))))
 
 (def round-select ((with-styles (fn [{:keys [spacing]}]
                                   {:root        {:margin (spacing 0 1)

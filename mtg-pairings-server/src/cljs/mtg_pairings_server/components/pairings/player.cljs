@@ -17,7 +17,8 @@
    :mobile-block    {on-desktop {:display :inline-block}
                      on-mobile  {:display :block}}
    :hidden-mobile   {on-mobile {:display :none}}
-   :avatar          {:background-color (get-in palette [:primary :main])}
+   :avatar          {:background-color (get-in palette [:primary :main])
+                     :font-weight :bold}
    :box             {:flex "1"}
    :card-content    {:padding-top    0
                      :padding-bottom 0}})

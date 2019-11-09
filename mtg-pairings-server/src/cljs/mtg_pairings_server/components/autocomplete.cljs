@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.components.autocomplete
   (:require [reagent.core :as reagent :refer [atom]]
             [clojure.string :as str]
+            [goog.object :as obj]
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.util :refer [adapt-react-class js->clj' use-ref]]
             [reagent-material-ui.lab.use-autocomplete :refer [use-autocomplete]]
@@ -19,7 +20,7 @@
                 fetch-suggestions clear-suggestions options]} (js->clj' params)
         on-change (fn [_ v]
                     (on-select (js->clj' (first v))))
-        value (use-ref #js [])
+        ^js/React.Ref value (use-ref #js [])
         {:keys [anchor-el
                 get-input-label-props
                 get-input-props
@@ -35,7 +36,7 @@
                                                    :multiple         true
                                                    :value            (.-current value)})
         input-props (get-input-props)
-        on-input-change (fn [e]
+        on-input-change (fn [^js/Event e]
                           (let [v (.. e -target -value)]
                             (if (str/blank? v)
                               (clear-suggestions)
@@ -49,18 +50,24 @@
               :InputLabelProps (get-input-label-props)
               :input-props     (assoc input-props :on-change on-input-change)
               :label           label}]
-      [ui/popper {:open      (and popup-open (boolean (seq options)))
-                  :anchor-el anchor-el
-                  :placement :bottom-start}
-       [ui/paper {:style {:width (some-> anchor-el (.-clientWidth))}}
-        [ui/menu-list (get-listbox-props)
-         (for [[index option] (map-indexed vector grouped-options)]
-           ^{:key option}
-           (let [option-props (get-option-props {:index  index
-                                                 :option option})]
-             [ui/menu-item (assoc option-props :class (:menu-item classes))
-              [ui/typography {:variant :inherit
-                              :no-wrap true}
-               (get-option-label option)]]))]]]])))
+      [ui/popper {:open           (and popup-open (boolean (seq options)))
+                  :anchor-el      anchor-el
+                  :placement      :bottom-start
+                  :transition     true
+                  :disable-portal true}
+       (fn [props]
+         (reagent/as-element
+          [ui/grow (assoc (js->clj (obj/get props "TransitionProps"))
+                          :style {:transform-origin "center top"})
+           [ui/paper {:style {:width (some-> anchor-el (.-clientWidth))}}
+            [ui/menu-list (get-listbox-props)
+             (for [[index option] (map-indexed vector grouped-options)]
+               ^{:key option}
+               (let [option-props (get-option-props {:index  index
+                                                     :option option})]
+                 [ui/menu-item (assoc option-props :class (:menu-item classes))
+                  [ui/typography {:variant :inherit
+                                  :no-wrap true}
+                   (get-option-label option)]]))]]]))]])))
 
 (def autocomplete (adapt-react-class react-autocomplete))
