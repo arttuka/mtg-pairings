@@ -8,6 +8,7 @@
 (defn table-styles [{:keys [palette] :as theme}]
   {:table        {:line-height               "24px"
                   :border-spacing            0
+                  :font-size                 16
                   (mui-util/on-mobile theme) {:width "100%"}}
    :table-header {:line-height "36px"}
    :table-row    {"&:nth-child(odd)" {:background-color (get-in palette [:primary 100])}}})

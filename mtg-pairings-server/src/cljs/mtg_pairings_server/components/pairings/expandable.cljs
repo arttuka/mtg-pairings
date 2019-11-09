@@ -23,7 +23,9 @@
                                          [ui/icon-button {:class    [(:expand classes)
                                                                      (when expanded?
                                                                        (:expand-open classes))]
-                                                          :on-click on-expand}
+                                                          :on-click (fn [e]
+                                                                      (.stopPropagation e)
+                                                                      (on-expand))}
                                           [expand-more]]))})]))
 
 (def expandable-header ((with-styles expandable-styles) expandable-header*))

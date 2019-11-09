@@ -10,8 +10,10 @@
   (let [decklist (subscribe [::subs/decklist-by-type])
         tournament (subscribe [::subs/organizer-tournament])
         translate (subscribe [::subs/translate])]
-    (fn view-decklist-render []
-      [render-decklist @decklist @tournament @translate])))
+    (fn []
+      [render-decklist {:decklist   @decklist
+                        :tournament @tournament
+                        :translate  @translate}])))
 
 (defn view-decklists []
   (let [decklists (subscribe [::subs/decklists-by-type])
@@ -30,7 +32,9 @@
                               [:div
                                (doall (for [decklist @decklists]
                                         ^{:key (:id decklist)}
-                                        [render-decklist decklist @tournament @translate]))])})))
+                                        [render-decklist {:decklist   decklist
+                                                          :tournament @tournament
+                                                          :translate  @translate}]))])})))
 
 (defn login-styles [{:keys [spacing]}]
   {:root-container  {:padding (spacing 2)}

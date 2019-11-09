@@ -39,9 +39,9 @@
                 [:meta {:charset "utf-8"}]
                 [:meta {:name    "viewport"
                         :content "width=device-width, initial-scale=1"}]
-                (include-css (if (env :dev)
-                               "/css/main.css"
-                               (str \/ (@asset-manifest "css/main.min.css"))))]
+                (include-css "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap")
+                (include-css "https://fonts.googleapis.com/css?family=Lato:700&display=swap")
+                [:style "@media print { @page { size: A4; } }"]]
                [:body {:class "body-container"}
                 [:div#app]
                 [:script (str "var csrfToken = '" *anti-forgery-token* "'; "

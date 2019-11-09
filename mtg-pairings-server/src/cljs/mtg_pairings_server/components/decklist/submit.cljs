@@ -144,7 +144,8 @@
     {:root {:padding-top (spacing 2)
             on-desktop   {:max-width 880
                           :margin    "0 auto"}}
-     :bold {:font-weight :bold}}))
+     :bold {:font-weight :bold}
+     :no-print {mui-util/on-print {:display :none}}}))
 
 (defn decklist-submit* [props]
   (let [tournament (subscribe [::subs/tournament])
@@ -160,7 +161,7 @@
       (let [translate @translate
             until-deadline (util/interval (time/now) (:deadline @tournament))]
         [:div {:class (:root classes)}
-         [:div {:class (when @deadline-gone? :no-print)}
+         [:div {:class (when @deadline-gone? (:no-print classes))}
           [language-selector]
           [ui/typography {:variant :h4}
            (translate :submit.header)]
@@ -194,6 +195,8 @@
                [ui/typography {:variant :h6}
                 (translate :submit.your-decklist)])])]
          (when (and @deadline-gone? (:id @decklist))
-           [render-decklist @decklist @tournament translate])]))))
+           [render-decklist {:decklist   @decklist
+                             :tournament @tournament
+                             :translate  translate}])]))))
 
 (def decklist-submit ((with-styles styles) decklist-submit*))

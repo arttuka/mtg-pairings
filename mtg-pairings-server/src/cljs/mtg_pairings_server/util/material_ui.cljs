@@ -27,5 +27,9 @@
 (defn on-desktop [theme]
   ((get-in theme [:breakpoints :up]) "sm"))
 
+(def on-screen "@media screen")
+
+(def on-print "@media print")
+
 (defn create-transition [theme type styles]
   ((get-in theme [:transitions :create]) (name type) (clj->js' styles)))
