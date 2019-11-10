@@ -3,7 +3,6 @@
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.colors :as colors]
             [reagent-material-ui.styles :refer [with-styles]]
-            [mtg-pairings-server.components.organizer.common :refer [column header row number-style player-style]]
             [mtg-pairings-server.subscriptions.pairings :as subs]))
 
 (def clock-styles {:root    {:font-size   "32vw"

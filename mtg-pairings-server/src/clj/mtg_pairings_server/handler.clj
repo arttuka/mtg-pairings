@@ -60,6 +60,8 @@
       (pairings-index))
     (GET "/tournaments" []
       (pairings-index {:page {:page :mtg-pairings-server.pages.pairings/tournaments}}))
+    (GET "/tournaments/organizer" [] (pairings-index))
+    (GET "/tournaments/organizer/menu" [] (pairings-index))
     (GET "/tournaments/:id" []
       :path-params [id :- s/Int]
       (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/tournament

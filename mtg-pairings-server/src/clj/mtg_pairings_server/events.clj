@@ -73,6 +73,10 @@
   (broadcast/watch uid id)
   (ws/send! uid [:server/organizer-tournament (tournament/tournament id)]))
 
+(defmethod ws/event-handler :client/organizer-tournaments
+  [{uid :uid}]
+  (ws/send! uid [:server/organizer-tournaments (tournament/organizer-tournaments)]))
+
 (defmethod ws/event-handler :client/organizer-pairings
   [{uid :uid, [id round] :?data}]
   (ws/send! uid [:server/organizer-pairings (tournament/get-round id round)]))

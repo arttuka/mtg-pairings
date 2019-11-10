@@ -3,7 +3,9 @@
             [reagent.ratom :refer-macros [reaction]]
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.arrow-drop-down :refer [arrow-drop-down]]
             [reagent-material-ui.styles :refer [with-styles]]
+            [goog.object :as obj]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.util.styles :refer [ellipsis-overflow]]))
 
@@ -70,3 +72,57 @@
                             {:root {:margin-top    (spacing 1)
                                     :margin-bottom (spacing 1)}}))
              ui/typography))
+
+(def flex-button ((with-styles {:root {:flex 1}})
+                  ui/button))
+
+(defn select-button [{:keys [on-change]}]
+  (let [open? (atom false)
+        toggle-open #(swap! open? not)
+        ^js/React.Ref anchor-ref (.createRef js/React)
+        on-close (fn [^js/Event event]
+                   (when-not (some-> (.-current anchor-ref)
+                                     (.contains (.-target event)))
+                     (reset! open? false)))
+        on-menu-item-click (fn [new-value]
+                             (reset! open? false)
+                             (on-change new-value))]
+    (fn [{:keys [classes value items item-to-label on-click variant render-menu-item]}]
+      (let [disabled? (empty? items)
+            menu-item (or render-menu-item
+                          (fn menu-item [props]
+                            [ui/menu-item (dissoc props :item)
+                             (item-to-label (:item props))]))]
+        [:<>
+         [ui/button-group {:variant  variant
+                           :color    :primary
+                           :ref      anchor-ref
+                           :classes  {:root (:button-group classes)}
+                           :disabled disabled?}
+          [flex-button {:on-click (or on-click toggle-open)
+                        :variant  variant
+                        :color    :primary}
+           [ui/typography {:no-wrap true
+                           :variant :inherit}
+            (or (item-to-label value) "")]]
+          [ui/button {:variant  variant
+                      :color    :primary
+                      :size     :small
+                      :on-click toggle-open}
+           [arrow-drop-down]]]
+         [ui/popper {:open           @open?
+                     :anchor-el      (.-current anchor-ref)
+                     :transition     true
+                     :disable-portal true}
+          (fn [props]
+            (reagent/as-element
+             [ui/grow (assoc (js->clj (obj/get props "TransitionProps"))
+                             :style {:transform-origin "center top"})
+              [ui/paper {:class (:menu classes)}
+               [ui/click-away-listener {:on-click-away on-close}
+                [ui/menu-list
+                 (for [item items]
+                   ^{:key item}
+                   [menu-item {:selected (= value item)
+                               :on-click #(on-menu-item-click item)
+                               :item     item}])]]]]))]]))))

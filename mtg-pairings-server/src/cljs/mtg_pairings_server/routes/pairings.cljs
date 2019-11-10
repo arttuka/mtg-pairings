@@ -10,6 +10,14 @@
 (secretary/defroute tournaments-path "/tournaments" []
   (dispatch-page :mtg-pairings-server.pages.pairings/tournaments))
 
+(secretary/defroute multi-organizer-path "/tournaments/organizer" []
+  (dispatch [::events/load-organizer-tournaments])
+  (dispatch-page :mtg-pairings-server.pages.organizer/main))
+
+(secretary/defroute multi-organizer-menu-path "/tournaments/organizer/menu" []
+  (dispatch [::events/load-organizer-tournaments])
+  (dispatch-page :mtg-pairings-server.pages.organizer/menu))
+
 (secretary/defroute tournament-path "/tournaments/:id" [id]
   (let [id (js/parseInt id)]
     (dispatch [::events/load-tournament id])

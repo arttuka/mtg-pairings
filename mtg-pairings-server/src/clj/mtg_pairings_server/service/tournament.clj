@@ -142,6 +142,12 @@
 (defn client-tournaments []
   (map format-client-tournament (tournaments)))
 
+(defn organizer-tournaments []
+  (for [t (-> select-tournaments
+              (sql/where {:day (sql/raw "CURRENT_DATE")})
+              (sql/exec))]
+    (select-keys t [:id :name :organizer])))
+
 (defn add-tournament [tourn]
   (if (seq (sql/select db/tournament
              (sql/where {:sanctionid (:sanctionid tourn)})))

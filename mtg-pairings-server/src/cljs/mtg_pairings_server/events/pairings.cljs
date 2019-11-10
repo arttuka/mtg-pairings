@@ -167,9 +167,9 @@
   (fn [db [_ tournament]]
     (assoc-in db [:player-tournaments 0] tournament)))
 
-(reg-event-fx ::load-organizer-tournament
-  (fn [_ [_ id]]
-    {:ws-send [:client/organizer-tournament id]}))
+(reg-event-fx ::load-organizer-tournaments
+  (fn [_ _]
+    {:ws-send [:client/organizer-tournaments]}))
 
 (reg-event-db ::notification
   (fn [db [_ notification]]
@@ -195,6 +195,10 @@
 
       :always
       (assoc-in [:organizer :tournament] tournament))))
+
+(reg-event-db :server/organizer-tournaments
+  (fn [db [_ tournaments]]
+    (assoc-in db [:organizer :tournaments] tournaments)))
 
 (reg-event-db :server/organizer-pairings
   (fn [db [_ pairings]]
@@ -234,6 +238,8 @@
 
 (defn resolve-organizer-action [db id action value]
   (case action
+    :clear {:db (assoc-in db [:organizer :mode] nil)}
+    :load-tournament {:ws-send [:client/organizer-tournament id]}
     :pairings {:ws-send [:client/organizer-pairings [id value]]
                :db      (assoc-in-many db
                                        [:organizer :mode] :pairings
@@ -275,18 +281,26 @@
      :select-standings (resolve-organizer-action db id action value)
      :select-pods (resolve-organizer-action db id action value)
      {})
-   :store [["organizer" id] {:action action, :value value}]))
+   :store [["organizer"] {:action action, :value value, :id id}]))
+
+(reg-event-fx ::load-organizer-tournament
+  (fn [{:keys [db]} [_ id]]
+    (let [{:keys [page]} (:page db)]
+      (cond-> {:ws-send [:client/organizer-tournament id]}
+        (= page :mtg-pairings-server.pages.organizer/menu)
+        (assoc :store [["organizer"] {:action :load-tournament, :id id}])))))
 
 (reg-event-fx ::organizer-mode
   (fn [{:keys [db]} [_ action value]]
-    (let [{:keys [id page]} (:page db)]
+    (let [{:keys [id page]} (:page db)
+          id (or id (get-in db [:organizer :tournament :id]))]
       (case page
         :mtg-pairings-server.pages.organizer/main (resolve-organizer-action db id action value)
         :mtg-pairings-server.pages.organizer/menu (send-organizer-action db id action value)))))
 
 (reg-fx :popup
   (fn [id]
-    (.open js/window (str "/tournaments/" id "/organizer/menu") (str "menu" id))))
+    (.open js/window (str "/tournaments" (when id (str "/" id)) "/organizer/menu") (str "menu" id))))
 
 (reg-fx :close-popup
   (fn []
@@ -297,16 +311,16 @@
     (let [{:keys [id page]} (:page db)]
       (case page
         :mtg-pairings-server.pages.organizer/main {:db    (assoc-in db [:organizer :menu] true)
-                                                   :popup (get-in db [:page :id])}
-        :mtg-pairings-server.pages.organizer/menu {:store       [["organizer" id] {:action :close-popup}]
+                                                   :popup id}
+        :mtg-pairings-server.pages.organizer/menu {:store       [["organizer"] {:action :close-popup}]
                                                    :close-popup nil}))))
 
 (reg-event-fx ::local-storage-updated
   (fn [{:keys [db]} [_ k v]]
     (when (and (= (get-in db [:page :page]) :mtg-pairings-server.pages.organizer/main)
-               (= k ["organizer" (get-in db [:page :id])]))
+               (= k ["organizer"]))
       (resolve-organizer-action db
-                                (get-in db [:page :id])
+                                (:id v)
                                 (keyword (:action v))
                                 (:value v)))))
 
