@@ -20,7 +20,10 @@
 
 (reg-event-db ::window-resized
   (fn [db _]
-    (assoc db :mobile? (mobile?))))
+    (assoc db
+           :mobile? (mobile?)
+           :window-size [(.-innerWidth js/window)
+                         (.-innerHeight js/window)])))
 
 (reg-fx :navigate
   (fn [path]

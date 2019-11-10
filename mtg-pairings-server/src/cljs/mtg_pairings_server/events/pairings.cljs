@@ -30,7 +30,9 @@
                :logged-in-user     (local-storage/fetch :user)
                :notification       nil
                :language           (i18n/language :fi)
-               :mobile?            (mobile?)}
+               :mobile?            (mobile?)
+               :window-size        [(.-innerWidth js/window)
+                                    (.-innerHeight js/window)]}
               (transit/read js/initialDb)))
 
 (defn update-filters-active [db]

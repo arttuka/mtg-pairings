@@ -1,9 +1,11 @@
 (ns mtg-pairings-server.components.organizer.standings
   (:require [reagent.core :refer [atom]]
+            [reagent.ratom :refer-macros [reaction]]
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.styles :refer [with-styles]]
             [goog.string :as gstring]
             [mtg-pairings-server.components.organizer.common :refer [column header row]]
+            [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util.styles :refer [ellipsis-overflow]]))
 
@@ -40,16 +42,32 @@
 
 (def standing ((with-styles standing-styles) standing*))
 
+(defn calculate-num-rows [width height]
+  (let [per-column (quot height 24)
+        columns (quot width 480)]
+    (* per-column columns)))
+
 (defn standings [menu-hidden?]
   (let [standings (subscribe [::subs/organizer :standings])
         tournament (subscribe [::subs/organizer :tournament])
-        standings-round (subscribe [::subs/organizer :standings-round])]
+        standings-round (subscribe [::subs/organizer :standings-round])
+        window-size (subscribe [::common-subs/window-size])
+        column-node (atom nil)
+        column-ref #(reset! column-node %)
+        num-rows (reaction (when-let [node @column-node]
+                             (let [[width _] @window-size
+                                   height (.-clientHeight node)]
+                               (calculate-num-rows width height))))
+        displayed-standings (reaction (if-let [n @num-rows]
+                                        (take n @standings)
+                                        @standings))]
     (fn standings-render [menu-hidden?]
       [:<>
        [header {:variant :h5
                 :align   :center}
         (str (:name @tournament) " - kierros " @standings-round)]
-       [column {:menu-hidden? menu-hidden?}
-        (for [s @standings]
+       [column {:menu-hidden? menu-hidden?
+                :ref column-ref}
+        (for [s @displayed-standings]
           ^{:key (str "standings-" (:rank s))}
           [standing {:data s}])]])))

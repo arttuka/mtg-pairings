@@ -2,10 +2,10 @@
   (:require [re-frame.core :refer [dispatch]]
             [mount.core :refer-macros [defstate]]
             [mtg-pairings-server.events.common :as events]
+            [mtg-pairings-server.util :refer [debounce]]
             [mtg-pairings-server.util.local-storage :as local-storage]))
 
-(defn resize-listener [_]
-  (dispatch [::events/window-resized]))
+(def resize-listener (debounce #(dispatch [::events/window-resized]) 200))
 
 (def ^:private listeners [{:event    "resize"
                            :listener resize-listener}
