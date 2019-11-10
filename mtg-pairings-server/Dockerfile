@@ -8,7 +8,6 @@ COPY project.clj .
 RUN lein deps
 COPY ./src ./src
 COPY ./env ./env
-COPY ./dev-resources ./dev-resources
 COPY ./resources ./resources
 COPY ./test ./test
 COPY ./test-resources ./test-resources

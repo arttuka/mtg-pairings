@@ -21,7 +21,8 @@
                  [com.taoensso/sente "1.14.0"]
                  [com.taoensso/timbre "4.10.0"]
                  [com.cognitect/transit-clj "0.8.319"]
-                 [com.fzakaria/slf4j-timbre "0.3.14"]]
+                 [com.fzakaria/slf4j-timbre "0.3.14"]
+                 [ragtime "0.8.0"]]
   :plugins [[lein-ancient "0.6.15"]
             [lein-cljfmt "0.6.4"]
             [lein-kibit "0.1.7"]
@@ -44,8 +45,10 @@
            :output-base "resources/public"
            :manifest    "resources/manifest.json"}
 
-  :aliases {"fig"     ["trampoline" "run" "-m" "figwheel.main"]
-            "fig:min" ["run" "-m" "figwheel.main" "-bo"]}
+  :aliases {"fig"      ["trampoline" "run" "-m" "figwheel.main"]
+            "fig:min"  ["run" "-m" "figwheel.main" "-bo"]
+            "migrate"  ["run" "-m" "mtg-pairings-server.migrations/migrate"]
+            "rollback" ["run" "-m" "mtg-pairings-server.migrations/rollback"]}
 
   :cljfmt {:indents {reg-sub                       [[:inner 0]]
                      reg-fx                        [[:inner 0]]
@@ -101,8 +104,8 @@
                                        [cljsjs/react-dom-server "16.11.0-0"]
                                        [cljsjs/react-transition-group "4.3.0-0"]
                                        [arttuka/reagent-material-ui "4.6.0-0"]]}
-             :uberjar  {:source-paths       ["env/prod/cljs"]
-                        :main               mtg-pairings-server.main
-                        :aot                :all
-                        :omit-source        true
-                        :auto-clean         false}})
+             :uberjar  {:source-paths ["env/prod/cljs"]
+                        :main         mtg-pairings-server.main
+                        :aot          :all
+                        :omit-source  true
+                        :auto-clean   false}})

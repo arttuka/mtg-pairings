@@ -1,0 +1,8 @@
+{:db-host         "localhost"
+ :db-port         5432
+ :db-user         "pairings"
+ :db-password     "pairings"
+ :db-name         "pairings"
+ :server-port     8080
+ :dev             true
+ :client-version  "1.4.0.0"}

@@ -2,6 +2,6 @@
 
 [pairings.fi](https://pairings.fi) palvelinsovellus
 
-## Devaus
+## Kehitysympäristön käynnistys
 
-Käynnistä REPL, `(m/start)` käynnistää serverin ja figwheelin autoreloadilla.
+`./scripts/start-docker.sh` käynnistää PostgreSQL:n ja ajaa skeeman sisään. REPLissä `(m/start)` käynnistää serverin. `./scripts/add-test-user.sh` ja `./scripts/add-test-data.sh` lisäävät hieman testidataa.
