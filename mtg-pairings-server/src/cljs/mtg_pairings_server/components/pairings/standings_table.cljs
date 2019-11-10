@@ -30,17 +30,19 @@
   (gstring/format "%.3f" (* 100 n)))
 
 (defn standings-table* [{:keys [tournament-id round]}]
-  (let [data (subscribe [::subs/standings tournament-id round])]
+  (let [data (subscribe [::subs/standings tournament-id round])
+        translate (subscribe [::subs/translate])]
     (fn standings-render [{:keys [classes]}]
       (when (seq @data)
-        (let [{:keys [table table-header table-row rank-column
+        (let [translate @translate
+              {:keys [table table-header table-row rank-column
                       player-column points-column tiebreaker-column]} classes]
           [:table {:class table}
            [:thead {:class table-header}
             [:tr
              [:th {:class rank-column}]
-             [:th {:class player-column} "Pelaaja"]
-             [:th {:class points-column} "Pist."]
+             [:th {:class player-column} (translate :common.player)]
+             [:th {:class points-column} (translate :common.points)]
              [:th {:class tiebreaker-column} "OMW"]
              [:th {:class tiebreaker-column} "PGW"]
              [:th {:class tiebreaker-column} "OGW"]]]

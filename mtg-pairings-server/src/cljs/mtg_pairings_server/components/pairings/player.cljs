@@ -7,6 +7,7 @@
             [accountant.core :as accountant]
             [mtg-pairings-server.components.pairings.tournament :refer [tournament-header]]
             [mtg-pairings-server.routes.pairings :refer [standings-path]]
+            [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util.mtg :refer [bye?]]
             [mtg-pairings-server.util.styles :refer [on-desktop on-mobile]]))
 
@@ -18,28 +19,29 @@
                      on-mobile  {:display :block}}
    :hidden-mobile   {on-mobile {:display :none}}
    :avatar          {:background-color (get-in palette [:primary :main])
-                     :font-weight :bold}
+                     :font-weight      :bold}
    :box             {:flex "1"}
    :card-content    {:padding-top    0
                      :padding-bottom 0}})
 
-(defn pairing* [{:keys [data classes] :as props}]
+(defn pairing* [{:keys [data classes translate] :as props}]
+  (println "pairing*" props)
   (let [bye (bye? data)
         type (cond
                (:team-2-name data) :pairing
                (:pod data) :pod
                :else :seating)
         {:keys [names-container names points mobile-block hidden-mobile avatar]} classes]
-    [ui/list-item (dissoc props :data :classes)
+    [ui/list-item (dissoc props :data :classes :translate)
      [ui/list-item-avatar
       [ui/avatar {:class avatar}
        (when-not bye
          (or (:table-number data) (:pod data)))]]
      [ui/list-item-text {:classes   {:secondary names-container}
                          :primary   (case type
-                                      :pairing (str "Kierros " (:round-number data))
-                                      :pod (str "Pod " (:pod data))
-                                      :seating "Seating")
+                                      :pairing (translate :player.round (:round-number data))
+                                      :pod (translate :player.pod (:pod data))
+                                      :seating (translate :player.seating))
                          :secondary (reagent/as-element
                                      (if (= :pairing type)
                                        [:<>
@@ -58,7 +60,7 @@
                                            [:span {:class mobile-block} (:team-2-wins data)]])]
                                        [:span {:class names}
                                         (or (:team-1-name data)
-                                            (str "Seat " (:seat data)))]))}]]))
+                                            (translate :common.seat-n (:seat data)))]))}]]))
 
 (def pairing ((with-styles styles) pairing*))
 
@@ -68,33 +70,37 @@
        (reverse)))
 
 (defn own-tournament* [props]
-  (let [expanded? (atom false)
+  (let [translate (subscribe [::subs/translate])
+        expanded? (atom false)
         on-expand #(swap! expanded? not)]
-    (fn own-tournament-render [{:keys [classes tournament]}]
-      [ui/list-item {:disable-gutters true
-                     :divider         true}
-       [ui/box {:class (:box classes)}
-        [tournament-header {:data      tournament
-                            :on-expand on-expand
-                            :expanded? @expanded?}]
-        [ui/collapse {:in @expanded?}
-         [ui/card-content {:class (:card-content classes)}
-          [ui/list
-           [ui/list-item {:disable-gutters true
-                          :button          true
-                          :on-click        #(accountant/navigate! (standings-path {:id    (:id tournament)
-                                                                                   :round (:max-standings-round tournament)}))}
-            [ui/list-item-avatar
-             [ui/avatar {:class (:avatar classes)}
-              [list-icon]]]
-            [ui/list-item-text {:primary (str "Standings, kierros " (:max-standings-round tournament))}]]
-           (for [p (combine-pairings-and-pods (:pairings tournament) (:pod-seats tournament))]
-             ^{:key [(:id tournament) (:round-number p) (:id p)]}
-             [pairing {:data            p
-                       :disable-gutters true}])
-           (when (:seating tournament)
-             [pairing {:data            (:seating tournament)
-                       :disable-gutters true}])]]]]])))
+    (fn [{:keys [classes tournament]}]
+      (let [translate @translate]
+        [ui/list-item {:disable-gutters true
+                       :divider         true}
+         [ui/box {:class (:box classes)}
+          [tournament-header {:data      tournament
+                              :on-expand on-expand
+                              :expanded? @expanded?}]
+          [ui/collapse {:in @expanded?}
+           [ui/card-content {:class (:card-content classes)}
+            [ui/list
+             [ui/list-item {:disable-gutters true
+                            :button          true
+                            :on-click        #(accountant/navigate! (standings-path {:id    (:id tournament)
+                                                                                     :round (:max-standings-round tournament)}))}
+              [ui/list-item-avatar
+               [ui/avatar {:class (:avatar classes)}
+                [list-icon]]]
+              [ui/list-item-text {:primary (translate :player.standings (:max-standings-round tournament))}]]
+             (for [p (combine-pairings-and-pods (:pairings tournament) (:pod-seats tournament))]
+               ^{:key [(:id tournament) (:round-number p) (:id p)]}
+               [pairing {:data            p
+                         :disable-gutters true
+                         :translate       translate}])
+             (when (:seating tournament)
+               [pairing {:data            (:seating tournament)
+                         :disable-gutters true
+                         :translate       translate}])]]]]]))))
 
 (def own-tournament ((with-styles styles)
                      own-tournament*))

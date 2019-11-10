@@ -1,5 +1,7 @@
 (ns mtg-pairings-server.util.styles
-  (:require [reagent-material-ui.util :refer [clj->js']]))
+  (:require [goog.string :as gstring]
+            [goog.string.format]
+            [reagent-material-ui.util :refer [clj->js']]))
 
 (def ellipsis-overflow {:white-space    :nowrap
                         :text-overflow  :ellipsis
@@ -23,3 +25,14 @@
 
 (defn create-transition [theme type styles]
   ((get-in theme [:transitions :create]) (name type) (clj->js' styles)))
+
+(defn hex->rgb [color]
+  (let [color (subs color 1)
+        colors (re-seq (re-pattern (str ".{1," (/ (count color) 3) "}")) color)]
+    (map #(js/parseInt % 16) (if (= 1 (count (first colors)))
+                               (map #(str % %) colors)
+                               colors))))
+
+(defn fade [color a]
+  (let [[r g b] (hex->rgb color)]
+    (gstring/format "rgba(%d, %d, %d, %f)" r g b a)))

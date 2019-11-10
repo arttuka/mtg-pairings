@@ -18,10 +18,12 @@
 
 (defn seatings-table* [{:keys [tournament-id round]}]
   (let [data (subscribe [::subs/sorted-seatings tournament-id round])
+        translate (subscribe [::subs/translate])
         sort-key (subscribe [::subs/seatings-sort])]
     (fn seatings-render [{:keys [classes]}]
       (when (seq @data)
-        (let [{:keys [table table-header table-row
+        (let [translate @translate
+              {:keys [table table-header table-row
                       table-column player-column]} classes]
           [:table {:class table}
            [:thead {:class table-header}
@@ -30,12 +32,12 @@
                                      :column       :table_number
                                      :sort-key     @sort-key
                                      :dispatch-key ::events/sort-seatings
-                                     :label        "Pöytä"}]
+                                     :label        (translate :common.table)}]
              [table/sortable-header {:class        player-column
                                      :column       :name
                                      :sort-key     @sort-key
                                      :dispatch-key ::events/sort-seatings
-                                     :label        "Pelaaja"}]]]
+                                     :label        (translate :common.player)}]]]
            [:tbody
             (for [seat @data]
               ^{:key [(:name seat)]}

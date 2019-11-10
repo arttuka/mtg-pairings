@@ -10,24 +10,27 @@
             [mtg-pairings-server.components.pairings.tournament :refer [tournament]]))
 
 (defn newest-tournaments-list []
-  (let [tournaments (subscribe [::subs/newest-tournaments])]
-    (fn newest-tournaments-list-render []
-      [ui/list
-       [ui/list-item
-        [ui/list-item-text {:primary (reagent/as-element
-                                      [ui/typography {:variant :h5}
-                                       "Aktiiviset turnaukset | "
-                                       [ui/link {:href (tournaments-path)}
-                                        "Turnausarkistoon"]])}]]
-       (if-let [ts (seq @tournaments)]
-         [:<>
-          (for [t ts]
-            ^{:key (:id t)}
-            [tournament {:data       t
-                         :list-item? true}])]
+  (let [tournaments (subscribe [::subs/newest-tournaments])
+        translate (subscribe [::subs/translate])]
+    (fn []
+      (let [translate @translate]
+        [ui/list
          [ui/list-item
-          [ui/list-item-text {:primary                  "Ei aktiivisia turnauksia."
-                              :primary-typography-props {:variant :h6}}]])])))
+          [ui/list-item-text {:primary (reagent/as-element
+                                        [ui/typography {:variant :h5}
+                                         (translate :tournaments.active)
+                                         " | "
+                                         [ui/link {:href (tournaments-path)}
+                                          (translate :tournaments.to-archive)]])}]]
+         (if-let [ts (seq @tournaments)]
+           [:<>
+            (for [t ts]
+              ^{:key (:id t)}
+              [tournament {:data       t
+                           :list-item? true}])]
+           [ui/list-item
+            [ui/list-item-text {:primary                  (translate :tournaments.no-active-tournaments)
+                                :primary-typography-props {:variant :h6}}]])]))))
 
 (defn tournament-list-render [tournaments]
   [ui/list

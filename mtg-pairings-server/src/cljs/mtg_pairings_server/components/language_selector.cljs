@@ -8,16 +8,20 @@
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.util.styles :refer [on-print]]))
 
-(def styles {:root {:float   :right
-                    :width   120
+(def styles {:root {:width   120
                     on-print {:display :none}}})
 
-(defn language-selector* [props]
+(defn language-selector* [{:keys [on-click]}]
   (let [language (subscribe [::common-subs/language])
-        select-fi #(dispatch [::common-events/set-language :fi])
-        select-en #(dispatch [::common-events/set-language :en])]
-    (fn [{:keys [classes]}]
-      [button-toggle {:class   (:root classes)
+        select-fi (fn []
+                    (dispatch [::common-events/set-language :fi])
+                    (when on-click (on-click)))
+        select-en (fn []
+                    (dispatch [::common-events/set-language :en])
+                    (when on-click (on-click)))]
+    (fn [{:keys [class-name classes invert]}]
+      [button-toggle {:class   [class-name (:root classes)]
+                      :invert invert
                       :value   @language
                       :options [{:on-click select-fi
                                  :value    :fi

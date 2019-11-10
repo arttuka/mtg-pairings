@@ -1,8 +1,5 @@
 (ns mtg-pairings-server.i18n.decklist
-  (:require [clojure.string :as str]
-            [goog.string :as gstring]
-            [goog.string.format]
-            [mtg-pairings-server.util :as util]))
+  (:require [mtg-pairings-server.i18n.common :refer [make-translate]]))
 
 (def ^:private translations
   {:organizer {:all-tournaments    {:fi "Kaikki turnaukset"
@@ -192,10 +189,4 @@
                :dci             {:fi "DCI:"
                                  :en "DCI:"}}})
 
-(defn translate [language key & args]
-  (if-let [translation (get-in translations (concat (util/split-key key true) [language]))]
-    (apply gstring/format translation args)
-    (throw (js/Error. (str "No translation found for language "
-                           (name language)
-                           " and key "
-                           key)))))
+(def translate (make-translate translations))

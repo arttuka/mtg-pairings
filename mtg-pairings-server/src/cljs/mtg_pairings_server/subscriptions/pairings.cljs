@@ -1,7 +1,8 @@
 (ns mtg-pairings-server.subscriptions.pairings
   (:require [re-frame.core :refer [reg-sub subscribe]]
             [cljs-time.core :as time]
-            [clojure.string :as str]
+            [mtg-pairings-server.i18n.pairings :as i18n]
+            [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.util :refer [today-or-yesterday?]]
             [mtg-pairings-server.util.mtg :refer [duplicate-pairings]]))
 
@@ -142,3 +143,8 @@
 (reg-sub ::notification
   (fn [db _]
     (:notification db)))
+
+(reg-sub ::translate
+  :<- [::common-subs/language]
+  (fn [language _]
+    (partial i18n/translate language)))

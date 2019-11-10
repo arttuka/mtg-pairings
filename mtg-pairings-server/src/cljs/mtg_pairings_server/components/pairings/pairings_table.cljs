@@ -72,38 +72,40 @@
 
 (defn pairings-table* [{:keys [tournament-id round]}]
   (let [data (subscribe [::subs/sorted-pairings tournament-id round])
+        translate (subscribe [::subs/translate])
         sort-key (subscribe [::subs/pairings-sort])]
     (fn [{:keys [classes]}]
       (when (seq @data)
-        [:table
-         {:class (:table classes)}
-         [:thead {:class (:table-header classes)}
-          [:tr
-           [table/sortable-header {:class        (:table-column classes)
-                                   :column       :table_number
-                                   :sort-key     @sort-key
-                                   :dispatch-key ::events/sort-pairings
-                                   :label        "Pöytä"}]
-           [table/sortable-header {:class        (:player-1-column classes)
-                                   :column       :team1_name
-                                   :sort-key     @sort-key
-                                   :dispatch-key ::events/sort-pairings
-                                   :label        [:<>
-                                                  [:span {:class (:desktop classes)}
-                                                   "Pelaaja 1"]
-                                                  [:span {:class (:mobile classes)}
-                                                   "Pelaajat"]]}]
-           [:th {:class [(:player-2-column classes)
-                         (:desktop classes)]}
-            "Pelaaja 2"]
-           [:th {:class (:points-column classes)} "Pist."]
-           [:th {:class (:results-column classes)} "Tulos"]]]
-         [:tbody
-          (doall (for [pairing @data]
-                   ^{:key [(:team1_name pairing)]}
-                   [pairing-row {:classes (if (= @sort-key :team1_name)
-                                            classes
-                                            (dissoc classes :player-2-cell))
-                                 :pairing pairing}]))]]))))
+        (let [translate @translate]
+          [:table
+           {:class (:table classes)}
+           [:thead {:class (:table-header classes)}
+            [:tr
+             [table/sortable-header {:class        (:table-column classes)
+                                     :column       :table_number
+                                     :sort-key     @sort-key
+                                     :dispatch-key ::events/sort-pairings
+                                     :label        (translate :common.table)}]
+             [table/sortable-header {:class        (:player-1-column classes)
+                                     :column       :team1_name
+                                     :sort-key     @sort-key
+                                     :dispatch-key ::events/sort-pairings
+                                     :label        [:<>
+                                                    [:span {:class (:desktop classes)}
+                                                     (translate :common.player-n 1)]
+                                                    [:span {:class (:mobile classes)}
+                                                     (translate :common.players)]]}]
+             [:th {:class [(:player-2-column classes)
+                           (:desktop classes)]}
+              (translate :common.player-n 2)]
+             [:th {:class (:points-column classes)} (translate :common.points)]
+             [:th {:class (:results-column classes)} (translate :pairings.result)]]]
+           [:tbody
+            (doall (for [pairing @data]
+                     ^{:key [(:team1_name pairing)]}
+                     [pairing-row {:classes (if (= @sort-key :team1_name)
+                                              classes
+                                              (dissoc classes :player-2-cell))
+                                   :pairing pairing}]))]])))))
 
 (def pairings-table ((with-styles styles) pairings-table*))

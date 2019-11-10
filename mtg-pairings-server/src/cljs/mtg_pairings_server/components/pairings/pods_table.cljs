@@ -21,10 +21,12 @@
 
 (defn pods-table* [{:keys [tournament-id round]}]
   (let [data (subscribe [::subs/sorted-pods tournament-id round])
+        translate (subscribe [::subs/translate])
         sort-key (subscribe [::subs/pods-sort])]
     (fn pods-render [{:keys [classes]}]
       (when (seq @data)
-        (let [{:keys [table table-header table-row
+        (let [translate @translate
+              {:keys [table table-header table-row
                       pod-column seat-column player-column]} classes]
           [:table {:class table}
            [:thead {:class table-header}
@@ -33,14 +35,14 @@
                                      :column       :pod
                                      :sort-key     @sort-key
                                      :dispatch-key ::events/sort-pods
-                                     :label        "Pöytä"}]
+                                     :label        (translate :common.table)}]
              [:th {:class seat-column}
-              "Paikka"]
+              (translate :common.seat)]
              [table/sortable-header {:class        player-column
                                      :column       :team_name
                                      :sort-key     @sort-key
                                      :dispatch-key ::events/sort-pods
-                                     :label        "Pelaaja"}]]]
+                                     :label        (translate :common.player)}]]]
            [:tbody
             (for [seat @data]
               ^{:key [(:team_name seat)]}

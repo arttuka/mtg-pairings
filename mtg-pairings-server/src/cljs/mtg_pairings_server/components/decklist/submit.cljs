@@ -142,7 +142,8 @@
               on-desktop   {:max-width 880
                             :margin    "0 auto"}}
    :bold     {:font-weight :bold}
-   :no-print {on-print {:display :none}}})
+   :no-print {on-print {:display :none}}
+   :float-right {:float :right}})
 
 (defn decklist-submit* [props]
   (let [tournament (subscribe [::subs/tournament])
@@ -159,7 +160,8 @@
             until-deadline (util/interval (time/now) (:deadline @tournament))]
         [:div {:class (:root classes)}
          [:div {:class (when @deadline-gone? (:no-print classes))}
-          [language-selector]
+          [:div {:class (:float-right classes)}
+           [language-selector]]
           [ui/typography {:variant :h4}
            (translate :submit.header)]
           [:p

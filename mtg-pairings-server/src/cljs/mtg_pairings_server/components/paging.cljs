@@ -4,6 +4,7 @@
             [reagent-material-ui.icons.chevron-left :refer [chevron-left]]
             [reagent-material-ui.icons.chevron-right :refer [chevron-right]]
             [reagent-material-ui.styles :refer [with-styles]]
+            [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [indexed]]
             [mtg-pairings-server.util.styles :refer [on-desktop]]))
 
@@ -70,7 +71,8 @@
 (defn with-paging [page-event page-subscription data-subscription component]
   (let [page (subscribe [page-subscription])
         items-per-page 10
-        data (subscribe [data-subscription])]
+        data (subscribe [data-subscription])
+        translate (subscribe [::subs/translate])]
     (fn with-paging-render [page-event page-subscription data-subscription component]
       (let [num-pages (Math/ceil (/ (count @data) items-per-page))
             pager-props {:event        page-event
@@ -83,5 +85,5 @@
                            (drop (* @page items-per-page))
                            (take items-per-page))]
            [no-results {:variant :h6}
-            "Ei hakutuloksia"])
+            (@translate :pager.no-results)])
          [pager pager-props]]))))

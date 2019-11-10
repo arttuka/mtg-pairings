@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.events.pairings
   (:require [re-frame.core :refer [dispatch reg-fx reg-event-db reg-event-fx]]
             [cljs-time.core :as time]
+            [mtg-pairings-server.i18n.common :as i18n]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in
                                               index-where dissoc-index]]
@@ -28,6 +29,7 @@
                                     :round nil}
                :logged-in-user     (local-storage/fetch :user)
                :notification       nil
+               :language           (i18n/language :fi)
                :mobile?            (mobile?)}
               (transit/read js/initialDb)))
 

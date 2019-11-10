@@ -27,31 +27,34 @@
 
 (defn main-page []
   (let [user (subscribe [::subs/logged-in-user])
-        player-tournaments (subscribe [::subs/player-tournaments])]
+        player-tournaments (subscribe [::subs/player-tournaments])
+        translate (subscribe [::subs/translate])]
     (fn main-page-render []
-      (cond
-        (not @user)
-        [newest-tournaments-list]
+      (let [translate @translate]
+        (cond
+          (not @user)
+          [newest-tournaments-list]
 
-        (seq @player-tournaments)
-        [ui/list
-         (let [latest-pairing (get-latest-pairing @player-tournaments)]
-           [:<>
-            [ui/list-item
-             [ui/list-item-text {:primary                  "Uusin pairing"
-                                 :secondary                (:tournament latest-pairing)
-                                 :primary-typography-props {:variant "h5"}}]]
-            [pairing {:data    latest-pairing
-                      :divider true}]])
-         (for [t @player-tournaments]
-           ^{:key [:tournament (:id t)]}
-           [own-tournament {:tournament t}])]
+          (seq @player-tournaments)
+          [ui/list
+           (let [latest-pairing (get-latest-pairing @player-tournaments)]
+             [:<>
+              [ui/list-item
+               [ui/list-item-text {:primary                  (translate :front-page.newest-pairing)
+                                   :secondary                (:tournament latest-pairing)
+                                   :primary-typography-props {:variant "h5"}}]]
+              [pairing {:data      latest-pairing
+                        :divider   true
+                        :translate translate}]])
+           (for [t @player-tournaments]
+             ^{:key [:tournament (:id t)]}
+             [own-tournament {:tournament t}])]
 
-        :else
-        [ui/circular-progress {:style     {:margin  "48px auto 0"
-                                           :display :block}
-                               :size      100
-                               :thickness 5}]))))
+          :else
+          [ui/circular-progress {:style     {:margin  "48px auto 0"
+                                             :display :block}
+                                 :size      100
+                                 :thickness 5}])))))
 
 (defn tournaments-page []
   [tournament-list])

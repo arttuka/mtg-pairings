@@ -24,22 +24,24 @@
 (defn organizer-filter* [props]
   (let [organizers (subscribe [::subs/organizers])
         value (subscribe [::subs/tournament-filter :organizer])
+        translate (subscribe [::subs/translate])
         on-change (wrap-on-change #(dispatch [::events/tournament-filter [:organizer %]]))]
     (fn [{:keys [classes]}]
-      [ui/form-control {:class      (:container classes)
-                        :full-width true}
-       [ui/input-label {:html-for :organizer-filter}
-        "Turnausjärjestäjä"]
-       [ui/select {:value       @value
-                   :on-change   on-change
-                   :input-props {:id :organizer-filter}}
-        [ui/menu-item {:value "all-organizers"}
-         "Kaikki järjestäjät"]
-        (for [organizer @organizers
-              :when (not= "" organizer)]
-          ^{:key organizer}
-          [ui/menu-item {:value organizer}
-           organizer])]])))
+      (let [translate @translate]
+        [ui/form-control {:class      (:container classes)
+                          :full-width true}
+         [ui/input-label {:html-for :organizer-filter}
+          (translate :filter.organizer)]
+         [ui/select {:value       @value
+                     :on-change   on-change
+                     :input-props {:id :organizer-filter}}
+          [ui/menu-item {:value "all-organizers"}
+           (translate :filter.all-organizers)]
+          (for [organizer @organizers
+                :when (not= "" organizer)]
+            ^{:key organizer}
+            [ui/menu-item {:value organizer}
+             organizer])]]))))
 
 (def organizer-filter ((with-styles organizer-filter-styles) organizer-filter*))
 
@@ -75,24 +77,26 @@
 
 (defn date-filter* [props]
   (let [from (subscribe [::subs/tournament-filter :date-from])
-        to (subscribe [::subs/tournament-filter :date-to])]
+        to (subscribe [::subs/tournament-filter :date-to])
+        translate (subscribe [::subs/translate])]
     (fn [{:keys [classes]}]
-      [ui/form-control {:class (:container classes)}
-       [ui/input-label {:shrink true}
-        "Päivämäärä"]
-       [date-picker
-        {:label     "Alkaen"
-         :on-change #(dispatch [::events/tournament-filter [:date-from %]])
-         :on-clear  #(dispatch [::events/tournament-filter [:date-from nil]])
-         :value     @from
-         :classes   classes}]
-       [:span {:class (:separator classes)} "–"]
-       [date-picker
-        {:label     "Asti"
-         :on-change #(dispatch [::events/tournament-filter [:date-to %]])
-         :on-clear  #(dispatch [::events/tournament-filter [:date-to nil]])
-         :value     @to
-         :classes   classes}]])))
+      (let [translate @translate]
+        [ui/form-control {:class (:container classes)}
+         [ui/input-label {:shrink true}
+          (translate :filter.date)]
+         [date-picker
+          {:label     (translate :filter.date-from)
+           :on-change #(dispatch [::events/tournament-filter [:date-from %]])
+           :on-clear  #(dispatch [::events/tournament-filter [:date-from nil]])
+           :value     @from
+           :classes   classes}]
+         [:span {:class (:separator classes)} "–"]
+         [date-picker
+          {:label     (translate :filter.date-to)
+           :on-change #(dispatch [::events/tournament-filter [:date-to %]])
+           :on-clear  #(dispatch [::events/tournament-filter [:date-to nil]])
+           :value     @to
+           :classes   classes}]]))))
 
 (def date-filter ((with-styles date-filter-styles) date-filter*))
 
@@ -107,6 +111,7 @@
 (defn player-filter* [{:keys [classes]}]
   (with-let [players (subscribe [::subs/tournament-filter :players])
              max-players (subscribe [::subs/max-players])
+             translate (subscribe [::subs/translate])
              dispatch-event (debounce (fn [new-value]
                                         (dispatch [::events/tournament-filter [:players new-value]]))
                                       200)
@@ -122,7 +127,7 @@
                       :full-width true}
      [ui/input-label {:html-for :player-filter
                       :shrink   true}
-      "Pelaajamäärä"]
+      (@translate :filter.player-count)]
      [ui/slider {:class               (:slider classes)
                  :value               @value
                  :min                 0
@@ -140,6 +145,7 @@
 
 (defn clear-filters []
   (let [filters-active? (subscribe [::subs/filters-active])
+        translate (subscribe [::subs/translate])
         on-click #(dispatch [::events/reset-tournament-filter])]
     (fn []
       [ui/button
@@ -147,7 +153,7 @@
         :disabled (not @filters-active?)
         :variant  :contained
         :color    :secondary}
-       "Poista valinnat"])))
+       (@translate :filter.clear-filters)])))
 
 (def desktop-filter-container ((with-styles (fn [{:keys [spacing]}]
                                               {:root {:align-items :flex-end
@@ -163,12 +169,13 @@
 
 (defn mobile-filters []
   (let [filters-active? (subscribe [::subs/filters-active])
+        translate (subscribe [::subs/translate])
         expanded? (atom false)
         on-expand #(swap! expanded? not)]
     (fn []
       [ui/card
        [expandable-header
-        {:title     "Hakutyökalut"
+        {:title     (@translate :filter.title)
          :expanded? @expanded?
          :on-expand on-expand
          :avatar    (reagent/as-element
