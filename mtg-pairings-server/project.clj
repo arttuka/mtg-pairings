@@ -87,7 +87,7 @@
                                          [cider/piggieback "0.4.2" :exclusions [org.clojure/clojurescript]]
                                          [re-frisk "0.5.4.1" :exclusions [org.clojure/clojurescript]]]}
              :test     {:source-paths   ^:replace ["src/clj" "src/cljc" "src/cljs"]
-                        :resource-paths ["test-resources"]}
+                        :resource-paths ^:replace ["resources" "test-resources" "target"]}
              :prod     {:source-paths ["env/prod/cljs"]}
              :provided {:dependencies [[org.clojure/clojurescript "1.10.520"]
                                        [reagent "0.9.0-rc2"]
