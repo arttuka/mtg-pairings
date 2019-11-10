@@ -50,11 +50,10 @@
               :InputLabelProps (get-input-label-props)
               :input-props     (assoc input-props :on-change on-input-change)
               :label           label}]
-      [ui/popper {:open           (and popup-open (boolean (seq options)))
-                  :anchor-el      anchor-el
-                  :placement      :bottom-start
-                  :transition     true
-                  :disable-portal true}
+      [ui/popper {:open       (and popup-open (boolean (seq options)))
+                  :anchor-el  anchor-el
+                  :placement  :bottom-start
+                  :transition true}
        (fn [props]
          (reagent/as-element
           [ui/grow (assoc (js->clj (obj/get props "TransitionProps"))

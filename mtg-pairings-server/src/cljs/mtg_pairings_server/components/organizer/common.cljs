@@ -110,10 +110,9 @@
                       :size     :small
                       :on-click toggle-open}
            [arrow-drop-down]]]
-         [ui/popper {:open           @open?
-                     :anchor-el      (.-current anchor-ref)
-                     :transition     true
-                     :disable-portal true}
+         [ui/popper {:open       @open?
+                     :anchor-el  (.-current anchor-ref)
+                     :transition true}
           (fn [props]
             (reagent/as-element
              [ui/grow (assoc (js->clj (obj/get props "TransitionProps"))

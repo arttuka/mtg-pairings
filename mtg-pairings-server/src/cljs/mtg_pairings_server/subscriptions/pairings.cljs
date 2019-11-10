@@ -140,6 +140,11 @@
   (fn [db [_ & keys]]
     (get-in (:organizer db) keys)))
 
+(reg-sub ::clock-running
+  (fn [db _]
+    (let [selected-clock (get-in db [:organizer :selected-clock])]
+      (get-in db [:organizer :clock selected-clock :running] false))))
+
 (reg-sub ::notification
   (fn [db _]
     (:notification db)))

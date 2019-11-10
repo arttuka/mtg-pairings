@@ -138,11 +138,11 @@
          [error-list errors]]))))
 
 (defn styles [{:keys [spacing]}]
-  {:root     {:padding-top (spacing 2)
-              on-desktop   {:max-width 880
-                            :margin    "0 auto"}}
-   :bold     {:font-weight :bold}
-   :no-print {on-print {:display :none}}
+  {:root        {:padding-top (spacing 2)
+                 on-desktop   {:max-width 880
+                               :margin    "0 auto"}}
+   :bold        {:font-weight :bold}
+   :no-print    {on-print {:display :none}}
    :float-right {:float :right}})
 
 (defn decklist-submit* [props]

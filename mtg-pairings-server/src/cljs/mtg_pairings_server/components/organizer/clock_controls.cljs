@@ -1,7 +1,10 @@
 (ns mtg-pairings-server.components.organizer.clock-controls
-  (:require [reagent-material-ui.components :as ui]
+  (:require [reagent-material-ui.colors :as colors]
+            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.icons.add :refer [add]]
             [reagent-material-ui.icons.arrow-drop-down :refer [arrow-drop-down]]
             [reagent-material-ui.icons.arrow-drop-up :refer [arrow-drop-up]]
+            [reagent-material-ui.icons.clear :refer [clear]]
             [reagent-material-ui.icons.pause :refer [pause]]
             [reagent-material-ui.icons.play-arrow :refer [play-arrow]]
             [reagent-material-ui.icons.rotate-left :refer [rotate-left]]
@@ -18,7 +21,7 @@
 
 (defn time-field-button [props icon]
   [ui/button (merge {:size    :small
-                     :variant :contained
+                     :variant :outlined
                      :color   :primary}
                     props)
    [icon]])
@@ -27,10 +30,12 @@
   {:root    {:flex-direction :column
              :width          18}
    :grouped {"&&"       {:border-radius       0
-                         :border              :none
+                         :margin              0
+                         :border-color        (fade (get-in palette [:primary :main]) 0.5)
+                         "&:hover"            {:border-color (get-in palette [:primary :main])}
                          "&:first-child"      {:border-top-right-radius (:border-radius shape)}
                          "&:last-child"       {:border-bottom-right-radius (:border-radius shape)}
-                         "&:not(:last-child)" {:border-bottom [[1 :solid (get-in palette [:grey 400])]]}}
+                         "&:not(:last-child)" {:border-bottom-color :transparent}}
              :padding   0
              :height    18
              :width     18
@@ -73,7 +78,7 @@
        [text-field {:on-change on-change*
                     :value     value
                     :variant   :outlined}]
-       [time-field-button-group {:variant :contained
+       [time-field-button-group {:variant :outlined
                                  :color   :primary}
         (time-field-button {:on-click #(adjust value inc)} up-icon)
         (time-field-button {:on-click #(adjust value dec)} down-icon)]])))
@@ -85,21 +90,58 @@
                                               :grouped {:padding 0}}))
                               ui/button-group))
 
-(defn clock-icon-button [{:keys [icon] :as props}]
-  [ui/button (merge {:variant :contained
-                     :color   :primary}
-                    (dissoc props :icon))
-   [icon]])
+(def tooltip ((with-styles (fn [{:keys [shadows palette]}]
+                             {:tooltip {:background-color :white
+                                        :color            (get-in palette [:text :primary])
+                                        :box-shadow       (shadows 1)
+                                        :font-size        12}}))
+              ui/tooltip))
 
-(defn clock-buttons [{:keys [set-clock start-clock stop-clock clock-running]}]
-  [clock-icon-button-group {:variant :contained}
+(defn clock-icon-button [{:keys [icon title disabled] :as props}]
+  (let [button [ui/button (merge {:variant :contained}
+                                 (dissoc props :icon :title))
+                [icon]]]
+    (if disabled
+      button
+      [tooltip {:enter-delay 1000
+                :title       title}
+       button])))
+
+(def clock-button-styles {:green {:background-color (colors/green :A700)
+                                  :color            :white
+                                  "&:hover"         {:background-color "#00a152"}}
+                          :red   {:background-color (colors/red :A700)
+                                  :color            :white
+                                  "&:hover"         {:background-color (colors/red 900)}}})
+
+(defn clock-buttons* [{:keys [classes set-clock start-clock stop-clock
+                              add-clock remove-clock clock-running selected-clock]}]
+  [clock-icon-button-group {:variant :contained
+                            :color   :default}
    (clock-icon-button {:on-click set-clock
                        :icon     rotate-left
-                       :disabled clock-running})
+                       :disabled (or clock-running (not selected-clock))
+                       :color    :primary
+                       :title    "Aseta aika"})
    (clock-icon-button {:on-click start-clock
                        :icon     play-arrow
-                       :disabled clock-running})
+                       :disabled (or clock-running (not selected-clock))
+                       :color    :primary
+                       :title    "Käynnistä kello"})
    (clock-icon-button {:on-click stop-clock
                        :icon     pause
-                       :disabled (not clock-running)
-                       :color    :secondary})])
+                       :disabled (or (not clock-running) (not selected-clock))
+                       :color    :secondary
+                       :title    "Pysäytä kello"})
+   (clock-icon-button {:on-click add-clock
+                       :icon     add
+                       :disabled false
+                       :class    (:green classes)
+                       :title    "Lisää uusi kello"})
+   (clock-icon-button {:on-click remove-clock
+                       :icon     clear
+                       :disabled (not selected-clock)
+                       :class    (:red classes)
+                       :title    "Poista kello"})])
+
+(def clock-buttons ((with-styles clock-button-styles) clock-buttons*))

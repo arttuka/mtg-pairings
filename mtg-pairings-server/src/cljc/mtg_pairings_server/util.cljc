@@ -61,14 +61,6 @@
         tomorrow (time/plus (time/today) (time/days 1))]
     (time/within? (time/interval yesterday tomorrow) date)))
 
-(defn to-local-date [d]
-  #?(:clj  (coerce/to-local-date d)
-     :cljs (-> d
-               coerce/to-date-time
-               time/to-default-time-zone
-               time/from-utc-time-zone
-               coerce/to-local-date)))
-
 (defn interval [from to]
   (let [minutes (time/in-minutes (time/interval from to))]
     {:days    (quot minutes 1440)

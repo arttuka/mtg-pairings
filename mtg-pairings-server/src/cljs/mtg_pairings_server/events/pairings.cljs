@@ -3,8 +3,7 @@
             [cljs-time.core :as time]
             [mtg-pairings-server.i18n.common :as i18n]
             [mtg-pairings-server.transit :as transit]
-            [mtg-pairings-server.util :refer [map-by format-time assoc-in-many deep-merge round-up dissoc-in
-                                              index-where dissoc-index]]
+            [mtg-pairings-server.util :refer [map-by format-time deep-merge round-up dissoc-index]]
             [mtg-pairings-server.util.local-storage :as local-storage]
             [mtg-pairings-server.util.styles :refer [mobile?]]
             [mtg-pairings-server.websocket :as ws]))
@@ -32,7 +31,11 @@
                :language           (i18n/language :fi)
                :mobile?            (mobile?)
                :window-size        [(.-innerWidth js/window)
-                                    (.-innerHeight js/window)]}
+                                    (.-innerHeight js/window)]
+               :organizer          {:clock [{:time    (* 50 60)
+                                             :text    (format-time (* 50 60))
+                                             :timeout false
+                                             :id      (gensym "clock")}]}}
               (transit/read js/initialDb)))
 
 (defn update-filters-active [db]
@@ -179,19 +182,19 @@
   (fn [db [_ tournament]]
     (cond-> db
       (not= (seq (:pairings tournament)) (get-in db [:organizer :tournament :pairings]))
-      (assoc-in-many [:organizer :new-pairings] true
-                     [:organizer :selected-pairings] (str (last (:pairings tournament))))
+      (update :organizer merge {:new-pairings      (boolean (seq (:pairings tournament)))
+                                :selected-pairings (str (last (:pairings tournament)))})
 
       (not= (seq (:standings tournament)) (get-in db [:organizer :tournament :standings]))
-      (assoc-in-many [:organizer :new-standings] true
-                     [:organizer :selected-standings] (str (last (:standings tournament))))
+      (update :organizer merge {:new-standings      (boolean (seq (:standings tournament)))
+                                :selected-standings (str (last (:standings tournament)))})
 
       (not= (seq (:pods tournament)) (get-in db [:organizer :tournament :pods]))
-      (assoc-in-many [:organizer :new-pods] true
-                     [:organizer :selected-pods] (str (last (:pods tournament))))
+      (update :organizer merge {:new-pods      (boolean (seq (:pods tournament)))
+                                :selected-pods (str (last (:pods tournament)))})
 
       (not= (:seatings tournament) (boolean (get-in db [:organizer :tournament :seatings])))
-      (assoc-in [:organizer :new-seatings] true)
+      (assoc-in [:organizer :new-seatings] (:seatings tournament))
 
       :always
       (assoc-in [:organizer :tournament] tournament))))
@@ -216,72 +219,86 @@
   (fn [db [_ seatings]]
     (assoc-in db [:organizer :seatings] seatings)))
 
-(reg-event-db ::update-clock
+(defn update-clock [clock]
+  (if-not (:running clock)
+    clock
+    (let [now (time/now)
+          diff (/ (time/in-millis (time/interval (:start clock) now)) 1000)
+          total (- (:time clock) diff)]
+      (merge clock {:text    (format-time total)
+                    :timeout (neg? total)
+                    :time    total
+                    :start   now}))))
+
+(defn update-clocks [clocks]
+  (mapv update-clock clocks))
+
+(reg-event-db ::update-clocks
   (fn [db _]
-    (if-let [start (get-in db [:organizer :clock :start])]
-      (let [now (time/now)
-            diff (/ (time/in-millis (time/interval start now)) 1000)
-            total (- (get-in db [:organizer :clock :time]) diff)]
-        (update-in db [:organizer :clock] into {:text    (format-time total)
-                                                :timeout (neg? total)
-                                                :time    total
-                                                :start   now}))
-      db)))
-
-(defonce ^:private clock-interval (atom nil))
-
-(reg-fx :clock
-  (fn [action]
-    (case action
-      :start (reset! clock-interval (js/setInterval #(dispatch [::update-clock]) 200))
-      :stop (swap! clock-interval #(js/clearInterval %)))))
+    (update-in db [:organizer :clock] update-clocks)))
 
 (defn resolve-organizer-action [db id action value]
-  (case action
-    :clear {:db (assoc-in db [:organizer :mode] nil)}
-    :load-tournament {:ws-send [:client/organizer-tournament id]}
-    :pairings {:ws-send [:client/organizer-pairings [id value]]
-               :db      (assoc-in-many db
-                                       [:organizer :mode] :pairings
-                                       [:organizer :pairings-round] value
-                                       [:organizer :new-pairings] false)}
-    :standings {:ws-send [:client/organizer-standings [id value]]
-                :db      (assoc-in-many db
-                                        [:organizer :mode] :standings
-                                        [:organizer :standings-round] value
-                                        [:organizer :new-standings] false)}
-    :seatings {:ws-send [:client/organizer-seatings id]
-               :db      (assoc-in-many db
-                                       [:organizer :mode] :seatings
-                                       [:organizer :new-seatings] false)}
-    :pods {:ws-send [:client/organizer-pods [id value]]
-           :db      (assoc-in-many db
-                                   [:organizer :mode] :pods
-                                   [:organizer :new-pods] false)}
-    :clock {:db (assoc-in db [:organizer :mode] :clock)}
-    :set-clock {:db (update-in db [:organizer :clock] (fnil into {}) {:time    (* value 60)
+  (let [selected-clock (get-in db [:organizer :selected-clock])]
+    (case action
+      :clear {:db (update db :organizer merge {:mode           nil
+                                               :selected-clock nil})}
+      :load-tournament {:ws-send [:client/organizer-tournament id]}
+      :pairings {:ws-send [:client/organizer-pairings [id value]]
+                 :db      (update db :organizer merge {:mode           :pairings
+                                                       :pairings       nil
+                                                       :pairings-round value
+                                                       :new-pairings   false
+                                                       :selected-clock nil})}
+      :standings {:ws-send [:client/organizer-standings [id value]]
+                  :db      (update db :organizer merge {:mode            :standings
+                                                        :standings       nil
+                                                        :standings-round value
+                                                        :new-standings   false
+                                                        :selected-clock  nil})}
+      :seatings {:ws-send [:client/organizer-seatings id]
+                 :db      (update db :organizer merge {:mode           :seatings
+                                                       :seatings       nil
+                                                       :new-seatings   false
+                                                       :selected-clock nil})}
+      :pods {:ws-send [:client/organizer-pods [id value]]
+             :db      (update db :organizer merge {:mode           :pods
+                                                   :pods           nil
+                                                   :new-pods       false
+                                                   :selected-clock nil})}
+      :clock {:db (update db :organizer #(-> %
+                                             (assoc :mode :clock)
+                                             (update :clock update-clocks)))}
+      :set-clock {:db (update-in db [:organizer :clock selected-clock] merge {:time    (* value 60)
+                                                                              :text    (format-time (* value 60))
+                                                                              :timeout false})}
+      :start-clock {:db (update-in db [:organizer :clock selected-clock] merge {:start   (time/now)
+                                                                                :running true})}
+      :stop-clock {:db (assoc-in db [:organizer :clock selected-clock :running] false)}
+      :add-clock {:db (update db :organizer #(-> %
+                                                 (update :clock conj {:time    (* value 60)
                                                                       :text    (format-time (* value 60))
-                                                                      :timeout false})}
-    :start-clock {:clock :start
-                  :db    (update-in db [:organizer :clock] (fnil into {}) {:start   (time/now)
-                                                                           :running true})}
-    :stop-clock {:clock :stop
-                 :db    (assoc-in db [:organizer :clock :running] false)}
-    :select-pairings {:db (assoc-in db [:organizer :selected-pairings] value)}
-    :select-standings {:db (assoc-in db [:organizer :selected-standings] value)}
-    :select-pods {:db (assoc-in db [:organizer :selected-pods] value)}
-    :close-popup {:db (assoc-in db [:organizer :menu] false)}))
+                                                                      :timeout false
+                                                                      :id      (gensym "clock")})
+                                                 (assoc :mode :clock)))}
+      :rename-clock {:db (assoc-in db [:organizer :clock selected-clock :name] value)}
+      :remove-clock {:db (update db :organizer #(-> %
+                                                    (update :clock dissoc-index selected-clock)
+                                                    (assoc :selected-clock nil)))}
+      :select-clock {:db (assoc-in db [:organizer :selected-clock] value)}
+      :select-pairings {:db (assoc-in db [:organizer :selected-pairings] value)}
+      :select-standings {:db (assoc-in db [:organizer :selected-standings] value)}
+      :select-pods {:db (assoc-in db [:organizer :selected-pods] value)}
+      :close-popup {:db (assoc-in db [:organizer :menu] false)})))
 
 (defn send-organizer-action [db id action value]
   (assoc
-   (case action
-     :start-clock {:db (assoc-in db [:organizer :clock :running] true)}
-     :stop-clock {:db (assoc-in db [:organizer :clock :running] false)}
-     :select-pairings (resolve-organizer-action db id action value)
-     :select-standings (resolve-organizer-action db id action value)
-     :select-pods (resolve-organizer-action db id action value)
+   (if (contains? #{:start-clock :stop-clock :set-clock :add-clock
+                    :rename-clock :remove-clock :select-clock
+                    :select-pairings :select-standings :select-pods}
+                  action)
+     (resolve-organizer-action db id action value)
      {})
-   :store [["organizer"] {:action action, :value value, :id id}]))
+   :store [["organizer"] {:action action, :value value, :id id, :key (gensym)}]))
 
 (reg-event-fx ::load-organizer-tournament
   (fn [{:keys [db]} [_ id]]

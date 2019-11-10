@@ -12,7 +12,7 @@
             [mtg-pairings-server.util.material-ui :refer [wrap-on-change]]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.pairings :as subs]
-            [mtg-pairings-server.util :refer [debounce to-local-date]]
+            [mtg-pairings-server.util :refer [debounce]]
             [mtg-pairings-server.util.styles :refer [on-desktop on-mobile]]))
 
 (defn organizer-filter-styles [{:keys [spacing]}]

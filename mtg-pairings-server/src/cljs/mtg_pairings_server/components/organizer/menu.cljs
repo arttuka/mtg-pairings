@@ -51,7 +51,8 @@
         pods-rounds (subscribe [::subs/organizer :tournament :pods])
         new-seatings (subscribe [::subs/organizer :new-seatings])
         seatings (subscribe [::subs/organizer :tournament :seatings])
-        clock-running (subscribe [::subs/organizer :clock :running])
+        clock-running (subscribe [::subs/clock-running])
+        selected-clock (subscribe [::subs/organizer :selected-clock])
         pairings-round (subscribe [::subs/organizer :selected-pairings])
         standings-round (subscribe [::subs/organizer :selected-standings])
         pods-round (subscribe [::subs/organizer :selected-pods])
@@ -63,7 +64,9 @@
                             (dispatch [::events/load-organizer-tournament (:id t)]))
         set-clock #(dispatch [::events/organizer-mode :set-clock @minutes])
         start-clock #(dispatch [::events/organizer-mode :start-clock])
-        stop-clock #(dispatch [::events/organizer-mode :stop-clock])]
+        stop-clock #(dispatch [::events/organizer-mode :stop-clock])
+        add-clock #(dispatch [::events/organizer-mode :add-clock @minutes])
+        remove-clock #(dispatch [::events/organizer-mode :remove-clock])]
     (fn []
       (let [multi? (nil? (:id @page))]
         [ui/app-bar {:color    :default
@@ -108,8 +111,11 @@
            "Kello"]
           [time-field {:value     @minutes
                        :on-change #(reset! minutes %)}]
-          [clock-buttons {:set-clock     set-clock
-                          :start-clock   start-clock
-                          :stop-clock    stop-clock
-                          :clock-running @clock-running}]]]))))
+          [clock-buttons {:set-clock      set-clock
+                          :start-clock    start-clock
+                          :stop-clock     stop-clock
+                          :add-clock      add-clock
+                          :remove-clock   remove-clock
+                          :clock-running  @clock-running
+                          :selected-clock (some? @selected-clock)}]]]))))
 
