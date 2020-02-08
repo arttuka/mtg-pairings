@@ -11,12 +11,13 @@
      (:import (goog.date Date UtcDateTime))))
 
 (def writers
-  {#?(:clj LocalDate, :cljs Date)
-   (transit/write-handler (constantly "Date") format-iso-date)
-   #?(:clj DateTime, :cljs UtcDateTime)
-   (transit/write-handler (constantly "DateTime") format-iso-date-time)
-   #?@(:clj [Ratio
-             (transit/write-handler (constantly "d") double)])})
+  (let [date-writer (transit/write-handler (constantly "Date") format-iso-date)
+        datetime-writer (transit/write-handler (constantly "DateTime") format-iso-date-time)]
+    #?(:clj  {LocalDate date-writer
+              DateTime  datetime-writer
+              Ratio     (transit/write-handler (constantly "d") double)}
+       :cljs {Date        date-writer
+              UtcDateTime datetime-writer})))
 
 (def readers
   {"Date"     (transit/read-handler parse-iso-date)
