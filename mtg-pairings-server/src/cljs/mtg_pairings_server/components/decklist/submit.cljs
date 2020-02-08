@@ -5,7 +5,8 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
             [cljs-time.core :as time]
-            [mtg-pairings-server.components.autocomplete :refer [autocomplete]]
+            [clojure.string :as str]
+            [reagent-util.autocomplete :refer [autocomplete]]
             [mtg-pairings-server.components.button-toggle :refer [button-toggle]]
             [mtg-pairings-server.components.decklist.decklist-import :refer [decklist-import]]
             [mtg-pairings-server.components.decklist.decklist-table :refer [decklist-table]]
@@ -28,7 +29,6 @@
    :button-group           {:flex "0 0 140px"}
    :container              {:display     :flex
                             :align-items :flex-end
-                            :padding     (spacing 0 1)
                             on-mobile    {:width "100%"}
                             on-desktop   {:width 400}}})
 
@@ -36,7 +36,7 @@
   (let [tournament (subscribe [::subs/tournament])
         translate (subscribe [::subs/translate])
         suggestions (atom [])
-        on-select #(do (dispatch [::events/add-card %])
+        on-select #(do (dispatch [::events/add-card (first %)])
                        (reset! suggestions []))
         fetch-suggestions (debounce (fn [prefix]
                                       (dispatch [::events/card-suggestions
@@ -44,20 +44,22 @@
                                                  (:format @tournament)
                                                  #(reset! suggestions %)]))
                                     250)
-        clear-suggestions #(reset! suggestions [])
+        on-input-change (fn [value]
+                          (if (str/blank? value)
+                            (reset! suggestions [])
+                            (fetch-suggestions value)))
         select-main #(dispatch [::events/select-board :main])
         select-side #(dispatch [::events/select-board :side])]
     (fn [{:keys [classes selected-board]}]
       (let [translate @translate]
         [:div {:class (:container classes)}
-         [autocomplete {:classes           {:root      (:autocomplete-container classes)
-                                            :menu-item (:menu-item classes)}
-                        :fetch-suggestions fetch-suggestions
-                        :clear-suggestions clear-suggestions
-                        :label             (translate :submit.add-card)
-                        :get-option-label  (fn [item] (:name item ""))
-                        :options           @suggestions
-                        :on-select         on-select}]
+         [autocomplete {:classes          {:root      (:autocomplete-container classes)
+                                           :menu-item (:menu-item classes)}
+                        :on-input-change  on-input-change
+                        :label            (translate :submit.add-card)
+                        :get-option-label (fn [item] (:name item ""))
+                        :options          @suggestions
+                        :on-select        on-select}]
          [button-toggle {:classes {:root (:button-group classes)}
                          :value   selected-board
                          :options [{:on-click select-main

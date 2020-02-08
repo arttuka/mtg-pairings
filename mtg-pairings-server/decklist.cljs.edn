@@ -1,4 +1,8 @@
 {:main          mtg-pairings-server.decklist
  :output-to     "target/public/js/decklist-main.js"
  :output-dir    "target/public/js/compiled/decklist"
- :optimizations :advanced}
+ :optimizations :advanced
+ :foreign-libs  [{:file           "reagent-util/dist/reagent-util.inc.js"
+                  :provides       ["material-ui-lab"]
+                  :global-exports {material-ui-lab MaterialUILab}}]
+ :externs       ["reagent-util/src/js/reagent-util.ext.js"]}

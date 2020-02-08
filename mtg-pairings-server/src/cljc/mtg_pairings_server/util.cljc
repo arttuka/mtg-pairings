@@ -62,10 +62,14 @@
     (time/within? (time/interval yesterday tomorrow) date)))
 
 (defn interval [from to]
-  (let [minutes (time/in-minutes (time/interval from to))]
-    {:days    (quot minutes 1440)
-     :hours   (quot (mod minutes 1440) 60)
-     :minutes (mod minutes 60)}))
+  (if (time/before? to from)
+    {:days    0
+     :hours   0
+     :minutes 0}
+    (let [minutes (time/in-minutes (time/interval from to))]
+      {:days    (quot minutes 1440)
+       :hours   (quot (mod minutes 1440) 60)
+       :minutes (mod minutes 60)})))
 
 (defn group-kv [keyfn valfn coll]
   (persistent!

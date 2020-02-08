@@ -3,4 +3,7 @@
 {:main       mtg-pairings-server.dev
  :preloads   [re-frisk.preload]
  :output-to  "target/public/js/dev-main.js"
- :output-dir "target/public/js/dev"}
+ :output-dir "target/public/js/dev"
+ :foreign-libs  [{:file           "reagent-util/dist/reagent-util.inc.js"
+                  :provides       ["material-ui-lab"]
+                  :global-exports {material-ui-lab MaterialUILab}}]}

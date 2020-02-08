@@ -26,7 +26,7 @@
          nil [loading-indicator]
          false [organizer/login]
          (case page
-           ::organizer-tournament [tournament id]
+           ::organizer-tournament [tournament {:id id}]
            ::organizer [tournament-list]
            ::organizer-view (if id
                               [organizer/view-decklist]
