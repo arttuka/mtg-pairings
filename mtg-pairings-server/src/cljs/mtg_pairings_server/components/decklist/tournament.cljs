@@ -4,12 +4,13 @@
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.pickers :as pickers]
             [reagent-material-ui.styles :refer [with-styles]]
+            [cljs-time.core :as time]
             [clojure.string :as str]
             [mtg-pairings-server.components.decklist.submitted-decklists-table :refer [submitted-decklists-table]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]
-            [mtg-pairings-server.util :refer [format-date-time get-host]]
+            [mtg-pairings-server.util :refer [format-date-time get-host to-date]]
             [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change wrap-on-checked]]))
 
 (defn notice [type text]
@@ -42,8 +43,8 @@
              tournament (atom @saved-tournament)
              saving? (subscribe [::subs/saving?])
              set-name #(swap! tournament assoc :name %)
-             set-date #(swap! tournament assoc :date %)
-             set-deadline #(swap! tournament assoc :deadline %)
+             set-date #(swap! tournament assoc :date (to-date %))
+             set-deadline #(swap! tournament assoc :deadline (time/to-utc-time-zone %))
              set-format (wrap-on-change #(swap! tournament assoc :format (keyword %)))
              save-tournament #(dispatch [::events/save-tournament (select-keys @tournament [:id :name :format :date :deadline])])
              _ (add-watch saved-tournament ::tournament-info-watch
@@ -81,7 +82,7 @@
            [ui/form-helper-text
             (when-not value
               (translate :organizer.tournament.format-error))]])
-        (let [value (:date @tournament)]
+        (let [value (time/to-default-time-zone (:date @tournament))]
           [pickers/date-picker {:classes   {:root (:field classes)}
                                 :value     value
                                 :label     (translate :organizer.tournament.date)
@@ -89,7 +90,7 @@
                                 :variant   :inline
                                 :auto-ok   true
                                 :format    "dd.MM.yyyy"}])
-        (let [value (:deadline @tournament)]
+        (let [value (time/to-default-time-zone (:deadline @tournament))]
           [pickers/date-time-picker {:classes   {:root (:field classes)}
                                      :value     value
                                      :label     (translate :organizer.tournament.deadline)

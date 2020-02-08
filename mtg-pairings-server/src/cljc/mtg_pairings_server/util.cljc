@@ -157,6 +157,10 @@
        (gstring/format "%s%02d:%02d" sign minutes seconds))))
 
 #?(:cljs
+   (defn to-date [dt]
+     (goog.date.Date. (.getYear dt) (.getMonth dt) (.getDate dt))))
+
+#?(:cljs
    (defn debounce [f ms]
      (let [timeout (volatile! nil)
            ret (fn [& args]
