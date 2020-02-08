@@ -7,16 +7,37 @@
             [korma.db]
             [hikari-cp.core :as hikari]
             [mount.core :refer [defstate]]
-            [config.core :refer [env]]
-            [mtg-pairings-server.util :refer [some-value]])
+            [config.core :refer [env]])
   (:import (java.sql Date Timestamp)
            (org.joda.time LocalDate DateTime)
            (org.postgresql.jdbc PgArray)))
 
+(defn ^:private to-local-date-default-tz
+  [date]
+  (let [dt (time-coerce/to-date-time date)]
+    (time-coerce/to-local-date (time/to-time-zone dt (time/default-time-zone)))))
+
 (extend-protocol jdbc/IResultSetReadColumn
   PgArray
   (result-set-read-column [pgobj _ _]
-    (vec (.getArray pgobj))))
+    (vec (.getArray pgobj)))
+
+  Timestamp
+  (result-set-read-column [pgobj _ _]
+    (time-coerce/to-date-time pgobj))
+
+  Date
+  (result-set-read-column [pgobj _ _]
+    (to-local-date-default-tz pgobj)))
+
+(extend-protocol jdbc/ISQLValue
+  LocalDate
+  (sql-value [v]
+    (time-coerce/to-sql-date v))
+
+  DateTime
+  (sql-value [v]
+    (time-coerce/to-sql-time v)))
 
 (def datasource-options {:adapter       "postgresql"
                          :username      (env :db-user)
@@ -32,30 +53,6 @@
   :stop (do
           (korma.db/default-connection nil)
           (hikari/close-datasource (get-in @db [:pool :datasource]))))
-
-(defn ^:private convert [conversions x]
-  (if-let [[_ converter] (some-value (fn [[cls _]]
-                                       (instance? cls x))
-                                     conversions)]
-    (converter x)
-    x))
-
-(defn ^:private convert-instances-of
-  [conversions m]
-  (postwalk (partial convert conversions) m))
-
-(defn ^:private to-local-date-default-tz
-  [date]
-  (let [dt (time-coerce/to-date-time date)]
-    (time-coerce/to-local-date (time/to-time-zone dt (time/default-time-zone)))))
-
-(def sql-date->joda-date
-  (partial convert-instances-of {Date      to-local-date-default-tz
-                                 Timestamp time-coerce/to-date-time}))
-
-(def joda-date->sql-date
-  (partial convert-instances-of {LocalDate time-coerce/to-sql-date
-                                 DateTime  time-coerce/to-sql-time}))
 
 (declare tournament player team round pairing result standings team-players seating user pod-round
          decklist decklist-card)
@@ -78,9 +75,7 @@
   (sql/has-many pod-round
     {:fk :tournament})
   (sql/belongs-to user
-    {:fk :owner})
-  (sql/prepare joda-date->sql-date)
-  (sql/transform sql-date->joda-date))
+    {:fk :owner}))
 
 (sql/defentity player
   (sql/pk :dci)
@@ -108,9 +103,7 @@
   (sql/belongs-to tournament
     {:fk :tournament})
   (sql/has-many pairing
-    {:fk :round})
-  (sql/prepare joda-date->sql-date)
-  (sql/transform sql-date->joda-date))
+    {:fk :round}))
 
 (sql/defentity team1
   (sql/pk :id)
@@ -178,8 +171,6 @@
   (sql/pk :id)
   (sql/has-many decklist
     {:fk :tournament})
-  (sql/prepare joda-date->sql-date)
-  (sql/transform sql-date->joda-date)
   (sql/transform #(update % :format keyword)))
 
 (sql/defentity decklist
@@ -187,9 +178,7 @@
   (sql/belongs-to decklist-tournament
     {:fk :tournament})
   (sql/has-many decklist-card
-    {:fk :decklist})
-  (sql/prepare joda-date->sql-date)
-  (sql/transform sql-date->joda-date))
+    {:fk :decklist}))
 
 (sql/defentity decklist-card
   (sql/table :decklist_card)

@@ -28,32 +28,34 @@
                               :en "DCI number"}
                  :login      {:fi "Kirjaudu"
                               :en "Log in"}}
-   :common      {:table     {:fi "Pöytä"
-                             :en "Table"}
-                 :player    {:fi "Pelaaja"
-                             :en "Player"}
-                 :player-n  {:fi "Pelaaja %d"
-                             :en "Player %d"}
-                 :players   {:fi "Pelaajat"
-                             :en "Players"}
-                 :seat      {:fi "Paikka"
-                             :en "Seat"}
-                 :seat-n    {:fi "Paikka %d"
-                             :en "Seat %d"}
-                 :points    {:fi "Pist."
-                             :en "Pts"}
-                 :pairings  {:fi "Pairings, kierros %d"
-                             :en "Pairings for round %d"}
-                 :standings {:fi "Standings, kierros %d"
-                             :en "Standings for round %d"}
-                 :pods      {:fi "Draftipodit"
-                             :en "Draft pods"}
-                 :seatings  {:fi "Seatings"
-                             :en "Seatings"}
-                 :bracket   {:fi "Playoff bracket"
-                             :en "Playoff bracket"}
-                 :started   {:fi "Kierros alkoi klo %s"
-                             :en "Round started at %s"}}
+   :common      {:table         {:fi "Pöytä"
+                                 :en "Table"}
+                 :player        {:fi "Pelaaja"
+                                 :en "Player"}
+                 :player-n      {:fi "Pelaaja %d"
+                                 :en "Player %d"}
+                 :players       {:fi "Pelaajat"
+                                 :en "Players"}
+                 :seat          {:fi "Paikka"
+                                 :en "Seat"}
+                 :seat-n        {:fi "Paikka %d"
+                                 :en "Seat %d"}
+                 :points        {:fi "Pist."
+                                 :en "Pts"}
+                 :pairings      {:fi "Pairings, kierros %d"
+                                 :en "Pairings for round %d"}
+                 :standings     {:fi "Standings, kierros %d"
+                                 :en "Standings for round %d"}
+                 :pods          {:fi "Draftipodit"
+                                 :en "Draft pods"}
+                 :seatings      {:fi "Seatings"
+                                 :en "Seatings"}
+                 :bracket       {:fi "Playoff bracket"
+                                 :en "Playoff bracket"}
+                 :started       {:fi "Kierros alkoi klo %s"
+                                 :en "Round started at %s"}
+                 :started-short {:fi " (klo %s)"
+                                 :en " (at %s)"}}
    :pairings    {:result {:fi "Tulos"
                           :en "Result"}}
    :player      {:round     {:fi "Kierros %d"

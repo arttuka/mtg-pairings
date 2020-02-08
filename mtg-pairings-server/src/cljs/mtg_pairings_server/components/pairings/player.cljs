@@ -1,5 +1,5 @@
 (ns mtg-pairings-server.components.pairings.player
-  (:require [reagent.core :as reagent :refer [atom]]
+  (:require [reagent.core :as reagent :refer [atom with-let]]
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.icons.list :refer [list] :rename {list list-icon}]
@@ -8,6 +8,7 @@
             [mtg-pairings-server.components.pairings.tournament :refer [tournament-header]]
             [mtg-pairings-server.routes.pairings :refer [standings-path]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
+            [mtg-pairings-server.util :refer [format-time-only]]
             [mtg-pairings-server.util.mtg :refer [bye?]]
             [mtg-pairings-server.util.styles :refer [on-desktop on-mobile]]))
 
@@ -25,7 +26,6 @@
                      :padding-bottom 0}})
 
 (defn pairing* [{:keys [data classes translate] :as props}]
-  (println "pairing*" props)
   (let [bye (bye? data)
         type (cond
                (:team-2-name data) :pairing
@@ -39,7 +39,9 @@
          (or (:table-number data) (:pod data)))]]
      [ui/list-item-text {:classes   {:secondary names-container}
                          :primary   (case type
-                                      :pairing (translate :player.round (:round-number data))
+                                      :pairing (str (translate :player.round (:round-number data))
+                                                    (when-let [start-time (:created data)]
+                                                      (translate :common.started-short (format-time-only start-time))))
                                       :pod (translate :player.pod (:pod data))
                                       :seating (translate :player.seating))
                          :secondary (reagent/as-element
@@ -69,38 +71,36 @@
        (sort-by (juxt :round-number :team1-name))
        (reverse)))
 
-(defn own-tournament* [props]
-  (let [translate (subscribe [::subs/translate])
-        expanded? (atom false)
-        on-expand #(swap! expanded? not)]
-    (fn [{:keys [classes tournament]}]
-      (let [translate @translate]
-        [ui/list-item {:disable-gutters true
-                       :divider         true}
-         [ui/box {:class (:box classes)}
-          [tournament-header {:data      tournament
-                              :on-expand on-expand
-                              :expanded? @expanded?}]
-          [ui/collapse {:in @expanded?}
-           [ui/card-content {:class (:card-content classes)}
-            [ui/list
-             [ui/list-item {:disable-gutters true
-                            :button          true
-                            :on-click        #(accountant/navigate! (standings-path {:id    (:id tournament)
-                                                                                     :round (:max-standings-round tournament)}))}
-              [ui/list-item-avatar
-               [ui/avatar {:class (:avatar classes)}
-                [list-icon]]]
-              [ui/list-item-text {:primary (translate :player.standings (:max-standings-round tournament))}]]
-             (for [p (combine-pairings-and-pods (:pairings tournament) (:pod-seats tournament))]
-               ^{:key [(:id tournament) (:round-number p) (:id p)]}
-               [pairing {:data            p
-                         :disable-gutters true
-                         :translate       translate}])
-             (when (:seating tournament)
-               [pairing {:data            (:seating tournament)
-                         :disable-gutters true
-                         :translate       translate}])]]]]]))))
+(defn own-tournament* [{:keys [classes tournament]}]
+  (with-let [translate (subscribe [::subs/translate])
+             expanded? (atom false)
+             on-expand #(swap! expanded? not)]
+    [ui/list-item {:disable-gutters true
+                   :divider         true}
+     [ui/box {:class (:box classes)}
+      [tournament-header {:data      tournament
+                          :on-expand on-expand
+                          :expanded? @expanded?}]
+      [ui/collapse {:in @expanded?}
+       [ui/card-content {:class (:card-content classes)}
+        [ui/list
+         [ui/list-item {:disable-gutters true
+                        :button          true
+                        :on-click        #(accountant/navigate! (standings-path {:id    (:id tournament)
+                                                                                 :round (:max-standings-round tournament)}))}
+          [ui/list-item-avatar
+           [ui/avatar {:class (:avatar classes)}
+            [list-icon]]]
+          [ui/list-item-text {:primary (@translate :player.standings (:max-standings-round tournament))}]]
+         (doall (for [p (combine-pairings-and-pods (:pairings tournament) (:pod-seats tournament))]
+                  ^{:key [(:id tournament) (:round-number p) (:id p)]}
+                  [pairing {:data            p
+                            :disable-gutters true
+                            :translate       @translate}]))
+         (when (:seating tournament)
+           [pairing {:data            (:seating tournament)
+                     :disable-gutters true
+                     :translate       @translate}])]]]]]))
 
 (def own-tournament ((with-styles styles)
                      own-tournament*))

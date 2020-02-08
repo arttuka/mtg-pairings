@@ -14,12 +14,14 @@
                       (fn [c ^JsonGenerator generator]
                         (.writeString generator (str c))))
 
+(def figwheel–build "dev")
+
 (defstate figwheel
-  :start (figwheel/start {:mode :serve} "dev")
-  :stop (figwheel/stop "dev"))
+  :start (figwheel/start {:mode :serve} figwheel–build)
+  :stop (figwheel/stop figwheel–build))
 
 (defn cljs-repl []
-  (figwheel/cljs-repl "dev"))
+  (figwheel/cljs-repl figwheel–build))
 
 (defn restart []
   (m/stop)
