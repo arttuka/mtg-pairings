@@ -1,11 +1,12 @@
 (ns mtg-pairings-server.components.organizer.pairings
-  (:require [reagent.core :as reagent :refer [atom]]
+  (:require [reagent.core :as reagent :refer [atom with-let]]
             [reagent.ratom :refer-macros [reaction]]
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.organizer.common :refer [resizing-column header row number-style player-style]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
+            [mtg-pairings-server.util :refer [format-time-only]]
             [mtg-pairings-server.util.mtg :refer [bye? duplicate-pairings]]
             [mtg-pairings-server.util.styles :refer [ellipsis-overflow]]))
 
@@ -36,17 +37,18 @@
 (def pairing ((with-styles pairing-styles) pairing*))
 
 (defn pairings [menu-hidden?]
-  (let [pairings (subscribe [::subs/organizer :pairings])
-        duplicated-pairings (reaction (sort-by :team1_name (duplicate-pairings @pairings)))
-        pairings-round (subscribe [::subs/organizer :pairings-round])
-        tournament (subscribe [::subs/organizer :tournament])]
-    (fn [menu-hidden?]
-      [:<>
-       [header {:variant :h5
-                :align   :center}
-        (str (:name @tournament) " - kierros " @pairings-round)]
-       [resizing-column {:items        duplicated-pairings
-                         :component    pairing
-                         :menu-hidden? menu-hidden?
-                         :key-fn       :team1_name}]])))
+  (with-let [pairings (subscribe [::subs/organizer :pairings])
+             duplicated-pairings (reaction (sort-by :team1_name (duplicate-pairings @pairings)))
+             pairings-round (subscribe [::subs/organizer :pairings-round])
+             tournament (subscribe [::subs/organizer :tournament])]
+    [:<>
+     [header {:variant :h5
+              :align   :center}
+      (str (:name @tournament) " - kierros " @pairings-round
+           (when-let [start-time (get-in @tournament [:round-times @pairings-round])]
+             (str " - klo " (format-time-only start-time))))]
+     [resizing-column {:items        duplicated-pairings
+                       :component    pairing
+                       :menu-hidden? menu-hidden?
+                       :key-fn       :team1_name}]]))
 
