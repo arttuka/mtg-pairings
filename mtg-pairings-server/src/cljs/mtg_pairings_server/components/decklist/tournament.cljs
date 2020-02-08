@@ -103,7 +103,8 @@
           (translate :organizer.submit-page)
           ": "
           (let [submit-url (routes/new-decklist-path {:id id})]
-            [ui/link {:href submit-url}
+            [ui/link {:href submit-url
+                      :target :_blank}
              (str (get-host) submit-url)])])
        [:div
         [:div {:class (:button-container classes)}
