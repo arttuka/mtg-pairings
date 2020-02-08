@@ -1,6 +1,7 @@
 (ns mtg-pairings-server.service.tournament
   (:require [clojure.set :refer [rename-keys union]]
             [clojure.edn :as edn]
+            [clj-time.core :as time]
             [korma.core :as sql]
             [mtg-pairings-server.sql-db :as db]
             [mtg-pairings-server.util.mtg :as mtg-util]
@@ -45,6 +46,7 @@
 
 (defn ^:private update-round-data [tournament]
   (let [rounds (:round tournament)
+        round-times (into {} (map (juxt :num :created)) rounds)
         pairings (map :num rounds)
         results (map :num (filter :results rounds))
         pods (range 1 (inc (count (:pod_round tournament))))]
@@ -52,7 +54,8 @@
      tournament
      (assoc :pairings pairings
             :results results
-            :pods pods)
+            :pods pods
+            :round-times round-times)
      (update :standings #(map :num %))
      (dissoc :round :pod_round))))
 
@@ -69,7 +72,7 @@
   (->
    select-tournaments
    (sql/with db/round
-     (sql/fields :num)
+     (sql/fields :num :created)
      (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
                                             (sql/join :left db/result
                                                       (= :pairing.id :result.pairing))
@@ -105,9 +108,9 @@
                                                           (sql/aggregate (count :*) :count :tournament))]
                          [tournament count]))
         rounds (util/group-kv :tournament
-                              #(select-keys % [:num :results])
+                              #(select-keys % [:num :results :created])
                               (sql/select db/round
-                                (sql/fields :tournament :num)
+                                (sql/fields :tournament :num :created)
                                 (sql/fields [(sql/sqlfn "not exists" (sql/subselect db/pairing
                                                                        (sql/join :left db/result
                                                                                  (= :pairing.id :result.pairing))
@@ -299,7 +302,8 @@
     (:id (sql/insert db/round
            (sql/values {:tournament tournament-id
                         :num        round-num
-                        :playoff    playoff?})))))
+                        :playoff    playoff?
+                        :created    (time/now)})))))
 
 (defn teams-by-dci [tournament-id]
   (let [team-players (sql/select db/team-players

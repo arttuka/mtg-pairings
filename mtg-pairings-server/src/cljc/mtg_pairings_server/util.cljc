@@ -56,6 +56,11 @@
            #?(:cljs time/to-default-time-zone)
            (format/unparse (format/formatter "dd.MM.yyyy HH:mm"))))
 
+(defn format-time-only [datetime]
+  (some->> datetime
+           #?(:cljs time/to-default-time-zone)
+           (format/unparse (format/formatter "HH:mm"))))
+
 (defn today-or-yesterday? [date]
   (let [yesterday (time/minus (time/today) (time/days 1))
         tomorrow (time/plus (time/today) (time/days 1))]

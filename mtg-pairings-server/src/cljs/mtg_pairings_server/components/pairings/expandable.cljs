@@ -13,10 +13,11 @@
    :expand-open {:transform "rotate(180deg)"}
    :expandable  {on-desktop {:cursor :pointer}}})
 
-(defn expandable-header* [{:keys [classes expanded? on-expand] :as props}]
-  (let [other-props (dissoc props :classes :expanded? :on-expand)]
+(defn expandable-header* [{:keys [classes expanded? on-expand header-classes] :as props}]
+  (let [other-props (dissoc props :classes :expanded? :on-expand :header-classes)]
     [ui/card-header (merge other-props
                            {:class    (when on-expand (:expandable classes))
+                            :classes  header-classes
                             :on-click on-expand
                             :action   (when on-expand
                                         (reagent/as-element

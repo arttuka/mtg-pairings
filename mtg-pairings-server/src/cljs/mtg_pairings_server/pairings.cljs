@@ -32,21 +32,23 @@
          [notification]
          [:div#main-container
           (case page
-            ::pairings-pages/main [#'main-page]
-            ::pairings-pages/tournaments [#'tournaments-page]
-            ::pairings-pages/tournament [#'tournament-page id]
+            ::pairings-pages/main [main-page]
+            ::pairings-pages/tournaments [tournaments-page]
+            ::pairings-pages/tournament [tournament-page id]
             (::pairings-pages/pairings
              ::pairings-pages/standings
              ::pairings-pages/pods
              ::pairings-pages/seatings
-             ::pairings-pages/bracket) [#'tournament-subpage id page round]
-            ::organizer-pages/main [#'organizer-page]
-            ::organizer-pages/menu [#'organizer-menu]
+             ::pairings-pages/bracket) [tournament-subpage {:tournament-id id
+                                                            :type          page
+                                                            :round         round}]
+            ::organizer-pages/main [organizer-page]
+            ::organizer-pages/menu [organizer-menu]
             ::organizer-pages/deck-construction [#'deck-construction-tables]
             nil)]]))))
 
 (defn mount-root []
-  (reagent/render [providers [current-page]] (.getElementById js/document "app")))
+  (reagent/render [providers [#'current-page]] (.getElementById js/document "app")))
 
 (defn init! []
   (dispatch-sync [::events/initialize])

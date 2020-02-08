@@ -18,15 +18,40 @@
                   :display       :flex}
    :half-width   {:width "50%"}})
 
-(defn tournament-header
-  [{:keys [data expanded? on-expand]}]
-  [expandable-header
-   {:title     (reagent/as-element
-                [ui/link {:href (tournament-path {:id (:id data)})}
-                 (:name data)])
-    :subheader (str (format-date (:day data)) " — " (:organizer data))
-    :on-expand on-expand
-    :expanded? expanded?}])
+(def tournament-header-styles
+  {:title     {:display :flex}
+   :subheader {:display :flex}
+   :separator {:flex    1
+               :display :inline-block}
+   :desktop   {on-mobile {:display :none}}})
+
+(defn tournament-header*
+  [{:keys [data expanded? on-expand round-data classes]}]
+  (let [title [ui/link {:href (tournament-path {:id (:id data)})}
+               (:name data)]
+        subheader (str (format-date (:day data)) " — " (:organizer data))
+        separator (fn [] [:div {:class (:separator classes)}])
+        desktop (fn [v] [:span {:class (:desktop classes)} v])]
+    [expandable-header
+     {:title          (reagent/as-element
+                       (if round-data
+                         [:<>
+                          title
+                          [separator]
+                          [desktop (:title round-data)]]
+                         title))
+      :subheader      (reagent/as-element
+                       (if (:started round-data)
+                         [:<>
+                          subheader
+                          [separator]
+                          [desktop (:started round-data)]]
+                         subheader))
+      :on-expand      on-expand
+      :expanded?      expanded?
+      :header-classes (dissoc classes :separator :desktop :mobile)}]))
+
+(def tournament-header ((with-styles tournament-header-styles) tournament-header*))
 
 (defn tournament* [{:keys [classes data list-item?]}]
   (when data

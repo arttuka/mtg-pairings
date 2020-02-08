@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.util.schema
   (:require [schema.core :as s])
-  (:import org.joda.time.LocalDate
+  (:import (org.joda.time LocalDate DateTime)
            java.util.Date))
 
 (s/defschema BaseTournament {:id        Long
@@ -10,13 +10,14 @@
                              :rounds    Long})
 
 (s/defschema Tournament (merge BaseTournament
-                               {:pairings  [Long]
-                                :results   [Long]
-                                :standings [Long]
-                                :pods      [Long]
-                                :seatings  Boolean
-                                :playoff   Boolean
-                                :players   Long}))
+                               {:pairings    [Long]
+                                :results     [Long]
+                                :standings   [Long]
+                                :pods        [Long]
+                                :round-times {Long (s/maybe DateTime)}
+                                :seatings    Boolean
+                                :playoff     Boolean
+                                :players     Long}))
 
 (s/defschema InputTournament (-> BaseTournament
                                  (dissoc :id)

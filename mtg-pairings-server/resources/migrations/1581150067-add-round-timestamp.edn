@@ -1,0 +1,2 @@
+{:up   ["ALTER TABLE round ADD COLUMN created TIMESTAMPTZ;"]
+ :down ["ALTER TABLE round DROP COLUMN created;"]}

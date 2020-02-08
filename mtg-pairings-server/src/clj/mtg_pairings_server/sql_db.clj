@@ -108,7 +108,9 @@
   (sql/belongs-to tournament
     {:fk :tournament})
   (sql/has-many pairing
-    {:fk :round}))
+    {:fk :round})
+  (sql/prepare joda-date->sql-date)
+  (sql/transform sql-date->joda-date))
 
 (sql/defentity team1
   (sql/pk :id)
