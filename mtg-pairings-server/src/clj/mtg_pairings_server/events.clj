@@ -137,7 +137,7 @@
 (defmethod ws/event-handler :client/load-decklist-with-id
   [{uid :uid, id :?data}]
   (if-let [decklist (decklist/get-decklist id)]
-    (ws/send! uid [:server/decklist (dissoc decklist :id)])
+    (ws/send! uid [:server/decklist decklist])
     (ws/send! uid [:server/decklist-load-error :not-found])))
 
 (defmethod ws/event-handler :client/decklist-card-suggestions

@@ -115,9 +115,12 @@
 
 (reg-event-db :server/decklist
   (fn [db [_ decklist]]
-    (util/assoc-in-many db
-                        [:decklist-editor :decklist] (add-id-to-cards (merge empty-decklist decklist))
-                        [:decklist-editor :loaded] true)))
+    (let [decklist (if (= (:tournament decklist) (get-in db [:decklist-editor :tournament :id]))
+                     decklist
+                     (dissoc decklist :id))]
+      (util/assoc-in-many db
+                          [:decklist-editor :decklist] (add-id-to-cards (merge empty-decklist decklist))
+                          [:decklist-editor :loaded] true))))
 
 (reg-event-db :server/decklists
   (fn [db [_ decklists]]
