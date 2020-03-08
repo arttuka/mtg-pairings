@@ -50,10 +50,11 @@
   :<- [::tournament-filter :date-to]
   :<- [::tournament-filter :players]
   (fn [[tournaments organizer date-from date-to [min-players max-players]] _]
-    (let [filters (comp (org-filter organizer)
-                        (date-filter date-from date-to)
-                        (player-filter min-players max-players))]
-      (sequence filters tournaments))))
+    (when (seq tournaments)
+      (let [filters (comp (org-filter organizer)
+                          (date-filter date-from date-to)
+                          (player-filter min-players max-players))]
+        (sequence filters tournaments)))))
 
 (reg-sub ::filters-active
   (fn [db _]
