@@ -206,7 +206,9 @@
     (update-in db [:organizer :clock] update-clocks)))
 
 (defn resolve-organizer-action [db id action value]
-  (let [selected-clock (get-in db [:organizer :selected-clock])]
+  (let [selected-clock (or (get-in db [:organizer :selected-clock])
+                           (when (= 1 (count (get-in db [:organizer :clock])))
+                             0))]
     (case action
       :clear {:db (update db :organizer merge {:mode           nil
                                                :selected-clock nil})}

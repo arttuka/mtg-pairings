@@ -141,7 +141,9 @@
 
 (reg-sub ::clock-running
   (fn [db _]
-    (let [selected-clock (get-in db [:organizer :selected-clock])]
+    (let [selected-clock (or (get-in db [:organizer :selected-clock])
+                             (when (= 1 (count (get-in db [:organizer :clock])))
+                               0))]
       (get-in db [:organizer :clock selected-clock :running] false))))
 
 (reg-sub ::notification
