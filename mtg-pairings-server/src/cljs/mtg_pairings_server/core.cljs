@@ -1,9 +1,10 @@
 (ns ^:figwheel-hooks mtg-pairings-server.core
   (:require [reagent.core :as reagent :refer [atom]]
-            [re-frame.core :refer [dispatch-sync subscribe clear-subscription-cache!]]
+            [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
             [mount.core :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
+            [clojure.string :as str]
             [mtg-pairings-server.routes.decklist :as decklist-routes]
             mtg-pairings-server.routes.pairings
             mtg-pairings-server.util.event-listener
@@ -65,7 +66,7 @@
 
 (defn ^:after-load figwheel-reload []
   (clear-subscription-cache!)
-  (pairings-events/connect!)
+  (dispatch [::pairings-events/connect])
   (decklist-events/connect!)
   (mount-root))
 
@@ -73,7 +74,7 @@
   (dispatch-sync [::pairings-events/initialize])
   (dispatch-sync [::decklist-events/initialize])
   (decklist-routes/initialize-routes "/decklist")
-  (pairings-events/connect!)
+  (dispatch [::pairings-events/connect])
   (decklist-events/connect!)
   (accountant/configure-navigation!
    {:nav-handler
@@ -83,7 +84,9 @@
     (fn [path]
       (secretary/locate-route path))})
   (accountant/dispatch-current!)
-  (mount-root))
+  (mount-root)
+  (when (str/includes? (.. js/window -location -search) "login-failed")
+    (dispatch [::pairings-events/notification "DCI-numeroa ei löydy"])))
 
 (defstate ^{:on-reload :noop} core
   :start (init!))

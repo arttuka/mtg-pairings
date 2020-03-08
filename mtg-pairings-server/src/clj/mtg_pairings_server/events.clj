@@ -16,29 +16,15 @@
   (broadcast/disconnect uid))
 
 (defmethod ws/event-handler :client/connect-pairings
-  [{:keys [uid]}]
-  (log/debugf "New connection from %s" uid)
+  [{uid :uid, dci-number :?data}]
+  (log/debugf "New connection from %s with dci %s" uid dci-number)
+  (when-let [player (player/player dci-number)]
+    (broadcast/login uid (:dci player)))
   (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
 
 (defmethod ws/event-handler :client/connect-decklist
   [{:keys [uid ring-req]}]
   (ws/send! uid [:server/organizer-login (get-in ring-req [:session :identity :username] false)]))
-
-(defmethod ws/event-handler :client/login
-  [{uid :uid, dci-number :?data}]
-  (try
-    (if-let [player (player/player dci-number)]
-      (do
-        (ws/send! uid [:server/login player])
-        (ws/send! uid [:server/player-tournaments (player/tournaments dci-number)])
-        (broadcast/login uid dci-number))
-      (ws/send! uid [:server/login nil]))
-    (catch NumberFormatException _
-      (ws/send! uid [:server/login nil]))))
-
-(defmethod ws/event-handler :client/logout
-  [{:keys [uid]}]
-  (broadcast/logout uid))
 
 (defmethod ws/event-handler :client/tournaments
   [{:keys [uid]}]

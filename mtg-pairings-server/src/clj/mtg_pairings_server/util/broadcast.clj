@@ -29,6 +29,13 @@
         (dissoc-in [:uid->dci uid]))
     m))
 
+(defn ^:private logout-dci* [m dci]
+  (if-let [uids (get-in m [:dci->uid dci])]
+    (dissoc-in
+     (reduce #(dissoc-in %1 [:uid->dci %2]) m uids)
+     [:dci->uid dci])
+    m))
+
 (defn ^:private disconnect* [m uid]
   (if-let [id (get-in m [:uid->id uid])]
     (-> m
@@ -50,6 +57,9 @@
 
 (defn logout [uid]
   (swap! mapping logout* uid))
+
+(defn logout-dci [dci]
+  (swap! mapping logout-dci* dci))
 
 (defn disconnect [uid]
   (swap! mapping disconnect* uid))

@@ -6,8 +6,10 @@
             [mtg-pairings-server.util :refer [select-and-rename-keys]]))
 
 (defn player [dci]
-  (sql-util/select-unique-or-nil db/player
-    (sql/where {:dci (add-check-digits dci)})))
+  (try
+    (sql-util/select-unique-or-nil db/player
+      (sql/where {:dci (add-check-digits dci)}))
+    (catch NumberFormatException _ nil)))
 
 (defn players []
   (sql/select db/player))

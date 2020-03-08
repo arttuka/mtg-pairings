@@ -16,6 +16,7 @@
             [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
             [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
             [mtg-pairings-server.service.decklist :as decklist]
+            [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util.decklist :refer [add-id-to-card add-id-to-cards]]
@@ -54,58 +55,79 @@
       :headers {"Content-Type"  "text/html"
                 "Cache-Control" "no-cache"}})))
 
-(let [pairings-index (partial index "js/pairings-main.js")]
-  (defroutes pairings-routes
-    (GET "/" []
-      (pairings-index))
-    (GET "/tournaments" []
-      (pairings-index {:page {:page :mtg-pairings-server.pages.pairings/tournaments}}))
-    (GET "/tournaments/organizer" [] (pairings-index))
-    (GET "/tournaments/organizer/menu" [] (pairings-index))
-    (GET "/tournaments/:id" []
-      :path-params [id :- s/Int]
-      (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/tournament
-                                     :id   id}
-                       :tournaments {id (tournament/client-tournament id)}}))
-    (GET "/tournaments/:id/pairings-:round" []
-      :path-params [id :- s/Int
-                    round :- s/Int]
-      (pairings-index {:page        {:page  :mtg-pairings-server.pages.pairings/pairings
-                                     :id    id
-                                     :round round}
-                       :tournaments {id (tournament/client-tournament id)}
-                       :pairings    {id {round (tournament/get-round id round)}}}))
-    (GET "/tournaments/:id/standings-:round" []
-      :path-params [id :- s/Int
-                    round :- s/Int]
-      (pairings-index {:page        {:page  :mtg-pairings-server.pages.pairings/standings
-                                     :id    id
-                                     :round round}
-                       :tournaments {id (tournament/client-tournament id)}
-                       :standings   {id {round (tournament/standings id round false)}}}))
-    (GET "/tournaments/:id/pods-:round" []
-      :path-params [id :- s/Int
-                    round :- s/Int]
-      (pairings-index {:page        {:page  :mtg-pairings-server.pages.pairings/pods
-                                     :id    id
-                                     :round round}
-                       :tournaments {id (tournament/client-tournament id)}
-                       :pods        {id {round (tournament/pods id round)}}}))
-    (GET "/tournaments/:id/seatings" []
-      :path-params [id :- s/Int]
-      (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/seatings
-                                     :id   id}
-                       :tournaments {id (tournament/client-tournament id)}
-                       :seatings    {id (tournament/seatings id)}}))
-    (GET "/tournaments/:id/bracket" []
-      :path-params [id :- s/Int]
-      (pairings-index {:page        {:page :mtg-pairings-server.pages.pairings/bracket
-                                     :id   id}
-                       :tournaments {id (tournament/client-tournament id)}
-                       :bracket     {id (tournament/bracket id)}}))
-    (GET "/tournaments/:id/organizer" [] (pairings-index))
-    (GET "/tournaments/:id/organizer/menu" [] (pairings-index))
-    (GET "/tournaments/:id/organizer/deck-construction" [] (pairings-index))))
+(defn pairings-index
+  ([]
+   (pairings-index nil {}))
+  ([req]
+   (pairings-index req {}))
+  ([req initial-db]
+   (let [user (some-> (get-in req [:session :dci])
+                      (player/player))
+         player-tournaments (when user
+                              (player/tournaments (:dci user)))]
+     (index "js/pairings-main.js" (merge initial-db
+                                         {:logged-in-user     user
+                                          :player-tournaments (vec player-tournaments)})))))
+
+(defroutes pairings-routes
+  (GET "/" req
+    (pairings-index req))
+  (GET "/tournaments" req
+    (pairings-index req {:page {:page :mtg-pairings-server.pages.pairings/tournaments}}))
+  (GET "/tournaments/organizer" req
+    (pairings-index req))
+  (GET "/tournaments/organizer/menu" req
+    (pairings-index req))
+  (GET "/tournaments/:id" req
+    :path-params [id :- s/Int]
+    (pairings-index req
+                    {:page        {:page :mtg-pairings-server.pages.pairings/tournament
+                                   :id   id}
+                     :tournaments {id (tournament/client-tournament id)}}))
+  (GET "/tournaments/:id/pairings-:round" req
+    :path-params [id :- s/Int
+                  round :- s/Int]
+    (pairings-index req
+                    {:page        {:page  :mtg-pairings-server.pages.pairings/pairings
+                                   :id    id
+                                   :round round}
+                     :tournaments {id (tournament/client-tournament id)}
+                     :pairings    {id {round (tournament/get-round id round)}}}))
+  (GET "/tournaments/:id/standings-:round" req
+    :path-params [id :- s/Int
+                  round :- s/Int]
+    (pairings-index req
+                    {:page        {:page  :mtg-pairings-server.pages.pairings/standings
+                                   :id    id
+                                   :round round}
+                     :tournaments {id (tournament/client-tournament id)}
+                     :standings   {id {round (tournament/standings id round false)}}}))
+  (GET "/tournaments/:id/pods-:round" req
+    :path-params [id :- s/Int
+                  round :- s/Int]
+    (pairings-index req
+                    {:page        {:page  :mtg-pairings-server.pages.pairings/pods
+                                   :id    id
+                                   :round round}
+                     :tournaments {id (tournament/client-tournament id)}
+                     :pods        {id {round (tournament/pods id round)}}}))
+  (GET "/tournaments/:id/seatings" req
+    :path-params [id :- s/Int]
+    (pairings-index req
+                    {:page        {:page :mtg-pairings-server.pages.pairings/seatings
+                                   :id   id}
+                     :tournaments {id (tournament/client-tournament id)}
+                     :seatings    {id (tournament/seatings id)}}))
+  (GET "/tournaments/:id/bracket" req
+    :path-params [id :- s/Int]
+    (pairings-index req
+                    {:page        {:page :mtg-pairings-server.pages.pairings/bracket
+                                   :id   id}
+                     :tournaments {id (tournament/client-tournament id)}
+                     :bracket     {id (tournament/bracket id)}}))
+  (GET "/tournaments/:id/organizer" [] (pairings-index))
+  (GET "/tournaments/:id/organizer/menu" [] (pairings-index))
+  (GET "/tournaments/:id/organizer/deck-construction" [] (pairings-index)))
 
 (defmacro validate-request [user-id tournament & body]
   `(if (and ~user-id (not= ~user-id (:user ~tournament)))

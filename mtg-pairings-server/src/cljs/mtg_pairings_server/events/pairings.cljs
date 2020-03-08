@@ -26,7 +26,7 @@
                :page               {:page  nil
                                     :id    nil
                                     :round nil}
-               :logged-in-user     (local-storage/fetch :user)
+               :logged-in-user     nil
                :notification       nil
                :language           (i18n/language :fi)
                :mobile?            (mobile?)
@@ -49,28 +49,9 @@
   (fn [db _]
     (deep-merge db (initial-db))))
 
-(defn connect! []
-  (ws/send! [:client/connect-pairings])
-  (when-let [user (local-storage/fetch :user)]
-    (ws/send! [:client/login (:dci user)])))
-
-(reg-event-fx ::login
-  (fn [_ [_ dci-number]]
-    {:ws-send [:client/login dci-number]}))
-
-(reg-event-fx :server/login
-  (fn [{:keys [db]} [_ user]]
-    {:db    (if user
-              (assoc db :logged-in-user user)
-              (assoc db :notification "DCI-numeroa ei löydy"
-                     :logged-in-user nil))
-     :store [:user user]}))
-
-(reg-event-fx ::logout
+(reg-event-fx ::connect
   (fn [{:keys [db]} _]
-    {:ws-send [:client/logout]
-     :db      (assoc db :logged-in-user nil)
-     :store   [:user nil]}))
+    {:ws-send [:client/connect-pairings (get-in db [:logged-in-user :dci])]}))
 
 (reg-event-db ::tournaments-page
   (fn [db [_ page]]

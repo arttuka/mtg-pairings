@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.pairings
   (:require [reagent.core :as reagent :refer [atom]]
-            [re-frame.core :refer [dispatch-sync subscribe clear-subscription-cache!]]
+            [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
             [mount.core :as m :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
@@ -52,7 +52,7 @@
 
 (defn init! []
   (dispatch-sync [::events/initialize])
-  (events/connect!)
+  (dispatch [::events/connect])
   (accountant/configure-navigation!
    {:nav-handler
     (fn [path]
