@@ -113,10 +113,6 @@
     {:db      (assoc-in db [:decklist-editor :decklist] empty-decklist)
      :ws-send [:client/load-decklist id]}))
 
-(reg-event-fx ::load-decklists
-  (fn [_ [_ id]]
-    {:ws-send [:client/load-decklists id]}))
-
 (reg-event-db :server/decklist
   (fn [db [_ decklist]]
     (util/assoc-in-many db
@@ -196,10 +192,6 @@
 (reg-event-db ::update-player-info
   (fn [db [_ key value]]
     (assoc-in db [:decklist-editor :decklist :player key] value)))
-
-(reg-event-fx ::card-suggestions
-  (fn [_ [_ prefix format callback]]
-    {:ws-send [[:client/decklist-card-suggestions [prefix format]] 1000 callback]}))
 
 (reg-event-fx ::import-text
   (fn [{:keys [db]} [_ text-decklist]]

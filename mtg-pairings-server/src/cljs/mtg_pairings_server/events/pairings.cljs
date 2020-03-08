@@ -4,9 +4,7 @@
             [mtg-pairings-server.i18n.common :as i18n]
             [mtg-pairings-server.transit :as transit]
             [mtg-pairings-server.util :refer [map-by format-time deep-merge round-up dissoc-index]]
-            [mtg-pairings-server.util.local-storage :as local-storage]
-            [mtg-pairings-server.util.styles :refer [mobile?]]
-            [mtg-pairings-server.websocket :as ws]))
+            [mtg-pairings-server.util.styles :refer [mobile?]]))
 
 (defn initial-db []
   (deep-merge {:tournaments           {}
@@ -100,21 +98,9 @@
   (fn [db [_ tournament]]
     (assoc-in db [:tournaments (:id tournament)] tournament)))
 
-(reg-event-fx ::load-tournament
-  (fn [_ [_ id]]
-    {:ws-send [:client/tournament id]}))
-
 (reg-event-fx ::load-tournaments
   (fn [{:keys [db]} _]
     {:ws-send [:client/tournaments (:tournaments-modified db)]}))
-
-(reg-event-fx ::load-active-tournaments
-  (fn [_ _]
-    {:ws-send [:client/active-tournaments]}))
-
-(reg-event-fx ::load-pairings
-  (fn [_ [_ id round]]
-    {:ws-send [:client/pairings [id round]]}))
 
 (reg-event-db :server/pairings
   (fn [db [_ [id round pairings]]]
@@ -124,17 +110,9 @@
   (fn [db [_ sort-key]]
     (assoc-in db [:pairings :sort-key] sort-key)))
 
-(reg-event-fx ::load-standings
-  (fn [_ [_ id round]]
-    {:ws-send [:client/standings [id round]]}))
-
 (reg-event-db :server/standings
   (fn [db [_ [id round standings]]]
     (assoc-in db [:standings id round] standings)))
-
-(reg-event-fx ::load-pods
-  (fn [_ [_ id round]]
-    {:ws-send [:client/pods [id round]]}))
 
 (reg-event-db :server/pods
   (fn [db [_ [id round pods]]]
@@ -144,10 +122,6 @@
   (fn [db [_ sort-key]]
     (assoc-in db [:pods :sort-key] sort-key)))
 
-(reg-event-fx ::load-seatings
-  (fn [_ [_ id]]
-    {:ws-send [:client/seatings id]}))
-
 (reg-event-db :server/seatings
   (fn [db [_ [id seatings]]]
     (assoc-in db [:seatings id] seatings)))
@@ -155,10 +129,6 @@
 (reg-event-db ::sort-seatings
   (fn [db [_ sort-key]]
     (assoc-in db [:seatings :sort-key] sort-key)))
-
-(reg-event-fx ::load-bracket
-  (fn [_ [_ id]]
-    {:ws-send [:client/bracket id]}))
 
 (reg-event-db :server/bracket
   (fn [db [_ [id bracket]]]
@@ -171,10 +141,6 @@
 (reg-event-db :server/player-tournament
   (fn [db [_ tournament]]
     (assoc-in db [:player-tournaments 0] tournament)))
-
-(reg-event-fx ::load-organizer-tournaments
-  (fn [_ _]
-    {:ws-send [:client/organizer-tournaments]}))
 
 (reg-event-db ::notification
   (fn [db [_ notification]]
@@ -342,7 +308,3 @@
                                 (:id v)
                                 (keyword (:action v))
                                 (:value v)))))
-
-(reg-event-fx ::load-deck-construction
-  (fn [_ [_ id]]
-    {:ws-send [:client/deck-construction id]}))

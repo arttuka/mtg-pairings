@@ -21,7 +21,8 @@
             [mtg-pairings-server.util :refer [debounce format-date format-date-time get-host]]
             [mtg-pairings-server.util.decklist :refer [->text card-types decklist-errors]]
             [mtg-pairings-server.util.styles :refer [on-desktop on-mobile on-print]]
-            [mtg-pairings-server.util :as util]))
+            [mtg-pairings-server.util :as util]
+            [mtg-pairings-server.websocket :as ws]))
 
 (defn input-styles [{:keys [palette spacing]}]
   {:autocomplete-container {:flex 1}
@@ -36,17 +37,17 @@
   (let [tournament (subscribe [::subs/tournament])
         translate (subscribe [::subs/translate])
         suggestions (atom [])
+        set-suggestions! #(reset! suggestions %)
         on-select #(do (dispatch [::events/add-card (first %)])
-                       (reset! suggestions []))
+                       (set-suggestions! []))
         fetch-suggestions (debounce (fn [prefix]
-                                      (dispatch [::events/card-suggestions
-                                                 prefix
-                                                 (:format @tournament)
-                                                 #(reset! suggestions %)]))
+                                      (ws/send! [:client/decklist-card-suggestions [prefix (:format @tournament)]]
+                                                1000
+                                                set-suggestions!))
                                     250)
         on-input-change (fn [value]
                           (if (str/blank? value)
-                            (reset! suggestions [])
+                            (set-suggestions! [])
                             (fetch-suggestions value)))
         select-main #(dispatch [::events/select-board :main])
         select-side #(dispatch [::events/select-board :side])]

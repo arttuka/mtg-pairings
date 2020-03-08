@@ -11,7 +11,8 @@
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.subscriptions.decklist :as subs]
             [mtg-pairings-server.util :refer [format-date-time get-host to-date]]
-            [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change wrap-on-checked]]))
+            [mtg-pairings-server.util.material-ui :refer [text-field wrap-on-change wrap-on-checked]]
+            [mtg-pairings-server.websocket :as ws]))
 
 (defn notice [type text]
   (let [display? (atom true)
@@ -53,7 +54,7 @@
                               (reset! tournament new)
                               (remove-watch saved-tournament ::tournament-info-watch))))]
     (let [translate @translate
-          load-selected-decklists #(dispatch [::events/load-decklists selected-decklists])]
+          load-selected-decklists #(ws/send! [:client/load-decklists selected-decklists])]
       [:div {:class (:info-container classes)}
        [:div {:class (:field-container classes)}
         (let [value (:name @tournament "")]
