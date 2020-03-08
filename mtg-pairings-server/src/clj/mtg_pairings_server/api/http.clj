@@ -2,6 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [compojure.api.exception :as ex]
             [config.core :refer [env]]
+            [mtg-pairings-server.api.decklist :refer [decklist-routes]]
             [mtg-pairings-server.api.player :refer [player-routes]]
             [mtg-pairings-server.api.tournament :refer [tournament-routes]]
             [mtg-pairings-server.middleware.error :refer [request-validation-error-handler sql-error-handler default-error-handler]]
@@ -17,6 +18,7 @@
     :data {:info {:title "WER pairings backend API"}}})
   (context "/tournament" [] tournament-routes)
   (context "/player" [] player-routes)
+  (context "/decklist" [] decklist-routes)
   (GET "/client-version" []
     :no-doc true
     {:status 200

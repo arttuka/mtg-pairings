@@ -86,3 +86,15 @@
 
 (s/defschema InputPodRound {:pods  [InputPod]
                             :round s/Int})
+
+(s/defschema InputDecklistTournament {(s/optional-key :id) s/Str
+                                      :name                s/Str
+                                      :date                Date
+                                      :format              (s/enum :standard :modern :legacy)
+                                      :deadline            DateTime})
+
+(s/defschema DecklistTournament (-> InputDecklistTournament
+                                    (dissoc (s/optional-key :id))
+                                    (assoc :id s/Str
+                                           :date LocalDate
+                                           :url s/Str)))
