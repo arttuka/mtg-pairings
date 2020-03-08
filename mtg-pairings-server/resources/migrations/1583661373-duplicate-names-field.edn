@@ -1,0 +1,9 @@
+{:up   ["ALTER TABLE tournament ADD COLUMN duplicate_names BOOLEAN DEFAULT false;"
+        "UPDATE tournament
+         SET duplicate_names = EXISTS (
+           SELECT name
+           FROM team
+           WHERE tournament = tournament.id
+           GROUP BY name
+           HAVING COUNT(*) > 1);"]
+ :down ["ALTER TABLE tournament DROP COLUMN duplicate_names"]}

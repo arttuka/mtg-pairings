@@ -241,20 +241,46 @@
   (sql/delete db/seating
     (sql/where {:tournament tournament-id})))
 
+(defn ^:private has-duplicate-names? [tournament-id]
+  (:duplicate_names
+   (sql-util/select-unique-or-nil db/tournament
+     (sql/fields :duplicate_names)
+     (sql/where {:id tournament-id}))))
+
+(defn ^:private get-duplicate-names [tournament-id]
+  (when (has-duplicate-names? tournament-id)
+    (let [players (sql/select db/team
+                    (sql/join :inner db/team-players {:team.id :team_players.team})
+                    (sql/fields :id :name [:team_players.player :dci])
+                    (sql/where (sql/sqlfn "exists" (sql/subselect [db/team :team2]
+                                                     (sql/where {:team2.name       :team.name
+                                                                 :team2.id         [not= :team.id]
+                                                                 :team2.tournament tournament-id}))))
+                    (sql/where {:tournament tournament-id}))]
+      (into {} (for [{:keys [id name dci]} players]
+                 [id (str "..." (subs dci 6) " " name)])))))
+
 (defn add-teams [sanction-id teams]
   (let [tournament-id (sanctionid->id sanction-id)]
     (delete-seatings tournament-id)
     (delete-pods tournament-id)
     (delete-rounds tournament-id)
     (delete-teams tournament-id)
-    (let [teams (map fix-dci-numbers teams)]
+    (let [teams (map fix-dci-numbers teams)
+          duplicate-names? (->> (frequencies (map :name teams))
+                                (vals)
+                                (some #(< 1 %))
+                                (boolean))]
       (add-players (mapcat :players teams))
       (doseq [team teams
               :let [team-id (add-team (:name team) tournament-id)]]
         (sql/insert db/team-players
           (sql/values (for [player (:players team)]
                         {:team   team-id
-                         :player (:dci player)})))))))
+                         :player (:dci player)}))))
+      (sql-util/update-unique db/tournament
+        (sql/set-fields {:duplicate_names duplicate-names?})
+        (sql/where {:id tournament-id})))))
 
 (defn seatings [tournament-id]
   (seq
@@ -404,33 +430,40 @@
     (add-team-where :team1.id team1)
     (add-team-where :team2.id team2)))
 
-(defn ^:private results-of-round [round-id]
-  (sql/select db/pairing
-    (sql/fields :team1
-                :team2
-                :team1_points
-                :team2_points
-                [(sql/sqlfn :COALESCE :team2.name "***BYE***") :team2_name]
-                :table_number
-                :team1_wins
-                :team2_wins
-                :draws)
-    (sql/with db/team1
-      (sql/fields [:name :team1_name]))
-    (sql/with db/team2
-      (sql/fields))
-    (sql/with db/round
-      (sql/fields [:num :round_number]))
-    (sql/where {:round round-id})
-    (sql/order :table_number :ASC)))
+(defn ^:private results-of-round [duplicate-names round-id]
+  (let [results (sql/select db/pairing
+                  (sql/fields :team1
+                              :team2
+                              :team1_points
+                              :team2_points
+                              [(sql/sqlfn :COALESCE :team2.name "***BYE***") :team2_name]
+                              :table_number
+                              :team1_wins
+                              :team2_wins
+                              :draws)
+                  (sql/with db/team1
+                    (sql/fields [:name :team1_name]))
+                  (sql/with db/team2
+                    (sql/fields))
+                  (sql/with db/round
+                    (sql/fields [:num :round_number]))
+                  (sql/where {:round round-id})
+                  (sql/order :table_number :ASC))]
+    (if duplicate-names
+      (for [{:keys [team1 team2] :as result} results]
+        (cond-> result
+          (contains? duplicate-names team1) (assoc :team1_name (get duplicate-names team1))
+          (contains? duplicate-names team2) (assoc :team2_name (get duplicate-names team2))))
+      results)))
 
 (defn ^:private calculate-standings [tournament-id round]
   (let [rounds (sql/select db/round
                  (sql/where {:tournament tournament-id
                              :num        [<= round]})
                  (sql/order :num :DESC))
+        duplicate-names (get-duplicate-names tournament-id)
         rounds-results (into {} (for [r rounds]
-                                  [(:num r) (results-of-round (:id r))]))
+                                  [(:num r) (results-of-round duplicate-names (:id r))]))
         round-num (:num (first rounds))]
     (let [std (mtg-util/calculate-standings rounds-results round-num)]
       (sql/insert db/standings
@@ -467,10 +500,11 @@
     (update-tournament-modified tournament-id)))
 
 (defn get-round [tournament-id round-num]
-  (let [round-id (:id (sql-util/select-unique db/round
+  (let [duplicate-names (get-duplicate-names tournament-id)
+        round-id (:id (sql-util/select-unique db/round
                         (sql/where {:tournament tournament-id
                                     :num        round-num})))]
-    (map #(dissoc % :team1 :team2) (results-of-round round-id))))
+    (map #(dissoc % :team1 :team2) (results-of-round duplicate-names round-id))))
 
 (defn delete-round [sanction-id round-num]
   (let [tournament-id (sanctionid->id sanction-id)
@@ -617,8 +651,9 @@
                                    (sql/order :num :ASC)))]
     (let [final-standings (standings tournament-id (dec (:num (first playoff-rounds))) false)
           team->rank (into {} (map (juxt :team :rank)) final-standings)
+          duplicate-names (get-duplicate-names tournament-id)
           playoff-matches (map (comp (partial add-ranks team->rank)
-                                     results-of-round
+                                     (partial results-of-round duplicate-names)
                                      :id)
                                playoff-rounds)]
       (add-empty-rounds playoff-matches))))
