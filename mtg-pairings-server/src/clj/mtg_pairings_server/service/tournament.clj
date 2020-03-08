@@ -643,6 +643,21 @@
       (recur (/ num 2) (conj bracket (repeat num {})))
       bracket)))
 
+(defn ^:private has-team? [team match]
+  (or (= team (:team1 match))
+      (= team (:team2 match))))
+
+(defn ^:private organize-bracket [bracket]
+  (when (seq bracket)
+    (loop [[round & rounds] (rest (reverse bracket))
+           acc [(last bracket)]]
+      (if round
+        (let [teams (mapcat (juxt :team1 :team2) (first acc))
+              next-round (for [team teams]
+                           (util/some-value (partial has-team? team) round))]
+          (recur rounds (cons next-round acc)))
+        acc))))
+
 (defn bracket [tournament-id]
   (when-let [playoff-rounds (seq (sql/select db/round
                                    (sql/fields :id :num)
@@ -656,7 +671,7 @@
                                      (partial results-of-round duplicate-names)
                                      :id)
                                playoff-rounds)]
-      (add-empty-rounds playoff-matches))))
+      (add-empty-rounds (organize-bracket playoff-matches)))))
 
 (defn ^:private count-full-pods [n]
   (- (int (Math/ceil (/ n 8))) (mod (- n) 8)))

@@ -51,7 +51,7 @@
    [ui/list-item-avatar {:class [(:wins-avatar classes)
                                  (when winner? (:winner classes))]}
     [ui/avatar {:class (:wins classes)}
-     wins]]])
+     (or wins "")]]])
 
 (def bracket-player ((with-styles bracket-player-styles) bracket-player*))
 
