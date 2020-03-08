@@ -68,7 +68,8 @@
                      sql-util/select-unique        [[:inner 0]]
                      sql-util/delete-unique        [[:inner 0]]
                      sql-util/update-unique        [[:inner 0]]
-                     validate-request              [[:inner 0]]}}
+                     validate-request              [[:inner 0]]
+                     cond->                        [[:inner 0]]}}
 
   :eastwood {:namespaces   [:source-paths :test-paths]
              :config-files ["test-resources/eastwood.clj"]}

@@ -72,7 +72,7 @@
 
 (defroutes pairings-routes
   (GET "/" req
-    (let [tournaments (tournament/client-tournaments true)]
+    (let [tournaments (:tournaments (tournament/client-tournaments {:active? true}))]
       (pairings-index req {:active-tournament-ids (map :id tournaments)
                            :tournaments           (map-by :id tournaments)})))
   (GET "/tournaments" req

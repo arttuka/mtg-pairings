@@ -1,0 +1,2 @@
+{:up   ["ALTER TABLE tournament ADD COLUMN modified TIMESTAMPTZ NOT NULL DEFAULT now();"]
+ :down ["ALTER TABLE tournament DROP COLUMN modified;"]}

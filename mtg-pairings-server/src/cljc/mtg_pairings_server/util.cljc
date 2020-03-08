@@ -61,6 +61,9 @@
            #?(:cljs time/to-default-time-zone)
            (format/unparse (format/formatter "HH:mm"))))
 
+(defn max-date [x y]
+  (if (time/after? x y) x y))
+
 (defn interval [from to]
   (if (time/before? to from)
     {:days    0

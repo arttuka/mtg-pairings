@@ -7,7 +7,8 @@
                              :name      String
                              :organizer (s/maybe String)
                              :day       LocalDate
-                             :rounds    Long})
+                             :rounds    Long
+                             :modified  DateTime})
 
 (s/defschema Tournament (merge BaseTournament
                                {:pairings    [Long]
@@ -20,7 +21,7 @@
                                 :players     Long}))
 
 (s/defschema InputTournament (-> BaseTournament
-                                 (dissoc :id)
+                                 (dissoc :id :modified)
                                  (merge {:day                       Date
                                          :sanctionid                String
                                          (s/optional-key :tracking) Boolean})))

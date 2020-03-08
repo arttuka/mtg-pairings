@@ -14,6 +14,7 @@
                :tournaments-page      0
                :tournament-ids        []
                :active-tournament-ids []
+               :tournaments-modified  nil
                :tournament-filter     {:organizer "all-organizers"
                                        :date-from nil
                                        :date-to   nil
@@ -76,13 +77,18 @@
            :filters-active false)))
 
 (reg-event-db :server/tournaments
-  (fn [db [_ tournaments]]
-    (let [max-players (round-up (transduce (map :players) max 0 tournaments) 10)]
+  (fn [db [_ {:keys [modified tournaments]}]]
+    (let [old-ids (set (:tournament-ids db))
+          new-ids (filterv (complement old-ids) (map :id tournaments))
+          max-players (round-up (transduce (map :players) max 0 tournaments) 10)
+          new-max-players (max (:max-players db 0) max-players)]
       (-> db
-          (assoc :tournaments (map-by :id tournaments)
-                 :tournament-ids (map :id tournaments)
-                 :max-players max-players)
-          (assoc-in [:tournament-filter :players 1] max-players)))))
+          (update :tournaments into (map-by :id) tournaments)
+          (cond->
+            (seq new-ids) (update :tournament-ids (partial into new-ids))
+            modified (assoc :tournaments-modified modified))
+          (assoc :max-players new-max-players)
+          (assoc-in [:tournament-filter :players 1] new-max-players)))))
 
 (reg-event-db :server/active-tournaments
   (fn [db [_ tournaments]]
@@ -99,8 +105,8 @@
     {:ws-send [:client/tournament id]}))
 
 (reg-event-fx ::load-tournaments
-  (fn [_ _]
-    {:ws-send [:client/tournaments]}))
+  (fn [{:keys [db]} _]
+    {:ws-send [:client/tournaments (:tournaments-modified db)]}))
 
 (reg-event-fx ::load-active-tournaments
   (fn [_ _]

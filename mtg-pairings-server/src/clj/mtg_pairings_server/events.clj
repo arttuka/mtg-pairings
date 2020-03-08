@@ -26,12 +26,12 @@
   (ws/send! uid [:server/organizer-login (get-in ring-req [:session :identity :username] false)]))
 
 (defmethod ws/event-handler :client/tournaments
-  [{:keys [uid]}]
-  (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
+  [{uid :uid, modified :?data}]
+  (ws/send! uid [:server/tournaments (tournament/client-tournaments {:modified modified})]))
 
 (defmethod ws/event-handler :client/active-tournaments
   [{:keys [uid]}]
-  (ws/send! uid [:server/active-tournaments (tournament/client-tournaments true)]))
+  (ws/send! uid [:server/active-tournaments (:tournaments (tournament/client-tournaments {:active? true}))]))
 
 (defmethod ws/event-handler :client/tournament
   [{uid :uid, id :?data}]
