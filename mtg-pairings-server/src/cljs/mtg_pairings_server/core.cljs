@@ -6,7 +6,7 @@
             [accountant.core :as accountant]
             [clojure.string :as str]
             [mtg-pairings-server.routes.decklist :as decklist-routes]
-            mtg-pairings-server.routes.pairings
+            [mtg-pairings-server.routes.pairings :as pairings-routes]
             mtg-pairings-server.util.event-listener
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.decklist :as decklist-subs]
@@ -84,6 +84,7 @@
     (fn [path]
       (secretary/locate-route path))})
   (accountant/dispatch-current!)
+  (reset! pairings-routes/initial-pageload? false)
   (mount-root)
   (when (str/includes? (.. js/window -location -search) "login-failed")
     (dispatch [::pairings-events/notification "DCI-numeroa ei löydy"])))

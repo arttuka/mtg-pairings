@@ -3,7 +3,6 @@
             [cljs-time.core :as time]
             [mtg-pairings-server.i18n.pairings :as i18n]
             [mtg-pairings-server.subscriptions.common :as common-subs]
-            [mtg-pairings-server.util :refer [today-or-yesterday?]]
             [mtg-pairings-server.util.mtg :refer [duplicate-pairings]]))
 
 (reg-sub ::logged-in-user
@@ -60,10 +59,9 @@
   (fn [db _]
     (:filters-active db)))
 
-(reg-sub ::newest-tournaments
-  :<- [::tournaments]
-  (fn [tournaments _]
-    (filter #(today-or-yesterday? (:day %)) tournaments)))
+(reg-sub ::active-tournaments
+  (fn [db _]
+    (map (:tournaments db) (:active-tournament-ids db))))
 
 (reg-sub ::organizers
   :<- [::tournaments]

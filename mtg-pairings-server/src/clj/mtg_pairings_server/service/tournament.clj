@@ -101,8 +101,10 @@
 (defn client-tournament [id]
   (format-client-tournament (tournament id)))
 
-(defn tournaments []
-  (let [tourns (sql/exec select-tournaments)
+(defn tournaments [active?]
+  (let [tourns (cond-> select-tournaments
+                 active? (sql/where {:day [>= (sql/raw "current_date - 1")]})
+                 true (sql/exec))
         teams (into {} (for [{:keys [tournament count]} (sql/select db/team
                                                           (sql/fields :tournament)
                                                           (sql/aggregate (count :*) :count :tournament))]
@@ -142,8 +144,11 @@
               :pod_round (get pod-rounds id [])
               :players (get teams id 0))))))
 
-(defn client-tournaments []
-  (map format-client-tournament (tournaments)))
+(defn client-tournaments
+  ([]
+   (client-tournaments false))
+  ([active?]
+   (map format-client-tournament (tournaments active?))))
 
 (defn organizer-tournaments []
   (for [t (-> select-tournaments

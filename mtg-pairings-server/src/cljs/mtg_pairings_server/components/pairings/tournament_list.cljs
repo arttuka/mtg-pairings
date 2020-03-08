@@ -10,7 +10,7 @@
             [mtg-pairings-server.components.pairings.tournament :refer [tournament]]))
 
 (defn newest-tournaments-list []
-  (let [tournaments (subscribe [::subs/newest-tournaments])
+  (let [tournaments (subscribe [::subs/active-tournaments])
         translate (subscribe [::subs/translate])]
     (fn []
       (let [translate @translate]

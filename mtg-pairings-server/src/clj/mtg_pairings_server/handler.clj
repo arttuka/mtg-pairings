@@ -19,6 +19,7 @@
             [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.service.tournament :as tournament]
             [mtg-pairings-server.transit :as transit]
+            [mtg-pairings-server.util :refer [map-by]]
             [mtg-pairings-server.util.decklist :refer [add-id-to-card add-id-to-cards]]
             [mtg-pairings-server.websocket :as ws]))
 
@@ -71,7 +72,9 @@
 
 (defroutes pairings-routes
   (GET "/" req
-    (pairings-index req))
+    (let [tournaments (tournament/client-tournaments true)]
+      (pairings-index req {:active-tournament-ids (map :id tournaments)
+                           :tournaments           (map-by :id tournaments)})))
   (GET "/tournaments" req
     (pairings-index req {:page {:page :mtg-pairings-server.pages.pairings/tournaments}}))
   (GET "/tournaments/organizer" req

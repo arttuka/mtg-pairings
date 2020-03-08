@@ -19,8 +19,7 @@
   [{uid :uid, dci-number :?data}]
   (log/debugf "New connection from %s with dci %s" uid dci-number)
   (when-let [player (player/player dci-number)]
-    (broadcast/login uid (:dci player)))
-  (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
+    (broadcast/login uid (:dci player))))
 
 (defmethod ws/event-handler :client/connect-decklist
   [{:keys [uid ring-req]}]
@@ -29,6 +28,10 @@
 (defmethod ws/event-handler :client/tournaments
   [{:keys [uid]}]
   (ws/send! uid [:server/tournaments (tournament/client-tournaments)]))
+
+(defmethod ws/event-handler :client/active-tournaments
+  [{:keys [uid]}]
+  (ws/send! uid [:server/active-tournaments (tournament/client-tournaments true)]))
 
 (defmethod ws/event-handler :client/tournament
   [{uid :uid, id :?data}]

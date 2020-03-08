@@ -4,10 +4,15 @@
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.routes.common :refer [dispatch-page]]))
 
+(defonce initial-pageload? (atom true))
+
 (secretary/defroute "/" []
+  (when-not @initial-pageload?
+    (dispatch [::events/load-active-tournaments]))
   (dispatch-page :mtg-pairings-server.pages.pairings/main))
 
 (secretary/defroute tournaments-path "/tournaments" []
+  (dispatch [::events/load-tournaments])
   (dispatch-page :mtg-pairings-server.pages.pairings/tournaments))
 
 (secretary/defroute multi-organizer-path "/tournaments/organizer" []

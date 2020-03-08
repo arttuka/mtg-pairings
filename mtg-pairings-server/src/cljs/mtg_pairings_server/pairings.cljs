@@ -4,6 +4,7 @@
             [mount.core :as m :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
+            [clojure.string :as str]
             [mtg-pairings-server.components.notification :refer [notification]]
             [mtg-pairings-server.components.organizer.deck-construction :refer [deck-construction-tables]]
             [mtg-pairings-server.components.pairings.header :refer [header]]
@@ -11,7 +12,7 @@
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.pages.pairings :as pairings-pages :refer [main-page tournament-page tournament-subpage tournaments-page]]
             [mtg-pairings-server.pages.organizer :as organizer-pages :refer [organizer-page organizer-menu]]
-            [mtg-pairings-server.routes.pairings]
+            [mtg-pairings-server.routes.pairings :as routes]
             [mtg-pairings-server.subscriptions.common :as common-subs]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util.event-listener]))
@@ -61,7 +62,10 @@
     (fn [path]
       (secretary/locate-route path))})
   (accountant/dispatch-current!)
-  (mount-root))
+  (reset! routes/initial-pageload? false)
+  (mount-root)
+  (when (str/includes? (.. js/window -location -search) "login-failed")
+    (dispatch [::events/notification "DCI-numeroa ei löydy"])))
 
 (defstate core
   :start (init!))

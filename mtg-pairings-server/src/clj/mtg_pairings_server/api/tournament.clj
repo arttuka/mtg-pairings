@@ -46,7 +46,7 @@
   (GET "/" []
     :return [Tournament]
     :summary "Hae kaikki turnaukset"
-    (response (tournaments)))
+    (response (tournaments false)))
   (GET "/:id" []
     :path-params [id :- s/Int]
     :return Tournament

@@ -9,33 +9,34 @@
             [mtg-pairings-server.websocket :as ws]))
 
 (defn initial-db []
-  (deep-merge {:tournaments        {}
-               :tournament-count   0
-               :tournaments-page   0
-               :tournament-ids     []
-               :tournament-filter  {:organizer "all-organizers"
-                                    :date-from nil
-                                    :date-to   nil
-                                    :players   [0 100]}
-               :filters-active     false
-               :max-players        100
-               :player-tournaments []
-               :pairings           {:sort-key :table_number}
-               :pods               {:sort-key :pod}
-               :seatings           {:sort-key :table_number}
-               :page               {:page  nil
-                                    :id    nil
-                                    :round nil}
-               :logged-in-user     nil
-               :notification       nil
-               :language           (i18n/language :fi)
-               :mobile?            (mobile?)
-               :window-size        [(.-innerWidth js/window)
-                                    (.-innerHeight js/window)]
-               :organizer          {:clock [{:time    (* 50 60)
-                                             :text    (format-time (* 50 60))
-                                             :timeout false
-                                             :id      (gensym "clock")}]}}
+  (deep-merge {:tournaments           {}
+               :tournament-count      0
+               :tournaments-page      0
+               :tournament-ids        []
+               :active-tournament-ids []
+               :tournament-filter     {:organizer "all-organizers"
+                                       :date-from nil
+                                       :date-to   nil
+                                       :players   [0 100]}
+               :filters-active        false
+               :max-players           100
+               :player-tournaments    []
+               :pairings              {:sort-key :table_number}
+               :pods                  {:sort-key :pod}
+               :seatings              {:sort-key :table_number}
+               :page                  {:page  nil
+                                       :id    nil
+                                       :round nil}
+               :logged-in-user        nil
+               :notification          nil
+               :language              (i18n/language :fi)
+               :mobile?               (mobile?)
+               :window-size           [(.-innerWidth js/window)
+                                       (.-innerHeight js/window)]
+               :organizer             {:clock [{:time    (* 50 60)
+                                                :text    (format-time (* 50 60))
+                                                :timeout false
+                                                :id      (gensym "clock")}]}}
               (transit/read js/initialDb)))
 
 (defn update-filters-active [db]
@@ -83,6 +84,12 @@
                  :max-players max-players)
           (assoc-in [:tournament-filter :players 1] max-players)))))
 
+(reg-event-db :server/active-tournaments
+  (fn [db [_ tournaments]]
+    (-> db
+        (update :tournaments into (map-by :id) tournaments)
+        (assoc :active-tournament-ids (map :id tournaments)))))
+
 (reg-event-db :server/tournament
   (fn [db [_ tournament]]
     (assoc-in db [:tournaments (:id tournament)] tournament)))
@@ -90,6 +97,14 @@
 (reg-event-fx ::load-tournament
   (fn [_ [_ id]]
     {:ws-send [:client/tournament id]}))
+
+(reg-event-fx ::load-tournaments
+  (fn [_ _]
+    {:ws-send [:client/tournaments]}))
+
+(reg-event-fx ::load-active-tournaments
+  (fn [_ _]
+    {:ws-send [:client/active-tournaments]}))
 
 (reg-event-fx ::load-pairings
   (fn [_ [_ id round]]

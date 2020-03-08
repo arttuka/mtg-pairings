@@ -61,11 +61,6 @@
            #?(:cljs time/to-default-time-zone)
            (format/unparse (format/formatter "HH:mm"))))
 
-(defn today-or-yesterday? [date]
-  (let [yesterday (time/minus (time/today) (time/days 1))
-        tomorrow (time/plus (time/today) (time/days 1))]
-    (time/within? (time/interval yesterday tomorrow) date)))
-
 (defn interval [from to]
   (if (time/before? to from)
     {:days    0
@@ -89,8 +84,11 @@
   (for [[m v] (group-kv #(dissoc % k) #(get % k) coll)]
     (assoc m k v)))
 
-(defn map-by [f coll]
-  (into {} (map (juxt f identity)) coll))
+(defn map-by
+  ([f]
+   (map (juxt f identity)))
+  ([f coll]
+   (into {} (map (juxt f identity)) coll)))
 
 (defn indexed [coll]
   (map-indexed vector coll))
