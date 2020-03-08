@@ -1,0 +1,4 @@
+{:up   ["CREATE INDEX tournament_day ON tournament(day);"
+        "CREATE INDEX team_players_player ON team_players(player);"
+        "CREATE INDEX pairing_round_team1wins ON pairing(round, team1_wins);"]
+ :down ["DROP INDEX tournament_day, team_players_player, pairing_round_team1wins;"]}

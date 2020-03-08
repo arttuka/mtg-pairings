@@ -14,5 +14,5 @@
 (defn migrate []
   (repl/migrate config))
 
-(defn rollback []
-  (repl/rollback config))
+(defn rollback [id]
+  (repl/rollback config id))

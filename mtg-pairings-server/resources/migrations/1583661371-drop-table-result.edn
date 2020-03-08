@@ -1,0 +1,24 @@
+{:up   ["ALTER TABLE pairing
+         ADD COLUMN team1_wins INT,
+         ADD COLUMN team2_wins INT,
+         ADD COLUMN draws INT;"
+        "UPDATE pairing p
+         SET team1_wins = r.team1_wins,
+             team2_wins = r.team2_wins,
+             draws = r.draws
+         FROM result r
+         WHERE r.pairing = p.id;"
+        "DROP TABLE result;"]
+ :down ["CREATE TABLE result
+           (pairing INT NOT NULL PRIMARY KEY REFERENCES pairing(id),
+            team1_wins INT,
+            team2_wins INT,
+            draws INT);"
+        "INSERT INTO result (pairing, team1_wins, team2_wins, draws)
+         (SELECT id AS pairing, team1_wins, team2_wins, draws
+          FROM pairing
+          WHERE team1_wins IS NOT NULL);"
+        "ALTER TABLE pairing
+         DROP COLUMN team1_wins,
+         DROP COLUMN team2_wins,
+         DROP COLUMN draws;"]}

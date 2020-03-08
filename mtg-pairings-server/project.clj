@@ -60,6 +60,7 @@
                      sql/with                      [[:inner 0]]
                      sql/insert                    [[:inner 0]]
                      sql/delete                    [[:inner 0]]
+                     sql/update                    [[:inner 0]]
                      sql/belongs-to                [[:inner 0]]
                      sql/has-many                  [[:inner 0]]
                      sql/has-one                   [[:inner 0]]

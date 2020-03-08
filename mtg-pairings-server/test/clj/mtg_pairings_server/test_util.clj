@@ -5,7 +5,7 @@
             [taoensso.timbre :as timbre]
             [mtg-pairings-server.sql-db :as db]))
 
-(def tables [db/seat db/pod db/pod-round db/seating db/result db/pairing db/round
+(def tables [db/seat db/pod db/pod-round db/seating db/pairing db/round
              db/team-players db/player db/team db/standings db/tournament db/user])
 
 (def users {:user1 {:id       1

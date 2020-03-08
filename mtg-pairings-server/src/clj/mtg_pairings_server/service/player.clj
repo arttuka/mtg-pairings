@@ -40,8 +40,6 @@
                                    (sql/fields [:name :team2_name]))
                                  (sql/with db/round
                                    (sql/fields [:num :round_number] :created))
-                                 (sql/with db/result
-                                   (sql/fields :team1_wins :team2_wins))
                                  (sql/where (and {:round.tournament (:id tournament)}
                                                  (or {:team1 players-team}
                                                      {:team2 players-team})))

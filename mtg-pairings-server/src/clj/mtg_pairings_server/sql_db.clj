@@ -120,14 +120,7 @@
   (sql/belongs-to team2
     {:fk :team2})
   (sql/belongs-to round
-    {:fk :round})
-  (sql/has-one result
-    {:fk :pairing}))
-
-(sql/defentity result
-  (sql/pk :pairing)
-  (sql/belongs-to pairing
-    {:fk :pairing}))
+    {:fk :round}))
 
 (sql/defentity standings
   (sql/pk :tournament)

@@ -185,9 +185,8 @@
                :team2_wins   nil
                :draws        nil}]
              (sql/select db/pairing
-               (sql/fields :table_number)
-               (sql/with db/result
-                 (sql/fields :team1_wins :team2_wins :draws))))))
+               (sql/fields :table_number :team1_wins :team2_wins :draws)
+               (sql/order :table_number)))))
     (testing "can replace results"
       (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/round-1/results"))
                         (mock/json-body {:results [{:team1        ["4050100000"]
@@ -213,9 +212,8 @@
                :team2_wins   0
                :draws        0}]
              (sql/select db/pairing
-               (sql/fields :table_number)
-               (sql/with db/result
-                 (sql/fields :team1_wins :team2_wins :draws))))))
+               (sql/fields :table_number :team1_wins :team2_wins :draws)
+               (sql/order :table_number)))))
     (testing "calculates standings"
       (is (= [{:rank      1
                :team_name "Team 2"
