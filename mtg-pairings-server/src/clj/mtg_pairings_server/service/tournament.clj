@@ -217,8 +217,6 @@
                                      (sql/where {:tournament tournament-id
                                                  :id         :pairing.round})))))
   (sql/delete db/standings
-    (sql/where {:tournament tournament-id}))
-  (sql/delete db/round
     (sql/where {:tournament tournament-id})))
 
 (defn ^:private delete-seatings [tournament-id]
@@ -468,10 +466,7 @@
       (sql/where (sql/sqlfn "exists" (sql/subselect db/round
                                        (sql/where {:tournament tournament-id
                                                    :round.id   :pairing.round
-                                                   :num        round-num})))))
-    (sql/delete db/round
-      (sql/where {:tournament tournament-id
-                  :num        round-num}))))
+                                                   :num        round-num})))))))
 
 (defn add-pods [sanction-id pods]
   (let [tournament-id (sanctionid->id sanction-id)
@@ -500,9 +495,7 @@
                                   (sql/where {:tournament tournament-id})
                                   (sql/order :num :DESC))))]
     (delete-results round)
-    (delete-pairings round)
-    (sql-util/delete-unique db/round
-      (sql/where {:id round})))
+    (delete-pairings round))
   (delete-seatings tournament-id)
   (delete-teams tournament-id)
   (delete-standings tournament-id))
@@ -513,6 +506,8 @@
 (defn delete-tournament [sanction-id]
   (let [tournament-id (sanctionid->id sanction-id)]
     (delete-tournament-data tournament-id)
+    (sql/delete db/round
+      (sql/where {:tournament tournament-id}))
     (sql-util/delete-unique db/tournament
       (sql/where {:id tournament-id}))))
 
