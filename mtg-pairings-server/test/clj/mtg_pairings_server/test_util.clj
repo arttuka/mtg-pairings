@@ -2,6 +2,7 @@
   (:require [config.core :refer [env]]
             [mount.core :as m]
             [taoensso.timbre :as timbre]
+            [honeysql.helpers :as sql]
             [mtg-pairings-server.db :as db]))
 
 (def tables [:pod_seat :pod :pod_round :seating :pairing :round
@@ -23,7 +24,7 @@
   (check-db!)
   (db/with-transaction
     (doseq [table tables]
-      (db/delete! table ["true"]))))
+      (db/query (sql/delete-from table)))))
 
 (defn db-fixture [f]
   (check-db!)
@@ -32,9 +33,9 @@
   (m/start #'db/db)
   (db/with-transaction
     (erase-db!)
-    (db/insert-multi! :trader_user
-                      [:id :username :uuid]
-                      (map (juxt :id :username :uuid) (vals users))))
+    (-> (sql/insert-into :trader_user)
+        (sql/values (vals users))
+        (db/query)))
   (f)
   (m/stop))
 

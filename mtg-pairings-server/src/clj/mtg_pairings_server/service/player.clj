@@ -25,14 +25,14 @@
       pairing)))
 
 (defn ^:private add-players-data [tournament dci]
-  (let [players-team (:id (-> (sql/select :id)
-                              (sql/from :team)
-                              (sql/where [:= :tournament (:id tournament)]
-                                         [:exists (-> (sql/select :*)
-                                                      (sql/from :team_players)
-                                                      (sql/where [:= :player dci]
-                                                                 [:= :team :team.id]))])
-                              (db/query-one)))
+  (let [players-team (-> (sql/select :id)
+                         (sql/from :team)
+                         (sql/where [:= :tournament (:id tournament)]
+                                    [:exists (-> (sql/select :*)
+                                                 (sql/from :team_players)
+                                                 (sql/where [:= :player dci]
+                                                            [:= :team :team.id]))])
+                         (db/query-one-field))
         pairings (for [pairing (-> (sql/select :p.* [:team1.name :team1_name] [:team2.name :team2_name] [:round.num :round_number] :round.created)
                                    (sql/from [:pairing :p])
                                    (sql/join :round [:= :p.round :round.id])

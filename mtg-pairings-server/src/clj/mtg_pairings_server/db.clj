@@ -1,7 +1,5 @@
 (ns mtg-pairings-server.db
   (:require [next.jdbc :as jdbc]
-            [next.jdbc.sql :as sql]
-            [next.jdbc.sql.builder :as builder]
             [next.jdbc.connection :as connection]
             [next.jdbc.prepare :as p]
             [next.jdbc.result-set :as rs]
@@ -78,36 +76,6 @@
   [q]
   (next (execute! q {:builder-fn rs/as-arrays})))
 
-(defn insert! [table row]
-  (sql/insert! *tx* table row {:builder-fn rs/as-unqualified-lower-maps
-                               :column-fn #(str \" % \")}))
-
-(defn insert-multi! [table cols rows]
-  (sql/insert-multi! *tx* table cols rows {:builder-fn rs/as-unqualified-lower-maps
-                                           :column-fn #(str \" % \")}))
-
-(defn update! [table v where]
-  (sql/update! *tx* table v where {:column-fn #(str \" % \")}))
-
-(defn update-one!
-  "Updates exactly one row. Throws an exception if row count is not 1."
-  [table v where]
-  (let [query (builder/for-update table v where {:suffix "RETURNING *"
-                                                 :column-fn #(str \" % \")})
-        results (jdbc/execute! *tx* query {:builder-fn rs/as-unqualified-lower-maps})]
-    (assert (= (count results) 1) (str "Expected one updated row, got " (count results)))
-    (first results)))
-
-(defn delete! [table where]
-  (sql/delete! *tx* table where {:column-fn #(str \" % \")}))
-
-(defn delete-one!
-  "Deletes exactly one row. Throws an exception if row count is not 1."
-  [table where]
-  (let [count (::jdbc/update-count (delete! table where))]
-    (assert (= count 1) (str "Expected one deleted row, got " count))
-    count))
-
 (defn one-or-nil
   [results]
   (let [[result & more] results]
@@ -136,14 +104,20 @@
   [q]
   (one (query q)))
 
-(defn query-one-field
+(defn query-one-field-or-nil
   "Executes a query and returns the only field of result or nil if none found.
    Throws an exception if query returns more than 1 result."
   [q]
   (first (one-or-nil (queryv q))))
 
+(defn query-one-field
+  "Executes a query and returns the only field of result or nil if none found.
+   Throws an exception if query returns more than 1 result."
+  [q]
+  (first (one (queryv q))))
+
 (defn query-field
-  ([q]
-   (mapv first (queryv q)))
-  ([q k]
-   (mapv k (query q))))
+  "Executes a query that has only one field per row.
+   Returns a vector of the values of that field"
+  [q]
+  (mapv first (queryv q)))
