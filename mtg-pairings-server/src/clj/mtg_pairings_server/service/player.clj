@@ -35,9 +35,9 @@
                          (db/query-one-field))
         pairings (for [pairing (-> (sql/select :p.* [:team1.name :team1_name] [:team2.name :team2_name] [:round.num :round_number] :round.created)
                                    (sql/from [:pairing :p])
-                                   (sql/join :round [:= :p.round :round.id])
-                                   (sql/merge-join [:team :team1] [:= :p.team1 :team1.id])
-                                   (sql/merge-left-join [:team :team2] [:= :p.team2 :team2.id])
+                                   (sql/join :round [:= :p.round :round.id]
+                                             [:team :team1] [:= :p.team1 :team1.id])
+                                   (sql/left-join [:team :team2] [:= :p.team2 :team2.id])
                                    (sql/where [:= :round.tournament (:id tournament)]
                                               [:or
                                                [:= :team1 players-team]
@@ -48,16 +48,15 @@
         seating (-> (sql/select :table_number [:team.name :team1_name])
                     (sql/from :seating)
                     (sql/join :team [:= :team :team.id])
-                    (sql/where [:= :seating.tournament (:id tournament)]
-                               [:= :team players-team])
+                    (sql/where [:= :team players-team])
                     (sql/order-by [:table_number :asc])
                     (sql/limit 1)
                     (db/query-one-or-nil))
         pod-seats (-> (sql/select :seat [:pod.number :pod] :pod_round.id [:num :round_number])
                       (sql/from :pod_seat)
-                      (sql/join :pod [:= :pod :pod.id])
-                      (sql/merge-join :pod_round [:= :pod_round :pod_round.id])
-                      (sql/merge-join :round [:= :round :round.id])
+                      (sql/join :pod [:= :pod :pod.id]
+                                :pod_round [:= :pod_round :pod_round.id]
+                                :round [:= :round :round.id])
                       (sql/where [:= :team players-team])
                       (sql/order-by [:pod_round.id :desc])
                       (db/query))]

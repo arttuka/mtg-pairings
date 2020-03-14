@@ -1,0 +1,8 @@
+{:up   ["CREATE INDEX team_tournament ON team(tournament);"
+        "CREATE INDEX seating_team ON seating(team);"
+        "CREATE INDEX seating_tournament ON seating(tournament);"
+        "CREATE INDEX round_playoff_tournament ON round(playoff, tournament);"
+        "CREATE INDEX tournament_modified ON tournament(modified);"
+        "ALTER TABLE tournament ALTER COLUMN modified SET DEFAULT date_trunc('milliseconds', now());"
+        "UPDATE tournament SET modified = date_trunc('milliseconds', modified);"]
+ :down ["DROP INDEX team_tournament, seating_team, seating_tournament, round_playoff_tournament, tournament_modified;"]}

@@ -52,10 +52,11 @@
       (sql/order-by [:day :desc] [:name :asc] [:id :asc])))
 
 (def ^:private select-tournaments-with-teams
-  (-> select-tournaments
-      (sql/left-join :team [:= :team.tournament :tournament.id])
-      (sql/merge-select [:%count.team.id :players])
-      (sql/group :rounds :day :tournament.name :organizer :tournament.id :modified)))
+  (sql/merge-select select-tournaments
+                    [(-> (sql/select :%count.*)
+                         (sql/from :team)
+                         (sql/where [:= :tournament :tournament.id]))
+                     :players]))
 
 (def ^:private select-rounds
   (-> (sql/select :num :created [(hsql/raw "COUNT(pairing.id) FILTER (WHERE team1_wins IS NULL) = 0") :results])
@@ -113,7 +114,7 @@
   (when-let [tourns (-> select-tournaments-with-teams
                         (cond->
                           active? (sql/merge-where [:>= :day (hsql/raw "current_date - 1")])
-                          modified (sql/merge-where [:> (hsql/call :date_trunc "milliseconds" :modified) modified]))
+                          modified (sql/merge-where [:> :modified modified]))
                         (db/query)
                         (seq))]
     (let [ids (when (or active? modified)
@@ -186,7 +187,7 @@
 
 (defn update-tournament-modified [id]
   (-> (sql/update :tournament)
-      (sql/sset {:modified (time/now)})
+      (sql/sset {:modified (hsql/call :date_trunc "milliseconds" :%now)})
       (sql/where [:= :id id])
       (returning :*)
       (db/query-one)))
@@ -272,6 +273,17 @@
       (into {} (for [{:keys [id name dci]} players]
                  [id (str name " ..." (subs dci 6))])))))
 
+(defn ^:private update-duplicate-names [duplicate-names results & ks]
+  (if duplicate-names
+    (for [result results]
+      (reduce (fn [m [id-key name-key]]
+                (if-let [name (get duplicate-names (get m id-key))]
+                  (assoc m name-key name)
+                  m))
+              result
+              ks))
+    results))
+
 (defn add-teams [sanction-id teams]
   (let [tournament-id (sanctionid->id sanction-id)]
     (delete-seatings tournament-id)
@@ -309,18 +321,13 @@
                     (sql/where [:= :seating.tournament tournament-id])
                     (sql/order-by [:name :asc])
                     (db/query))]
-    (seq
-     (if duplicate-names
-       (for [{:keys [team] :as result} results]
-         (cond-> result
-           (contains? duplicate-names team) (assoc :name (get duplicate-names team))))
-       results))))
+    (seq (update-duplicate-names duplicate-names results [:team :name]))))
 
 (def ^:private select-pods
   (-> (sql/select :seat [:team.id :team] [:team.name :team_name] [:pod.number :pod])
       (sql/from :pod_seat)
-      (sql/join :team [:= :team :team.id])
-      (sql/merge-join :pod [:= :pod :pod.id])
+      (sql/join :team [:= :team :team.id]
+                :pod [:= :pod :pod.id])
       (sql/order-by [:pod.number :asc] [:seat :asc])))
 
 (defn pods [tournament-id number]
@@ -334,11 +341,7 @@
       (let [results (-> select-pods
                         (sql/where [:= :pod_round (nth pod-rounds (dec number))])
                         (db/query))]
-        (if duplicate-names
-          (for [{:keys [team] :as result} results]
-            (cond-> result
-              (contains? duplicate-names team) (assoc :team_name (get duplicate-names team))))
-          results)))))
+        (update-duplicate-names duplicate-names results [:team :team_name])))))
 
 (defn latest-pods [tournament-id]
   (-> select-pods
@@ -457,18 +460,13 @@
                                 [:team1.name :team1_name] [:round.num :round_number]
                                 [(hsql/call :coalesce :team2.name "***BYE***") :team2_name])
                     (sql/from :pairing)
-                    (sql/join [:team :team1] [:= :team1 :team1.id])
+                    (sql/join [:team :team1] [:= :team1 :team1.id]
+                              :round [:= :round :round.id])
                     (sql/left-join [:team :team2] [:= :team2 :team2.id])
-                    (sql/merge-join :round [:= :round :round.id])
                     (sql/where [:= :round round-id])
                     (sql/order-by [:table_number :asc])
                     (db/query))]
-    (if duplicate-names
-      (for [{:keys [team1 team2] :as result} results]
-        (cond-> result
-          (contains? duplicate-names team1) (assoc :team1_name (get duplicate-names team1))
-          (contains? duplicate-names team2) (assoc :team2_name (get duplicate-names team2))))
-      results)))
+    (update-duplicate-names duplicate-names results [:team1 :team1_name] [:team2 :team2_name])))
 
 (defn ^:private calculate-standings [tournament-id round]
   (let [rounds (-> (sql/select :id :num)
@@ -613,9 +611,9 @@
                                 [:team1.name :team1_name] [:team2.name :team2_name]
                                 [:round.num :round_number])
                     (sql/from :pairing)
-                    (sql/join [:team :team1] [:= :team1 :team1.id])
+                    (sql/join [:team :team1] [:= :team1 :team1.id]
+                              :round [:= :round :round.id])
                     (sql/left-join [:team :team2] [:= :team2 :team2.id])
-                    (sql/merge-join :round [:= :round :round.id])
                     (sql/where [:= :round.tournament tournament-id])
                     (db/query))
         all-results (sort-by :round_number >
@@ -664,8 +662,8 @@
         round-id (nth pod-rounds (dec pod-round))
         pod-seats (-> (sql/select :seat :team [:pod.number :pod])
                       (sql/from :pod_seat)
-                      (sql/join :team [:= :team :team.id])
-                      (sql/merge-join :pod [:= :pod :pod.id])
+                      (sql/join :team [:= :team :team.id]
+                                :pod [:= :pod :pod.id])
                       (sql/where [:= :pod.pod_round round-id])
                       (db/query))
         seatings (deck-construction-seatings tournament-id pod-seats)]

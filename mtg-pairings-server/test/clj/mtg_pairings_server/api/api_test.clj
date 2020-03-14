@@ -113,8 +113,8 @@
             players (db/with-transaction
                       (-> (sql/select :p.dci :p.name)
                           (sql/from [:player :p])
-                          (sql/join [:team_players :tp] [:= :p.dci :tp.player])
-                          (sql/merge-join [:team :t] [:= :t.id :tp.team])
+                          (sql/join [:team_players :tp] [:= :p.dci :tp.player]
+                                    [:team :t] [:= :t.id :tp.team])
                           (sql/order-by [:t.name :asc])
                           (db/query)))]
         (is (= ["Team 1" "Team 2" "Team 3" "Team 4"] teams))
@@ -181,9 +181,9 @@
              (db/with-transaction
                (-> (sql/select [:team.name :team] [:number :pod] :seat)
                    (sql/from :pod)
-                   (sql/join :pod_round [:= :pod_round.id :pod.pod_round])
-                   (sql/merge-join :pod_seat [:= :pod.id :pod_seat.pod])
-                   (sql/merge-join :team [:= :pod_seat.team :team.id])
+                   (sql/join :pod_round [:= :pod_round.id :pod.pod_round]
+                             :pod_seat [:= :pod.id :pod_seat.pod]
+                             :team [:= :pod_seat.team :team.id])
                    (sql/order-by [:number :asc] [:seat :asc])
                    (db/query)))))))
   (testing "PUT /api/tournament/:sanctionid/pairings"
@@ -212,8 +212,8 @@
                (-> (sql/select [:team1.name :team1] [:team2.name :team2]
                                :table_number :team1_points :team2_points)
                    (sql/from :pairing)
-                   (sql/join [:team :team1] [:= :team1 :team1.id])
-                   (sql/merge-join [:team :team2] [:= :team2 :team2.id])
+                   (sql/join [:team :team1] [:= :team1 :team1.id]
+                             [:team :team2] [:= :team2 :team2.id])
                    (sql/order-by [:table_number :asc])
                    (db/query))))))
     (testing "can replace pairings"
@@ -241,8 +241,8 @@
                (-> (sql/select [:team1.name :team1] [:team2.name :team2]
                                :table_number :team1_points :team2_points)
                    (sql/from :pairing)
-                   (sql/join [:team :team1] [:= :team1 :team1.id])
-                   (sql/merge-join [:team :team2] [:= :team2 :team2.id])
+                   (sql/join [:team :team1] [:= :team1 :team1.id]
+                             [:team :team2] [:= :team2 :team2.id])
                    (sql/order-by [:table_number :asc])
                    (db/query)))))))
   (testing "PUT /api/tournament/:sanctionid/results"
@@ -355,9 +355,9 @@
                (-> (sql/select [:team1.name :team1] [:team2.name :team2]
                                :table_number :team1_points :team2_points)
                    (sql/from :pairing)
-                   (sql/join [:team :team1] [:= :team1 :team1.id])
-                   (sql/merge-join [:team :team2] [:= :team2 :team2.id])
-                   (sql/merge-join :round [:= :round :round.id])
+                   (sql/join [:team :team1] [:= :team1 :team1.id]
+                             [:team :team2] [:= :team2 :team2.id]
+                             :round [:= :round :round.id])
                    (sql/where [:= :round.num 2])
                    (sql/order-by [:table_number :asc])
                    (db/query))))))

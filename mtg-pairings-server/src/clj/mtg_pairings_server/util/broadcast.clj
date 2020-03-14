@@ -70,8 +70,8 @@
 (defn broadcast-tournament [sanctionid to-clients?]
   (let [tournament (-> (sql/select :t.id :t.name :t.organizer :t.day :t.rounds [:%array_agg.tp.player :player])
                        (sql/from [:tournament :t])
-                       (sql/join :team [:= :t.id :team.tournament])
-                       (sql/merge-join [:team_players :tp] [:= :team.id :tp.team])
+                       (sql/join :team [:= :t.id :team.tournament]
+                                 [:team_players :tp] [:= :team.id :tp.team])
                        (sql/where [:= :t.sanctionid sanctionid])
                        (sql/group :t.id :t.name :t.organizer :t.day :t.rounds)
                        (db/query-one-or-nil))
