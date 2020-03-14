@@ -123,6 +123,69 @@
                 {:dci "5060300000", :name "Player 3"}
                 {:dci "7010400000", :name "Player 4"}]
                players)))))
+  (testing "PUT /api/tournament/:sanctionid/seatings"
+    (testing "adds seatings"
+      (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/seatings"))
+                        (mock/json-body {:seatings [{:team         ["4050100000"]
+                                                     :table_number 1}
+                                                    {:team         ["1010200000"]
+                                                     :table_number 1}
+                                                    {:team         ["5060300000"]
+                                                     :table_number 2}
+                                                    {:team         ["7010400000"]
+                                                     :table_number 2}]})
+                        (add-apikey))
+                    204)
+      (is (= [{:team         "Team 1"
+               :table_number 1}
+              {:team         "Team 2"
+               :table_number 1}
+              {:team         "Team 3"
+               :table_number 2}
+              {:team         "Team 4"
+               :table_number 2}]
+             (db/with-transaction
+               (-> (sql/select [:team.name :team] :table_number)
+                   (sql/from :seating)
+                   (sql/join :team [:= :seating.team :team.id])
+                   (sql/order-by [:table_number :asc] [:team.name :asc])
+                   (db/query)))))))
+  (testing "PUT /api/tournament/:sanctionid/pods"
+    (testing "adds pods"
+      (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/pods"))
+                        (mock/json-body [{:pods  [{:number 1
+                                                   :seats  [{:seat 1
+                                                             :team ["4050100000"]}
+                                                            {:seat 2
+                                                             :team ["1010200000"]}]}
+                                                  {:number 2
+                                                   :seats  [{:seat 1
+                                                             :team ["5060300000"]}
+                                                            {:seat 2
+                                                             :team ["7010400000"]}]}]
+                                          :round 1}])
+                        (add-apikey))
+                    204)
+      (is (= [{:team "Team 1"
+               :pod  1
+               :seat 1}
+              {:team "Team 2"
+               :pod  1
+               :seat 2}
+              {:team "Team 3"
+               :pod  2
+               :seat 1}
+              {:team "Team 4"
+               :pod  2
+               :seat 2}]
+             (db/with-transaction
+               (-> (sql/select [:team.name :team] [:number :pod] :seat)
+                   (sql/from :pod)
+                   (sql/join :pod_round [:= :pod_round.id :pod.pod_round])
+                   (sql/merge-join :pod_seat [:= :pod.id :pod_seat.pod])
+                   (sql/merge-join :team [:= :pod_seat.team :team.id])
+                   (sql/order-by [:number :asc] [:seat :asc])
+                   (db/query)))))))
   (testing "PUT /api/tournament/:sanctionid/pairings"
     (testing "adds pairings"
       (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/round-1/pairings"))
