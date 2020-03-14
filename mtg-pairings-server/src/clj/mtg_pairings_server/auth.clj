@@ -4,21 +4,20 @@
             [config.core :refer [env]]
             [ring.util.response :refer [redirect]]
             [schema.core :as s]
-            [korma.core :as sql]
-            [mtg-pairings-server.db :as db']
+            [honeysql.helpers :as sql]
+            [mtg-pairings-server.db :as db]
             [mtg-pairings-server.service.player :as player]
-            [mtg-pairings-server.sql-db :as db]
-            [mtg-pairings-server.util.broadcast :as broadcast]
-            [mtg-pairings-server.util.sql :as sql-util])
+            [mtg-pairings-server.util.broadcast :as broadcast])
   (:import (java.security MessageDigest)))
 
 (defn ^:private ->hex [bytes]
   (str/join (for [b bytes] (format "%02x" b))))
 
 (defn ^:private authenticate [username password]
-  (when-let [user (sql-util/select-unique-or-nil db/smf-user
-                    (sql/fields [:id_member :id] [:passwd :hash])
-                    (sql/where {:member_name username}))]
+  (when-let [user (-> (sql/select [:id_member :id] [:passwd :hash])
+                      (sql/from :smf_members)
+                      (sql/where [:= :member_name username])
+                      (db/query-one-or-nil))]
     (let [input (str (str/lower-case username) password)
           md (doto (MessageDigest/getInstance "SHA-1")
                (.update (.getBytes input "UTF-8")))
@@ -38,16 +37,17 @@
                   password :- s/Str
                   __anti-forgery-token :- s/Str]
     :query-params [next :- s/Str]
-    (if-let [user (authenticate username password)]
-      (let [new-session (assoc (:session request) :identity user)]
-        (assoc (redirect next :see-other)
-               :session new-session))
-      (redirect (organizer-path) :see-other)))
+    (db/with-transaction
+      (if-let [user (authenticate username password)]
+        (let [new-session (assoc (:session request) :identity user)]
+          (assoc (redirect next :see-other)
+                 :session new-session))
+        (redirect (organizer-path) :see-other))))
   (POST "/dci-login" request
     :form-params [dci :- s/Str
                   __anti-forgery-token :- s/Str]
     :query-params [next :- s/Str]
-    (db'/with-transaction
+    (db/with-transaction
       (if-let [player (player/player dci)]
         (let [new-session (assoc (:session request) :dci (:dci player))]
           (assoc (redirect next :see-other) :session new-session))
