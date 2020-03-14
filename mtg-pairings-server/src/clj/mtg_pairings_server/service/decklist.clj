@@ -5,8 +5,15 @@
             [honeysql.helpers :as sql]
             [mtg-pairings-server.db :as db]
             [mtg-pairings-server.util :refer [indexed]]
-            [mtg-pairings-server.util.decklist :refer [types->keyword-set]]
-            [mtg-pairings-server.util.sql :as sql-util :refer [like]]))
+            [mtg-pairings-server.util.decklist :refer [types->keyword-set]])
+  (:import (java.util Base64 Random)))
+
+(let [random (Random.)
+      encoder (.withoutPadding (Base64/getUrlEncoder))]
+  (defn generate-id []
+    (let [bytes (byte-array 16)]
+      (.nextBytes random bytes)
+      (.encodeToString encoder bytes))))
 
 (defn search-cards [prefix format]
   (let [name-param (-> prefix
@@ -75,7 +82,7 @@
 (defn save-decklist [tournament decklist]
   (let [old-id (:id decklist)
         old-decklist (some-> old-id (get-decklist))
-        new-id (sql-util/generate-id)
+        new-id (generate-id)
         card->id (generate-card->id (map :name
                                          (concat (:main decklist)
                                                  (:side decklist))))]
@@ -143,7 +150,7 @@
                        (sql/from :decklist_tournament)
                        (sql/where [:= :id old-id])
                        (db/query-one-or-nil)))
-        new-id (sql-util/generate-id)]
+        new-id (generate-id)]
     (cond
       (not existing) (do
                        (db/insert! :decklist_tournament

@@ -5,12 +5,12 @@
             [mtg-pairings-server.api.decklist :refer [decklist-routes]]
             [mtg-pairings-server.api.player :refer [player-routes]]
             [mtg-pairings-server.api.tournament :refer [tournament-routes]]
-            [mtg-pairings-server.middleware.error :refer [request-validation-error-handler sql-error-handler default-error-handler]]
-            [mtg-pairings-server.util.sql :as sql-util]))
+            [mtg-pairings-server.db :as db]
+            [mtg-pairings-server.middleware.error :refer [request-validation-error-handler sql-error-handler default-error-handler]]))
 
 (defapi app
   {:exceptions {:handlers {::ex/request-validation request-validation-error-handler
-                           ::sql-util/assertion    sql-error-handler
+                           ::db/assertion    sql-error-handler
                            ::ex/default            default-error-handler}}}
   (swagger-routes
    {:ui   "/api-docs"

@@ -4,7 +4,7 @@
             [cheshire.core :as json]
             [schema.utils :as su]
             [taoensso.timbre :as log]
-            [mtg-pairings-server.util.sql :as sql-util])
+            [mtg-pairings-server.db :as db])
   (:import (clojure.lang ExceptionInfo)))
 
 (defn error-response [^Exception e data]
@@ -22,7 +22,7 @@
     (ex/request-validation-handler e data req)))
 
 (defn sql-error-handler [e data req]
-  (if-not (::sql-util/found? data)
+  (if-not (::db/found? data)
     {:status 404}
     (do
       (log/error e "SQL assertion error")
@@ -38,8 +38,8 @@
     (try
       (handler request)
       (catch ExceptionInfo e
-        (let [{:keys [type sql-util/found?]} (ex-data e)]
-          (if (and (= type ::sql-util/assertion)
+        (let [{:keys [type db/found?]} (ex-data e)]
+          (if (and (= type ::db/assertion)
                    (not found?))
             {:status 404
              :body   "Not found"}
