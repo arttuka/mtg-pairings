@@ -2,7 +2,7 @@
   (:require [compojure.api.sweet :refer :all]
             [schema.core :as s]
             [clj-time.coerce :as tc]
-            [korma.db :as db]
+            [mtg-pairings-server.db :as db]
             [mtg-pairings-server.service.decklist :refer :all]
             [mtg-pairings-server.service.tournament :refer [user-for-apikey]]
             [mtg-pairings-server.util :refer [response]]
@@ -13,7 +13,7 @@
     :query-params [key :- s/Str]
     :body [tournament InputDecklistTournament]
     :return DecklistTournament
-    (db/transaction
+    (db/with-transaction
      (let [user (user-for-apikey key)
            existing (some-> (:id tournament) (get-organizer-tournament))]
        (cond

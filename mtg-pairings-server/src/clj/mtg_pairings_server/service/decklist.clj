@@ -2,9 +2,8 @@
   (:require [clojure.string :as str]
             [clojure.set :refer [rename-keys]]
             [clj-time.core :as time]
-            [korma.core :as sql]
-            [korma.db :refer [transaction]]
-            [mtg-pairings-server.sql-db :as db]
+            [honeysql.helpers :as sql]
+            [mtg-pairings-server.db :as db]
             [mtg-pairings-server.util :refer [indexed]]
             [mtg-pairings-server.util.decklist :refer [types->keyword-set]]
             [mtg-pairings-server.util.sql :as sql-util :refer [like]]))
@@ -14,19 +13,21 @@
                        (str/replace "%" "")
                        (str/lower-case)
                        (str \%))
-        cards (sql/select db/card
-                (sql/fields :name :types)
-                (sql/where {(sql/sqlfn :lower :name) [like name-param]
-                            format                   true})
-                (sql/order :name :asc)
-                (sql/limit 10))]
+        cards (-> (sql/select :name :types)
+                  (sql/from :trader_card)
+                  (sql/where [:like :%lower.name name-param]
+                             format)
+                  (sql/order-by [:name :asc])
+                  (sql/limit 10)
+                  (db/query))]
     (map types->keyword-set cards)))
 
 (defn generate-card->id [cards]
   (into {}
-        (map (juxt :name :id))
-        (sql/select db/card
-          (sql/where {:name [in cards]}))))
+        (-> (sql/select :name :id)
+            (sql/from :trader_card)
+            (sql/where [:in :name cards])
+            (db/queryv))))
 
 (defn format-card [decklist maindeck card quantity]
   {:decklist decklist
@@ -35,8 +36,11 @@
    :quantity quantity})
 
 (defn get-tournament [id]
-  (sql-util/select-unique db/decklist-tournament
-    (sql/where {:id id})))
+  (-> (sql/select :*)
+      (sql/from :decklist_tournament)
+      (sql/where [:= :id id])
+      (db/query-one)
+      (update :format keyword)))
 
 (defn format-cards [cards maindeck?]
   (->> cards
@@ -45,16 +49,18 @@
        (mapv #(select-keys % [:name :quantity :types]))))
 
 (defn get-decklist [id]
-  (when-let [decklist (sql-util/select-unique-or-nil db/decklist
-                        (sql/fields :id [:name :deck-name] :first-name :last-name :dci :email :tournament)
-                        (sql/with db/decklist-card
-                          (sql/fields :maindeck :quantity)
-                          (sql/with db/card
-                            (sql/fields :name :types)
-                            (sql/order :name)))
-                        (sql/where {:id id}))]
-    (let [main (format-cards (:decklist_card decklist) true)
-          side (format-cards (:decklist_card decklist) false)
+  (when-let [decklist (-> (sql/select :id [:name :deck-name] :first-name :last-name :dci :email :tournament)
+                          (sql/from :decklist)
+                          (sql/where [:= :id id])
+                          (db/query-one-or-nil))]
+    (let [cards (-> (sql/select :maindeck :quantity :name :types)
+                    (sql/from :decklist_card)
+                    (sql/join :trader_card [:= :card :id])
+                    (sql/where [:= :decklist id])
+                    (sql/order-by [:name :asc])
+                    (db/query))
+          main (format-cards cards true)
+          side (format-cards cards false)
           player (select-keys decklist [:deck-name :first-name :last-name :email :dci])
           email-disabled? (not (str/blank? (:email player)))]
       {:id         id
@@ -67,59 +73,63 @@
        :player     (assoc player :email-disabled? email-disabled?)})))
 
 (defn save-decklist [tournament decklist]
-  (transaction
-   (let [old-id (:id decklist)
-         old-decklist (some-> old-id (get-decklist))
-         new-id (sql-util/generate-id)
-         card->id (generate-card->id (map :name
-                                          (concat (:main decklist)
-                                                  (:side decklist))))]
-     (if old-id
-       (do
-         (sql-util/update-unique db/decklist
-           (sql/set-fields (-> (:player decklist)
-                               (rename-keys {:deck-name :name})
-                               (select-keys [:name :first-name :last-name :email :dci])
-                               (assoc :submitted (time/now))))
-           (sql/where {:id old-id}))
-         (sql/delete db/decklist-card
-           (sql/where {:decklist old-id})))
-       (sql/insert db/decklist
-         (sql/values (-> (:player decklist)
-                         (rename-keys {:deck-name :name})
-                         (select-keys [:name :first-name :last-name :email :dci])
-                         (assoc :id new-id
-                                :tournament tournament
-                                :submitted (time/now))))))
-     (sql/insert db/decklist-card
-       (sql/values
-        (concat
-         (for [{:keys [name quantity]} (:main decklist)]
-           (format-card (or old-id new-id) true (card->id name) quantity))
-         (for [{:keys [name quantity]} (:side decklist)]
-           (format-card (or old-id new-id) false (card->id name) quantity)))))
-     {:id          (or old-id new-id)
-      :send-email? (and (not (str/blank? (get-in decklist [:player :email])))
-                        (str/blank? (get-in old-decklist [:player :email])))})))
+  (let [old-id (:id decklist)
+        old-decklist (some-> old-id (get-decklist))
+        new-id (sql-util/generate-id)
+        card->id (generate-card->id (map :name
+                                         (concat (:main decklist)
+                                                 (:side decklist))))]
+    (if old-id
+      (do
+        (db/update-one! :decklist
+                        (-> (:player decklist)
+                            (rename-keys {:deck-name :name})
+                            (select-keys [:name :first-name :last-name :email :dci])
+                            (assoc :submitted (time/now)))
+                        {:id old-id})
+        (db/delete! :decklist_card {:decklist old-id}))
+      (db/insert! :decklist
+                  (-> (:player decklist)
+                      (rename-keys {:deck-name :name})
+                      (select-keys [:name :first-name :last-name :email :dci])
+                      (assoc :id new-id
+                             :tournament tournament
+                             :submitted (time/now)))))
+    (db/insert-multi! :decklist_card
+                      [:decklist :maindeck :card :quantity]
+                      (concat
+                       (for [{:keys [name quantity]} (:main decklist)]
+                         [(or old-id new-id) true (card->id name) quantity])
+                       (for [{:keys [name quantity]} (:side decklist)]
+                         [(or old-id new-id) false (card->id name) quantity])))
+    {:id          (or old-id new-id)
+     :send-email? (and (not (str/blank? (get-in decklist [:player :email])))
+                       (str/blank? (get-in old-decklist [:player :email])))}))
 
 (defn get-organizer-tournaments [user-id]
   (when user-id
-    (let [tournaments (sql/select db/decklist-tournament
-                        (sql/fields :id :name :date :format :deadline)
-                        (sql/with db/decklist
-                          (sql/fields :id))
-                        (sql/where {:user user-id})
-                        (sql/order :date :DESC))]
-      (map #(update % :decklist count) tournaments))))
+    (let [tournaments (-> (sql/select :t.id :t.name :date :format :deadline [:%count.decklist.id :decklist])
+                          (sql/from [:decklist_tournament :t])
+                          (sql/left-join :decklist [:= :tournament :t.id])
+                          (sql/where [:= :user user-id])
+                          (sql/group :t.id :t.name :date :format :deadline)
+                          (sql/order-by [:date :desc])
+                          (db/query))]
+      (map #(update % :format keyword) tournaments))))
 
 (defn get-organizer-tournament [id]
-  (let [tournament (sql-util/select-unique db/decklist-tournament
-                     (sql/fields :id :user :name :date :format :deadline)
-                     (sql/with db/decklist
-                       (sql/fields :id :first-name :last-name :dci :submitted)
-                       (sql/order :submitted :asc))
-                     (sql/where {:id id}))]
-    (update tournament :decklist vec)))
+  (let [tournament (-> (sql/select :id :user :name :date :format :deadline)
+                       (sql/from :decklist_tournament)
+                       (sql/where [:= :id id])
+                       (db/query-one))
+        decklists (-> (sql/select :id :first-name :last-name :dci :submitted)
+                      (sql/from :decklist)
+                      (sql/where [:= :tournament id])
+                      (sql/order-by [:submitted :asc])
+                      (db/query))]
+    (-> tournament
+        (update :format keyword)
+        (assoc :decklist decklists))))
 
 (defn format-saved-tournament [tournament]
   (-> tournament
@@ -129,29 +139,33 @@
 (defn save-organizer-tournament [user-id tournament]
   (let [old-id (:id tournament)
         existing (when old-id
-                   (sql-util/select-unique-or-nil db/decklist-tournament
-                     (sql/where {:id old-id})))
+                   (-> (sql/select :*)
+                       (sql/from :decklist_tournament)
+                       (sql/where [:= :id old-id])
+                       (db/query-one-or-nil)))
         new-id (sql-util/generate-id)]
     (cond
       (not existing) (do
-                       (sql/insert db/decklist-tournament
-                         (sql/values (assoc (format-saved-tournament tournament)
-                                            :id new-id
-                                            :user user-id)))
+                       (db/insert! :decklist_tournament
+                                   (assoc (format-saved-tournament tournament)
+                                          :id new-id
+                                          :user user-id))
                        new-id)
       (= user-id (:user existing)) (do
-                                     (sql-util/update-unique db/decklist-tournament
-                                       (sql/set-fields (format-saved-tournament tournament))
-                                       (sql/where {:id old-id}))
+                                     (db/update-one! :decklist_tournament
+                                                     (format-saved-tournament tournament)
+                                                     {:id old-id})
                                      old-id))))
 
 (defn parse-decklist-row [row format]
   (when-not (or (str/blank? row)
                 (re-matches #"^[Mm]aindeck.*" row))
     (if-let [[_ quantity name] (re-matches #"(\d+)\s+(.+)" (str/trim row))]
-      (if-let [{:keys [name legal types]} (sql-util/select-unique-or-nil db/card
-                                            (sql/fields :name [format :legal] :types)
-                                            (sql/where {(sql/sqlfn :lower :name) (str/lower-case name)}))]
+      (if-let [{:keys [name legal types]} (-> (sql/select :name [format :legal] :types)
+                                              (sql/from :trader_card)
+                                              (sql/where [:= :%lower.name (str/lower-case name)])
+                                              (db/query-one-or-nil)
+                                              (types->keyword-set))]
         (if legal
           {:name     name
            :quantity (Long/parseLong quantity)
