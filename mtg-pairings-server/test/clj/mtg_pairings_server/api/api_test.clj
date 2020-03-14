@@ -3,9 +3,9 @@
             [clojure.edn :as edn]
             [config.core :refer [env]]
             [clj-time.core :as time]
-            [korma.core :as sql]
+            [honeysql.helpers :as sql]
             [ring.mock.request :as mock]
-            [mtg-pairings-server.sql-db :as db]
+            [mtg-pairings-server.db :as db]
             [mtg-pairings-server.test-util :refer [db-fixture erase-fixture users]]
             [mtg-pairings-server.handler :refer [app]])
   (:import (java.io BufferedInputStream)))
@@ -50,8 +50,10 @@
                :day        (time/local-date 2019 3 10)
                :rounds     3
                :owner      1}]
-             (sql/select db/tournament
-               (sql/fields :sanctionid :name :organizer :day :rounds :owner)))))
+             (db/with-transaction
+               (-> (sql/select :sanctionid :name :organizer :day :rounds :owner)
+                 (sql/from :tournament)
+                 (db/query))))))
     (testing "doesn't allow tournament with invalid apikey"
       (make-request (-> (mock/request :post "/api/tournament")
                         (mock/json-body {:sanctionid "2-123456"
@@ -73,8 +75,10 @@
                :day        (time/local-date 2019 3 10)
                :rounds     3
                :owner      1}]
-             (sql/select db/tournament
-               (sql/fields :sanctionid :name :organizer :day :rounds :owner))))))
+             (db/with-transaction
+               (-> (sql/select :sanctionid :name :organizer :day :rounds :owner)
+                   (sql/from :tournament)
+                   (db/query)))))))
   (testing "PUT /api/tournament/:sanctionid/teams"
     (testing "adds teams and players"
       (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/teams"))
@@ -96,18 +100,29 @@
               {:dci "1010200000", :name "Player 2"}
               {:dci "5060300000", :name "Player 3"}
               {:dci "7010400000", :name "Player 4"}]
-             (sql/select db/player
-               (sql/order :name))))
-      (let [teams (sql/select db/team
-                    (sql/with db/player)
-                    (sql/order :team.name))]
-        (is (= ["Team 1" "Team 2" "Team 3" "Team 4"]
-               (map :name teams)))
+             (db/with-transaction
+               (-> (sql/select :dci :name)
+                   (sql/from :player)
+                   (sql/order-by [:name :asc])
+                   (db/query)))))
+      (let [teams (db/with-transaction
+                    (-> (sql/select :name)
+                        (sql/from :team)
+                        (sql/order-by [:name :asc])
+                        (db/query-field)))
+            players (db/with-transaction
+                      (-> (sql/select :p.dci :p.name)
+                          (sql/from [:player :p])
+                          (sql/join [:team_players :tp] [:= :p.dci :tp.player])
+                          (sql/merge-join [:team :t] [:= :t.id :tp.team])
+                          (sql/order-by [:t.name :asc])
+                          (db/query)))]
+        (is (= ["Team 1" "Team 2" "Team 3" "Team 4"] teams))
         (is (= [{:dci "4050100000", :name "Player 1"}
                 {:dci "1010200000", :name "Player 2"}
                 {:dci "5060300000", :name "Player 3"}
                 {:dci "7010400000", :name "Player 4"}]
-               (mapcat :player teams))))))
+               players)))))
   (testing "PUT /api/tournament/:sanctionid/pairings"
     (testing "adds pairings"
       (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/round-1/pairings"))
@@ -130,13 +145,14 @@
                :table_number 2
                :team1_points 0
                :team2_points 0}]
-             (sql/select db/pairing
-               (sql/fields :table_number :team1_points :team2_points)
-               (sql/with db/team1
-                 (sql/fields [:name :team1]))
-               (sql/with db/team2
-                 (sql/fields [:name :team2]))
-               (sql/order :table_number)))))
+             (db/with-transaction
+               (-> (sql/select [:team1.name :team1] [:team2.name :team2]
+                               :table_number :team1_points :team2_points)
+                   (sql/from :pairing)
+                   (sql/join [:team :team1] [:= :team1 :team1.id])
+                   (sql/merge-join [:team :team2] [:= :team2 :team2.id])
+                   (sql/order-by [:table_number :asc])
+                   (db/query))))))
     (testing "can replace pairings"
       (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/round-1/pairings"))
                         (mock/json-body {:pairings [{:team1        ["4050100000"]
@@ -158,13 +174,14 @@
                :table_number 2
                :team1_points 0
                :team2_points 0}]
-             (sql/select db/pairing
-               (sql/fields :table_number :team1_points :team2_points)
-               (sql/with db/team1
-                 (sql/fields [:name :team1]))
-               (sql/with db/team2
-                 (sql/fields [:name :team2]))
-               (sql/order :table_number))))))
+             (db/with-transaction
+               (-> (sql/select [:team1.name :team1] [:team2.name :team2]
+                               :table_number :team1_points :team2_points)
+                   (sql/from :pairing)
+                   (sql/join [:team :team1] [:= :team1 :team1.id])
+                   (sql/merge-join [:team :team2] [:= :team2 :team2.id])
+                   (sql/order-by [:table_number :asc])
+                   (db/query)))))))
   (testing "PUT /api/tournament/:sanctionid/results"
     (testing "adds partial results"
       (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/round-1/results"))
@@ -184,9 +201,11 @@
                :team1_wins   nil
                :team2_wins   nil
                :draws        nil}]
-             (sql/select db/pairing
-               (sql/fields :table_number :team1_wins :team2_wins :draws)
-               (sql/order :table_number)))))
+             (db/with-transaction
+               (-> (sql/select :table_number :team1_wins :team2_wins :draws)
+                   (sql/from :pairing)
+                   (sql/order-by [:table_number :asc])
+                   (db/query))))))
     (testing "can replace results"
       (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/round-1/results"))
                         (mock/json-body {:results [{:team1        ["4050100000"]
@@ -211,9 +230,11 @@
                :team1_wins   2
                :team2_wins   0
                :draws        0}]
-             (sql/select db/pairing
-               (sql/fields :table_number :team1_wins :team2_wins :draws)
-               (sql/order :table_number)))))
+             (db/with-transaction
+               (-> (sql/select :table_number :team1_wins :team2_wins :draws)
+                   (sql/from :pairing)
+                   (sql/order-by [:table_number :asc])
+                   (db/query))))))
     (testing "calculates standings"
       (is (= [{:rank      1
                :team_name "Team 2"
@@ -239,11 +260,12 @@
                :omw       1
                :pgw       33/100
                :ogw       1}]
-             (->> (sql/select db/standings)
-                  first
-                  :standings
-                  edn/read-string
-                  (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw])))))))
+             (db/with-transaction
+               (-> (sql/select :standings)
+                   (sql/from :standings)
+                   (db/query-one-field)
+                   (edn/read-string)
+                   (->> (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw])))))))))
   (testing "another round"
     (testing "pairings"
       (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/round-2/pairings"))
@@ -266,16 +288,16 @@
                :table_number 2
                :team1_points 0
                :team2_points 0}]
-             (sql/select db/pairing
-               (sql/fields :table_number :team1_points :team2_points)
-               (sql/with db/round
-                 (sql/fields)
-                 (sql/where {:num 2}))
-               (sql/with db/team1
-                 (sql/fields [:name :team1]))
-               (sql/with db/team2
-                 (sql/fields [:name :team2]))
-               (sql/order :table_number)))))
+             (db/with-transaction
+               (-> (sql/select [:team1.name :team1] [:team2.name :team2]
+                               :table_number :team1_points :team2_points)
+                   (sql/from :pairing)
+                   (sql/join [:team :team1] [:= :team1 :team1.id])
+                   (sql/merge-join [:team :team2] [:= :team2 :team2.id])
+                   (sql/merge-join :round [:= :round :round.id])
+                   (sql/where [:= :round.num 2])
+                   (sql/order-by [:table_number :asc])
+                   (db/query))))))
     (testing "results"
       (make-request (-> (mock/request :put (str "/api/tournament/" sanction-id "/round-2/results"))
                         (mock/json-body {:results [{:team1        ["4050100000"]
@@ -317,9 +339,10 @@
                :omw       1/2
                :pgw       33/100
                :ogw       11/20}]
-             (->> (sql/select db/standings
-                    (sql/where {:round 2}))
-                  first
-                  :standings
-                  edn/read-string
-                  (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw]))))))))
+             (db/with-transaction
+               (-> (sql/select :standings)
+                   (sql/from :standings)
+                   (sql/where [:= :round 2])
+                   (db/query-one-field)
+                   (edn/read-string)
+                   (->> (map #(select-keys % [:rank :team_name :points :omw :pgw :ogw]))))))))))
