@@ -12,6 +12,7 @@
             [ring.util.response :refer [redirect]]
             [mtg-pairings-server.api.http :as http-api]
             [mtg-pairings-server.auth :as auth :refer [auth-routes]]
+            [mtg-pairings-server.db :as db]
             [mtg-pairings-server.middleware :refer [wrap-site-middleware]]
             [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
             [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
@@ -62,13 +63,14 @@
   ([req]
    (pairings-index req {}))
   ([req initial-db]
-   (let [user (some-> (get-in req [:session :dci])
-                      (player/player))
-         player-tournaments (when user
-                              (player/tournaments (:dci user)))]
-     (index "js/pairings-main.js" (merge initial-db
-                                         {:logged-in-user     user
-                                          :player-tournaments (vec player-tournaments)})))))
+   (db/with-transaction
+     (let [user (some-> (get-in req [:session :dci])
+                        (player/player))
+           player-tournaments (when user
+                                (player/tournaments (:dci user)))]
+       (index "js/pairings-main.js" (merge initial-db
+                                           {:logged-in-user     user
+                                            :player-tournaments (vec player-tournaments)}))))))
 
 (defroutes pairings-routes
   (GET "/" req

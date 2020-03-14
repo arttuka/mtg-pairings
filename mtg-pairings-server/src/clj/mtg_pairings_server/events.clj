@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.events
   (:require [taoensso.timbre :as log]
+            [mtg-pairings-server.db :as db]
             [mtg-pairings-server.service.decklist :as decklist]
             [mtg-pairings-server.service.email :as email]
             [mtg-pairings-server.service.player :as player]

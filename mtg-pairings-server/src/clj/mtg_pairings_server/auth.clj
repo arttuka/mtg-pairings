@@ -5,6 +5,7 @@
             [ring.util.response :refer [redirect]]
             [schema.core :as s]
             [korma.core :as sql]
+            [mtg-pairings-server.db :as db']
             [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.sql-db :as db]
             [mtg-pairings-server.util.broadcast :as broadcast]
@@ -46,10 +47,11 @@
     :form-params [dci :- s/Str
                   __anti-forgery-token :- s/Str]
     :query-params [next :- s/Str]
-    (if-let [player (player/player dci)]
-      (let [new-session (assoc (:session request) :dci (:dci player))]
-        (assoc (redirect next :see-other) :session new-session))
-      (redirect (str next "?login-failed"))))
+    (db'/with-transaction
+      (if-let [player (player/player dci)]
+        (let [new-session (assoc (:session request) :dci (:dci player))]
+          (assoc (redirect next :see-other) :session new-session))
+        (redirect (str next "?login-failed")))))
   (GET "/dci-logout" request
     (let [dci (get-in request [:session :dci])
           new-session (dissoc (:session request) :dci)]
