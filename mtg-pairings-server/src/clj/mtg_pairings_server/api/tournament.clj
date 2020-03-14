@@ -2,25 +2,25 @@
   (:require [compojure.api.sweet :refer :all]
             [clojure.string :as str]
             [clj-time.coerce]
-            [korma.db :as db]
             [schema.core :as s]
+            [mtg-pairings-server.db :as db]
             [mtg-pairings-server.service.tournament :refer :all]
             [mtg-pairings-server.util.broadcast :refer [broadcast-tournament]]
             [mtg-pairings-server.util.schema :refer :all]
             [mtg-pairings-server.util :refer [response]]))
 
 (defmacro validate-request [sanction-id apikey & body]
-  `(db/transaction
-    (let [user# (user-for-apikey ~apikey)
-          owner# (owner-of-tournament ~sanction-id)]
-      (cond
-        (nil? owner#) {:status 404
-                       :body   "Virheellinen sanktiointinumero"}
-        (nil? user#) {:status 400
-                      :body   "Virheellinen API key"}
-        (not= owner# user#) {:status 403
-                             :body   "Eri käyttäjän tallentama turnaus"}
-        :else (do ~@body)))))
+  `(db/with-transaction
+     (let [user# (user-for-apikey ~apikey)
+           owner# (owner-of-tournament ~sanction-id)]
+       (cond
+         (nil? owner#) {:status 404
+                        :body   "Virheellinen sanktiointinumero"}
+         (nil? user#) {:status 400
+                       :body   "Virheellinen API key"}
+         (not= owner# user#) {:status 403
+                              :body   "Eri käyttäjän tallentama turnaus"}
+         :else (do ~@body)))))
 
 (defroutes tournament-routes
   (POST "/" []
@@ -28,14 +28,14 @@
     :summary "Lisää turnaus"
     :query-params [key :- String]
     :body [tournament InputTournament {:description "Uusi turnaus"}]
-    (db/transaction
-     (if-let [user (user-for-apikey key)]
-       (let [tournament (-> tournament
-                            (update :day clj-time.coerce/to-local-date)
-                            (assoc :owner user))]
-         (response (select-keys (add-tournament tournament) [:id])))
-       {:status 400
-        :body   "Virheellinen API key"})))
+    (db/with-transaction
+      (if-let [user (user-for-apikey key)]
+        (let [tournament (-> tournament
+                             (update :day clj-time.coerce/to-local-date)
+                             (assoc :owner user))]
+          (response (select-keys (add-tournament tournament) [:id])))
+        {:status 400
+         :body   "Virheellinen API key"})))
   (PUT "/:sanctionid" []
     :path-params [sanctionid :- s/Str]
     :query-params [key :- s/Str]
@@ -46,46 +46,54 @@
   (GET "/" []
     :return [Tournament]
     :summary "Hae kaikki turnaukset"
-    (response (tournaments false)))
+    (db/with-transaction
+      (response (tournaments false))))
   (GET "/:id" []
     :path-params [id :- s/Int]
     :return Tournament
     :summary "Hae turnaus ID:n perusteella"
-    (response (tournament id)))
+    (db/with-transaction
+      (response (tournament id))))
   (GET "/:id/round-:round/pairings" []
     :path-params [id :- s/Int
                   round :- s/Int]
     :return [Pairing]
     :summary "Hae yhden kierroksen pairingit"
-    (response (get-round id round)))
+    (db/with-transaction
+      (response (get-round id round))))
   (GET "/:id/round-:round/results" []
     :path-params [id :- s/Int
                   round :- s/Int]
     :return [Pairing]
     :summary "Hae yhden kierroksen tulokset"
-    (response (get-round id round)))
+    (db/with-transaction
+      (response (get-round id round))))
   (GET "/:id/round-:round/standings" []
     :path-params [id :- s/Int
                   round :- s/Int]
     :return [Standing]
     :summary "Hae kierroksen jälkeiset standingsit"
-    (response (standings-for-api id round false)))
+    (db/with-transaction
+      (response (standings-for-api id round false))))
   (GET "/:id/seatings" []
     :path-params [id :- s/Int]
     :summary "Hae seatingit"
-    (response (seatings id)))
+    (db/with-transaction
+      (response (seatings id))))
   (GET "/:id/pods-:number" []
     :path-params [id :- s/Int
                   number :- s/Int]
     :summary "Hae podit"
-    (response (pods id number)))
+    (db/with-transaction
+      (response (pods id number))))
   (GET "/:id/coverage" []
     :path-params [id :- s/Int]
     :query-params [key :- s/Str]
     :summary "Hae coveragen käyttöön uusimmat standingit, pairingit ja pelaajien historia"
-    (let [sanction-id (id->sanctionid id)]
-      (validate-request sanction-id key
-        (response (coverage id)))))
+    (db/with-transaction
+      (let [sanction-id (id->sanctionid id)]
+        (validate-request sanction-id key
+          (response (coverage id))))))
   (PUT "/:sanctionid/round-:round/pairings" []
     :path-params [sanctionid :- s/Str
                   round :- s/Int]

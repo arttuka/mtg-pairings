@@ -96,6 +96,9 @@
 (defn indexed [coll]
   (map-indexed vector coll))
 
+(defn zip [& colls]
+  (apply map vector colls))
+
 (defn assoc-in-many [m & kvs]
   (reduce (fn [m [ks v]] (assoc-in m ks v)) m (partition 2 kvs)))
 
