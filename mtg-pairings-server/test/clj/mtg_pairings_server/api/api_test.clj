@@ -52,8 +52,8 @@
                :owner      1}]
              (db/with-transaction
                (-> (sql/select :sanctionid :name :organizer :day :rounds :owner)
-                 (sql/from :tournament)
-                 (db/query))))))
+                   (sql/from :tournament)
+                   (db/query))))))
     (testing "doesn't allow tournament with invalid apikey"
       (make-request (-> (mock/request :post "/api/tournament")
                         (mock/json-body {:sanctionid "2-123456"

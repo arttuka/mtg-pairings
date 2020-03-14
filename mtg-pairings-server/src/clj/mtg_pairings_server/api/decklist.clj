@@ -14,14 +14,14 @@
     :body [tournament InputDecklistTournament]
     :return DecklistTournament
     (db/with-transaction
-     (let [user (user-for-apikey key)
-           existing (some-> (:id tournament) (get-organizer-tournament))]
-       (cond
-         (nil? user) {:status 400
-                      :body   "Virheellinen API key"}
-         (and existing (not= (:user existing) user)) {:status 403
-                                                      :body   "Eri käyttäjän tallentama turnaus"}
-         :else (let [saved-id (save-organizer-tournament user (update tournament :date tc/to-local-date))]
-                 (response (-> (get-organizer-tournament saved-id)
-                               (select-keys [:id :name :date :format :deadline])
-                               (assoc :url (str "https://decklist.pairings.fi/tournament/" saved-id))))))))))
+      (let [user (user-for-apikey key)
+            existing (some-> (:id tournament) (get-organizer-tournament))]
+        (cond
+          (nil? user) {:status 400
+                       :body   "Virheellinen API key"}
+          (and existing (not= (:user existing) user)) {:status 403
+                                                       :body   "Eri käyttäjän tallentama turnaus"}
+          :else (let [saved-id (save-organizer-tournament user (update tournament :date tc/to-local-date))]
+                  (response (-> (get-organizer-tournament saved-id)
+                                (select-keys [:id :name :date :format :deadline])
+                                (assoc :url (str "https://decklist.pairings.fi/tournament/" saved-id))))))))))
