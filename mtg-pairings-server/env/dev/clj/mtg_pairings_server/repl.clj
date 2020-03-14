@@ -4,7 +4,8 @@
             [figwheel.main.api :as figwheel]
             [taoensso.timbre :as timbre]
             [clojure.tools.namespace.repl :as repl]
-            mtg-pairings-server.server)
+            mtg-pairings-server.server
+            mtg-pairings-server.db)
   (:import (com.fasterxml.jackson.core JsonGenerator)
            (org.joda.time LocalDate)))
 

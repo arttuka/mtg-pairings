@@ -6,6 +6,7 @@
             [taoensso.sente.packers.transit :as sente-transit]
             [mtg-pairings-server.transit :refer [writers readers]]
             [mtg-pairings-server.util :refer [parse-iso-date format-iso-date]]
+            #?(:clj [mtg-pairings-server.db :as db])
             #?(:clj [taoensso.sente.server-adapters.aleph :refer [get-sch-adapter]])
             #?(:clj [compojure.core :refer [defroutes GET POST]])))
 
@@ -55,7 +56,9 @@
 
 (defn event-handler* [event]
   (log/debugf "handling event %s" (first (:event event)))
-  (event-handler event))
+  #?(:clj  (db/with-transaction
+             (event-handler event))
+     :cljs (event-handler event)))
 
 ;; Event router
 

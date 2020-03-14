@@ -6,7 +6,8 @@
             [taoensso.timbre :as timbre]
             [taoensso.timbre.appenders.3rd-party.rolling :refer [rolling-appender]]
             [mtg-pairings-server.migrations :as migrations]
-            mtg-pairings-server.server)
+            mtg-pairings-server.server
+            mtg-pairings-server.db)
   (:import (com.fasterxml.jackson.core JsonGenerator)
            (org.joda.time LocalDate)))
 
