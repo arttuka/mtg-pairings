@@ -10,7 +10,7 @@
 
 (defapi app
   {:exceptions {:handlers {::ex/request-validation request-validation-error-handler
-                           ::db/assertion    sql-error-handler
+                           ::db/assertion          sql-error-handler
                            ::ex/default            default-error-handler}}}
   (swagger-routes
    {:ui   "/api-docs"

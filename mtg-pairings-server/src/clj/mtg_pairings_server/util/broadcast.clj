@@ -68,23 +68,22 @@
   (swap! mapping watch* uid tournament-id))
 
 (defn broadcast-tournament [sanctionid to-clients?]
-  (db/with-transaction
-    (let [tournament (-> (sql/select :t.id :t.name :t.organizer :t.day :t.rounds [:%array_agg.tp.player :player])
-                         (sql/from [:tournament :t])
-                         (sql/join :team [:= :t.id :team.tournament])
-                         (sql/merge-join [:team_players :tp] [:= :team.id :tp.team])
-                         (sql/where [:= :t.sanctionid sanctionid])
-                         (sql/group :t.id :t.name :t.organizer :t.day :t.rounds)
-                         (db/query-one-or-nil))
-          {:keys [dci->uid id->uid]} @mapping]
-      (when to-clients?
-        (doseq [p (:player tournament)
-                :when (contains? dci->uid p)
-                :let [t (-> tournament
-                            (dissoc :player)
-                            (format-tournament p))]
-                uid (dci->uid p)]
-          (ws/send! uid [:server/player-tournament t])))
-      (let [organizer-tournament (tournament/tournament (:id tournament))]
-        (doseq [uid (get id->uid (:id tournament))]
-          (ws/send! uid [:server/organizer-tournament organizer-tournament]))))))
+  (let [tournament (-> (sql/select :t.id :t.name :t.organizer :t.day :t.rounds [:%array_agg.tp.player :player])
+                       (sql/from [:tournament :t])
+                       (sql/join :team [:= :t.id :team.tournament])
+                       (sql/merge-join [:team_players :tp] [:= :team.id :tp.team])
+                       (sql/where [:= :t.sanctionid sanctionid])
+                       (sql/group :t.id :t.name :t.organizer :t.day :t.rounds)
+                       (db/query-one-or-nil))
+        {:keys [dci->uid id->uid]} @mapping]
+    (when to-clients?
+      (doseq [p (:player tournament)
+              :when (contains? dci->uid p)
+              :let [t (-> tournament
+                          (dissoc :player)
+                          (format-tournament p))]
+              uid (dci->uid p)]
+        (ws/send! uid [:server/player-tournament t])))
+    (let [organizer-tournament (tournament/tournament (:id tournament))]
+      (doseq [uid (get id->uid (:id tournament))]
+        (ws/send! uid [:server/organizer-tournament organizer-tournament])))))

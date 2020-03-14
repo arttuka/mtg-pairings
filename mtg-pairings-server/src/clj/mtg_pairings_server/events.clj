@@ -1,6 +1,5 @@
 (ns mtg-pairings-server.events
   (:require [taoensso.timbre :as log]
-            [mtg-pairings-server.db :as db]
             [mtg-pairings-server.service.decklist :as decklist]
             [mtg-pairings-server.service.email :as email]
             [mtg-pairings-server.service.player :as player]
@@ -91,69 +90,60 @@
 
 (defmethod ws/event-handler :client/save-decklist
   [{uid :uid, [tournament decklist] :?data}]
-  (db/with-transaction
-    (try
-      (let [{:keys [id send-email?]} (decklist/save-decklist tournament decklist)]
-        (ws/send! uid [:server/decklist-saved id])
-        (when send-email?
-          (let [tournament (decklist/get-tournament (:tournament decklist))
-                {:keys [subject text]} (email/generate-message tournament (assoc decklist :id id))]
-            (email/send-email (get-in decklist [:player :email]) subject text))))
-      (catch Exception e
-        (log/error e "Error saving decklist")
-        (ws/send! uid [:server/decklist-error])))))
+  (try
+    (let [{:keys [id send-email?]} (decklist/save-decklist tournament decklist)]
+      (ws/send! uid [:server/decklist-saved id])
+      (when send-email?
+        (let [tournament (decklist/get-tournament (:tournament decklist))
+              {:keys [subject text]} (email/generate-message tournament (assoc decklist :id id))]
+          (email/send-email (get-in decklist [:player :email]) subject text))))
+    (catch Exception e
+      (log/error e "Error saving decklist")
+      (ws/send! uid [:server/decklist-error]))))
 
 (defmethod ws/event-handler :client/decklist-organizer-tournament
   [{uid :uid, id :?data, ring-req :ring-req}]
-  (db/with-transaction
-    (let [tournament (decklist/get-organizer-tournament id)]
-      (when (= (get-in ring-req [:session :identity :id]) (:user tournament))
-        (ws/send! uid [:server/decklist-organizer-tournament tournament])))))
+  (let [tournament (decklist/get-organizer-tournament id)]
+    (when (= (get-in ring-req [:session :identity :id]) (:user tournament))
+      (ws/send! uid [:server/decklist-organizer-tournament tournament]))))
 
 (defmethod ws/event-handler :client/decklist-organizer-tournaments
   [{uid :uid, ring-req :ring-req}]
-  (db/with-transaction
-    (let [tournaments (decklist/get-organizer-tournaments (get-in ring-req [:session :identity :id]))]
-      (ws/send! uid [:server/decklist-organizer-tournaments tournaments]))))
+  (let [tournaments (decklist/get-organizer-tournaments (get-in ring-req [:session :identity :id]))]
+    (ws/send! uid [:server/decklist-organizer-tournaments tournaments])))
 
 (defmethod ws/event-handler :client/save-decklist-organizer-tournament
   [{uid :uid, tournament :?data, ring-req :ring-req}]
-  (db/with-transaction
-    (try
-      (let [user-id (get-in ring-req [:session :identity :id])
-            id (decklist/save-organizer-tournament user-id tournament)]
-        (when id
-          (ws/send! uid [:server/organizer-tournament-saved id])))
-      (catch Exception e
-        (log/error e "Error saving tournament")
-        (ws/send! uid [:server/decklist-tournament-error])))))
+  (try
+    (let [user-id (get-in ring-req [:session :identity :id])
+          id (decklist/save-organizer-tournament user-id tournament)]
+      (when id
+        (ws/send! uid [:server/organizer-tournament-saved id])))
+    (catch Exception e
+      (log/error e "Error saving tournament")
+      (ws/send! uid [:server/decklist-tournament-error]))))
 
 (defmethod ws/event-handler :client/load-decklist
   [{uid :uid, id :?data}]
-  (db/with-transaction
-    (ws/send! uid [:server/decklist (decklist/get-decklist id)])))
+  (ws/send! uid [:server/decklist (decklist/get-decklist id)]))
 
 (defmethod ws/event-handler :client/load-decklists
   [{uid :uid, ids :?data}]
-  (db/with-transaction
-    (ws/send! uid [:server/decklists (sort-by (fn [d]
-                                                [(get-in d [:player :last-name])
-                                                 (get-in d [:player :first-name])])
-                                              (map decklist/get-decklist ids))])))
+  (ws/send! uid [:server/decklists (sort-by (fn [d]
+                                              [(get-in d [:player :last-name])
+                                               (get-in d [:player :first-name])])
+                                            (map decklist/get-decklist ids))]))
 
 (defmethod ws/event-handler :client/load-decklist-with-id
   [{uid :uid, id :?data}]
-  (db/with-transaction
-    (if-let [decklist (decklist/get-decklist id)]
-      (ws/send! uid [:server/decklist decklist])
-      (ws/send! uid [:server/decklist-load-error :not-found]))))
+  (if-let [decklist (decklist/get-decklist id)]
+    (ws/send! uid [:server/decklist decklist])
+    (ws/send! uid [:server/decklist-load-error :not-found])))
 
 (defmethod ws/event-handler :client/decklist-card-suggestions
   [{[prefix format] :?data, reply-fn :?reply-fn}]
-  (db/with-transaction
-    (reply-fn (decklist/search-cards prefix format))))
+  (reply-fn (decklist/search-cards prefix format)))
 
 (defmethod ws/event-handler :client/load-text-decklist
   [{uid :uid, [text-decklist format] :?data}]
-  (db/with-transaction
-    (ws/send! uid [:server/decklist (decklist/load-text-decklist text-decklist format)])))
+  (ws/send! uid [:server/decklist (decklist/load-text-decklist text-decklist format)]))

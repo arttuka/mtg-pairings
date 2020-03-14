@@ -37,21 +37,19 @@
                   password :- s/Str
                   __anti-forgery-token :- s/Str]
     :query-params [next :- s/Str]
-    (db/with-transaction
-      (if-let [user (authenticate username password)]
-        (let [new-session (assoc (:session request) :identity user)]
-          (assoc (redirect next :see-other)
-                 :session new-session))
-        (redirect (organizer-path) :see-other))))
+    (if-let [user (authenticate username password)]
+      (let [new-session (assoc (:session request) :identity user)]
+        (assoc (redirect next :see-other)
+               :session new-session))
+      (redirect (organizer-path) :see-other)))
   (POST "/dci-login" request
     :form-params [dci :- s/Str
                   __anti-forgery-token :- s/Str]
     :query-params [next :- s/Str]
-    (db/with-transaction
-      (if-let [player (player/player dci)]
-        (let [new-session (assoc (:session request) :dci (:dci player))]
-          (assoc (redirect next :see-other) :session new-session))
-        (redirect (str next "?login-failed")))))
+    (if-let [player (player/player dci)]
+      (let [new-session (assoc (:session request) :dci (:dci player))]
+        (assoc (redirect next :see-other) :session new-session))
+      (redirect (str next "?login-failed"))))
   (GET "/dci-logout" request
     (let [dci (get-in request [:session :dci])
           new-session (dissoc (:session request) :dci)]
