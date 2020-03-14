@@ -90,7 +90,7 @@
 (s/defschema InputDecklistTournament {(s/optional-key :id) s/Str
                                       :name                s/Str
                                       :date                Date
-                                      :format              (s/enum :standard :modern :legacy)
+                                      :format              (s/enum :standard :pioneer :modern :legacy)
                                       :deadline            DateTime})
 
 (s/defschema DecklistTournament (-> InputDecklistTournament

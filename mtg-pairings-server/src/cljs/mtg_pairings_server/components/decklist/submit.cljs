@@ -178,6 +178,7 @@
            [:span {:class (:bold classes)}
             (case (:format @tournament)
               :standard "Standard"
+              :pioneer "Pioneer"
               :modern "Modern"
               :legacy "Legacy")]
            "."]

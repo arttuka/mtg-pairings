@@ -76,6 +76,8 @@
                                      :id   :tournament-format}}
             [ui/menu-item {:value :standard}
              "Standard"]
+            [ui/menu-item {:value :pioneer}
+             "Pioneer"]
             [ui/menu-item {:value :modern}
              "Modern"]
             [ui/menu-item {:value :legacy}

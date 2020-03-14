@@ -14,15 +14,13 @@
                        (str/replace "%" "")
                        (str/lower-case)
                        (str \%))
-        query (cond-> (-> (sql/select* db/card)
-                          (sql/fields :name :types)
-                          (sql/where {(sql/sqlfn :lower :name) [like name-param]})
-                          (sql/order :name :asc)
-                          (sql/limit 10))
-                (= :standard format) (sql/where {:standard true})
-                (= :modern format) (sql/where {:modern true})
-                (= :legacy format) (sql/where {:legacy true}))]
-    (map types->keyword-set (sql/exec query))))
+        cards (sql/select db/card
+                (sql/fields :name :types)
+                (sql/where {(sql/sqlfn :lower :name) [like name-param]
+                            format                   true})
+                (sql/order :name :asc)
+                (sql/limit 10))]
+    (map types->keyword-set cards)))
 
 (defn generate-card->id [cards]
   (into {}
@@ -166,7 +164,7 @@
        :error :invalid-row})))
 
 (defn load-text-decklist [text-decklist format]
-  {:pre [(contains? #{:standard :modern :legacy} format)]}
+  {:pre [(contains? #{:standard :pioneer :modern :legacy} format)]}
   (let [[maindeck sideboard] (str/split text-decklist #"[Ss]ideboard( \(\d*\))?\s*")
         maindeck-cards (keep #(parse-decklist-row % format) (str/split-lines maindeck))
         sideboard-cards (when sideboard

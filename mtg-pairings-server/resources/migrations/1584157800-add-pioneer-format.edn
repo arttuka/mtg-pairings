@@ -1,0 +1,11 @@
+{:up   ["DROP INDEX trader_card_standard_name, trader_card_modern_name, trader_card_legacy_name;"
+        "ALTER TABLE trader_card ADD COLUMN pioneer BOOLEAN DEFAULT false;"
+        "CREATE INDEX trader_card_standard_name ON trader_card(standard, LOWER(name) text_pattern_ops);"
+        "CREATE INDEX trader_card_pioneer_name ON trader_card(pioneer, LOWER(name) text_pattern_ops);"
+        "CREATE INDEX trader_card_modern_name ON trader_card(modern, LOWER(name) text_pattern_ops);"
+        "CREATE INDEX trader_card_legacy_name ON trader_card(legacy, LOWER(name) text_pattern_ops);"]
+ :down ["DROP INDEX trader_card_standard_name, trader_card_pioneer_name, trader_card_modern_name, trader_card_legacy_name;"
+        "ALTER TABLE trader_card DROP COLUMN pioneer;"
+        "CREATE INDEX trader_card_standard_name ON trader_card(standard, name text_pattern_ops);"
+        "CREATE INDEX trader_card_modern_name ON trader_card(modern, name text_pattern_ops);"
+        "CREATE INDEX trader_card_legacy_name ON trader_card(legacy, name text_pattern_ops);"]}
