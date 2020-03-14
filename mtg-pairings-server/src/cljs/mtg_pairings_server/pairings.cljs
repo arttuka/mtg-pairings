@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.pairings
   (:require [reagent.core :as reagent :refer [atom]]
+            [reagent.dom :as dom]
             [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
             [mount.core :as m :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
@@ -49,7 +50,7 @@
             nil)]]))))
 
 (defn mount-root []
-  (reagent/render [providers [#'current-page]] (.getElementById js/document "app")))
+  (dom/render [providers [#'current-page]] (.getElementById js/document "app")))
 
 (defn init! []
   (dispatch-sync [::events/initialize])

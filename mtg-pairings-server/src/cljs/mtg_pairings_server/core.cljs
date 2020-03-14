@@ -1,5 +1,6 @@
 (ns ^:figwheel-hooks mtg-pairings-server.core
   (:require [reagent.core :as reagent :refer [atom]]
+            [reagent.dom :as dom]
             [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
             [mount.core :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
@@ -62,7 +63,7 @@
             nil)]]))))
 
 (defn mount-root []
-  (reagent/render [providers [#'current-page]] (.getElementById js/document "app")))
+  (dom/render [providers [#'current-page]] (.getElementById js/document "app")))
 
 (defn ^:after-load figwheel-reload []
   (clear-subscription-cache!)
