@@ -1,9 +1,10 @@
 (ns mtg-pairings-server.repl
   (:require [mount.core :as m :refer [defstate]]
             [cheshire.generate :as json-gen]
-            [figwheel.main.api :as figwheel]
             [taoensso.timbre :as timbre]
             [clojure.tools.namespace.repl :as repl]
+            [shadow.cljs.devtools.api :as cljs]
+            [shadow.cljs.devtools.server :as shadow]
             mtg-pairings-server.server
             mtg-pairings-server.db)
   (:import (com.fasterxml.jackson.core JsonGenerator)
@@ -15,14 +16,13 @@
                       (fn [c ^JsonGenerator generator]
                         (.writeString generator (str c))))
 
-(def figwheel–build "dev")
-
-(defstate figwheel
-  :start (figwheel/start {:mode :serve} figwheel–build)
-  :stop (figwheel/stop figwheel–build))
-
-(defn cljs-repl []
-  (figwheel/cljs-repl figwheel–build))
+(defstate shadow-cljs
+  :start (do
+           (shadow/start!)
+           (cljs/watch :dev))
+  :stop (do
+          (shadow/stop!)
+          (cljs/stop-worker :dev)))
 
 (defn restart []
   (m/stop)

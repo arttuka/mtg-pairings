@@ -13,6 +13,7 @@ pom.xml.asc
 *.iml
 /.lein-*
 /.nrepl-port
+/.eastwood
 .rebel_readline_history
 /bin
 .classpath
@@ -22,3 +23,4 @@ pom.xml.asc
 /resources/manifest.json
 node_modules
 /dist
+.shadow-cljs

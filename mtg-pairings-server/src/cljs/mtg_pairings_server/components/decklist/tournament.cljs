@@ -2,7 +2,8 @@
   (:require [reagent.core :as reagent :refer [atom with-let]]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent-material-ui.components :as ui]
-            [reagent-material-ui.pickers :as pickers]
+            [reagent-material-ui.pickers.date-picker :refer [date-picker]]
+            [reagent-material-ui.pickers.date-time-picker :refer [date-time-picker]]
             [reagent-material-ui.styles :refer [with-styles]]
             [cljs-time.core :as time]
             [clojure.string :as str]
@@ -86,28 +87,28 @@
             (when-not value
               (translate :organizer.tournament.format-error))]])
         (let [value (time/to-default-time-zone (:date @tournament))]
-          [pickers/date-picker {:classes   {:root (:field classes)}
-                                :value     value
-                                :label     (translate :organizer.tournament.date)
-                                :on-change set-date
-                                :variant   :inline
-                                :auto-ok   true
-                                :format    "dd.MM.yyyy"}])
+          [date-picker {:classes   {:root (:field classes)}
+                        :value     value
+                        :label     (translate :organizer.tournament.date)
+                        :on-change set-date
+                        :variant   :inline
+                        :auto-ok   true
+                        :format    "dd.MM.yyyy"}])
         (let [value (time/to-default-time-zone (:deadline @tournament))]
-          [pickers/date-time-picker {:classes   {:root (:field classes)}
-                                     :value     value
-                                     :label     (translate :organizer.tournament.deadline)
-                                     :on-change set-deadline
-                                     :variant   :inline
-                                     :auto-ok   true
-                                     :format    "dd.MM.yyyy HH:mm"
-                                     :ampm      false}])]
+          [date-time-picker {:classes   {:root (:field classes)}
+                             :value     value
+                             :label     (translate :organizer.tournament.deadline)
+                             :on-change set-deadline
+                             :variant   :inline
+                             :auto-ok   true
+                             :format    "dd.MM.yyyy HH:mm"
+                             :ampm      false}])]
        (when id
          [:p
           (translate :organizer.submit-page)
           ": "
           (let [submit-url (routes/new-decklist-path {:id id})]
-            [ui/link {:href submit-url
+            [ui/link {:href   submit-url
                       :target :_blank}
              (str (get-host) submit-url)])])
        [:div

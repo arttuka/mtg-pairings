@@ -11,3 +11,7 @@
 .classpath
 .DS_Store
 .git
+/.shadow-cljs
+/node_modules
+package.json
+package-lock.json
