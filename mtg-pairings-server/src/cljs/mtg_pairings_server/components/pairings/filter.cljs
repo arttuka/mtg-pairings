@@ -5,7 +5,7 @@
             [reagent-material-ui.icons.cancel :refer [cancel]]
             [reagent-material-ui.icons.expand-more :refer [expand-more]]
             [reagent-material-ui.icons.filter-list :refer [filter-list]]
-            [reagent-material-ui.pickers :as pickers]
+            [reagent-material-ui.pickers.date-picker :refer [date-picker] :rename {date-picker mui-date-picker}]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.pairings.expandable :refer [expandable-header]]
             [mtg-pairings-server.events.pairings :as events]
@@ -65,15 +65,15 @@
                       [ui/icon-button {:on-click on-click
                                        :size     :small}
                        [cancel]])]
-    [pickers/date-picker {:class       (:date-picker classes)
-                          :value       value
-                          :placeholder label
-                          :on-change   on-change
-                          :auto-ok     true
-                          :format      "dd.MM.yyyy"
-                          :variant     :inline
-                          :InputProps  {:end-adornment (when value
-                                                         clear-button)}}]))
+    [mui-date-picker {:class       (:date-picker classes)
+                      :value       value
+                      :placeholder label
+                      :on-change   on-change
+                      :auto-ok     true
+                      :format      "dd.MM.yyyy"
+                      :variant     :inline
+                      :InputProps  {:end-adornment (when value
+                                                     clear-button)}}]))
 
 (defn date-filter* [props]
   (let [from (subscribe [::subs/tournament-filter :date-from])

@@ -1,8 +1,0 @@
-{:main          mtg-pairings-server.pairings
- :output-to     "target/public/js/pairings-main.js"
- :output-dir    "target/public/js/compiled/pairings"
- :optimizations :advanced
- :foreign-libs  [{:file           "reagent-util/dist/reagent-util.inc.js"
-                  :provides       ["material-ui-lab"]
-                  :global-exports {material-ui-lab MaterialUILab}}]
- :externs       ["reagent-util/src/js/reagent-util.ext.js"]}

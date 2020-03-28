@@ -1,5 +1,7 @@
 (ns mtg-pairings-server.decklist
-  (:require [reagent.core :as reagent :refer [atom]]
+  (:require [cljsjs.react]
+            [cljsjs.react.dom]
+            [reagent.core :as reagent :refer [atom]]
             [reagent.dom :as dom]
             [re-frame.core :refer [dispatch-sync subscribe]]
             [mount.core :as m :refer-macros [defstate]]

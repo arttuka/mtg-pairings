@@ -1,8 +1,10 @@
-(ns ^:figwheel-hooks mtg-pairings-server.core
-  (:require [reagent.core :as reagent :refer [atom]]
+(ns mtg-pairings-server.core
+  (:require [cljsjs.react]
+            [cljsjs.react.dom]
+            [reagent.core :as reagent :refer [atom]]
             [reagent.dom :as dom]
             [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
-            [mount.core :refer-macros [defstate]]
+            [mount.core :as m :refer-macros [defstate]]
             [secretary.core :as secretary :include-macros true]
             [accountant.core :as accountant]
             [clojure.string :as str]
@@ -65,7 +67,7 @@
 (defn mount-root []
   (dom/render [providers [#'current-page]] (.getElementById js/document "app")))
 
-(defn ^:after-load figwheel-reload []
+(defn figwheel-reload []
   (clear-subscription-cache!)
   (dispatch [::pairings-events/connect])
   (decklist-events/connect!)
@@ -92,3 +94,6 @@
 
 (defstate ^{:on-reload :noop} core
   :start (init!))
+
+(enable-console-print!)
+(m/start)

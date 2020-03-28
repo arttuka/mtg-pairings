@@ -22,3 +22,4 @@ pom.xml.asc
 /resources/manifest.json
 node_modules
 /dist
+.shadow-cljs
