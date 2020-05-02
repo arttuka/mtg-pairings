@@ -6,10 +6,9 @@ lein test
 lein kibit
 lein eastwood
 lein cljfmt check
-lein with-profile provided,prod do \
-  clean, \
-  fig:min pairings, \
-  fig:min decklist, \
+lein clean
+npm run build
+lein do \
   buster, \
   uberjar
 

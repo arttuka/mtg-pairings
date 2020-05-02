@@ -4,13 +4,13 @@
                 [com.taoensso/sente "1.15.0"]
                 [clj-commons/secretary "1.2.4"]
                 [venantius/accountant "0.2.5"]
-                [com.cognitect/transit-cljs "0.8.256"]
+                [com.cognitect/transit-cljs "0.8.264"]
                 [com.cognitect/transit-js "0.8.861"]
                 [com.andrewmcveigh/cljs-time "0.5.2"]
                 [re-frame "0.12.0"]
-                [arttuka/reagent-material-ui "4.9.8-0"]
+                [arttuka/reagent-material-ui "4.9.12-0"]
                 [thheller/shadow-cljsjs "0.0.21"]
-                [re-frisk "0.5.5"]
+                [re-frisk "1.2.0"]
                 [binaryage/devtools "1.0.0"]]
  :builds       {:dev  {:target     :browser
                        :output-dir "target/public/js"
