@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.components.decklist.print
   (:require [reagent.core :as reagent :refer [atom]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.link :refer [link]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.routes.decklist :as routes]
             [mtg-pairings-server.util :refer [format-date]]
@@ -92,8 +92,8 @@
          [div :label
           (translate :decklist.tournament-name)]
          [div :value
-          [ui/link {:class (:link classes)
-                    :href  (routes/organizer-tournament-path {:id (:id tournament)})}
+          [link {:class (:link classes)
+                 :href  (routes/organizer-tournament-path {:id (:id tournament)})}
            (:name tournament)]]]
         [div [:item :deck]
          [div :label

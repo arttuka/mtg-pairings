@@ -2,7 +2,6 @@
   (:require [reagent.core :as reagent :refer [atom with-let]]
             [reagent.ratom :refer-macros [reaction]]
             [re-frame.core :refer [subscribe]]
-            [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.organizer.common :refer [resizing-column header row number-style player-style]]
             [mtg-pairings-server.subscriptions.pairings :as subs]

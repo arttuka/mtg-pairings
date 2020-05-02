@@ -1,6 +1,6 @@
 (ns mtg-pairings-server.components.pairings.table
   (:require [re-frame.core :refer [dispatch]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.button :refer [button]]
             [reagent-material-ui.icons.keyboard-arrow-down :refer [keyboard-arrow-down]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.util.styles :refer [on-mobile]]))
@@ -30,7 +30,7 @@
            :font-weight     :bold
            :font-size       "16px"}})
 
-(def sortable-header-button ((with-styles sortable-header-button-styles) ui/button))
+(def sortable-header-button ((with-styles sortable-header-button-styles) button))
 
 (defn sortable-header [{:keys [class column sort-key dispatch-key label]}]
   [:th {:class class}

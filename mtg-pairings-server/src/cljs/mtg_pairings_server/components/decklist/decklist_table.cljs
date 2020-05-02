@@ -1,7 +1,15 @@
 (ns mtg-pairings-server.components.decklist.decklist-table
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.icon-button :refer [icon-button]]
+            [reagent-material-ui.core.menu-item :refer [menu-item]]
+            [reagent-material-ui.core.select :refer [select]]
+            [reagent-material-ui.core.table :refer [table]]
+            [reagent-material-ui.core.table-body :refer [table-body]]
+            [reagent-material-ui.core.table-cell :refer [table-cell]]
+            [reagent-material-ui.core.table-head :refer [table-head]]
+            [reagent-material-ui.core.table-row :refer [table-row]]
+            [reagent-material-ui.core.typography :refer [typography]]
             [reagent-material-ui.icons.delete-icon :refer [delete]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.decklist.icons :refer [error-icon]]
@@ -46,24 +54,24 @@
         on-delete #(dispatch [::events/remove-card board (:id card)])]
     (fn decklist-table-row-render [_ card error classes]
       (let [translate @translate]
-        [ui/table-row
-         [ui/table-cell {:class (:quantity-column classes)}
+        [table-row
+         [table-cell {:class (:quantity-column classes)}
           (when (:quantity card)
-            (into [ui/select {:value     (:quantity card)
-                              :on-change on-change
-                              :class     (:quantity-select classes)}]
+            (into [select {:value     (:quantity card)
+                           :on-change on-change
+                           :class     (:quantity-select classes)}]
                   (for [i (range 1 (if (basic? (:name card))
                                      31
                                      5))]
-                    [ui/menu-item {:value i}
+                    [menu-item {:value i}
                      (str i)])))]
-         [ui/table-cell {:class (:card-column classes)}
+         [table-cell {:class (:card-column classes)}
           (:name card)]
-         [ui/table-cell {:class (:error-column classes)}
+         [table-cell {:class (:error-column classes)}
           (when error
             [error-icon {:error (translate (str "submit.error." (name error)))}])]
-         [ui/table-cell {:class (:action-column classes)}
-          [ui/icon-button {:on-click on-delete}
+         [table-cell {:class (:action-column classes)}
+          [icon-button {:on-click on-delete}
            [delete]]]]))))
 
 (defn table-body-by-type [decklist board error-cards translate classes]
@@ -71,12 +79,12 @@
             (when-let [cards (get-in decklist [board type])]
               (list*
                ^{:key (str (name type) "--header")}
-               [ui/table-row
-                [ui/table-cell {:class (:quantity-column classes)}]
-                [ui/table-cell {:class (:type-header classes)}
+               [table-row
+                [table-cell {:class (:quantity-column classes)}]
+                [table-cell {:class (:type-header classes)}
                  (translate (str "card-type." (name type)))]
-                [ui/table-cell {:class (:error-column classes)}]
-                [ui/table-cell {:class (:action-column classes)}]]
+                [table-cell {:class (:error-column classes)}]
+                [table-cell {:class (:action-column classes)}]]
                (for [{:keys [id name error] :as card} cards]
                  ^{:key (str id "--tr")}
                  [decklist-table-row board card (or error (get error-cards name)) classes]))))
@@ -90,20 +98,20 @@
             error-cards (cards-with-error @decklist)
             board (keyword board)]
         [:div {:class (:root classes)}
-         [ui/typography {:variant :h6}
+         [typography {:variant :h6}
           (if (= :main board)
             (str "Main deck (" (get-in @decklist [:count :main]) ")")
             (str "Sideboard (" (get-in @decklist [:count :side]) ")"))]
-         [ui/table
-          [ui/table-head
-           [ui/table-row
-            [ui/table-cell {:class [(:header-cell classes) (:quantity-header classes)]}
+         [table
+          [table-head
+           [table-row
+            [table-cell {:class [(:header-cell classes) (:quantity-header classes)]}
              (translate :submit.quantity)]
-            [ui/table-cell {:class (:header-cell classes)}
+            [table-cell {:class (:header-cell classes)}
              (translate :submit.card)]
-            [ui/table-cell {:class (:error-column classes)}]
-            [ui/table-cell {:class (:action-column classes)}]]]
-          [ui/table-body
+            [table-cell {:class (:error-column classes)}]
+            [table-cell {:class (:action-column classes)}]]]
+          [table-body
            (case board
              :main (table-body-by-type @decklist :main error-cards translate classes)
              :side (for [{:keys [id name error] :as card} (:side @decklist)]

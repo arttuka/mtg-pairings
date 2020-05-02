@@ -2,7 +2,7 @@
   (:require [reagent.core :refer [atom with-let]]
             [re-frame.core :refer [dispatch subscribe]]
             [reagent-material-ui.colors :as colors]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.typography :refer [typography]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.events.pairings :as events]
             [mtg-pairings-server.subscriptions.pairings :as subs]
@@ -60,9 +60,9 @@
                       :value       @name
                       :full-width  true
                       :placeholder "Nimeä kello..."}]
-         [ui/typography {:class    (:title classes)
-                         :variant  :h3
-                         :on-click select-clock}
+         [typography {:class    (:title classes)
+                      :variant  :h3
+                      :on-click select-clock}
           (:name clock)])
        [:div {:class    [(:clock classes)
                          (when (:timeout clock) (:timeout classes))]

@@ -1,7 +1,8 @@
 (ns mtg-pairings-server.components.decklist.organizer
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.text-field :refer [text-field]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.decklist.print :refer [render-decklist]]
             [mtg-pairings-server.subscriptions.decklist :as subs]))
@@ -55,18 +56,17 @@
                    :name  :__anti-forgery-token
                    :value js/csrfToken}]
           [:div {:class (:field-container classes)}
-           [ui/text-field {:class (:field classes)
-                           :name  :username
-                           :label (translate :organizer.log-in.username)}]
-           [ui/text-field {:class (:field classes)
-                           :name  :password
-                           :type  :password
-                           :label (translate :organizer.log-in.password)}]
-           [ui/button {:class   (:field classes)
-                       :type    :submit
-                       :variant :contained
-                       :color   :primary}
+           [text-field {:class (:field classes)
+                        :name  :username
+                        :label (translate :organizer.log-in.username)}]
+           [text-field {:class (:field classes)
+                        :name  :password
+                        :type  :password
+                        :label (translate :organizer.log-in.password)}]
+           [button {:class   (:field classes)
+                    :type    :submit
+                    :variant :contained
+                    :color   :primary}
             (translate :organizer.log-in.button)]]]]))))
 
 (def login ((with-styles login-styles) login*))
-

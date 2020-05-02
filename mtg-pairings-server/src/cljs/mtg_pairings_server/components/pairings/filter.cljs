@@ -1,7 +1,17 @@
 (ns mtg-pairings-server.components.pairings.filter
   (:require [reagent.core :as reagent :refer [atom with-let]]
             [re-frame.core :refer [subscribe dispatch dispatch]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.card :refer [card]]
+            [reagent-material-ui.core.card-content :refer [card-content]]
+            [reagent-material-ui.core.collapse :refer [collapse]]
+            [reagent-material-ui.core.form-control :refer [form-control]]
+            [reagent-material-ui.core.icon-button :refer [icon-button]]
+            [reagent-material-ui.core.input-label :refer [input-label]]
+            [reagent-material-ui.core.menu-item :refer [menu-item]]
+            [reagent-material-ui.core.select :refer [select]]
+            [reagent-material-ui.core.slider :refer [slider]]
+            [reagent-material-ui.core.toolbar :refer [toolbar]]
             [reagent-material-ui.icons.cancel :refer [cancel]]
             [reagent-material-ui.icons.expand-more :refer [expand-more]]
             [reagent-material-ui.icons.filter-list :refer [filter-list]]
@@ -28,19 +38,19 @@
         on-change (wrap-on-change #(dispatch [::events/tournament-filter [:organizer %]]))]
     (fn [{:keys [classes]}]
       (let [translate @translate]
-        [ui/form-control {:class      (:container classes)
-                          :full-width true}
-         [ui/input-label {:html-for :organizer-filter}
+        [form-control {:class      (:container classes)
+                       :full-width true}
+         [input-label {:html-for :organizer-filter}
           (translate :filter.organizer)]
-         [ui/select {:value       @value
-                     :on-change   on-change
-                     :input-props {:id :organizer-filter}}
-          [ui/menu-item {:value "all-organizers"}
+         [select {:value       @value
+                  :on-change   on-change
+                  :input-props {:id :organizer-filter}}
+          [menu-item {:value "all-organizers"}
            (translate :filter.all-organizers)]
           (for [organizer @organizers
                 :when (not= "" organizer)]
             ^{:key organizer}
-            [ui/menu-item {:value organizer}
+            [menu-item {:value organizer}
              organizer])]]))))
 
 (def organizer-filter ((with-styles organizer-filter-styles) organizer-filter*))
@@ -62,8 +72,8 @@
                    (.stopPropagation e)
                    (on-clear))
         clear-button (reagent/as-element
-                      [ui/icon-button {:on-click on-click
-                                       :size     :small}
+                      [icon-button {:on-click on-click
+                                    :size     :small}
                        [cancel]])]
     [mui-date-picker {:class       (:date-picker classes)
                       :value       value
@@ -81,8 +91,8 @@
         translate (subscribe [::subs/translate])]
     (fn [{:keys [classes]}]
       (let [translate @translate]
-        [ui/form-control {:class (:container classes)}
-         [ui/input-label {:shrink true}
+        [form-control {:class (:container classes)}
+         [input-label {:shrink true}
           (translate :filter.date)]
          [date-picker
           {:label     (translate :filter.date-from)
@@ -123,21 +133,21 @@
              _ (add-watch players :player-filter-watch
                           (fn [_ _ _ new]
                             (reset! value new)))]
-    [ui/form-control {:class      (:container classes)
-                      :full-width true}
-     [ui/input-label {:html-for :player-filter
-                      :shrink   true}
+    [form-control {:class      (:container classes)
+                   :full-width true}
+     [input-label {:html-for :player-filter
+                   :shrink   true}
       (@translate :filter.player-count)]
-     [ui/slider {:class               (:slider classes)
-                 :value               @value
-                 :min                 0
-                 :max                 @max-players
-                 :step                10
-                 :value-label-display (if (= @value [0 @max-players])
-                                        :auto
-                                        :on)
-                 :on-change           on-change
-                 :id                  :player-filter}]]
+     [slider {:class               (:slider classes)
+              :value               @value
+              :min                 0
+              :max                 @max-players
+              :step                10
+              :value-label-display (if (= @value [0 @max-players])
+                                     :auto
+                                     :on)
+              :on-change           on-change
+              :id                  :player-filter}]]
     (finally
       (remove-watch players :player-filter-watch))))
 
@@ -148,7 +158,7 @@
         translate (subscribe [::subs/translate])
         on-click #(dispatch [::events/reset-tournament-filter])]
     (fn []
-      [ui/button
+      [button
        {:on-click on-click
         :disabled (not @filters-active?)
         :variant  :contained
@@ -158,7 +168,7 @@
 (def desktop-filter-container ((with-styles (fn [{:keys [spacing]}]
                                               {:root {:align-items :flex-end
                                                       :padding     (spacing 2)}}))
-                               ui/toolbar))
+                               toolbar))
 
 (defn desktop-filters []
   [desktop-filter-container
@@ -173,7 +183,7 @@
         expanded? (atom false)
         on-expand #(swap! expanded? not)]
     (fn []
-      [ui/card
+      [card
        [expandable-header
         {:title     (@translate :filter.title)
          :expanded? @expanded?
@@ -182,8 +192,8 @@
                      [filter-list {:color (if @filters-active?
                                             :secondary
                                             :primary)}])}]
-       [ui/collapse {:in @expanded?}
-        [ui/card-content
+       [collapse {:in @expanded?}
+        [card-content
          [organizer-filter]
          [date-filter]
          [player-filter]

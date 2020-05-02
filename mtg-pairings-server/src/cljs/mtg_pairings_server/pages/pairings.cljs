@@ -1,7 +1,13 @@
 (ns mtg-pairings-server.pages.pairings
   (:require [re-frame.core :refer [subscribe]]
             [reagent.core :as reagent :refer [with-let]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.card :refer [card]]
+            [reagent-material-ui.core.card-content :refer [card-content]]
+            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
+            [reagent-material-ui.core.list :refer [list]]
+            [reagent-material-ui.core.list-item :refer [list-item]]
+            [reagent-material-ui.core.list-item-text :refer [list-item-text]]
+            [reagent-material-ui.core.typography :refer [typography]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.pairings.bracket :refer [bracket]]
             [mtg-pairings-server.components.pairings.pairings-table :refer [pairings-table]]
@@ -38,13 +44,13 @@
       [newest-tournaments-list]
 
       (seq @player-tournaments)
-      [ui/list
+      [list
        (let [latest-pairing (get-latest-pairing @player-tournaments)]
          [:<>
-          [ui/list-item
-           [ui/list-item-text {:primary                  (@translate :front-page.newest-pairing)
-                               :secondary                (:tournament latest-pairing)
-                               :primary-typography-props {:variant "h5"}}]]
+          [list-item
+           [list-item-text {:primary                  (@translate :front-page.newest-pairing)
+                            :secondary                (:tournament latest-pairing)
+                            :primary-typography-props {:variant "h5"}}]]
           [pairing {:data      latest-pairing
                     :divider   true
                     :translate @translate}]])
@@ -53,10 +59,10 @@
          [own-tournament {:tournament t}])]
 
       :else
-      [ui/circular-progress {:style     {:margin  "48px auto 0"
-                                         :display :block}
-                             :size      100
-                             :thickness 5}])))
+      [circular-progress {:style     {:margin  "48px auto 0"
+                                      :display :block}
+                          :size      100
+                          :thickness 5}])))
 
 (defn tournaments-page []
   [tournament-list])
@@ -77,19 +83,19 @@
           round-started (when (= "pairings" type)
                           (when-let [start-time (get-in @tournament [:round-times round])]
                             (@translate :common.started (format-time-only start-time))))]
-      [ui/card {:classes (dissoc classes :mobile)}
+      [card {:classes (dissoc classes :mobile)}
        [tournament-header {:data       @tournament
                            :round-data {:title   round-title
                                         :started round-started}}]
-       [ui/card-content
+       [card-content
         {:style {:padding-top 0}}
-        [ui/typography {:variant :h5
-                        :classes {:root (:mobile classes)}}
+        [typography {:variant :h5
+                     :classes {:root (:mobile classes)}}
          round-title]
         (when round-started
-          [ui/typography {:variant :body1
-                          :color   :textSecondary
-                          :classes {:root (:mobile classes)}}
+          [typography {:variant :body1
+                       :color   :textSecondary
+                       :classes {:root (:mobile classes)}}
            round-started])
         (case type
           "pairings" [pairings-table {:tournament-id tournament-id

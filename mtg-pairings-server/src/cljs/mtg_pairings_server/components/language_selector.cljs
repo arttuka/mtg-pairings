@@ -1,7 +1,6 @@
 (ns mtg-pairings-server.components.language-selector
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
-            [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.button-toggle :refer [button-toggle]]
             [mtg-pairings-server.events.common :as common-events]
@@ -21,7 +20,7 @@
                     (when on-click (on-click)))]
     (fn [{:keys [class-name classes invert]}]
       [button-toggle {:class   [class-name (:root classes)]
-                      :invert invert
+                      :invert  invert
                       :value   @language
                       :options [{:on-click select-fi
                                  :value    :fi

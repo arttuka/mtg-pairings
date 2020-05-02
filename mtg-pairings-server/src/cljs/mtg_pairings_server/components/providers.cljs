@@ -2,7 +2,7 @@
   (:require [re-frame.core :refer [subscribe]]
             [reagent-material-ui.cljs-time-utils :refer [cljs-time-utils]]
             [reagent-material-ui.colors :as colors]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.css-baseline :refer [css-baseline]]
             [reagent-material-ui.pickers.mui-pickers-utils-provider :refer [mui-pickers-utils-provider]]
             [reagent-material-ui.styles :as styles]
             [mtg-pairings-server.subscriptions.common :as subs]
@@ -22,5 +22,5 @@
                                               :fi DateTimeSymbols_fi
                                               :en DateTimeSymbols_en
                                               DateTimeSymbols_fi)}
-        [ui/css-baseline]
+        [css-baseline]
         app]])))

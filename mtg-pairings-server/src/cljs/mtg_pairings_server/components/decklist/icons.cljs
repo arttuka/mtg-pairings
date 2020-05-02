@@ -1,5 +1,5 @@
 (ns mtg-pairings-server.components.decklist.icons
-  (:require [reagent-material-ui.components :as ui]
+  (:require [reagent-material-ui.core.tooltip :refer [tooltip]]
             [reagent-material-ui.icons.delete-icon :refer [delete]]
             [reagent-material-ui.icons.warning :refer [warning]]
             [reagent-material-ui.styles :refer [with-styles]]))
@@ -13,8 +13,8 @@
 (defn error-icon* [{:keys [classes error]}]
   (let [icon [warning {:class (:warning-icon classes)}]]
     (if error
-      [ui/tooltip {:classes {:tooltip (:tooltip classes)}
-                   :title   error}
+      [tooltip {:classes {:tooltip (:tooltip classes)}
+                :title   error}
        icon]
       icon)))
 

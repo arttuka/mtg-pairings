@@ -2,7 +2,15 @@
   (:require [reagent.core :as reagent :refer [atom]]
             [reagent.ratom :refer-macros [reaction]]
             [re-frame.core :refer [subscribe]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.button-group :refer [button-group]]
+            [reagent-material-ui.core.click-away-listener :refer [click-away-listener]]
+            [reagent-material-ui.core.grow :refer [grow]]
+            [reagent-material-ui.core.menu-item :refer [menu-item] :rename {menu-item mui-menu-item}]
+            [reagent-material-ui.core.menu-list :refer [menu-list]]
+            [reagent-material-ui.core.paper :refer [paper]]
+            [reagent-material-ui.core.popper :refer [popper]]
+            [reagent-material-ui.core.typography :refer [typography]]
             [reagent-material-ui.icons.arrow-drop-down :refer [arrow-drop-down]]
             [reagent-material-ui.styles :refer [with-styles]]
             [goog.object :as obj]
@@ -71,10 +79,10 @@
 (def header ((with-styles (fn [{:keys [spacing]}]
                             {:root {:margin-top    (spacing 1)
                                     :margin-bottom (spacing 1)}}))
-             ui/typography))
+             typography))
 
 (def flex-button ((with-styles {:root {:flex 1}})
-                  ui/button))
+                  button))
 
 (defn select-button [{:keys [on-change]}]
   (let [open? (atom false)
@@ -91,35 +99,35 @@
       (let [disabled? (empty? items)
             menu-item (or render-menu-item
                           (fn menu-item [props]
-                            [ui/menu-item (dissoc props :item)
+                            [mui-menu-item (dissoc props :item)
                              (item-to-label (:item props))]))]
         [:<>
-         [ui/button-group {:variant  variant
-                           :color    :primary
-                           :ref      anchor-ref
-                           :classes  {:root (:button-group classes)}
-                           :disabled disabled?}
+         [button-group {:variant  variant
+                        :color    :primary
+                        :ref      anchor-ref
+                        :classes  {:root (:button-group classes)}
+                        :disabled disabled?}
           [flex-button {:on-click (or on-click toggle-open)
                         :variant  variant
                         :color    :primary}
-           [ui/typography {:no-wrap true
-                           :variant :inherit}
+           [typography {:no-wrap true
+                        :variant :inherit}
             (or (item-to-label value) "")]]
-          [ui/button {:variant  variant
-                      :color    :primary
-                      :size     :small
-                      :on-click toggle-open}
+          [button {:variant  variant
+                   :color    :primary
+                   :size     :small
+                   :on-click toggle-open}
            [arrow-drop-down]]]
-         [ui/popper {:open       @open?
-                     :anchor-el  (.-current anchor-ref)
-                     :transition true}
+         [popper {:open       @open?
+                  :anchor-el  (.-current anchor-ref)
+                  :transition true}
           (fn [props]
             (reagent/as-element
-             [ui/grow (assoc (js->clj (obj/get props "TransitionProps"))
-                             :style {:transform-origin "center top"})
-              [ui/paper {:class (:menu classes)}
-               [ui/click-away-listener {:on-click-away on-close}
-                [ui/menu-list
+             [grow (assoc (js->clj (obj/get props "TransitionProps"))
+                          :style {:transform-origin "center top"})
+              [paper {:class (:menu classes)}
+               [click-away-listener {:on-click-away on-close}
+                [menu-list
                  (for [item items]
                    ^{:key item}
                    [menu-item {:selected (= value item)

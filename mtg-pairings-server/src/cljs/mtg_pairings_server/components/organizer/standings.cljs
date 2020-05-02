@@ -67,7 +67,7 @@
                 :align   :center}
         (str (:name @tournament) " - kierros " @standings-round)]
        [column {:menu-hidden? menu-hidden?
-                :ref column-ref}
+                :ref          column-ref}
         (for [s @displayed-standings]
           ^{:key (str "standings-" (:rank s))}
           [standing {:data s}])]])))

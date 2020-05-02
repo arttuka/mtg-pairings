@@ -1,6 +1,10 @@
 (ns mtg-pairings-server.components.pairings.bracket
   (:require [re-frame.core :refer [subscribe]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.avatar :refer [avatar]]
+            [reagent-material-ui.core.list :refer [list]]
+            [reagent-material-ui.core.list-item :refer [list-item]]
+            [reagent-material-ui.core.list-item-avatar :refer [list-item-avatar]]
+            [reagent-material-ui.core.list-item-text :refer [list-item-text]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util.styles :refer [on-desktop on-mobile]]))
@@ -39,18 +43,18 @@
      :winner         {:font-weight :bold}}))
 
 (defn bracket-player* [{:keys [rank name wins winner? classes]}]
-  [ui/list-item {:class (:player classes)}
+  [list-item {:class (:player classes)}
    (when rank
-     [ui/list-item-avatar {:class (:rank-avatar classes)}
-      [ui/avatar {:class (:rank classes)}
+     [list-item-avatar {:class (:rank-avatar classes)}
+      [avatar {:class (:rank classes)}
        rank]])
-   [ui/list-item-text {:class                    (:list-item-text classes)
-                       :classes                  {:primary (when winner? (:winner classes))}
-                       :primary                  name
-                       :primary-typography-props {:no-wrap true}}]
-   [ui/list-item-avatar {:class [(:wins-avatar classes)
-                                 (when winner? (:winner classes))]}
-    [ui/avatar {:class (:wins classes)}
+   [list-item-text {:class                    (:list-item-text classes)
+                    :classes                  {:primary (when winner? (:winner classes))}
+                    :primary                  name
+                    :primary-typography-props {:no-wrap true}}]
+   [list-item-avatar {:class [(:wins-avatar classes)
+                              (when winner? (:winner classes))]}
+    [avatar {:class (:wins classes)}
      (or wins "")]]])
 
 (def bracket-player ((with-styles bracket-player-styles) bracket-player*))
@@ -67,11 +71,11 @@
       (into [:div {:class (:container classes)}]
             (for [round @data
                   :let [num-matches (count round)]]
-              (into [ui/list {:class (:round classes)}
-                     [ui/list-item {:class           (:round-header classes)
-                                    :disable-gutters true}
-                      [ui/list-item-text {:primary                  (str "Top " (* 2 num-matches))
-                                          :primary-typography-props {:variant :h6}}]]]
+              (into [list {:class (:round classes)}
+                     [list-item {:class           (:round-header classes)
+                                 :disable-gutters true}
+                      [list-item-text {:primary                  (str "Top " (* 2 num-matches))
+                                       :primary-typography-props {:variant :h6}}]]]
                     (for [{:keys [team1_name team1_rank team1_wins
                                   team2_name team2_rank team2_wins]} round]
                       [:<>

@@ -2,7 +2,14 @@
   (:require [reagent.core :as reagent :refer [atom with-let]]
             [reagent.ratom :refer [make-reaction]]
             [re-frame.core :refer [subscribe dispatch]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
+            [reagent-material-ui.core.link :refer [link]]
+            [reagent-material-ui.core.list :refer [list]]
+            [reagent-material-ui.core.list-item :refer [list-item]]
+            [reagent-material-ui.core.list-item-icon :refer [list-item-icon]]
+            [reagent-material-ui.core.list-item-text :refer [list-item-text]]
+            [reagent-material-ui.core.typography :refer [typography]]
             [reagent-material-ui.styles :refer [with-styles]]
             [cljs-time.core :as time]
             [clojure.string :as str]
@@ -76,18 +83,18 @@
 
 (defn error-list [errors]
   (let [translate @(subscribe [::subs/translate])]
-    [ui/list
+    [list
      (for [{:keys [id text card] :as error} errors
            :let [error-text (if (string? text)
                               text
                               (translate (str "submit.error." (name (or text id)))))]]
        ^{:key (str "error--" (name (:id error)))}
-       [ui/list-item
-        [ui/list-item-icon
+       [list-item
+        [list-item-icon
          [error-icon {:error nil}]]
-        [ui/list-item-text {:primary (str error-text
-                                          (when card
-                                            (str ": " card)))}]])]))
+        [list-item-text {:primary (str error-text
+                                       (when card
+                                         (str ": " card)))}]])]))
 
 (defn decklist-submit-form [tournament decklist]
   (with-let [saving? (subscribe [::subs/saving?])
@@ -99,7 +106,7 @@
     (let [translate @translate
           errors (decklist-errors @decklist)]
       [:<>
-       [ui/typography {:variant :h6}
+       [typography {:variant :h6}
         (translate :submit.decklist)]
        [input {:selected-board (:board @decklist)}]
 
@@ -107,31 +114,31 @@
         [decklist-table {:board :main}]
         [decklist-table {:board :side}]]
        [decklist-import]
-       [ui/typography {:variant :h6}
+       [typography {:variant :h6}
         (translate :submit.player-info)]
        [player-info]
-       [ui/button {:on-click save-decklist
-                   :variant  :contained
-                   :color    :primary
-                   :disabled (boolean (or @saving? (seq errors)))
-                   :end-icon (when @saving?
-                               (reagent/as-element [ui/circular-progress
-                                                    {:size  24
-                                                     :color :inherit}]))}
+       [button {:on-click save-decklist
+                :variant  :contained
+                :color    :primary
+                :disabled (boolean (or @saving? (seq errors)))
+                :end-icon (when @saving?
+                            (reagent/as-element [circular-progress
+                                                 {:size  24
+                                                  :color :inherit}]))}
         (translate :submit.save.button)]
        (when @saved?
          (let [url (str (get-host) (routes/old-decklist-path {:id (:id @page)}))]
            [:<>
-            [ui/typography {:variant :h6}
+            [typography {:variant :h6}
              (translate :submit.save.success.header)]
             [:p
              (translate :submit.save.success.info.0)
-             [ui/link {:href url}
+             [link {:href url}
               url]
              (translate :submit.save.success.info.1)]]))
        (when @error?
          [:<>
-          [ui/typography {:variant :h6}
+          [typography {:variant :h6}
            (translate :submit.save.error.header)]
           [:p
            (translate :submit.save.error.info)]
@@ -163,7 +170,7 @@
        [:div {:class (when @deadline-gone? (:no-print classes))}
         [:div {:class (:float-right classes)}
          [language-selector]]
-        [ui/typography {:variant :h4}
+        [typography {:variant :h4}
          (translate :submit.header)]
         [:p
          (translate :submit.intro.0)
@@ -193,7 +200,7 @@
            [:p
             (translate :submit.deadline-gone)]
            (when (:id @decklist)
-             [ui/typography {:variant :h6}
+             [typography {:variant :h6}
               (translate :submit.your-decklist)])])]
        (when (and @deadline-gone? (:id @decklist))
          [render-decklist {:decklist   @decklist

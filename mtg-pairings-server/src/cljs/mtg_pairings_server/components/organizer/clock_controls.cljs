@@ -1,6 +1,9 @@
 (ns mtg-pairings-server.components.organizer.clock-controls
   (:require [reagent-material-ui.colors :as colors]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.button-group :refer [button-group]]
+            [reagent-material-ui.core.text-field :refer [text-field]]
+            [reagent-material-ui.core.tooltip :refer [tooltip]]
             [reagent-material-ui.icons.add :refer [add]]
             [reagent-material-ui.icons.arrow-drop-down :refer [arrow-drop-down]]
             [reagent-material-ui.icons.arrow-drop-up :refer [arrow-drop-up]]
@@ -20,10 +23,10 @@
 (def down-icon (with-icon-styles arrow-drop-down))
 
 (defn time-field-button [props icon]
-  [ui/button (merge {:size    :small
-                     :variant :outlined
-                     :color   :primary}
-                    props)
+  [button (merge {:size    :small
+                  :variant :outlined
+                  :color   :primary}
+                 props)
    [icon]])
 
 (defn button-group-styles [{:keys [palette shape]}]
@@ -43,9 +46,9 @@
 
 (def time-field-button-group
   ((with-styles button-group-styles)
-   ui/button-group))
+   button-group))
 
-(def text-field
+(def time-text-field
   ((with-styles (fn [{:keys [palette]}]
                   {:text-field-root {:width 32}
                    :root            {"&:hover $notchedOutline" {:border-color (get-in palette [:primary :main])}}
@@ -56,9 +59,9 @@
                                      :border-top-right-radius    0
                                      :border-bottom-right-radius 0}}))
    (fn time-text-field [{:keys [classes] :as props}]
-     [ui/text-field (assoc (dissoc props :classes)
-                           :InputProps {:classes (dissoc classes :text-field-root)}
-                           :class (:text-field-root classes))])))
+     [text-field (assoc (dissoc props :classes)
+                        :InputProps {:classes (dissoc classes :text-field-root)}
+                        :class (:text-field-root classes))])))
 
 (defn time-field [{:keys [on-change]}]
   (let [on-change* (wrap-on-change
@@ -75,9 +78,9 @@
                    (on-change (f v))))]
     (fn [{:keys [value]}]
       [:<>
-       [text-field {:on-change on-change*
-                    :value     value
-                    :variant   :outlined}]
+       [time-text-field {:on-change on-change*
+                         :value     value
+                         :variant   :outlined}]
        [time-field-button-group {:variant :outlined
                                  :color   :primary}
         (time-field-button {:on-click #(adjust value inc)} up-icon)
@@ -88,24 +91,24 @@
                                                         :height 36
                                                         :flex   "0 0 auto"}
                                               :grouped {:padding 0}}))
-                              ui/button-group))
+                              button-group))
 
-(def tooltip ((with-styles (fn [{:keys [shadows palette]}]
-                             {:tooltip {:background-color :white
-                                        :color            (get-in palette [:text :primary])
-                                        :box-shadow       (shadows 1)
-                                        :font-size        12}}))
-              ui/tooltip))
+(def button-tooltip ((with-styles (fn [{:keys [shadows palette]}]
+                                    {:tooltip {:background-color :white
+                                               :color            (get-in palette [:text :primary])
+                                               :box-shadow       (shadows 1)
+                                               :font-size        12}}))
+                     tooltip))
 
 (defn clock-icon-button [{:keys [icon title disabled] :as props}]
-  (let [button [ui/button (merge {:variant :contained}
-                                 (dissoc props :icon :title))
-                [icon]]]
+  (let [button-component [button (merge {:variant :contained}
+                                        (dissoc props :icon :title))
+                          [icon]]]
     (if disabled
-      button
-      [tooltip {:enter-delay 1000
-                :title       title}
-       button])))
+      button-component
+      [button-tooltip {:enter-delay 1000
+                       :title       title}
+       button-component])))
 
 (def clock-button-styles {:green {:background-color (colors/green :A700)
                                   :color            :white

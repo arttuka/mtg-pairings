@@ -1,7 +1,14 @@
 (ns mtg-pairings-server.components.decklist.tournament-list
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.form-control-label :refer [form-control-label]]
+            [reagent-material-ui.core.link :refer [link]]
+            [reagent-material-ui.core.switch-component :refer [switch]]
+            [reagent-material-ui.core.table :refer [table]]
+            [reagent-material-ui.core.table-body :refer [table-body]]
+            [reagent-material-ui.core.table-cell :refer [table-cell]]
+            [reagent-material-ui.core.table-head :refer [table-head]]
+            [reagent-material-ui.core.table-row :refer [table-row]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.decklist.table :as table]
             [mtg-pairings-server.events.decklist :as events]
@@ -13,23 +20,23 @@
   (let [link-props {:class (:link classes)
                     :href  (routes/organizer-tournament-path {:id (:id tournament)})}
         submit-url (routes/new-decklist-path {:id (:id tournament)})]
-    [ui/table-row
-     [ui/table-cell {:class (:date-column classes)}
-      [ui/link link-props
+    [table-row
+     [table-cell {:class (:date-column classes)}
+      [link link-props
        (format-date (:date tournament))]]
-     [ui/table-cell {:class (:deadline-column classes)}
-      [ui/link link-props
+     [table-cell {:class (:deadline-column classes)}
+      [link link-props
        (format-date-time (:deadline tournament))]]
-     [ui/table-cell {:class (:name-column classes)}
-      [ui/link link-props
+     [table-cell {:class (:name-column classes)}
+      [link link-props
        (:name tournament)]]
-     [ui/table-cell {:class (:decklists-column classes)}
-      [ui/link link-props
+     [table-cell {:class (:decklists-column classes)}
+      [link link-props
        (:decklist tournament)]]
-     [ui/table-cell {:class (:submit-column classes)}
-      [ui/link {:class  (:link classes)
-                :href   submit-url
-                :target :_blank}
+     [table-cell {:class (:submit-column classes)}
+      [link {:class  (:link classes)
+             :href   submit-url
+             :target :_blank}
        (str (get-host) submit-url)]]]))
 
 (defn only-upcoming-toggle [props]
@@ -39,22 +46,22 @@
                     (dispatch [::events/set-only-upcoming value]))]
     (fn only-upcoming-toggle-render [{:keys [class]}]
       (let [translate @translate]
-        [ui/form-control-label
+        [form-control-label
          {:class   class
           :label   (translate :organizer.show-only-upcoming)
           :control (reagent/as-element
-                    [ui/switch {:checked   @value
-                                :on-change on-change
-                                :color     :primary}])}]))))
+                    [switch {:checked   @value
+                             :on-change on-change
+                             :color     :primary}])}]))))
 
 (defn tournament-list-styles [{:keys [palette spacing] :as theme}]
   (merge (table/table-styles theme)
-         {:gutters           {:margin (spacing 0 2)}
-          :date-column       (table/table-cell-style {:width 130})
-          :deadline-column   (table/table-cell-style {:width 160})
-          :name-column       (table/table-cell-style {:width 400})
-          :decklists-column  (table/table-cell-style {:width 130})
-          :submit-column     (table/table-cell-style {})}))
+         {:gutters          {:margin (spacing 0 2)}
+          :date-column      (table/table-cell-style {:width 130})
+          :deadline-column  (table/table-cell-style {:width 160})
+          :name-column      (table/table-cell-style {:width 400})
+          :decklists-column (table/table-cell-style {:width 130})
+          :submit-column    (table/table-cell-style {})}))
 
 (defn tournament-list* [props]
   (let [tournaments (subscribe [::subs/filtered-organizer-tournaments])
@@ -62,19 +69,19 @@
     (fn all-tournaments-render [{:keys [classes]}]
       (let [translate @translate
             header (fn [text]
-                     [ui/table-cell {:class (:table-header-cell classes)}
+                     [table-cell {:class (:table-header-cell classes)}
                       text])]
         [:<>
          [only-upcoming-toggle {:class (:gutters classes)}]
-         [ui/table {:class (:gutters classes)}
-          [ui/table-head
-           [ui/table-row
+         [table {:class (:gutters classes)}
+          [table-head
+           [table-row
             (header (translate :organizer.date))
             (header (translate :organizer.deadline))
             (header (translate :organizer.tournament.title))
             (header (translate :organizer.decklists))
             (header (translate :organizer.submit-page))]]
-          [ui/table-body
+          [table-body
            (for [tournament @tournaments]
              ^{:key (str (:id tournament) "--row")}
              [tournament-row {:classes    classes

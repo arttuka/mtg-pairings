@@ -261,14 +261,13 @@
       :close-popup {:db (assoc-in db [:organizer :menu] false)})))
 
 (defn send-organizer-action [db id action value]
-  (assoc
-   (if (contains? #{:start-clock :stop-clock :set-clock :add-clock
-                    :rename-clock :remove-clock :select-clock
-                    :select-pairings :select-standings :select-pods}
-                  action)
-     (resolve-organizer-action db id action value)
-     {})
-   :store [["organizer"] {:action action, :value value, :id id, :key (gensym)}]))
+  (assoc (if (contains? #{:start-clock :stop-clock :set-clock :add-clock
+                          :rename-clock :remove-clock :select-clock
+                          :select-pairings :select-standings :select-pods}
+                        action)
+           (resolve-organizer-action db id action value)
+           {})
+         :store [["organizer"] {:action action, :value value, :id id, :key (gensym)}]))
 
 (reg-event-fx ::load-organizer-tournament
   (fn [{:keys [db]} [_ id]]

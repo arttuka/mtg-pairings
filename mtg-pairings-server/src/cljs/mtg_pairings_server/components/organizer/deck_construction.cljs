@@ -1,6 +1,5 @@
 (ns mtg-pairings-server.components.organizer.deck-construction
   (:require [re-frame.core :refer [subscribe]]
-            [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util.styles :refer [ellipsis-overflow]]))

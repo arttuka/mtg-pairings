@@ -1,7 +1,14 @@
 (ns mtg-pairings-server.components.pairings.player
   (:require [reagent.core :as reagent :refer [atom with-let]]
             [re-frame.core :refer [subscribe]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.avatar :refer [avatar]]
+            [reagent-material-ui.core.box :refer [box]]
+            [reagent-material-ui.core.card-content :refer [card-content]]
+            [reagent-material-ui.core.collapse :refer [collapse]]
+            [reagent-material-ui.core.list :refer [list]]
+            [reagent-material-ui.core.list-item :refer [list-item]]
+            [reagent-material-ui.core.list-item-avatar :refer [list-item-avatar]]
+            [reagent-material-ui.core.list-item-text :refer [list-item-text]]
             [reagent-material-ui.icons.list :refer [list] :rename {list list-icon}]
             [reagent-material-ui.styles :refer [with-styles]]
             [accountant.core :as accountant]
@@ -31,38 +38,38 @@
                (:team-2-name data) :pairing
                (:pod data) :pod
                :else :seating)
-        {:keys [names-container names points mobile-block hidden-mobile avatar]} classes]
-    [ui/list-item (dissoc props :data :classes :translate)
-     [ui/list-item-avatar
-      [ui/avatar {:class avatar}
+        {:keys [names-container names points mobile-block hidden-mobile]} classes]
+    [list-item (dissoc props :data :classes :translate)
+     [list-item-avatar
+      [avatar {:class (:avatar classes)}
        (when-not bye
          (or (:table-number data) (:pod data)))]]
-     [ui/list-item-text {:classes   {:secondary names-container}
-                         :primary   (case type
-                                      :pairing (str (translate :player.round (:round-number data))
-                                                    (when-let [start-time (:created data)]
-                                                      (translate :common.started-short (format-time-only start-time))))
-                                      :pod (translate :player.pod (:pod data))
-                                      :seating (translate :player.seating))
-                         :secondary (reagent/as-element
-                                     (if (= :pairing type)
-                                       [:<>
-                                        [:span {:class names}
-                                         [:span.MuiTypography-colorTextPrimary {:class mobile-block}
-                                          (str (:team-1-name data) " (" (:team-1-points data) ")")]
-                                         [:span {:class hidden-mobile} " - "]
-                                         [:span {:class mobile-block}
-                                          (if bye
-                                            (:team-2-name data)
-                                            (str (:team-2-name data) " (" (:team-2-points data) ")"))]]
-                                        (when-not bye
-                                          [:span {:class points}
-                                           [:span {:class mobile-block} (:team-1-wins data)]
-                                           [:span {:class hidden-mobile} " - "]
-                                           [:span {:class mobile-block} (:team-2-wins data)]])]
-                                       [:span {:class names}
-                                        (or (:team-1-name data)
-                                            (translate :common.seat-n (:seat data)))]))}]]))
+     [list-item-text {:classes   {:secondary names-container}
+                      :primary   (case type
+                                   :pairing (str (translate :player.round (:round-number data))
+                                                 (when-let [start-time (:created data)]
+                                                   (translate :common.started-short (format-time-only start-time))))
+                                   :pod (translate :player.pod (:pod data))
+                                   :seating (translate :player.seating))
+                      :secondary (reagent/as-element
+                                  (if (= :pairing type)
+                                    [:<>
+                                     [:span {:class names}
+                                      [:span.MuiTypography-colorTextPrimary {:class mobile-block}
+                                       (str (:team-1-name data) " (" (:team-1-points data) ")")]
+                                      [:span {:class hidden-mobile} " - "]
+                                      [:span {:class mobile-block}
+                                       (if bye
+                                         (:team-2-name data)
+                                         (str (:team-2-name data) " (" (:team-2-points data) ")"))]]
+                                     (when-not bye
+                                       [:span {:class points}
+                                        [:span {:class mobile-block} (:team-1-wins data)]
+                                        [:span {:class hidden-mobile} " - "]
+                                        [:span {:class mobile-block} (:team-2-wins data)]])]
+                                    [:span {:class names}
+                                     (or (:team-1-name data)
+                                         (translate :common.seat-n (:seat data)))]))}]]))
 
 (def pairing ((with-styles styles) pairing*))
 
@@ -75,23 +82,23 @@
   (with-let [translate (subscribe [::subs/translate])
              expanded? (atom false)
              on-expand #(swap! expanded? not)]
-    [ui/list-item {:disable-gutters true
-                   :divider         true}
-     [ui/box {:class (:box classes)}
+    [list-item {:disable-gutters true
+                :divider         true}
+     [box {:class (:box classes)}
       [tournament-header {:data      tournament
                           :on-expand on-expand
                           :expanded? @expanded?}]
-      [ui/collapse {:in @expanded?}
-       [ui/card-content {:class (:card-content classes)}
-        [ui/list
-         [ui/list-item {:disable-gutters true
-                        :button          true
-                        :on-click        #(accountant/navigate! (standings-path {:id    (:id tournament)
-                                                                                 :round (:max-standings-round tournament)}))}
-          [ui/list-item-avatar
-           [ui/avatar {:class (:avatar classes)}
+      [collapse {:in @expanded?}
+       [card-content {:class (:card-content classes)}
+        [list
+         [list-item {:disable-gutters true
+                     :button          true
+                     :on-click        #(accountant/navigate! (standings-path {:id    (:id tournament)
+                                                                              :round (:max-standings-round tournament)}))}
+          [list-item-avatar
+           [avatar {:class (:avatar classes)}
             [list-icon]]]
-          [ui/list-item-text {:primary (@translate :player.standings (:max-standings-round tournament))}]]
+          [list-item-text {:primary (@translate :player.standings (:max-standings-round tournament))}]]
          (doall (for [p (combine-pairings-and-pods (:pairings tournament) (:pod-seats tournament))]
                   ^{:key [(:id tournament) (:round-number p) (:id p)]}
                   [pairing {:data            p

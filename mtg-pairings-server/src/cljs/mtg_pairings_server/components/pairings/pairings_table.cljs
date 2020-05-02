@@ -1,7 +1,6 @@
 (ns mtg-pairings-server.components.pairings.pairings-table
   (:require [reagent.core :as reagent]
             [re-frame.core :refer [subscribe dispatch]]
-            [reagent-material-ui.components :as ui]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.pairings.table :as table]
             [mtg-pairings-server.events.pairings :as events]

@@ -1,7 +1,15 @@
 (ns mtg-pairings-server.components.decklist.tournament
   (:require [reagent.core :as reagent :refer [atom with-let]]
             [re-frame.core :refer [subscribe dispatch]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.chip :refer [chip]]
+            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
+            [reagent-material-ui.core.form-control :refer [form-control]]
+            [reagent-material-ui.core.form-helper-text :refer [form-helper-text]]
+            [reagent-material-ui.core.input-label :refer [input-label]]
+            [reagent-material-ui.core.link :refer [link]]
+            [reagent-material-ui.core.menu-item :refer [menu-item]]
+            [reagent-material-ui.core.select :refer [select]]
             [reagent-material-ui.pickers.date-picker :refer [date-picker]]
             [reagent-material-ui.pickers.date-time-picker :refer [date-time-picker]]
             [reagent-material-ui.styles :refer [with-styles]]
@@ -20,7 +28,7 @@
         on-delete #(reset! display? false)]
     (fn notice-render [type text]
       (when @display?
-        [ui/chip
+        [chip
          {:color     (case type
                        :success :primary
                        :error :secondary)
@@ -66,24 +74,24 @@
                        :error-text (when (str/blank? value)
                                      (translate :organizer.tournament.name-error))}])
         (let [value (:format @tournament)]
-          [ui/form-control {:classes {:root (:field classes)}
-                            :error   (nil? value)}
-           [ui/input-label {:html-for :tournament-format}
+          [form-control {:classes {:root (:field classes)}
+                         :error   (nil? value)}
+           [input-label {:html-for :tournament-format}
             (translate :organizer.tournament.format)]
-           [ui/select {:on-change   set-format
-                       :value       (or value "")
-                       :label       (translate :organizer.tournament.format)
-                       :input-props {:name :tournament-format
-                                     :id   :tournament-format}}
-            [ui/menu-item {:value :standard}
+           [select {:on-change   set-format
+                    :value       (or value "")
+                    :label       (translate :organizer.tournament.format)
+                    :input-props {:name :tournament-format
+                                  :id   :tournament-format}}
+            [menu-item {:value :standard}
              "Standard"]
-            [ui/menu-item {:value :pioneer}
+            [menu-item {:value :pioneer}
              "Pioneer"]
-            [ui/menu-item {:value :modern}
+            [menu-item {:value :modern}
              "Modern"]
-            [ui/menu-item {:value :legacy}
+            [menu-item {:value :legacy}
              "Legacy"]]
-           [ui/form-helper-text
+           [form-helper-text
             (when-not value
               (translate :organizer.tournament.format-error))]])
         (let [value (time/to-default-time-zone (:date @tournament))]
@@ -108,32 +116,32 @@
           (translate :organizer.submit-page)
           ": "
           (let [submit-url (routes/new-decklist-path {:id id})]
-            [ui/link {:href   submit-url
-                      :target :_blank}
+            [link {:href   submit-url
+                   :target :_blank}
              (str (get-host) submit-url)])])
        [:div
         [:div {:class (:button-container classes)}
-         [ui/button {:on-click   save-tournament
-                     :variant    :contained
-                     :color      :primary
-                     :disabled   (or @saving?
-                                     (str/blank? (:name @tournament))
-                                     (nil? (:format @tournament))
-                                     (nil? (:date @tournament))
-                                     (nil? (:deadline @tournament)))
-                     :full-width true}
+         [button {:on-click   save-tournament
+                  :variant    :contained
+                  :color      :primary
+                  :disabled   (or @saving?
+                                  (str/blank? (:name @tournament))
+                                  (nil? (:format @tournament))
+                                  (nil? (:date @tournament))
+                                  (nil? (:deadline @tournament)))
+                  :full-width true}
           (translate :organizer.save.title)]
-         [ui/button {:href       (routes/organizer-print-path)
-                     :on-click   load-selected-decklists
-                     :variant    :outlined
-                     :color      :primary
-                     :disabled   (empty? selected-decklists)
-                     :full-width true}
+         [button {:href       (routes/organizer-print-path)
+                  :on-click   load-selected-decklists
+                  :variant    :outlined
+                  :color      :primary
+                  :disabled   (empty? selected-decklists)
+                  :full-width true}
           (translate :organizer.print-lists)]]
         [:div {:class (:notices-container classes)}
          (if @saving?
-           [ui/circular-progress {:size    36
-                                  :classes {:root (:circular-progress classes)}}]
+           [circular-progress {:size    36
+                               :classes {:root (:circular-progress classes)}}]
            [:div {:class (:placeholder classes)}])
          [notices (:notices-container classes)]]]])
     (finally

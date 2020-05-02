@@ -4,7 +4,13 @@
             [re-frame.core :refer [subscribe dispatch]]
             [clojure.string :as str]
             [reagent-material-ui.colors :as colors]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.app-bar :refer [app-bar]]
+            [reagent-material-ui.core.button :refer [button]]
+            [reagent-material-ui.core.collapse :refer [collapse]]
+            [reagent-material-ui.core.paper :refer [paper]]
+            [reagent-material-ui.core.tab :refer [tab]]
+            [reagent-material-ui.core.tabs :refer [tabs]]
+            [reagent-material-ui.core.typography :refer [typography]]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.events.decklist :as events]
             [mtg-pairings-server.subscriptions.decklist :as subs]
@@ -29,12 +35,12 @@
    :text-import-input {:background-color (get colors/grey 100)}})
 
 (defn subheader [text]
-  [ui/typography {:variant :h6}
+  [typography {:variant :h6}
    text])
 
 (defn tab-panel [props & children]
-  (into [ui/paper {:role   :tabpanel
-                   :hidden (:hidden? props)}]
+  (into [paper {:role   :tabpanel
+                :hidden (:hidden? props)}]
         children))
 
 (defn previous-panel [props]
@@ -65,10 +71,10 @@
                        :error-text   (when-not (or (str/blank? @address)
                                                    @code)
                                        (translate :submit.error.address))}]
-          [ui/button {:disabled (nil? @code)
-                      :variant  :contained
-                      :color    :primary
-                      :on-click import-from-address}
+          [button {:disabled (nil? @code)
+                   :variant  :contained
+                   :color    :primary
+                   :on-click import-from-address}
            (translate :submit.load)]
           (when @import-error
             [:p {:class (:error classes)}
@@ -98,9 +104,9 @@
                        :multiline   true
                        :rows        8
                        :full-width  true}]
-          [ui/button {:disabled (str/blank? @decklist)
-                      :variant  :outlined
-                      :on-click import-decklist}
+          [button {:disabled (str/blank? @decklist)
+                   :variant  :outlined
+                   :on-click import-decklist}
            (translate :submit.load)]]]))))
 
 (defn decklist-import* [{:keys [classes]}]
@@ -121,15 +127,15 @@
                               (close-panel))))]
     (let [translate @translate]
       [:<>
-       [ui/app-bar {:position :static}
-        [ui/tabs {:value     @selected
-                  :on-change on-select
-                  :variant   :fullWidth}
-         [ui/tab {:label (translate :submit.load-previous.label)
-                  :value "load-previous"}]
-         [ui/tab {:label (translate :submit.load-text.label)
-                  :value "load-text"}]]]
-       [ui/collapse {:in (boolean @selected)}
+       [app-bar {:position :static}
+        [tabs {:value     @selected
+               :on-change on-select
+               :variant   :fullWidth}
+         [tab {:label (translate :submit.load-previous.label)
+               :value "load-previous"}]
+         [tab {:label (translate :submit.load-text.label)
+               :value "load-text"}]]]
+       [collapse {:in (boolean @selected)}
         [previous-panel {:classes classes
                          :hidden? (not= "load-previous" @selected-panel)}]
         [text-panel {:classes     classes

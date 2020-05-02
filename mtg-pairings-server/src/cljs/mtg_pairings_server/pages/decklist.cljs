@@ -1,7 +1,7 @@
 (ns mtg-pairings-server.pages.decklist
   (:require [reagent.core :as reagent :refer [atom]]
             [re-frame.core :refer [subscribe dispatch]]
-            [reagent-material-ui.components :as ui]
+            [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [mtg-pairings-server.components.decklist.organizer :as organizer]
             [mtg-pairings-server.components.decklist.header :refer [header]]
             [mtg-pairings-server.components.decklist.submit :as submit]
@@ -13,7 +13,7 @@
   [submit/decklist-submit])
 
 (defn loading-indicator []
-  [ui/circular-progress
+  [circular-progress
    {:size  36
     :style {:margin "24px"}}])
 
