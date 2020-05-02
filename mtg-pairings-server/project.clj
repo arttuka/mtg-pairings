@@ -62,7 +62,7 @@
              :config-files ["test-resources/eastwood.clj"]}
 
   :profiles {:dev      {:repl-options   {:init-ns          mtg-pairings-server.repl
-                                         :nrepl-middleware [cider.piggieback/wrap-cljs-repl]}
+                                         :nrepl-middleware [shadow.cljs.devtools.server.nrepl/middleware]}
                         :source-paths   ["dev" "env/dev/clj"]
                         :resource-paths ["dev-resources" "target"]
                         :test-paths     ["test/clj"]

@@ -8,7 +8,6 @@
 (defmethod ws/event-handler :chsk/recv
   [{:keys [?data]}]
   (let [[event data] ?data]
-    (.log js/console (str "received event " event))
     (dispatch [event data])))
 
 (reg-fx :ws-send

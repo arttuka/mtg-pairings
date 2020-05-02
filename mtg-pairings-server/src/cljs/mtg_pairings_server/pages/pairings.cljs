@@ -67,7 +67,7 @@
       [tournament {:data @data}])))
 
 (defn tournament-subpage-styles [{:keys [spacing]}]
-  {:root   {on-desktop {:width (+ 820 (spacing 2))}}
+  {:root   {on-desktop {:width (+ 820 (spacing 4))}}
    :mobile {on-desktop {:display :none}}})
 
 (defn tournament-subpage* [{:keys [classes tournament-id type round]}]

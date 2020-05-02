@@ -24,6 +24,9 @@
           (shadow/stop!)
           (cljs/stop-worker :dev)))
 
+(defn cljs-repl []
+  (cljs/repl :dev))
+
 (defn restart []
   (m/stop)
   (repl/refresh :after `m/start))

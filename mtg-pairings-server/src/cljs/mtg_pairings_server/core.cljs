@@ -67,7 +67,7 @@
 (defn mount-root []
   (dom/render [providers [#'current-page]] (.getElementById js/document "app")))
 
-(defn figwheel-reload []
+(defn ^:dev/after-load reload []
   (clear-subscription-cache!)
   (dispatch [::pairings-events/connect])
   (decklist-events/connect!)
