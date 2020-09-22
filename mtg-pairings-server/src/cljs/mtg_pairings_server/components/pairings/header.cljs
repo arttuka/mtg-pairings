@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.components.pairings.header
-  (:require [reagent.core :as reagent :refer [atom with-let]]
+  (:require ["react" :as react]
+            [reagent.core :as reagent :refer [atom with-let]]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent-material-ui.core.app-bar :refer [app-bar]]
             [reagent-material-ui.core.button :refer [button]]
@@ -71,7 +72,7 @@
 
 (defn ^:private header* [{:keys [classes]}]
   (with-let [user (subscribe [::subs/logged-in-user])
-             ^js/React.Ref menu-anchor-ref (.createRef js/React)
+             menu-anchor-ref (react/createRef)
              menu-open? (atom false)
              on-menu-click #(reset! menu-open? true)
              on-menu-close #(reset! menu-open? false)]

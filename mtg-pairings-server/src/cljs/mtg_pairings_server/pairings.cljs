@@ -1,7 +1,5 @@
 (ns mtg-pairings-server.pairings
-  (:require [cljsjs.react]
-            [cljsjs.react.dom]
-            [reagent.core :as reagent :refer [atom]]
+  (:require [reagent.core :as reagent :refer [atom]]
             [reagent.dom :as dom]
             [re-frame.core :refer [dispatch dispatch-sync subscribe clear-subscription-cache!]]
             [mount.core :as m :refer-macros [defstate]]

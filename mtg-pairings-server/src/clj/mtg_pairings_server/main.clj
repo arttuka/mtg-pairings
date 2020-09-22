@@ -11,7 +11,7 @@
   (:import (com.fasterxml.jackson.core JsonGenerator)
            (org.joda.time LocalDate)))
 
-(def timbre-config {:level     :info
+(def timbre-config {:min-level :info
                     :appenders {:rolling (rolling-appender {:path "/var/log/pairings/pairings.log" :pattern :daily})}})
 
 (defn -main []

@@ -9,11 +9,13 @@
             [reagent-material-ui.core.list-item :refer [list-item]]
             [reagent-material-ui.core.list-item-icon :refer [list-item-icon]]
             [reagent-material-ui.core.list-item-text :refer [list-item-text]]
+            [reagent-material-ui.core.text-field :refer [text-field]]
             [reagent-material-ui.core.typography :refer [typography]]
+            [reagent-material-ui.lab.autocomplete :refer [autocomplete]]
             [reagent-material-ui.styles :refer [with-styles]]
+            [reagent-material-ui.util :refer [js->clj']]
             [cljs-time.core :as time]
             [clojure.string :as str]
-            [reagent-util.autocomplete :refer [autocomplete]]
             [mtg-pairings-server.components.button-toggle :refer [button-toggle]]
             [mtg-pairings-server.components.decklist.decklist-import :refer [decklist-import]]
             [mtg-pairings-server.components.decklist.decklist-table :refer [decklist-table]]
@@ -44,32 +46,47 @@
   (with-let [tournament (subscribe [::subs/tournament])
              translate (subscribe [::subs/translate])
              suggestions (atom [])
+             input-value (atom "")
              set-suggestions! #(reset! suggestions %)
-             on-select #(do (dispatch [::events/add-card (first %)])
-                            (set-suggestions! []))
+             on-select (fn [_ value]
+                         (reset! input-value "")
+                         (dispatch [::events/add-card (js->clj value :keywordize-keys true)])
+                         (set-suggestions! []))
              fetch-suggestions (debounce (fn [prefix]
-                                           (ws/send! [:client/decklist-card-suggestions [prefix (:format @tournament)]]
-                                                     1000
-                                                     set-suggestions!))
+                                           (when (= @input-value prefix)
+                                             (ws/send! [:client/decklist-card-suggestions [prefix (:format @tournament)]]
+                                                       1000
+                                                       set-suggestions!)))
                                          250)
-             on-input-change (fn [value]
+             on-input-change (fn [_ value]
+                               (reset! input-value value)
                                (if (str/blank? value)
                                  (set-suggestions! [])
                                  (fetch-suggestions value)))
-             get-option-label (fn [item] (:name item ""))
+             on-close (fn []
+                         (reset! input-value "")
+                         (set-suggestions! []))
+             get-option-label (fn [item] (.-name item))
              filter-options (fn [items _] items)
              select-main #(dispatch [::events/select-board :main])
              select-side #(dispatch [::events/select-board :side])]
     (let [translate @translate]
       [:div {:class (:container classes)}
-       [autocomplete {:classes          {:root      (:autocomplete-container classes)
-                                         :menu-item (:menu-item classes)}
-                      :on-input-change  on-input-change
-                      :label            (translate :submit.add-card)
-                      :get-option-label get-option-label
-                      :options          @suggestions
-                      :on-select        on-select
-                      :filter-options   filter-options}]
+       [autocomplete {:classes           {:root (:autocomplete-container classes)}
+                      :value             nil
+                      :input-value       @input-value
+                      :disable-clearable true
+                      :on-input-change   on-input-change
+                      :on-change         on-select
+                      :on-close          on-close
+                      :options           @suggestions
+                      :get-option-label  get-option-label
+                      :filter-options    filter-options
+                      :render-input      (fn [params]
+                                           (reagent/as-element
+                                             [text-field (merge (js->clj' params)
+                                                                {:variant :standard
+                                                                 :label   (translate :submit.add-card)})]))}]
        [button-toggle {:classes {:root (:button-group classes)}
                        :value   selected-board
                        :options [{:on-click select-main

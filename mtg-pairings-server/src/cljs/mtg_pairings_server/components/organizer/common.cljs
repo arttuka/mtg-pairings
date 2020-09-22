@@ -1,5 +1,6 @@
 (ns mtg-pairings-server.components.organizer.common
-  (:require [reagent.core :as reagent :refer [atom]]
+  (:require ["react" :as react]
+            [reagent.core :as reagent :refer [atom]]
             [reagent.ratom :refer-macros [reaction]]
             [re-frame.core :refer [subscribe]]
             [reagent-material-ui.core.button :refer [button]]
@@ -87,7 +88,7 @@
 (defn select-button [{:keys [on-change]}]
   (let [open? (atom false)
         toggle-open #(swap! open? not)
-        ^js/React.Ref anchor-ref (.createRef js/React)
+        anchor-ref (react/createRef)
         on-close (fn [^js/Event event]
                    (when-not (some-> (.-current anchor-ref)
                                      (.contains (.-target event)))
