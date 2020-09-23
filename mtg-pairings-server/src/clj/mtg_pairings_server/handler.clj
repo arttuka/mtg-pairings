@@ -1,10 +1,10 @@
 (ns mtg-pairings-server.handler
   (:require [compojure.api.sweet :refer :all]
             [compojure.route :refer [not-found resources]]
+            [clojure.edn :as edn]
             [clojure.java.io :as io]
             [clojure.string :as str]
             [config.core :refer [env]]
-            [cheshire.core :as json]
             [hiccup.page :refer [include-js include-css html5]]
             [schema.core :as s]
             [ring.middleware.anti-forgery :refer [*anti-forgery-token*]]
@@ -27,14 +27,15 @@
 (defn escape-quotes [s]
   (str/escape s {\' "\\'"}))
 
-(def asset-manifest (delay (some-> (io/resource "manifest.json")
-                                   (io/reader)
-                                   (json/parse-stream))))
+(def asset-manifest (delay (let [manifest (edn/read-string (slurp (io/resource "manifest.edn")))]
+                             (into {} (map (juxt :name :output-name)) manifest))))
+(defn module-js [module]
+  (get @asset-manifest module))
 
 (defn index
-  ([js-file]
-   (index js-file {}))
-  ([js-file initial-db]
+  ([module]
+   (index module {}))
+  ([module initial-db]
    (let [html (html5
                {:lang :fi}
                [:head
@@ -49,9 +50,11 @@
                 [:div#app]
                 [:script (str "var csrfToken = '" *anti-forgery-token* "'; "
                               "var initialDb = '" (escape-quotes (transit/write initial-db)) "'; ")]
+                (when-not (env :dev)
+                  (include-js (str "/js/" (module-js :common))))
                 (include-js (if (env :dev)
                               "/js/dev-main.js"
-                              (str \/ (@asset-manifest js-file))))])]
+                              (str "/js/" (module-js module))))])]
      {:status  200
       :body    html
       :headers {"Content-Type"  "text/html"
@@ -67,9 +70,9 @@
                       (player/player))
          player-tournaments (when user
                               (player/tournaments (:dci user)))]
-     (index "js/pairings-main.js" (merge initial-db
-                                         {:logged-in-user     user
-                                          :player-tournaments (vec player-tournaments)})))))
+     (index :pairings (merge initial-db
+                             {:logged-in-user     user
+                              :player-tournaments (vec player-tournaments)})))))
 
 (defroutes pairings-routes
   (GET "/" req
@@ -139,7 +142,7 @@
       :body   "403 Forbidden"}
      (do ~@body)))
 
-(let [decklist-index (partial index "js/decklist-main.js")]
+(let [decklist-index (partial index :decklist)]
   (defroutes decklist-routes
     (GET "/decklist" []
       (redirect (auth/organizer-path)))

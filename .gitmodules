@@ -1,3 +1,0 @@
-[submodule "mtg-pairings-server/reagent-util"]
-	path = mtg-pairings-server/reagent-util
-	url = git@github.com:arttuka/reagent-util.git

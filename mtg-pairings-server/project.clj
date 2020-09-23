@@ -28,25 +28,18 @@
   :plugins [[lein-ancient "0.6.15"]
             [lein-cljfmt "0.7.0"]
             [lein-kibit "0.1.8"]
-            [jonase/eastwood "0.3.11"]
-            [no.terjedahl/lein-buster "0.2.0"]]
+            [jonase/eastwood "0.3.11"]]
 
   :uberjar-name "mtg-pairings.jar"
 
   :clean-targets ^{:protect false} ["target"
                                     "resources/public/js"
-                                    "resources/manifest.json"
+                                    "resources/manifest.edn"
                                     ".shadow-cljs"]
 
-  :source-paths ["src/clj" "src/cljc" "src/cljs" "reagent-util/src/cljs"]
+  :source-paths ["src/clj" "src/cljc" "src/cljs"]
   :resource-paths ["resources"]
   :test-paths []
-
-  :buster {:files       ["target/public/js/pairings-main.js"
-                         "target/public/js/decklist-main.js"]
-           :files-base  "target/public"
-           :output-base "resources/public"
-           :manifest    "resources/manifest.json"}
 
   :aliases {"migrate"  ["run" "-m" "mtg-pairings-server.migrations/migrate"]
             "rollback" ["run" "-m" "mtg-pairings-server.migrations/rollback"]}

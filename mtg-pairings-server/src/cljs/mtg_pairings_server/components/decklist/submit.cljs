@@ -64,8 +64,8 @@
                                  (set-suggestions! [])
                                  (fetch-suggestions value)))
              on-close (fn []
-                         (reset! input-value "")
-                         (set-suggestions! []))
+                        (reset! input-value "")
+                        (set-suggestions! []))
              get-option-label (fn [item] (.-name item))
              filter-options (fn [items _] items)
              select-main #(dispatch [::events/select-board :main])
@@ -84,9 +84,9 @@
                       :filter-options    filter-options
                       :render-input      (fn [params]
                                            (reagent/as-element
-                                             [text-field (merge (js->clj' params)
-                                                                {:variant :standard
-                                                                 :label   (translate :submit.add-card)})]))}]
+                                            [text-field (merge (js->clj' params)
+                                                               {:variant :standard
+                                                                :label   (translate :submit.add-card)})]))}]
        [button-toggle {:classes {:root (:button-group classes)}
                        :value   selected-board
                        :options [{:on-click select-main
