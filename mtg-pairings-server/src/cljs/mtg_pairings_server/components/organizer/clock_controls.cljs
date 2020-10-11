@@ -120,7 +120,7 @@
 (defn clock-buttons* [{:keys [classes set-clock start-clock stop-clock
                               add-clock remove-clock clock-running selected-clock]}]
   [clock-icon-button-group {:variant :contained
-                            :color   :default}
+                            :color   :inherit}
    (clock-icon-button {:on-click set-clock
                        :icon     rotate-left
                        :disabled (or clock-running (not selected-clock))

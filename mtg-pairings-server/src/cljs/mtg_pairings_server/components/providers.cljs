@@ -3,7 +3,7 @@
             [reagent-material-ui.cljs-time-utils :refer [cljs-time-utils]]
             [reagent-material-ui.colors :as colors]
             [reagent-material-ui.core.css-baseline :refer [css-baseline]]
-            [reagent-material-ui.pickers.mui-pickers-utils-provider :refer [mui-pickers-utils-provider]]
+            [reagent-material-ui.pickers.localization-provider :refer [localization-provider]]
             [reagent-material-ui.styles :as styles]
             [mtg-pairings-server.subscriptions.common :as subs]
             [mtg-pairings-server.theme :refer [theme-provider]])
@@ -14,13 +14,11 @@
                        :secondary colors/pink}}))
 
 (defn providers [app]
-  (let [language (subscribe [::subs/language])]
-    (fn [app]
-      [styles/theme-provider theme
-       [mui-pickers-utils-provider {:utils  cljs-time-utils
-                                    :locale (case @language
-                                              :fi DateTimeSymbols_fi
-                                              :en DateTimeSymbols_en
-                                              DateTimeSymbols_fi)}
-        [css-baseline]
-        app]])))
+  [styles/theme-provider theme
+   [localization-provider {:date-adapter cljs-time-utils
+                           :locale       (case @(subscribe [::subs/language])
+                                           :fi DateTimeSymbols_fi
+                                           :en DateTimeSymbols_en
+                                           DateTimeSymbols_fi)}
+    [css-baseline]
+    app]])

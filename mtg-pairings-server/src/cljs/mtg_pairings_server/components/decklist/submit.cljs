@@ -1,7 +1,9 @@
 (ns mtg-pairings-server.components.decklist.submit
+  (:require-macros [reagent-material-ui.util :refer [react-component]])
   (:require [reagent.core :as reagent :refer [atom with-let]]
             [reagent.ratom :refer [make-reaction]]
             [re-frame.core :refer [subscribe dispatch]]
+            [reagent-material-ui.core.autocomplete :refer [autocomplete]]
             [reagent-material-ui.core.button :refer [button]]
             [reagent-material-ui.core.circular-progress :refer [circular-progress]]
             [reagent-material-ui.core.link :refer [link]]
@@ -11,9 +13,7 @@
             [reagent-material-ui.core.list-item-text :refer [list-item-text]]
             [reagent-material-ui.core.text-field :refer [text-field]]
             [reagent-material-ui.core.typography :refer [typography]]
-            [reagent-material-ui.lab.autocomplete :refer [autocomplete]]
             [reagent-material-ui.styles :refer [with-styles]]
-            [reagent-material-ui.util :refer [js->clj']]
             [cljs-time.core :as time]
             [clojure.string :as str]
             [mtg-pairings-server.components.button-toggle :refer [button-toggle]]
@@ -82,11 +82,10 @@
                       :options           @suggestions
                       :get-option-label  get-option-label
                       :filter-options    filter-options
-                      :render-input      (fn [params]
-                                           (reagent/as-element
-                                            [text-field (merge (js->clj' params)
-                                                               {:variant :standard
-                                                                :label   (translate :submit.add-card)})]))}]
+                      :render-input      (react-component [props]
+                                           [text-field (merge props
+                                                              {:variant :standard
+                                                               :label   (translate :submit.add-card)})])}]
        [button-toggle {:classes {:root (:button-group classes)}
                        :value   selected-board
                        :options [{:on-click select-main

@@ -8,6 +8,7 @@
             [reagent-material-ui.icons.chevron-left :refer [chevron-left]]
             [reagent-material-ui.icons.chevron-right :refer [chevron-right]]
             [reagent-material-ui.styles :refer [with-styles]]
+            [mtg-pairings-server.components.link-button :refer [link-button]]
             [mtg-pairings-server.subscriptions.pairings :as subs]
             [mtg-pairings-server.util :refer [indexed]]
             [mtg-pairings-server.util.styles :refer [on-desktop]]))
@@ -20,9 +21,9 @@
                                                     :flex       "1 0 11.1%"}}))
                           button-group))
 
-(def empty-separator [button {:disabled true
-                              :style    {:flex 1000}
-                              :key      "empty-separator"}
+(def empty-separator [link-button {:disabled true
+                                   :style    {:flex 1000}
+                                   :key      "empty-separator"}
                       ""])
 
 (defn get-shown-pages [selected-page num-pages]
@@ -41,18 +42,18 @@
     (let [selected-page @selected-page
           shown-pages (get-shown-pages selected-page num-pages)]
       [styled-button-group {:variant :outlined}
-       [button {:on-click (when (pos? selected-page)
-                            #(dispatch-page (dec selected-page)))
-                :disabled (zero? selected-page)}
+       [link-button {:on-click (when (pos? selected-page)
+                                 #(dispatch-page (dec selected-page)))
+                     :disabled (zero? selected-page)}
         [chevron-left]]
        (for [[index page] (indexed shown-pages)]
          (cond
            (number? page)
            (let [selected? (= selected-page page)]
              ^{:key (str "pager-" index)}
-             [button {:on-click (when-not selected? #(dispatch-page page))
-                      :variant  (if selected? :contained :outlined)
-                      :color    (if selected? :secondary :default)}
+             [link-button {:on-click (when-not selected? #(dispatch-page page))
+                           :variant  (if selected? :contained :outlined)
+                           :color    (if selected? :secondary :inherit)}
               (inc page)])
 
            (= :empty-separator page)
@@ -60,11 +61,11 @@
 
            :else
            ^{:key (str "pager-" index)}
-           [button {:disabled true}
+           [link-button {:disabled true}
             "···"]))
-       [button {:on-click (when (< selected-page (dec num-pages))
-                            #(dispatch-page (inc selected-page)))
-                :disabled (>= selected-page (dec num-pages))}
+       [link-button {:on-click (when (< selected-page (dec num-pages))
+                                 #(dispatch-page (inc selected-page)))
+                     :disabled (>= selected-page (dec num-pages))}
         [chevron-right]]])))
 
 (def no-results ((with-styles (fn [{:keys [spacing]}]

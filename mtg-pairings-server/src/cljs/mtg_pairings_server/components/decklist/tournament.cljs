@@ -1,4 +1,5 @@
 (ns mtg-pairings-server.components.decklist.tournament
+  (:require-macros [reagent-material-ui.util :refer [react-component]])
   (:require [reagent.core :as reagent :refer [atom with-let]]
             [re-frame.core :refer [subscribe dispatch]]
             [reagent-material-ui.core.button :refer [button]]
@@ -95,22 +96,26 @@
             (when-not value
               (translate :organizer.tournament.format-error))]])
         (let [value (time/to-default-time-zone (:date @tournament))]
-          [date-picker {:classes   {:root (:field classes)}
-                        :value     value
-                        :label     (translate :organizer.tournament.date)
-                        :on-change set-date
-                        :variant   :inline
-                        :auto-ok   true
-                        :format    "dd.MM.yyyy"}])
+          [date-picker {:classes      {:root (:field classes)}
+                        :value        value
+                        :render-input (react-component [props]
+                                        [text-field props])
+                        :label        (translate :organizer.tournament.date)
+                        :on-change    set-date
+                        :variant      :inline
+                        :input-format "dd.MM.yyyy"
+                        :mask         "__.__.____"}])
         (let [value (time/to-default-time-zone (:deadline @tournament))]
-          [date-time-picker {:classes   {:root (:field classes)}
-                             :value     value
-                             :label     (translate :organizer.tournament.deadline)
-                             :on-change set-deadline
-                             :variant   :inline
-                             :auto-ok   true
-                             :format    "dd.MM.yyyy HH:mm"
-                             :ampm      false}])]
+          [date-time-picker {:classes      {:root (:field classes)}
+                             :value        value
+                             :render-input (react-component [props]
+                                             [text-field props])
+                             :label        (translate :organizer.tournament.deadline)
+                             :on-change    set-deadline
+                             :variant      :inline
+                             :input-format "dd.MM.yyyy HH:mm"
+                             :mask         "__.__.____ __:__"
+                             :ampm         false}])]
        (when id
          [:p
           (translate :organizer.submit-page)

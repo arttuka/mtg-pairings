@@ -1,4 +1,5 @@
 (ns mtg-pairings-server.components.pairings.filter
+  (:require-macros [reagent-material-ui.util :refer [react-component]])
   (:require [reagent.core :as reagent :refer [atom with-let]]
             [re-frame.core :refer [subscribe dispatch dispatch]]
             [reagent-material-ui.core.button :refer [button]]
@@ -11,6 +12,7 @@
             [reagent-material-ui.core.menu-item :refer [menu-item]]
             [reagent-material-ui.core.select :refer [select]]
             [reagent-material-ui.core.slider :refer [slider]]
+            [reagent-material-ui.core.text-field :refer [text-field]]
             [reagent-material-ui.core.toolbar :refer [toolbar]]
             [reagent-material-ui.icons.cancel :refer [cancel]]
             [reagent-material-ui.icons.expand-more :refer [expand-more]]
@@ -67,23 +69,19 @@
                  :margin (spacing 0 1)}
    :date-picker {:flex 1}})
 
-(defn date-picker [{:keys [label on-change on-clear value classes]}]
-  (let [on-click (fn [^js/Event e]
-                   (.stopPropagation e)
-                   (on-clear))
-        clear-button (reagent/as-element
-                      [icon-button {:on-click on-click
-                                    :size     :small}
-                       [cancel]])]
-    [mui-date-picker {:class       (:date-picker classes)
-                      :value       value
-                      :placeholder label
-                      :on-change   on-change
-                      :auto-ok     true
-                      :format      "dd.MM.yyyy"
-                      :variant     :inline
-                      :InputProps  {:end-adornment (when value
-                                                     clear-button)}}]))
+(defn date-picker [{:keys [label on-change value classes]}]
+  (let [translate @(subscribe [::subs/translate])]
+    [mui-date-picker {:class        (:date-picker classes)
+                      :value        value
+                      :render-input (react-component [props]
+                                      [text-field (assoc-in props [:input-props :placeholder] label)])
+                      :on-change    on-change
+                      :input-format "dd.MM.yyyy"
+                      :mask         "__.__.____"
+                      :clearable    true
+                      :cancel-text  (translate :filter.date-cancel)
+                      :clear-text   (translate :filter.date-clear)
+                      :variant      :inline}]))
 
 (defn date-filter* [props]
   (let [from (subscribe [::subs/tournament-filter :date-from])
@@ -97,14 +95,12 @@
          [date-picker
           {:label     (translate :filter.date-from)
            :on-change #(dispatch [::events/tournament-filter [:date-from %]])
-           :on-clear  #(dispatch [::events/tournament-filter [:date-from nil]])
            :value     @from
            :classes   classes}]
          [:span {:class (:separator classes)} "–"]
          [date-picker
           {:label     (translate :filter.date-to)
            :on-change #(dispatch [::events/tournament-filter [:date-to %]])
-           :on-clear  #(dispatch [::events/tournament-filter [:date-to nil]])
            :value     @to
            :classes   classes}]]))))
 

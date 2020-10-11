@@ -18,7 +18,7 @@
 (defn switch-button [{:keys [label on-click selected? invert]}]
   [(if invert inverted-button button)
    {:on-click on-click
-    :color    (if selected? :primary :default)
+    :color    (if selected? :primary :inherit)
     :variant  (if selected? :contained :outlined)}
    label])
 

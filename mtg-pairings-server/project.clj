@@ -4,7 +4,7 @@
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/core.memoize "1.0.236"]
                  [org.clojure/tools.logging "1.1.0"]
-                 [ring/ring-core "1.8.1"]
+                 [ring/ring-core "1.8.2"]
                  [ring/ring-defaults "0.3.2"]
                  [hiccup "1.0.5"]
                  [yogthos/config "1.1.7"]
@@ -14,17 +14,17 @@
                  [honeysql "1.0.444"]
                  [seancorfield/next.jdbc "1.1.588"]
                  [mount "0.1.16"]
-                 [org.postgresql/postgresql "42.2.16"]
+                 [org.postgresql/postgresql "42.2.17"]
                  [com.zaxxer/HikariCP "3.4.5" :exclusions [org.slf4j/slf4j-api]]
                  [metosin/compojure-api "1.1.13" :exclusions [org.mozilla/rhino]]
                  [cheshire "5.10.0"]
                  [ring.middleware.jsonp "0.1.6"]
                  [com.taoensso/sente "1.16.0"]
-                 [com.taoensso/timbre "5.0.0"]
+                 [com.taoensso/timbre "5.1.0"]
                  [com.cognitect/transit-clj "1.0.324"]
-                 [com.fzakaria/slf4j-timbre "0.3.19"]
+                 [com.fzakaria/slf4j-timbre "0.3.20"]
                  [ragtime "0.8.0"]
-                 [thheller/shadow-cljs "2.11.4"]]
+                 [thheller/shadow-cljs "2.11.5"]]
   :plugins [[lein-ancient "0.6.15"]
             [lein-cljfmt "0.7.0"]
             [lein-kibit "0.1.8"]
@@ -49,7 +49,8 @@
                      reg-event-fx     [[:inner 0]]
                      reg-event-db     [[:inner 0]]
                      validate-request [[:inner 0]]
-                     cond->           [[:inner 0]]}}
+                     cond->           [[:inner 0]]
+                     react-component  [[:inner 0]]}}
 
   :eastwood {:namespaces   [:source-paths :test-paths]
              :config-files ["test-resources/eastwood.clj"]}
@@ -61,7 +62,7 @@
                         :test-paths     ["test/clj"]
                         :dependencies   [[org.clojure/tools.namespace "1.0.0"]
                                          [ring/ring-mock "0.4.0"]
-                                         [ring/ring-devel "1.8.1"]
+                                         [ring/ring-devel "1.8.2"]
                                          [prone "2020-01-17"]]}
              :test     {:source-paths   ^:replace ["src/clj" "src/cljc" "src/cljs"]
                         :resource-paths ^:replace ["resources" "test-resources" "target"]}
@@ -72,7 +73,7 @@
                                        [com.cognitect/transit-js "0.8.867"]
                                        [com.andrewmcveigh/cljs-time "0.5.2"]
                                        [re-frame "1.1.1"]
-                                       [arttuka/reagent-material-ui "4.11.0-3"]
+                                       [arttuka/reagent-material-ui "5.0.0-alpha.12-0"]
                                        [re-frisk "1.3.4" :exclusions [org.clojure/clojurescript]]
                                        [binaryage/devtools "1.0.2"]]}
              :uberjar  {:main        mtg-pairings-server.main

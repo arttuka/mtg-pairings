@@ -8,6 +8,7 @@
             [reagent-material-ui.core.list-item :refer [list-item]]
             [reagent-material-ui.icons.expand-more :refer [expand-more]]
             [reagent-material-ui.styles :refer [with-styles]]
+            [mtg-pairings-server.components.link-button :refer [link-button]]
             [mtg-pairings-server.components.pairings.expandable :refer [expandable-header]]
             [mtg-pairings-server.routes.pairings :refer [tournament-path pairings-path standings-path pods-path seatings-path bracket-path]]
             [mtg-pairings-server.util :refer [format-date]]
@@ -71,21 +72,21 @@
                     [card-content {:class (:card-content classes)}
                      (when (:playoff data)
                        [button-group
-                        [button {:href (bracket-path {:id (:id data)})}
+                        [link-button {:href (bracket-path {:id (:id data)})}
                          "Playoff bracket"]])
                      (for [r (:round-nums data)]
                        ^{:key [(:id data) r]}
                        [button-group
                         (when (contains? pairings r)
-                          [button {:class (:half-width classes)
-                                   :href  (pairings-path {:id (:id data), :round r})}
+                          [link-button {:class (:half-width classes)
+                                        :href  (pairings-path {:id (:id data), :round r})}
                            (str "Pairings " r)])
                         (when (contains? standings r)
-                          [button {:class (:half-width classes)
-                                   :href  (standings-path {:id (:id data), :round r})}
+                          [link-button {:class (:half-width classes)
+                                        :href  (standings-path {:id (:id data), :round r})}
                            (str "Standings " r)])])
                      (let [pod-buttons (cond->> (for [n (:pods data)]
-                                                  [button {:href (pods-path {:id (:id data), :round n})}
+                                                  [link-button {:href (pods-path {:id (:id data), :round n})}
                                                    (str "Pods " n)])
                                          (:seatings data) (cons [button {:href (seatings-path {:id (:id data)})}
                                                                  "Seatings"]))]

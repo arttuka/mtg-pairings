@@ -36,7 +36,7 @@
   [:th {:class class}
    [sortable-header-button {:color      (if (= column sort-key)
                                           :secondary
-                                          :default)
+                                          :inherit)
                             :full-width true
                             :on-click   #(dispatch [dispatch-key column])}
     [arrow-down]

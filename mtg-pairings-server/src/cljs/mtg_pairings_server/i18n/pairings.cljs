@@ -12,6 +12,10 @@
                                   :en "From"}
                  :date-to        {:fi "Asti"
                                   :en "To"}
+                 :date-cancel    {:fi "PERUUTA"
+                                  :en "CANCEL"}
+                 :date-clear     {:fi "TYHJENNÄ"
+                                  :en "CLEAR"}
                  :player-count   {:fi "Pelaajamäärä"
                                   :en "Player count"}
                  :clear-filters  {:fi "Poista valinnat"

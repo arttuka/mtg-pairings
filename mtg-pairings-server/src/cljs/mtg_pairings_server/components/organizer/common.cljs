@@ -1,4 +1,5 @@
 (ns mtg-pairings-server.components.organizer.common
+  (:require-macros [reagent-material-ui.util :refer [react-component]])
   (:require ["react" :as react]
             [reagent.core :as reagent :refer [atom]]
             [reagent.ratom :refer-macros [reaction]]
@@ -122,15 +123,13 @@
          [popper {:open       @open?
                   :anchor-el  (.-current anchor-ref)
                   :transition true}
-          (fn [props]
-            (reagent/as-element
-             [grow (assoc (js->clj (obj/get props "TransitionProps"))
-                          :style {:transform-origin "center top"})
-              [paper {:class (:menu classes)}
-               [click-away-listener {:on-click-away on-close}
-                [menu-list
-                 (for [item items]
-                   ^{:key item}
-                   [menu-item {:selected (= value item)
-                               :on-click #(on-menu-item-click item)
-                               :item     item}])]]]]))]]))))
+          (react-component [props]
+            [grow (assoc (:TransitionProps props) :style {:transform-origin "center top"})
+             [paper {:class (:menu classes)}
+              [click-away-listener {:on-click-away on-close}
+               [menu-list
+                (for [item items]
+                  ^{:key item}
+                  [menu-item {:selected (= value item)
+                              :on-click #(on-menu-item-click item)
+                              :item     item}])]]]])]]))))
