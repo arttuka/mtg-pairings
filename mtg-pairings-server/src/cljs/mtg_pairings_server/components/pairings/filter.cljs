@@ -17,7 +17,7 @@
             [reagent-material-ui.icons.cancel :refer [cancel]]
             [reagent-material-ui.icons.expand-more :refer [expand-more]]
             [reagent-material-ui.icons.filter-list :refer [filter-list]]
-            [reagent-material-ui.pickers.date-picker :refer [date-picker] :rename {date-picker mui-date-picker}]
+            [reagent-material-ui.lab.date-picker :refer [date-picker] :rename {date-picker mui-date-picker}]
             [reagent-material-ui.styles :refer [with-styles]]
             [mtg-pairings-server.components.pairings.expandable :refer [expandable-header]]
             [mtg-pairings-server.events.pairings :as events]
@@ -74,7 +74,9 @@
     [mui-date-picker {:class        (:date-picker classes)
                       :value        value
                       :render-input (react-component [props]
-                                      [text-field (assoc-in props [:input-props :placeholder] label)])
+                                      [text-field (-> props
+                                                      (assoc-in [:input-props :placeholder] label)
+                                                      (assoc :variant :standard))])
                       :on-change    on-change
                       :input-format "dd.MM.yyyy"
                       :mask         "__.__.____"

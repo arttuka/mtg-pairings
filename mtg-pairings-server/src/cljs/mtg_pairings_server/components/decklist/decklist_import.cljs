@@ -68,6 +68,7 @@
                        :on-key-press address-on-key-press
                        :label        (translate :submit.load-previous.address)
                        :full-width   true
+                       :variant      :standard
                        :error-text   (when-not (or (str/blank? @address)
                                                    @code)
                                        (translate :submit.error.address))}]
@@ -103,7 +104,8 @@
                        :on-change   decklist-on-change
                        :multiline   true
                        :rows        8
-                       :full-width  true}]
+                       :full-width  true
+                       :variant     :standard}]
           [button {:disabled (str/blank? @decklist)
                    :variant  :outlined
                    :on-click import-decklist}

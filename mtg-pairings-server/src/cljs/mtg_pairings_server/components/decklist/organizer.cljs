@@ -56,13 +56,15 @@
                    :name  :__anti-forgery-token
                    :value js/csrfToken}]
           [:div {:class (:field-container classes)}
-           [text-field {:class (:field classes)
-                        :name  :username
-                        :label (translate :organizer.log-in.username)}]
-           [text-field {:class (:field classes)
-                        :name  :password
-                        :type  :password
-                        :label (translate :organizer.log-in.password)}]
+           [text-field {:class   (:field classes)
+                        :name    :username
+                        :label   (translate :organizer.log-in.username)
+                        :variant :standard}]
+           [text-field {:class   (:field classes)
+                        :name    :password
+                        :type    :password
+                        :label   (translate :organizer.log-in.password)
+                        :variant :standard}]
            [button {:class   (:field classes)
                     :type    :submit
                     :variant :contained

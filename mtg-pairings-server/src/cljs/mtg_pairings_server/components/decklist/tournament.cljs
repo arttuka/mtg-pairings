@@ -11,8 +11,8 @@
             [reagent-material-ui.core.link :refer [link]]
             [reagent-material-ui.core.menu-item :refer [menu-item]]
             [reagent-material-ui.core.select :refer [select]]
-            [reagent-material-ui.pickers.date-picker :refer [date-picker]]
-            [reagent-material-ui.pickers.date-time-picker :refer [date-time-picker]]
+            [reagent-material-ui.lab.date-picker :refer [date-picker]]
+            [reagent-material-ui.lab.date-time-picker :refer [date-time-picker]]
             [reagent-material-ui.styles :refer [with-styles]]
             [cljs-time.core :as time]
             [clojure.string :as str]
@@ -73,7 +73,8 @@
                        :label      (translate :organizer.tournament.name)
                        :value      value
                        :error-text (when (str/blank? value)
-                                     (translate :organizer.tournament.name-error))}])
+                                     (translate :organizer.tournament.name-error))
+                       :variant    :standard}])
         (let [value (:format @tournament)]
           [form-control {:classes {:root (:field classes)}
                          :error   (nil? value)}
@@ -99,7 +100,7 @@
           [date-picker {:classes      {:root (:field classes)}
                         :value        value
                         :render-input (react-component [props]
-                                        [text-field props])
+                                        [text-field (assoc props :variant :standard)])
                         :label        (translate :organizer.tournament.date)
                         :on-change    set-date
                         :variant      :inline
@@ -109,7 +110,7 @@
           [date-time-picker {:classes      {:root (:field classes)}
                              :value        value
                              :render-input (react-component [props]
-                                             [text-field props])
+                                             [text-field (assoc props :variant :standard)])
                              :label        (translate :organizer.tournament.deadline)
                              :on-change    set-deadline
                              :variant      :inline

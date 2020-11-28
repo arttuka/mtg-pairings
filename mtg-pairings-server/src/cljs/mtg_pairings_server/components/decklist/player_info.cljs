@@ -15,7 +15,7 @@
                                   :height        68}
                                  %)]
     {:full-width (text-field-style {:width "100%"})
-     :half-width (text-field-style {on-desktop {:width (str "calc(50% - " (spacing 2) "px)")}
+     :half-width (text-field-style {on-desktop {:width (str "calc(50% - " (spacing 2) ")")}
                                     on-mobile  {:width "100%"}})
      :left       {on-desktop {:margin-right (spacing 4)}}}))
 
@@ -34,7 +34,8 @@
                       :on-change set-deck-name
                       :label     (translate :submit.deck-name)
                       :value     (:deck-name @player)
-                      :style     {:vertical-align :top}}]
+                      :style     {:vertical-align :top}
+                      :variant   :standard}]
          (let [value (:first-name @player)]
            [text-field {:class      [(:half-width classes) (:left classes)]
                         :on-change  set-first-name
@@ -42,7 +43,8 @@
                         :value      value
                         :error-text (when (str/blank? value)
                                       (translate :submit.error.first-name))
-                        :style      {:vertical-align :top}}])
+                        :style      {:vertical-align :top}
+                        :variant    :standard}])
          (let [value (:last-name @player)]
            [text-field {:class      (:half-width classes)
                         :on-change  set-last-name
@@ -50,7 +52,8 @@
                         :value      value
                         :error-text (when (str/blank? value)
                                       (translate :submit.error.last-name))
-                        :style      {:vertical-align :top}}])
+                        :style      {:vertical-align :top}
+                        :variant    :standard}])
          (let [value (:dci @player)]
            [text-field {:class      [(:half-width classes) (:left classes)]
                         :on-change  set-dci
@@ -58,7 +61,8 @@
                         :value      value
                         :error-text (when-not (valid-dci? value)
                                       (translate :submit.error.dci))
-                        :style      {:vertical-align :top}}])
+                        :style      {:vertical-align :top}
+                        :variant    :standard}])
          (let [value (:email @player)]
            [text-field {:class      (:half-width classes)
                         :on-change  set-email
@@ -70,6 +74,7 @@
                         :style      {:vertical-align :top}
                         :disabled   (:email-disabled? @player)
                         :title      (when (:email-disabled? @player)
-                                      (translate :submit.email-disabled))}])]))))
+                                      (translate :submit.email-disabled))
+                        :variant    :standard}])]))))
 
 (def player-info ((with-styles player-info-styles) player-info*))

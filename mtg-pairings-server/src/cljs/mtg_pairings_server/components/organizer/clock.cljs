@@ -59,7 +59,8 @@
                       :on-change   on-change
                       :value       @name
                       :full-width  true
-                      :placeholder "Nimeä kello..."}]
+                      :placeholder "Nimeä kello..."
+                      :variant     :standard}]
          [typography {:class    (:title classes)
                       :variant  :h3
                       :on-click select-clock}
