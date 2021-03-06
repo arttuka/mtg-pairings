@@ -3,6 +3,7 @@
             [next.jdbc.connection :as connection]
             [next.jdbc.prepare :as p]
             [next.jdbc.result-set :as rs]
+            [hikari-cp.core :as hikari]
             [honeysql.core :as honeysql]
             [honeysql.format :as format]
             [clj-time.core :as time]
@@ -12,8 +13,7 @@
             [mtg-pairings-server.util.honeysql])
   (:import (java.sql Date PreparedStatement Timestamp)
            (org.joda.time LocalDate DateTime)
-           (org.postgresql.jdbc PgArray)
-           (com.zaxxer.hikari HikariDataSource)))
+           (org.postgresql.jdbc PgArray)))
 
 (defn ^:private to-local-date-default-tz
   [date]
@@ -42,16 +42,16 @@
   (read-column-by-label [v _] (vec (.getArray v)))
   (read-column-by-index [v _ _] (vec (.getArray v))))
 
-(def db-spec {:dbtype   "postgresql"
-              :username (env :db-user)
-              :password (env :db-password)
-              :dbname   (env :db-name)
-              :host     (env :db-host)
-              :port     (env :db-port)})
+(def db-spec {:adapter       "postgresql"
+              :username      (env :db-user)
+              :password      (env :db-password)
+              :database-name (env :db-name)
+              :server-name   (env :db-host)
+              :port-number   (env :db-port)})
 
 (defstate ^{:on-reload :noop} db
-  :start (connection/->pool HikariDataSource db-spec)
-  :stop (.close ^HikariDataSource @db))
+  :start (hikari/make-datasource db-spec)
+  :stop (hikari/close-datasource @db))
 
 (def ^:dynamic *tx* nil)
 

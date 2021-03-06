@@ -15,7 +15,6 @@
             [mtg-pairings-server.middleware :refer [wrap-site-middleware]]
             [mtg-pairings-server.middleware.cors :refer [wrap-allow-origin]]
             [mtg-pairings-server.middleware.db :refer [wrap-db-transaction]]
-            [mtg-pairings-server.middleware.log :refer [wrap-request-log]]
             [mtg-pairings-server.service.decklist :as decklist]
             [mtg-pairings-server.service.player :as player]
             [mtg-pairings-server.service.tournament :as tournament]
@@ -208,6 +207,5 @@
 
 (def app (-> app-routes
              wrap-json-with-padding
-             wrap-request-log
              wrap-allow-origin
              wrap-db-transaction))
